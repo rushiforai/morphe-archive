@@ -1,5 +1,6 @@
 package semicoloncolonel.mobilestream.patches.msnow.privacy
 
+import semicoloncolonel.mobilestream.patches.shared.misc.isOptionOn
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
@@ -7,7 +8,6 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
-import semicoloncolonel.mobilestream.patches.msnow.shared.Constants
 
 private const val ALLOW_ALL = "Banner - Allow All"
 private const val REJECT_ALL = "Banner - Reject All"
@@ -22,14 +22,10 @@ internal object OnboardingConsentFingerprint : Fingerprint(
     strings = listOf("onboarding_completed", ALLOW_ALL),
 )
 
-@Suppress("unused")
-val optOutOfDataSalePatch = bytecodePatch(
-    name = "Opt out of data sale & sharing",
-    description = "Starts the app opted out of the sale and sharing of your data.",
-) {
-    compatibleWith(Constants.COMPATIBILITY)
-
+// Part of blockAnalyticsPatch: runs only when its "dataSale" option is on.
+internal val optOutOfDataSalePatch = bytecodePatch {
     execute {
+        if (!isOptionOn(blockAnalyticsPatch, "dataSale")) return@execute
         OnboardingConsentFingerprint.method.apply {
             implementation!!.instructions.toList().forEachIndexed { index, instruction ->
                 if (instruction.opcode != Opcode.CONST_STRING) return@forEachIndexed

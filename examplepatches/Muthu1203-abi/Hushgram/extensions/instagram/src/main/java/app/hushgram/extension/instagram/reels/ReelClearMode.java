@@ -1,0 +1,1509 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.hushgram.extension.instagram.reels;
+
+import android.graphics.Rect;
+import android.os.SystemClock;
+import android.app.Activity;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup;
+
+import androidx.annotation.Nullable;
+
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayDeque;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.WeakHashMap;
+
+import app.hushgram.extension.instagram.settings.FamilyNames;
+import app.hushgram.extension.instagram.settings.Settings;
+import app.hushgram.extension.shared.Logger;
+import app.hushgram.extension.shared.Utils;
+import app.hushgram.extension.shared.diagnostics.HookStatus;
+import app.hushgram.extension.shared.settings.HushgramPause;
+import kotlin.jvm.functions.Function1;
+
+/**
+ * Keep clear mode on (#138): once you turn Instagram's clear mode on for a reel, the next reels you
+ * swipe to start in it too, until you leave it yourself.
+ *
+ * <p>Instagram 450 calls clear mode its fullscreen view and keeps it per reel. Turning it on goes
+ * through one handler, whose action reads the reel the pager is on, sets that reel's own flag and
+ * hides its buttons. A reel in clear mode draws an exit button, and when that button leaves the
+ * screen Instagram turns clear mode off for its reel through the same handler, naming
+ * {@link #SWIPED_AWAY} as the reason. That is why a swipe to the next reel ends it, and why every
+ * reel has to be put in clear mode by hand.
+ *
+ * <p>The patch tells this class each time the handler turned clear mode on ({@link #entered}) and
+ * off ({@link #left}), which reel Instagram's turn-on is about to act on ({@link #current}), each
+ * page the Reels pager lands on ({@link #paged}) and each reel whose exit button Instagram built
+ * ({@link #built}). When a reel you put in clear mode leaves it because it left the screen, this
+ * class asks the handler to turn clear mode on again, with the reason your own turn-on gave, so
+ * Instagram does to the next reel exactly what your tap would have done.
+ *
+ * <p>Instagram 456 has no turn-on method in the handler: each caller reads the action the viewer
+ * set and runs it itself. There the patch fills {@link #turnOnAction} and {@link #setTurnOnAction},
+ * and {@link #ready} wraps the action in a {@link TurnOn}, which runs it and then tells
+ * {@link #entered}, as the hook in the handler's own turn-on does on earlier builds.
+ *
+ * <p>Instagram's clear mode fades a reel's buttons, author row and top bar out but leaves the seek
+ * bar of a long reel on screen (#277). The patch asks {@link #scrubber} where the seek bar row
+ * decides whether to draw it, with the reel's own clear mode flag, and while the switch is on a reel
+ * in clear mode draws no seek bar, unless Always show seek bar in clear mode keeps it (#480). That
+ * is the only thing this class hides.
+ *
+ * <p>Every reel page shares one alpha for its buttons and author row. Clear mode's fade animates it
+ * to hidden, and Instagram resets it to shown when it binds a page at rest, behind the fade's back,
+ * which brought every button back on a reel still in clear mode several swipes in (#233). The patch
+ * asks {@link #chrome} each time a page writes that alpha, with the page. While clear mode is wanted,
+ * every page answers hidden: the reel in it, and the next reel, whose page Instagram drew with its
+ * buttons before the swipe and only puts in clear mode once the swipe lands, so the buttons showed and
+ * then faded for about a second on every swipe (#740). The fade out lands at once for the same reason.
+ * Each page hidden that way is remembered, weakly, and once clear mode isn't wanted any more,
+ * {@link #SHOW_AGAIN_MS} later, each one Instagram hasn't written since gets its buttons back through
+ * the page's own setter. Leaving clear mode yourself forgets it before Instagram's fade back in
+ * starts, so that fade goes through, and the page it runs on is Instagram's again.
+ *
+ * <p>The top bar belongs to the viewer, not the page, and the same fade writes it only on the steps
+ * of its spring. A turn-on in the same moment as the turn-off leaves that spring where it was, so
+ * nothing hides the bar a page change just showed. A reel that left clear mode therefore lets the
+ * fade run for {@link #FADE_MOVES_MS} before the first try for the next reel. In between the bar
+ * faded in during the swipe and back out once it landed, so a reel that leaves clear mode by a swipe
+ * has {@link ReelsTopBar#holdForClearMode} hide the bars on screen before that fade's first frame,
+ * and keep them hidden for as long as clear mode is wanted (#740). A drag starts that fade from its
+ * first move, before the turn-off, so the hold starts once clear mode goes on too, as soon as
+ * Instagram's fade out is done ({@link ReelsTopBar#clearModeStarted}).
+ *
+ * <p>Instagram's turn-on acts on whatever reel the pager is on, so {@link #current} looks at that
+ * reel first and holds the turn-on back when it would be the wrong one: the reel that just left
+ * clear mode, which is what the pager still names when the viewer is closing or the swipe hasn't
+ * landed, or a page with no exit button yet, which could never leave clear mode again. A swipe
+ * that hasn't landed, or a page whose button isn't built yet, is tried again each time the pager
+ * reports a page or a button is built, until {@link #RETRY_WINDOW_MS} after the reel left (#233).
+ * A page report that still names the reel that left, the wait running out, or anything else ends
+ * the carrying until you turn clear mode on again.
+ *
+ * <p>A swipe back takes the exit button off the screen quickly, since it sits low on the page, so
+ * a reel leaves clear mode even when the swipe snaps back to it without landing. The pager reports
+ * no page then. The patch tells {@link #settled} each time the pager comes to rest, and when a reel
+ * still waits with no page reported since, the next try may put that same reel back in clear mode,
+ * as long as the pager is still on screen: leaving Reels takes the exit button away the same way,
+ * and turning clear mode on for a viewer nobody sees would act on whatever shows instead (#233).
+ *
+ * <p>Start every reel in clear mode (#138) doesn't wait for your tap. The patch hands this class
+ * the handler as soon as the Reels viewer gives it its turn-on action ({@link #ready}), and the
+ * first reel with an exit button, by a page report or the button being built, gets clear mode
+ * through that handler with the reason Instagram's own menu row gives ({@link #MENU}). From there
+ * it's carried like your own. Leaving it yourself stops the starting too, until another Reels
+ * viewer is set up, and a reel that couldn't be carried to gets it started instead.
+ *
+ * <p>The Full screen icon beside a reel (#480) asks for clear mode on its own reel ({@link #fullScreen}).
+ * {@link #ready} keeps the last few viewers' handlers, weakly, and each is asked with the menu row's
+ * reason, newest first, while {@link #current} holds back any reel but the one tapped, so a viewer
+ * showing another reel does nothing. Instagram's menu row needs Keep clear mode on for none of this.
+ *
+ * <p>Instagram buzzes each time it draws a reel's exit button, so with Keep clear mode on every
+ * swipe buzzes (#480). The patch asks {@link #quiet} right before that buzz, and Don't vibrate in
+ * clear mode skips it. No other vibration goes through here.
+ *
+ * <p>Leaving clear mode yourself, by its exit button or the menu, forgets it, and the next reels
+ * show their buttons. What is kept is small and lives in memory only: whether clear mode is wanted,
+ * the reason your turn-on gave (an enum constant), a few reel ids, weak page references, and for
+ * the length of the wait the handler, weakly, as the handler is held for starting. Nothing is carried
+ * or started while the switch is off, HushGram is paused, the settings aren't ready, or anything
+ * here fails, and Instagram's own turn-on and turn-off always run as they would.
+ *
+ * <p>The hooks run on Instagram's main thread, where it handles taps and page changes. The one that
+ * doesn't, {@link #built}, keeps to a lock of its own.
+ */
+public final class ReelClearMode {
+    /** The reason Instagram gives when a reel leaves clear mode because it left the screen. */
+    static final String SWIPED_AWAY = "REELS_VIEWER_SWIPE_OR_EXIT";
+
+    /** Counted under the patch's name for each reel clear mode was carried to. */
+    static final String CARRIED = "reels started in clear mode";
+
+    /** Counted under the patch's name for each reel put back in clear mode after its swipe snapped back. */
+    static final String KEPT = "reels kept in clear mode after a swipe snapped back";
+
+    /** Counted under the patch's name for each reel clear mode was started on with no tap (#138). */
+    static final String STARTED = "reels put in clear mode with no tap";
+
+    /** The reason Instagram's own menu row turns clear mode on with, which a started clear mode gives. */
+    static final String MENU = "OVERFLOW_MENU";
+
+    /** What the pager's scroll state calls the pager at rest. */
+    static final String AT_REST = "IDLE";
+
+    /** How long after a reel left clear mode the pager's next page still gets it. */
+    static final long RETRY_WINDOW_MS = 3_000;
+
+    /** How long a reel that left clear mode lets Instagram's fade run before the next reel's turn-on. */
+    static final long FADE_MOVES_MS = 50;
+
+    /** How many reels are remembered as having an exit button of their own. */
+    static final int REMEMBERED = 64;
+
+    /** How long after clear mode stopped being wanted the pages hidden for it get their buttons back (#740). */
+    static final long SHOW_AGAIN_MS = 400;
+
+    /** How many reel pages hidden for clear mode are remembered, weakly, to show again (#740). */
+    static final int HIDDEN_PAGES = 16;
+
+    private static final String FAMILY = FamilyNames.REEL_DECLUTTER;
+
+    /** What Instagram's turn-on found on the pager while this class asked for it. */
+    private static final int NOTHING = 0;
+    private static final int SAME_REEL = 1;
+    private static final int NO_BUTTON = 2;
+    private static final int REACHED = 3;
+    /** A reel Instagram hasn't built an exit button for yet: its button may still come (#233). */
+    private static final int NOT_BUILT = 4;
+    /** Another reel than the one the Full screen icon was tapped on (#480). */
+    private static final int OTHER_REEL = 5;
+
+    /** Counted under the patch's name for each reel the Full screen icon put in clear mode (#480). */
+    static final String FULL_SCREEN = "reels put in clear mode by the Full screen icon";
+
+    /** How many Reels viewers' handlers are kept for the Full screen icon, newest first (#480). */
+    static final int VIEWERS = 4;
+
+    /** The reasons Instagram's own pinch turns clear mode on and off with (#744). */
+    static final String PINCH_IN = "PINCH_TO_ZOOM_IN";
+    static final String PINCH_OUT = "PINCH_TO_ZOOM_OUT";
+
+    /** The reason the exit button turns clear mode off with, which a pinch gives where the build has no pinch reason. */
+    static final String EXIT_BUTTON = "EXIT_BUTTON";
+
+    /** Counted under the patch's name for each reel a pinch put in clear mode, and took out of it (#744). */
+    static final String PINCHED_IN = "reels put in clear mode by a pinch";
+    static final String PINCHED_OUT = "reels taken out of clear mode by a pinch";
+
+    /** What this class does to Instagram and reads from it. {@link #PATCHED} is the patch's; tests stand in. */
+    interface Viewer {
+        /** Turns clear mode on through Instagram's own handler, with the reason given. */
+        void enter(Object handler, Object source);
+
+        /** A reel's id. */
+        @Nullable
+        String id(Object item);
+
+        /** Runs the work on the main thread once what's running there now is done. */
+        void post(Runnable work);
+
+        /** Runs the work on the main thread after {@link #FADE_MOVES_MS}. */
+        void afterFadeMoved(Runnable work);
+
+        /** Runs the work on the main thread after [delay] milliseconds. */
+        void later(Runnable work, long delay);
+
+        /** Shows a reel page's buttons again through the page's own setter (#740). */
+        void showButtons(Object page);
+
+        /** Milliseconds that only go forward. */
+        long now();
+
+        /** Whether the Reels pager is on screen: shown, with at least half of it in view each way. */
+        boolean showing(Object pager);
+
+        /** The handler's own reason for a turn-on from Instagram's menu row, or null when it has none. */
+        @Nullable
+        Object reason(Object handler);
+
+        /** The handler's own reason named [name], or null when it has none. */
+        @Nullable
+        default Object reason(Object handler, String name) {
+            return MENU.equals(name) ? reason(handler) : null;
+        }
+
+        /** Turns clear mode off for [item] through Instagram's own handler, with the reason given (#744). */
+        default void leave(Object handler, Object item, Object reason) {
+        }
+
+        /** The turn-on action the handler holds, where the patch reached it (456), or null. */
+        @Nullable
+        Object action(Object handler);
+
+        /** Gives the handler [action] as its turn-on action. */
+        void setAction(Object handler, Object action);
+    }
+
+    static final Viewer PATCHED = new Viewer() {
+        @Override
+        public void enter(Object handler, Object source) {
+            ReelClearMode.enter(handler, source);
+        }
+
+        @Override
+        public String id(Object item) {
+            return reelId(item);
+        }
+
+        @Override
+        public void post(Runnable work) {
+            Utils.runOnMainThread(work);
+        }
+
+        @Override
+        public void afterFadeMoved(Runnable work) {
+            Utils.runOnMainThreadDelayed(work, FADE_MOVES_MS);
+        }
+
+        @Override
+        public void later(Runnable work, long delay) {
+            Utils.runOnMainThreadDelayed(work, delay);
+        }
+
+        @Override
+        public void showButtons(Object page) {
+            setChrome(page, 1f);
+        }
+
+        @Override
+        public long now() {
+            return SystemClock.uptimeMillis();
+        }
+
+        @Override
+        public boolean showing(Object pager) {
+            if (!(pager instanceof View)) return false;
+            View view = (View) pager;
+            Rect seen = new Rect();
+            return view.isShown() && view.getGlobalVisibleRect(seen)
+                    && 2 * seen.width() >= view.getWidth() && 2 * seen.height() >= view.getHeight();
+        }
+
+        @Override
+        public Object reason(Object handler) {
+            return reason(handler, MENU);
+        }
+
+        /**
+         * The reason enum is the one parameter of the handler's turn-on, and the last of its
+         * turn-off, the only method of the handler 456 keeps. Its constants are read from its own
+         * static fields, since Redex may leave an enum without values().
+         */
+        @Override
+        public Object reason(Object handler, String name) {
+            for (Method method : handler.getClass().getDeclaredMethods()) {
+                for (Class<?> parameter : method.getParameterTypes()) {
+                    if (!Enum.class.isAssignableFrom(parameter)) continue;
+                    for (Field field : parameter.getDeclaredFields()) {
+                        if (!Modifier.isStatic(field.getModifiers()) || field.getType() != parameter) continue;
+                        try {
+                            field.setAccessible(true);
+                            Object constant = field.get(null);
+                            if (constant instanceof Enum && name.equals(((Enum<?>) constant).name())) return constant;
+                        } catch (ReflectiveOperationException | RuntimeException unreadable) {
+                            // Another constant may still be readable.
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public Object action(Object handler) {
+            return turnOnAction(handler);
+        }
+
+        @Override
+        public void setAction(Object handler, Object action) {
+            setTurnOnAction(handler, action);
+        }
+
+        @Override
+        public void leave(Object handler, Object item, Object reason) {
+            ReelClearMode.leave(handler, item, reason);
+        }
+    };
+
+    static volatile Viewer access = PATCHED;
+
+    /** You turned clear mode on, and haven't turned it off. */
+    private static volatile boolean wanted;
+
+    /** The reason your own turn-on gave, handed back to Instagram for each next reel. */
+    @Nullable
+    private static volatile Object source;
+
+    /** The reel in clear mode now, by id, or null when none is. */
+    @Nullable
+    private static volatile String shown;
+
+    /** The reel Instagram's turn-on last acted on, read by {@link #entered} right after. */
+    @Nullable
+    private static volatile String enabling;
+
+    /** True while this class is asking the handler to turn clear mode on. */
+    private static volatile boolean carrying;
+
+    /** The reel that just left clear mode, which a carried turn-on must not land on again. */
+    @Nullable
+    private static volatile String from;
+
+    /** The handler of the first try that waits for Instagram's fade to move, or null when none does. */
+    @Nullable
+    private static volatile WeakReference<Object> leaving;
+
+    private static volatile int outcome = NOTHING;
+
+    @Nullable
+    private static volatile String reached;
+
+    /** The handler to ask again on the pager's next page, until {@link #retryUntil}. */
+    @Nullable
+    private static volatile WeakReference<Object> waiting;
+
+    /** When the wait for the pager's next page ends, or 0 when nothing waits. */
+    private static volatile long retryUntil;
+
+    private static volatile boolean retryPosted;
+
+    /** The pager reported a page while a reel waits, so the next try's page is where the swipe landed. */
+    private static volatile boolean pageReported;
+
+    /**
+     * The swipe that took the reel out of clear mode landed: the pager reported a page, or a try
+     * found another reel on it. A rest after that isn't a snap-back, for as long as the reel waits.
+     */
+    private static volatile boolean landed;
+
+    /** The pager, weakly, when it came to rest before the swipe {@link #landed} while a reel waits: the swipe snapped back. */
+    @Nullable
+    private static volatile WeakReference<Object> snapped;
+
+    /** True while a carried turn-on may land on the reel that left, because its swipe snapped back. */
+    private static volatile boolean returning;
+
+    private static final Object BUILT_LOCK = new Object();
+
+    /** The ids of the reels whose exit button Instagram built last, oldest first. */
+    private static final LinkedHashSet<String> BUILT = new LinkedHashSet<>();
+
+    @Nullable
+    private static volatile String lastBuilt;
+
+    /** The handler, weakly, while Start every reel in clear mode waits to start it (#138). */
+    @Nullable
+    private static volatile WeakReference<Object> starting;
+
+    private static volatile boolean startPosted;
+
+    /** The handler the last Reels viewer was set up with, weakly, to tell a new viewer from it. */
+    @Nullable
+    private static volatile WeakReference<Object> viewer;
+
+    /** You left clear mode yourself in that viewer, so it isn't started there again. */
+    private static volatile boolean declined;
+
+    /** The handlers the last Reels viewers were set up with, weakly, newest first, for the Full screen icon (#480). */
+    private static final ArrayDeque<WeakReference<Object>> HANDLERS = new ArrayDeque<>();
+
+    /** The reel the Full screen icon was tapped on, by id, while it asks the handlers for it (#480). */
+    @Nullable
+    private static volatile String aiming;
+
+    /** The handler clear mode is wanted through, weakly, to tell another Reels viewer from it (#740). */
+    @Nullable
+    private static volatile WeakReference<Object> wantedIn;
+
+    /** The reel pages whose buttons {@link #chrome} hid for clear mode, weakly, oldest first (#740). */
+    private static final ArrayDeque<WeakReference<Object>> HIDDEN = new ArrayDeque<>();
+    /** Pages Instagram has faded out in its own clear mode, including when Keep clear mode is off. */
+    private static final WeakHashMap<Object, Boolean> CLEAR_MODE_PAGES = new WeakHashMap<>();
+    private static WeakReference<View> sharePressed = new WeakReference<>(null);
+    private static final Rect sharePressedBounds = new Rect();
+    /** Returned by the hit test when a higher, non-Share control owns the point. */
+    private static final Object SHARE_TOUCH_OCCLUDED = new Object();
+    private static boolean shareGesture;
+
+    /** How many pages {@link #HIDDEN} holds, read without its lock on every alpha write. */
+    private static volatile int hiddenCount;
+
+    private static volatile boolean showPosted;
+
+    /**
+     * The handler that last turned clear mode on, weakly, and the reel it did, until that reel
+     * leaves it, so a pinch on that reel turns it off through the same handler (#744). Kept with Keep
+     * clear mode on off too.
+     */
+    @Nullable
+    private static volatile WeakReference<Object> onBy;
+
+    @Nullable
+    private static volatile String onReel;
+
+    /** The handler's turn-off was heard since a pinch asked for it (#744). */
+    private static volatile boolean heardLeft;
+
+    private ReelClearMode() {
+    }
+
+    // ------------------------------------------------------------------ what the patch fills in
+
+    /** Filled in by the patch: the handler's own turn-on. Only the handler and its reason may be passed. */
+    public static void enter(Object handler, Object source) {
+    }
+
+    /** Filled in by the patch: the reel's own getId. Only a reel may be passed. */
+    public static String reelId(Object item) {
+        return null;
+    }
+
+    /**
+     * Filled in by the patch where Instagram runs the handler's turn-on action from its callers
+     * (456): the action the handler holds. Elsewhere it answers null, so nothing is wrapped. Only
+     * the handler may be passed.
+     */
+    @Nullable
+    public static Object turnOnAction(Object handler) {
+        return null;
+    }
+
+    /** Filled in by the patch with {@link #turnOnAction}: gives the handler its turn-on action. Only the handler and a Function1 may be passed. */
+    public static void setTurnOnAction(Object handler, Object action) {
+    }
+
+    /** Filled in by the patch: the reel page's own alpha setter, the one {@link #chrome} sits in. Only a page {@link #chrome} was handed may be passed. */
+    public static void setChrome(Object page, float alpha) {
+    }
+
+    /** Filled in by the patch: the handler's own turn-off (#744). Only the handler, a reel and its reason may be passed. */
+    public static void leave(Object handler, Object item, Object reason) {
+    }
+
+    // ------------------------------------------------------------------ hooks
+
+    /**
+     * The hook, in the handler's turn-on right after its action ran. Your own turn-on is remembered
+     * with the reel it acted on. One this class asked for comes through here too and is left alone.
+     */
+    public static void entered(@Nullable Object handler, @Nullable Object reason) {
+        try {
+            HookStatus.invoked(FAMILY);
+            String turned = carrying ? reached : enabling;
+            if (handler != null && turned != null) {
+                onBy = new WeakReference<>(handler);
+                onReel = turned;
+            }
+            if (carrying) return;
+            String id = enabling;
+            enabling = null;
+            if (!on() || handler == null || reason == null || id == null) {
+                drop();
+                return;
+            }
+            HookStatus.bound(FAMILY, "clear mode");
+            want(handler);
+            source = reason;
+            shown = id;
+            clearRetry();
+            Logger.printDebug(() -> "Clear mode: turned on, the next reels start in it");
+        } catch (Throwable failure) {
+            drop();
+            HookStatus.threw(FAMILY, "clear mode on", failure);
+        }
+    }
+
+    /**
+     * The hook, in the handler's turn-off right after its action ran, with the reel and the reason.
+     * Any reason but {@link #SWIPED_AWAY} is you leaving clear mode, which forgets it. A reel that
+     * left the screen in the clear mode you asked for hands it to the reel the pager is on now.
+     */
+    public static void left(@Nullable Object handler, @Nullable Object item, @Nullable Object reason) {
+        try {
+            HookStatus.invoked(FAMILY);
+            heardLeft = true;
+            String gone = item == null ? null : access.id(item);
+            // A reel that can't be told apart may be the one a pinch would turn off, so it's forgotten too.
+            if (gone == null || gone.equals(onReel)) {
+                onReel = null;
+                onBy = null;
+            }
+            if (carrying) return;
+            if (!swipedAway(reason)) {
+                if (wanted) Logger.printDebug(() -> "Clear mode: turned off, the next reels show their buttons");
+                // You left it yourself, so this viewer doesn't start it again (#138).
+                starting = null;
+                declined = true;
+                drop();
+                return;
+            }
+            if (!wanted) return;
+            if (!on()) {
+                drop();
+                return;
+            }
+            String id = gone;
+            String was = shown;
+            if (handler == null || id == null || !id.equals(was)) {
+                Logger.printDebug(() -> "Clear mode: a reel left it that isn't the one put in it, nothing carried"
+                        + " (handler " + (handler != null) + ", reel " + (id != null) + ", one in it " + (was != null) + ")");
+                return;
+            }
+            shown = null;
+            clearRetry();
+            WeakReference<Object> held = new WeakReference<>(handler);
+            leaving = held;
+            // Instagram's turn-off just set the viewer's top bar fading in; it stays hidden instead (#740).
+            ReelsTopBar.holdForClearMode();
+            access.afterFadeMoved(() -> firstTry(held, id));
+        } catch (Throwable failure) {
+            drop();
+            HookStatus.threw(FAMILY, "clear mode off", failure);
+        }
+    }
+
+    /** The first try for the reel the pager is on, unless clear mode was left or turned on again since. */
+    private static void firstTry(WeakReference<Object> held, String left) {
+        try {
+            if (leaving != held) return;
+            leaving = null;
+            if (!wanted) return;
+            Object handler = held.get();
+            if (!on() || handler == null) {
+                drop();
+                return;
+            }
+            carry(handler, left, 0, false, false);
+        } catch (Throwable failure) {
+            drop();
+            HookStatus.threw(FAMILY, "clear mode off", failure);
+        }
+    }
+
+    /**
+     * The hook, in Instagram's turn-on where it has read the reel the pager is on and before it
+     * tests it. Your own turn-on gets its reel back as it is. One this class asked for gets the reel
+     * only when it's another reel than the one that just left clear mode, or that same one after its
+     * swipe snapped back, and Instagram built it an exit button. Otherwise it gets null, which
+     * Instagram's own test takes as no reel and does nothing.
+     */
+    @Nullable
+    public static Object current(@Nullable Object item) {
+        boolean ours = carrying;
+        try {
+            HookStatus.invoked(FAMILY);
+            if (!ours) {
+                // Cleared first, so a reel whose id can't be read leaves no older reel's behind.
+                enabling = null;
+                if (item != null) enabling = access.id(item);
+                return item;
+            }
+            String id = item == null ? null : access.id(item);
+            if (id == null) {
+                outcome = NO_BUTTON;
+                return null;
+            }
+            String aim = aiming;
+            if (aim != null) {
+                // The Full screen icon's turn-on lands only on the reel it was tapped on (#480).
+                if (!aim.equals(id)) {
+                    outcome = OTHER_REEL;
+                    return null;
+                }
+                outcome = REACHED;
+                reached = id;
+                return item;
+            }
+            boolean same = id.equals(from);
+            if (!same) landed = true;
+            if (same && !returning) {
+                outcome = SAME_REEL;
+                return null;
+            }
+            if (!hasButton(id)) {
+                outcome = NOT_BUILT;
+                return null;
+            }
+            outcome = REACHED;
+            reached = id;
+            return item;
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "clear mode reel", failure);
+            if (!ours) return item;
+            outcome = NO_BUTTON;
+            return null;
+        }
+    }
+
+    /**
+     * The hook, first thing when the Reels pager reports the page it landed on. A reel that left
+     * clear mode before its swipe landed is tried again, once Instagram is done with the page. With
+     * nothing waiting, Start every reel in clear mode gets its try.
+     */
+    public static void paged() {
+        try {
+            HookStatus.invoked(FAMILY);
+            long until = retryUntil;
+            if (until == 0) {
+                wakeIfStarting();
+                return;
+            }
+            if (!on() || access.now() > until) {
+                Logger.printDebug(() -> "Clear mode: the wait for the next reel ran out, the next reels show their buttons");
+                drop();
+                return;
+            }
+            pageReported = true;
+            landed = true;
+            if (retryPosted) return;
+            retryPosted = true;
+            access.post(ReelClearMode::retry);
+        } catch (Throwable failure) {
+            retryPosted = false;
+            drop();
+            HookStatus.threw(FAMILY, "clear mode page", failure);
+        }
+    }
+
+    /**
+     * The hook, where the Reels pager's listener handles a change of its scroll state, right after
+     * it read the pager, with the pager and the state. A reel that left clear mode and still waits,
+     * when the pager comes to rest and its swipe never {@link #landed}, had its swipe snap back: the
+     * next try may put that same reel back in clear mode, once Instagram is done with the change (#233).
+     */
+    public static void settled(@Nullable Object pager, @Nullable Object state) {
+        long until = retryUntil;
+        if (until == 0 || landed || pager == null || !atRest(state)) return;
+        try {
+            HookStatus.invoked(FAMILY);
+            if (!on() || access.now() > until) {
+                Logger.printDebug(() -> "Clear mode: the wait for the next reel ran out, the next reels show their buttons");
+                drop();
+                return;
+            }
+            snapped = new WeakReference<>(pager);
+            if (retryPosted) return;
+            retryPosted = true;
+            access.post(ReelClearMode::retry);
+        } catch (Throwable failure) {
+            retryPosted = false;
+            drop();
+            HookStatus.threw(FAMILY, "clear mode settle", failure);
+        }
+    }
+
+    /**
+     * The hook, first thing where Instagram builds a reel's exit button, with the reel. Only a reel
+     * seen here can leave clear mode again, so only such a reel is put in it. A new one wakes a reel
+     * waiting for its button, or Start every reel in clear mode.
+     */
+    public static void built(@Nullable Object item) {
+        try {
+            HookStatus.invoked(FAMILY);
+            if (item == null) return;
+            String id = access.id(item);
+            if (id == null || id.equals(lastBuilt)) return;
+            synchronized (BUILT_LOCK) {
+                BUILT.remove(id);
+                BUILT.add(id);
+                if (BUILT.size() > REMEMBERED) {
+                    Iterator<String> oldest = BUILT.iterator();
+                    oldest.next();
+                    oldest.remove();
+                }
+                lastBuilt = id;
+            }
+            wakeIfWaiting();
+            wakeIfStarting();
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "clear mode exit button", failure);
+        }
+    }
+
+    /**
+     * The hook, in the Reels viewer's setup right after it handed the handler its turn-on action.
+     * Where the patch reached that action (456), it's wrapped so {@link #entered} hears of each
+     * turn-on. With Start every reel in clear mode on, the handler is kept, weakly, for the first
+     * reel with an exit button. Otherwise nothing is kept (#138).
+     */
+    public static void ready(@Nullable Object handler) {
+        try {
+            HookStatus.invoked(FAMILY);
+            if (handler != null) {
+                remember(handler);
+                wrap(handler);
+                WeakReference<Object> in = wantedIn;
+                if (wanted && (in == null || in.get() != handler)) {
+                    // Clear mode was wanted in a viewer that's gone or behind this one, so this
+                    // one's reels show their buttons (#740).
+                    Logger.printDebug(() -> "Clear mode: another Reels viewer opened, its reels show their buttons");
+                    drop();
+                }
+            }
+            if (handler == null || !startsOn()) {
+                starting = null;
+                return;
+            }
+            WeakReference<Object> last = viewer;
+            if (last == null || last.get() != handler) {
+                // Another viewer: the clear mode the one before it was in went with it, and leaving
+                // it there doesn't hold this one back.
+                viewer = new WeakReference<>(handler);
+                declined = false;
+                drop();
+            }
+            starting = declined ? null : new WeakReference<>(handler);
+        } catch (Throwable failure) {
+            starting = null;
+            HookStatus.threw(FAMILY, "clear mode start", failure);
+        }
+    }
+
+    /**
+     * The hook, where the seek bar row tests whether to draw the seek bar, with Instagram's answer
+     * and the reel's clear mode flag, each non-zero for yes. A reel in clear mode draws none while
+     * the switch is on, unless Always show seek bar in clear mode asks to keep it (#480). Anything
+     * else, or a failure here, keeps Instagram's answer.
+     */
+    public static boolean scrubber(int shown, int fullscreen) {
+        if (shown == 0) return false;
+        if (fullscreen == 0) return true;
+        try {
+            HookStatus.invoked(FAMILY);
+            return !on() || Settings.CLEAR_MODE_SEEK_BAR.get();
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "clear mode seek bar", failure);
+            return true;
+        }
+    }
+
+    /**
+     * The hook, right before Instagram buzzes while it draws a reel's exit button, which happens for
+     * every reel that opens in clear mode, so with Keep clear mode on for every swipe (#480). Yes
+     * skips the buzz. Anything else, or a failure here, lets it play.
+     */
+    public static boolean quiet() {
+        try {
+            HookStatus.invoked(FAMILY);
+            return Utils.settingsReady() && Settings.QUIET_REEL_CLEAR_MODE.get();
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "clear mode vibration", failure);
+            return false;
+        }
+    }
+
+    /**
+     * The hook, where a reel page writes the alpha its buttons and author row share, with the page,
+     * the alpha asked for and the one held now. While clear mode is wanted, a reel in it or the next
+     * one waiting for it, any page asking to keep or raise its alpha gets hidden instead, and is
+     * remembered to be shown again once clear mode isn't wanted (#233, #740). Instagram's own fade
+     * out goes through. A page written while it isn't wanted, or hidden by Instagram itself, is
+     * Instagram's again. Anything else, or a failure here, keeps what was asked for.
+     */
+    public static float chrome(@Nullable Object page, float asked, float now) {
+        if (page != null) {
+            // Instagram sets this alpha to zero for clear mode. Keep the page even when the
+            // carry-to-next-reel switch is off, so a tap on its invisible Share target can route
+            // to Share instead of falling through to the video player's pause handler.
+            if (asked <= 0f) CLEAR_MODE_PAGES.put(page, Boolean.TRUE);
+            else CLEAR_MODE_PAGES.remove(page);
+        }
+        if (!wanted) {
+            if (hiddenCount != 0 && page != null) released(page);
+            return asked;
+        }
+        if (asked <= 0f) {
+            // Instagram hid it itself, as clear mode on that reel: Instagram's to show again.
+            if (hiddenCount != 0 && page != null) released(page);
+            return asked;
+        }
+        // Instagram's fade out as clear mode goes on, which ends hidden.
+        if (asked < now) return asked;
+        try {
+            HookStatus.invoked(FAMILY);
+            if (!on()) return asked;
+            if (page != null) hidden(page);
+            if (asked >= 1f) {
+                Logger.printDebug(() -> now >= 1f
+                        ? "Clear mode: hid the buttons of a reel page ahead of it"
+                        : "Clear mode: kept the buttons hidden when Instagram reset them");
+            }
+            return 0f;
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "clear mode buttons", failure);
+            return asked;
+        }
+    }
+
+    /**
+     * Handles a tap on the invisible Share button in clear mode. The actual button remains in
+     * Instagram's view tree, but its clear-mode alpha makes Instagram's own touch handling send the
+     * tap to the video. Find the Share-labelled clickable view through transparent ancestors and
+     * invoke its existing click listener. Expand its invisible touch target by the amount selected
+     * in Reels settings, without changing how taps anywhere else are handled. A missing target leaves
+     * the event alone.
+     */
+    public static boolean shareTouch(@Nullable Activity activity, @Nullable MotionEvent event) {
+        try {
+            if (activity == null || event == null || CLEAR_MODE_PAGES.isEmpty()) {
+                sharePressed = new WeakReference<>(null);
+                sharePressedBounds.setEmpty();
+                shareGesture = false;
+                return false;
+            }
+            int action = event.getActionMasked();
+            if (action == MotionEvent.ACTION_DOWN) {
+                sharePressed = new WeakReference<>(null);
+                sharePressedBounds.setEmpty();
+                shareGesture = false;
+                View decor = activity.getWindow() == null ? null : activity.getWindow().peekDecorView();
+                if (decor == null) return false;
+                int[] rootAt = new int[2];
+                decor.getLocationOnScreen(rootAt);
+                float relativeX = (event.getRawX() - rootAt[0]) / Math.max(1, decor.getWidth());
+                float relativeY = (event.getRawY() - rootAt[1]) / Math.max(1, decor.getHeight());
+                // Share sits on the Reels action rail at the right. The Liquid Glass bar lifts a reel's
+                // buttons above its pill, so Share can sit well above the screen's middle: 0.55 left it
+                // out on those reels, and the tap paused the video. A sheet's own Share label is kept
+                // out by the hit test, where its visible controls own the point.
+                if (relativeX < 0.6f || relativeY < 0.3f || relativeY > 0.97f) return false;
+                int touchSlop = Math.round(Settings.CLEAR_MODE_SHARE_TOUCH_SLOP_DP.get()
+                        * activity.getResources().getDisplayMetrics().density);
+                Object hit = shareTarget(decor, event.getRawX(), event.getRawY(), false, touchSlop);
+                // A popup or bottom sheet can cover the hidden Share view. Its visible controls
+                // must keep their own touch stream instead of being mistaken for the Share below.
+                if (!(hit instanceof View)) return false;
+                View target = (View) hit;
+                int[] at = new int[2];
+                target.getLocationOnScreen(at);
+                sharePressedBounds.set(at[0] - touchSlop, at[1] - touchSlop,
+                        at[0] + target.getWidth() + touchSlop, at[1] + target.getHeight() + touchSlop);
+                sharePressed = new WeakReference<>(target);
+                shareGesture = true;
+                return true;
+            }
+            if (!shareGesture) return false;
+            View pressed = sharePressed.get();
+            if (action == MotionEvent.ACTION_UP) {
+                boolean hit = sharePressedBounds.contains((int) event.getRawX(), (int) event.getRawY());
+                sharePressed = new WeakReference<>(null);
+                sharePressedBounds.setEmpty();
+                shareGesture = false;
+                if (hit && pressed != null && pressed.isEnabled()) pressed.performClick();
+                return true;
+            }
+            if (action == MotionEvent.ACTION_CANCEL) {
+                sharePressed = new WeakReference<>(null);
+                sharePressedBounds.setEmpty();
+                shareGesture = false;
+                return true;
+            }
+            if (action == MotionEvent.ACTION_POINTER_DOWN) {
+                // A multi-touch gesture isn't a Share tap, but keep consuming the stream that
+                // started on the hidden target so it can't fall through and pause the reel.
+                sharePressed = new WeakReference<>(null);
+                sharePressedBounds.setEmpty();
+                return true;
+            }
+            return true;
+        } catch (Throwable failure) {
+            sharePressed = new WeakReference<>(null);
+            sharePressedBounds.setEmpty();
+            shareGesture = false;
+            HookStatus.threw(FAMILY, "clear mode Share touch", failure);
+            return false;
+        }
+    }
+
+    /** Finds the topmost clickable Share view, or reports a higher non-Share control at that point. */
+    @Nullable
+    private static Object shareTarget(View view, float x, float y, boolean shareAncestor, int touchSlop) {
+        if (view.getVisibility() != View.VISIBLE || !view.isEnabled()) return null;
+        boolean share = shareAncestor || namesShare(view);
+        int slop = share ? touchSlop : 0;
+        int[] at = new int[2];
+        view.getLocationOnScreen(at);
+        if (x < at[0] - slop || x >= at[0] + view.getWidth() + slop ||
+                y < at[1] - slop || y >= at[1] + view.getHeight() + slop) return null;
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = group.getChildCount() - 1; i >= 0; i--) {
+                Object hit = shareTarget(group.getChildAt(i), x, y, share, touchSlop);
+                if (hit != null) return hit;
+            }
+        }
+        if (share && view.isClickable()) return view;
+        // Activity.dispatchTouchEvent runs before Android dispatches to child views. A later
+        // clickable/long-clickable sibling (for example, a reel options sheet) is above the
+        // hidden Share button in drawing order and owns this point. Don't continue into siblings
+        // behind it and steal that popup's touch.
+        return !share && (view.isClickable() || view.isLongClickable()) ? SHARE_TOUCH_OCCLUDED : null;
+    }
+
+    /** The Android view id or accessibility label Instagram gives the Reels Share action. */
+    private static boolean namesShare(View view) {
+        StringBuilder names = new StringBuilder();
+        CharSequence description = view.getContentDescription();
+        if (description != null) names.append(description).append(' ');
+        CharSequence transition = view.getTransitionName();
+        if (transition != null) names.append(transition).append(' ');
+        names.append(view.getClass().getName()).append(' ');
+        Object tag = view.getTag();
+        if (tag instanceof CharSequence) names.append(tag).append(' ');
+        if (view.getId() != View.NO_ID) {
+            try {
+                names.append(view.getResources().getResourceEntryName(view.getId())).append(' ');
+            } catch (Throwable ignored) { }
+        }
+        return names.toString().toLowerCase(Locale.ROOT).contains("share");
+    }
+
+    // ------------------------------------------------------------------ the Full screen icon (#480)
+
+    /**
+     * The Full screen icon's tap on [item]'s column: asks each Reels viewer's handler, newest first,
+     * to turn clear mode on with the reason Instagram's menu row gives, and {@link #current} lets the
+     * turn-on land only on [item], so a viewer showing another reel does nothing. With Keep clear mode
+     * on, a reel put in it is carried like your own. True when Instagram turned it on. Never throws.
+     */
+    public static boolean fullScreen(@Nullable Object item) {
+        try {
+            return turnOnFor(item, MENU, FULL_SCREEN, "the Full screen icon");
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "full screen icon", failure);
+            return false;
+        }
+    }
+
+    // ------------------------------------------------------------------ a pinch (#744)
+
+    /**
+     * A pinch on [item], where Instagram's own pinch would only write the reel's clear mode state,
+     * which shows nothing. A reel a viewer's handler put in clear mode, and that hasn't left it, is
+     * taken out of it through that handler with the reason Instagram's pinch gives. Any other reel is
+     * put in it the way the Full screen icon does. True when Instagram did either, so the pinch's own
+     * write is skipped. Never throws.
+     */
+    public static boolean pinched(@Nullable Object item) {
+        try {
+            if (item == null || carrying || !Utils.settingsReady() || HushgramPause.isPaused()) return false;
+            String id = access.id(item);
+            if (id == null) return false;
+            WeakReference<Object> by = onBy;
+            Object handler = by == null ? null : by.get();
+            if (handler != null && id.equals(onReel)) return pinchedOut(handler, item);
+            return turnOnFor(item, PINCH_IN, PINCHED_IN, "a pinch");
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "pinch for clear mode", failure);
+            return false;
+        }
+    }
+
+    /**
+     * Turns clear mode off for [item] through [handler], the one that put it in, with the reason
+     * Instagram's pinch gives, or the exit button's where the build has none. True when the handler's
+     * turn-off ran, which {@link #left} hears, and which forgets Keep clear mode on like any turn-off
+     * of yours. A handler that turned nothing off leaves the reel to the next pinch's turn-on.
+     */
+    private static boolean pinchedOut(Object handler, Object item) {
+        Object reason = access.reason(handler, PINCH_OUT);
+        if (reason == null) reason = access.reason(handler, EXIT_BUTTON);
+        if (reason == null) {
+            Logger.printDebug(() -> "Clear mode: the handler gives no reason to turn it off with, the pinch does what Instagram's would");
+            return false;
+        }
+        heardLeft = false;
+        access.leave(handler, item, reason);
+        boolean heard = heardLeft;
+        heardLeft = false;
+        if (!heard) {
+            onReel = null;
+            onBy = null;
+            Logger.printDebug(() -> "Clear mode: the pinch's turn-off ran nothing, the next pinch turns it on");
+            return false;
+        }
+        HookStatus.counted(FAMILY, PINCHED_OUT);
+        Logger.printDebug(() -> "Clear mode: turned off by a pinch");
+        return true;
+    }
+
+    /**
+     * Asks each Reels viewer's handler, newest first, to turn clear mode on for [item] with its
+     * reason named [name], or the one Instagram's menu row gives where it has none, and
+     * {@link #current} lets the turn-on land only on [item], so a viewer showing another reel does
+     * nothing. Counted under [counter]. With Keep clear mode on, a reel put in it is carried like
+     * your own. True when Instagram turned it on.
+     */
+    private static boolean turnOnFor(@Nullable Object item, String name, String counter, String how) {
+        if (item == null || carrying || !Utils.settingsReady() || HushgramPause.isPaused()) return false;
+        String id = access.id(item);
+        if (id == null) return false;
+        Object[] handlers;
+        synchronized (HANDLERS) {
+            handlers = HANDLERS.stream().map(WeakReference::get).filter(Objects::nonNull).toArray();
+        }
+        for (Object handler : handlers) {
+            Object reason = access.reason(handler, name);
+            if (reason == null && !MENU.equals(name)) reason = access.reason(handler, MENU);
+            if (reason == null) continue;
+            outcome = NOTHING;
+            reached = null;
+            aiming = id;
+            carrying = true;
+            try {
+                access.enter(handler, reason);
+            } finally {
+                carrying = false;
+                aiming = null;
+            }
+            int found = outcome;
+            String got = reached;
+            outcome = NOTHING;
+            reached = null;
+            if (found != REACHED || got == null) continue;
+            HookStatus.counted(FAMILY, counter);
+            if (on()) {
+                HookStatus.bound(FAMILY, "clear mode");
+                want(handler);
+                source = reason;
+                shown = got;
+                clearRetry();
+            }
+            Logger.printDebug(() -> "Clear mode: turned on by " + how);
+            return true;
+        }
+        Logger.printDebug(() -> "Clear mode: " + how + " reached no viewer showing its reel ("
+                + handlers.length + " viewers)");
+        return false;
+    }
+
+    /**
+     * Wraps the turn-on action the handler holds in a {@link TurnOn}, once. A handler the patch
+     * couldn't reach that way (anything before 456) answers no action and is left alone. A failure
+     * here leaves Instagram's action as it was.
+     */
+    @SuppressWarnings("unchecked")
+    private static void wrap(Object handler) {
+        try {
+            Object action = access.action(handler);
+            if (!(action instanceof Function1) || action instanceof TurnOn) return;
+            access.setAction(handler, new TurnOn(handler, (Function1<Object, Object>) action));
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "clear mode turn-on", failure);
+        }
+    }
+
+    /**
+     * The handler's turn-on action, which Instagram 456's callers run themselves: runs Instagram's
+     * own, then tells {@link #entered} with the handler and the reason, as the hook in the handler's
+     * turn-on does on earlier builds. What Instagram's action answers is answered.
+     */
+    static final class TurnOn implements Function1<Object, Object> {
+        final Object handler;
+        final Function1<Object, Object> action;
+
+        TurnOn(Object handler, Function1<Object, Object> action) {
+            this.handler = handler;
+            this.action = action;
+        }
+
+        @Override
+        public Object invoke(Object reason) {
+            Object answer = action.invoke(reason);
+            entered(handler, reason);
+            return answer;
+        }
+    }
+
+    /** Keeps [handler] first among the viewers' handlers, weakly, dropping the oldest and any gone. */
+    private static void remember(Object handler) {
+        synchronized (HANDLERS) {
+            HANDLERS.removeIf(held -> {
+                Object kept = held.get();
+                return kept == null || kept == handler;
+            });
+            HANDLERS.addFirst(new WeakReference<>(handler));
+            while (HANDLERS.size() > VIEWERS) HANDLERS.removeLast();
+        }
+    }
+
+    // ------------------------------------------------------------------ hidden pages (#740)
+
+    /** Remembers [page] as hidden for clear mode, once, dropping the oldest and any gone. */
+    private static void hidden(Object page) {
+        synchronized (HIDDEN) {
+            for (WeakReference<Object> held : HIDDEN) {
+                if (held.get() == page) return;
+            }
+            HIDDEN.removeIf(held -> held.get() == null);
+            HIDDEN.addLast(new WeakReference<>(page));
+            while (HIDDEN.size() > HIDDEN_PAGES) HIDDEN.removeFirst();
+            hiddenCount = HIDDEN.size();
+        }
+    }
+
+    /** Instagram wrote [page] while clear mode isn't wanted, so it's Instagram's again and isn't shown by this class. */
+    private static void released(Object page) {
+        synchronized (HIDDEN) {
+            HIDDEN.removeIf(held -> {
+                Object kept = held.get();
+                return kept == null || kept == page;
+            });
+            hiddenCount = HIDDEN.size();
+        }
+    }
+
+    /** Clear mode isn't wanted any more: the pages hidden for it get their buttons back a moment later. */
+    private static void showLater() {
+        if (hiddenCount == 0 || showPosted) return;
+        showPosted = true;
+        access.later(ReelClearMode::showAgain, SHOW_AGAIN_MS);
+    }
+
+    /**
+     * Gives every page hidden for clear mode its buttons back, unless clear mode is wanted again. A
+     * page Instagram wrote since, like the one its fade back in runs on, was released already. A page
+     * that fails is skipped.
+     */
+    private static void showAgain() {
+        showPosted = false;
+        if (wanted) return;
+        Object[] pages;
+        synchronized (HIDDEN) {
+            pages = HIDDEN.stream().map(WeakReference::get).filter(Objects::nonNull).toArray();
+            HIDDEN.clear();
+            hiddenCount = 0;
+        }
+        int shownAgain = 0;
+        for (Object page : pages) {
+            try {
+                access.showButtons(page);
+                shownAgain++;
+            } catch (Throwable failure) {
+                HookStatus.threw(FAMILY, "clear mode buttons back", failure);
+            }
+        }
+        if (pages.length == 0) return;
+        int count = shownAgain;
+        Logger.printDebug(() -> "Clear mode: gave " + count + " reel pages their buttons back");
+    }
+
+    // ------------------------------------------------------------------ the rule
+
+    /**
+     * A reel that was waiting for its exit button may have it now: the next try runs once Instagram
+     * is done with the button. Built can run off the main thread, so the try is posted (#233).
+     */
+    private static void wakeIfWaiting() {
+        long until = retryUntil;
+        if (until == 0 || retryPosted || access.now() > until) return;
+        retryPosted = true;
+        access.post(ReelClearMode::retry);
+    }
+
+    /**
+     * Start every reel in clear mode holds a handler and nothing is in clear mode or waiting: the
+     * next try runs once Instagram is done with the page or button (#138).
+     */
+    private static void wakeIfStarting() {
+        if (starting == null || wanted || retryUntil != 0 || startPosted) return;
+        startPosted = true;
+        access.post(ReelClearMode::start);
+    }
+
+    /**
+     * Start every reel in clear mode's try: the handler kept since the viewer's setup turns clear
+     * mode on for the reel the pager is on, with the reason Instagram's menu row gives, just as a
+     * tap on that row would. A reel {@link #current} holds back leaves it for the next page or
+     * button. Once a reel is in it, clear mode is carried as if you had turned it on (#138).
+     */
+    private static void start() {
+        try {
+            startPosted = false;
+            WeakReference<Object> held = starting;
+            if (held == null || wanted || retryUntil != 0 || carrying) return;
+            Object handler = held.get();
+            if (handler == null || !startsOn()) {
+                starting = null;
+                return;
+            }
+            Object reason = access.reason(handler);
+            if (reason == null) {
+                starting = null;
+                Logger.printDebug(() -> "Clear mode: the handler gives no " + MENU + " reason, nothing started");
+                return;
+            }
+            from = null;
+            outcome = NOTHING;
+            reached = null;
+            carrying = true;
+            try {
+                access.enter(handler, reason);
+            } finally {
+                carrying = false;
+            }
+            int found = outcome;
+            String id = reached;
+            outcome = NOTHING;
+            reached = null;
+            if (found != REACHED || id == null) {
+                Logger.printDebug(() -> "Clear mode: not started yet, trying again on the next page or button ("
+                        + (found == NOTHING ? "Instagram didn't look for a reel" : "found " + found) + ")");
+                return;
+            }
+            HookStatus.bound(FAMILY, "clear mode");
+            want(handler);
+            source = reason;
+            shown = id;
+            clearRetry();
+            HookStatus.counted(FAMILY, STARTED);
+            Logger.printDebug(() -> "Clear mode: started with no tap, the next reels start in it too");
+        } catch (Throwable failure) {
+            starting = null;
+            drop();
+            HookStatus.threw(FAMILY, "clear mode start", failure);
+        }
+    }
+
+    /**
+     * The pager's next page, a reel's exit button or the pager at rest, once Instagram has handled
+     * it: the next try. A pager that came to rest before its swipe landed, and is still on screen,
+     * lets it land on the reel that left. A swipe that landed stays landed for the tries after.
+     */
+    private static void retry() {
+        try {
+            retryPosted = false;
+            WeakReference<Object> held = waiting;
+            WeakReference<Object> rested = snapped;
+            String left = from;
+            long until = retryUntil;
+            boolean page = pageReported;
+            boolean moved = landed;
+            clearRetry();
+            if (until == 0 || !wanted) return;
+            Object handler = held == null ? null : held.get();
+            if (!on() || handler == null || left == null) {
+                Logger.printDebug(() -> "Clear mode: the next try has no handler left, the next reels show their buttons");
+                drop();
+                return;
+            }
+            Object pager = rested == null ? null : rested.get();
+            boolean back = pager != null && !moved && access.showing(pager);
+            if (pager != null && !back) Logger.printDebug(() -> moved
+                    ? "Clear mode: the pager came to rest after the swipe landed, the reel that left stays out"
+                    : "Clear mode: the pager came to rest off screen, the reel that left stays out");
+            landed = moved;
+            carry(handler, left, until, page, back);
+        } catch (Throwable failure) {
+            drop();
+            HookStatus.threw(FAMILY, "clear mode retry", failure);
+        }
+    }
+
+    /**
+     * Asks the handler to turn clear mode on for the reel the pager is on, after the reel
+     * {@code left} left it. {@link #current} says what Instagram found there. {@code until} is when
+     * the wait that began with the first try ends, or 0 on the first try, and {@code page} says the
+     * pager reported a page since the last one. {@code back} says the swipe snapped back, so the
+     * reel that left may be put in it again. Anything that isn't a reel put in clear mode, and isn't
+     * worth waiting on ({@link #waitsOn}), forgets it.
+     */
+    private static void carry(Object handler, String left, long until, boolean page, boolean back) {
+        Object reason = source;
+        if (reason == null) {
+            drop();
+            return;
+        }
+        from = left;
+        outcome = NOTHING;
+        reached = null;
+        carrying = true;
+        returning = back;
+        try {
+            access.enter(handler, reason);
+        } finally {
+            carrying = false;
+            returning = false;
+        }
+        int found = outcome;
+        String id = reached;
+        outcome = NOTHING;
+        reached = null;
+        if (found == REACHED && id != null) {
+            from = null;
+            shown = id;
+            if (id.equals(left)) {
+                HookStatus.counted(FAMILY, KEPT);
+                Logger.printDebug(() -> "Clear mode: the swipe snapped back, turned it on again for the same reel");
+            } else {
+                HookStatus.counted(FAMILY, CARRIED);
+                Logger.printDebug(() -> "Clear mode: carried to the next reel");
+            }
+        } else if (waitsOn(found, until, page)) {
+            Logger.printDebug(() -> found == SAME_REEL
+                    ? "Clear mode: the swipe hasn't landed yet, trying again on the next page"
+                    : "Clear mode: the next reel has no exit button yet, trying again when it does");
+            waiting = new WeakReference<>(handler);
+            retryUntil = until == 0 ? access.now() + RETRY_WINDOW_MS : until;
+            // Past the end of the wait, in case nothing comes to end it.
+            if (until == 0) access.later(ReelClearMode::expire, RETRY_WINDOW_MS + 1);
+        } else {
+            Logger.printDebug(() -> "Clear mode: nothing to carry it to, the next reels show their buttons ("
+                    + (found == NOTHING ? "Instagram didn't look for a reel" : "found " + found) + ")");
+            drop();
+        }
+    }
+
+    /**
+     * Whether a try that found nothing to put in clear mode waits for another. A reel whose button
+     * isn't built yet may get it, and a pager still on the reel that left may still land, so both
+     * wait until the first try's {@link #RETRY_WINDOW_MS} runs out. A button built for a reel
+     * further on doesn't mean the swipe landed (#233), but a page report that still names the reel
+     * that left does: that swipe went back, and it ends.
+     */
+    private static boolean waitsOn(int found, long until, boolean page) {
+        if (found != SAME_REEL && found != NOT_BUILT) return false;
+        if (until == 0) return true;
+        if (found == SAME_REEL && page) return false;
+        return access.now() <= until;
+    }
+
+    private static boolean on() {
+        return Utils.settingsReady() && Settings.KEEP_REEL_CLEAR_MODE.get();
+    }
+
+    private static boolean startsOn() {
+        return on() && Settings.START_REEL_CLEAR_MODE.get();
+    }
+
+    private static boolean swipedAway(@Nullable Object reason) {
+        return reason instanceof Enum && SWIPED_AWAY.equals(((Enum<?>) reason).name());
+    }
+
+    private static boolean atRest(@Nullable Object state) {
+        return state instanceof Enum && AT_REST.equals(((Enum<?>) state).name());
+    }
+
+    private static boolean hasButton(String id) {
+        synchronized (BUILT_LOCK) {
+            return BUILT.contains(id);
+        }
+    }
+
+    private static void clearRetry() {
+        retryUntil = 0;
+        waiting = null;
+        pageReported = false;
+        landed = false;
+        snapped = null;
+    }
+
+    /**
+     * Off, paused, turned off by you or failed: nothing is wanted, so nothing comes back later, and
+     * the pages hidden for it get their buttons back.
+     */
+    private static void drop() {
+        wanted = false;
+        wantedIn = null;
+        source = null;
+        shown = null;
+        enabling = null;
+        from = null;
+        leaving = null;
+        clearRetry();
+        showLater();
+        ReelsTopBar.clearModeEnded();
+    }
+
+    /** Clear mode is wanted through [handler]'s viewer. */
+    private static void want(Object handler) {
+        boolean was = wanted;
+        wanted = true;
+        wantedIn = new WeakReference<>(handler);
+        // A drag fades the top bar in from its first move, before any turn-off is heard (#740).
+        if (!was && on()) ReelsTopBar.clearModeStarted();
+    }
+
+    /**
+     * A wait for the next reel that nothing ended: no page, rest or button came after it ran out, so
+     * nothing else would end it, and the pages hidden for it would stay hidden (#740).
+     */
+    private static void expire() {
+        try {
+            long until = retryUntil;
+            if (until == 0 || access.now() <= until) return;
+            Logger.printDebug(() -> "Clear mode: the wait for the next reel ran out, the next reels show their buttons");
+            drop();
+        } catch (Throwable failure) {
+            drop();
+            HookStatus.threw(FAMILY, "clear mode wait", failure);
+        }
+    }
+
+    /** Whether clear mode is wanted for the next reels. For tests. */
+    static boolean wanted() {
+        return wanted;
+    }
+
+    /**
+     * Whether the top bars {@link ReelsTopBar#holdForClearMode} hid stay hidden: clear mode is wanted
+     * for the next reels, Keep clear mode on is on and HushGram isn't paused (#740).
+     */
+    static boolean holdsBars() {
+        return wanted && on() && !HushgramPause.isPaused();
+    }
+
+    /** Whether a reel that left clear mode waits for the pager's next page. For tests. */
+    static boolean waiting() {
+        return retryUntil != 0;
+    }
+
+    /** Whether Start every reel in clear mode holds a handler. For tests. */
+    static boolean starting() {
+        return starting != null;
+    }
+
+    /** Forgets everything, the reels with an exit button too. For tests. */
+    static void forget() {
+        synchronized (HIDDEN) {
+            HIDDEN.clear();
+            hiddenCount = 0;
+        }
+        showPosted = true;
+        drop();
+        showPosted = false;
+        starting = null;
+        startPosted = false;
+        viewer = null;
+        declined = false;
+        carrying = false;
+        returning = false;
+        outcome = NOTHING;
+        reached = null;
+        retryPosted = false;
+        synchronized (BUILT_LOCK) {
+            BUILT.clear();
+            lastBuilt = null;
+        }
+        synchronized (HANDLERS) {
+            HANDLERS.clear();
+        }
+        aiming = null;
+        onBy = null;
+        onReel = null;
+        heardLeft = false;
+        access = PATCHED;
+        CLEAR_MODE_PAGES.clear();
+        sharePressed = new WeakReference<>(null);
+        sharePressedBounds.setEmpty();
+        shareGesture = false;
+    }
+
+    /** How many reel pages are hidden for clear mode, waiting to get their buttons back. For tests. */
+    static int hiddenPages() {
+        return hiddenCount;
+    }
+}

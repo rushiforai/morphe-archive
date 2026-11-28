@@ -18,9 +18,9 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.WeakHashMap;
 
 /**
@@ -32,13 +32,17 @@ public final class QuickslotRow {
 
 	private static final String TAG = "QuickslotRow";
 	private static final String KEY = "qol_extra_quickslots";
+	private static final String KEY_SEPARATE = "qol_extra_quickslots_separate";
 	private static final String BUNDLE_SLOT = "morphe_quickslot";
 	private static final int GAME_SLOTS = 6;
 	private static final int SWAPPER_SLOTS = GAME_SLOTS * 2;
 	private static final int TOTAL_SLOTS = 30;
-	private static final int ROW_HEIGHT = 24;
+	static final int ROW_HEIGHT = 24;
 	private static final int TOOL_HEIGHT = 26;
 	private static final int PITCH = 18;
+	private static final int BEZEL = 2;
+	private static final int LIGHT_LINE = 1;
+	private static final int CORNER_ROW = 20;
 	private static final String TOOLBAR = "interfaces/toolbar.png";
 	private static final int[] FIRST_FRAME = { 86, 20, 2, 1 };
 	private static final int[] MIDDLE_FRAME = { 88, 18, 0, 1 };
@@ -46,7 +50,7 @@ public final class QuickslotRow {
 
 	private static final Map<Object, Integer> storing = Collections.synchronizedMap(new IdentityHashMap<>());
 	private static final Map<Object, Integer> restoring = Collections.synchronizedMap(new IdentityHashMap<>());
-	private static final Set<Object> tallToolbars = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
+	private static final Map<Object, Integer> grown = Collections.synchronizedMap(new WeakHashMap<>());
 	private static int savedSize = GAME_SLOTS;
 
 	private QuickslotRow() {
@@ -58,6 +62,22 @@ public final class QuickslotRow {
 
 	static void setOn(boolean on) {
 		CloverlordSettings.set(KEY, on);
+		try {
+			Reflect.method(Reflect.require("com.shatteredpixel.shatteredpixeldungeon.ui.Toolbar"), "updateLayout").invoke(null);
+		} catch (Throwable e) {
+			Log.e(TAG, "Could not update the toolbar", e);
+		}
+	}
+
+	/**
+	 * Whether the extra row is joined to the quickslots above it, sharing one border where they meet. Otherwise each row has its own.
+	 */
+	static boolean isJoined() {
+		return !CloverlordSettings.get(KEY_SEPARATE);
+	}
+
+	static void setJoined(boolean joined) {
+		CloverlordSettings.set(KEY_SEPARATE, !joined);
 		try {
 			Reflect.method(Reflect.require("com.shatteredpixel.shatteredpixeldungeon.ui.Toolbar"), "updateLayout").invoke(null);
 		} catch (Throwable e) {
@@ -141,10 +161,11 @@ public final class QuickslotRow {
 	 */
 	public static void afterToolbarCreated(Object toolbar) {
 		try {
-			if (!wantsRow()) return;
+			int extra = wantedExtra();
+			if (extra == 0) return;
 			Component bar = (Component) toolbar;
-			tallToolbars.add(toolbar);
-			bar.setSize(bar.width(), bar.height() + ROW_HEIGHT);
+			grown.put(toolbar, extra);
+			bar.setSize(bar.width(), bar.height() + extra);
 		} catch (Throwable e) {
 			Log.e(TAG, "Could not make room for the extra quickslots", e);
 		}
@@ -154,33 +175,79 @@ public final class QuickslotRow {
 		return isOn() && QuickSlot.SIZE >= SWAPPER_SLOTS && SPDSettings.interfaceSize() == 0 && !SPDSettings.quickSwapper();
 	}
 
-	private static boolean resizing;
+	/**
+	 * The part of the slot frame an extra slot draws, as its first line, its height and how far it sits above the row's line. A slot that
+	 * [meets] a quickslot joins it like slots in a row do, at one dark line: it leaves out its top light line and covers the quickslot's
+	 * bottom bezel, so its own dark line divides them. A slot under no quickslot keeps its whole frame, lined up with the others. Unless the
+	 * row is joined, every slot keeps its whole frame.
+	 */
+	private static int[] rowFrame(boolean meets) {
+		if (!isJoined()) return new int[] { 0, ROW_HEIGHT, 0 };
+		return meets ? new int[] { LIGHT_LINE, ROW_HEIGHT - LIGHT_LINE, 0 } : new int[] { 0, ROW_HEIGHT, LIGHT_LINE };
+	}
 
 	/**
-	 * Grows or shrinks the toolbar by a row when the setting or the quickslot swapper changes during a game, keeping
-	 * its bottom edge in place, and moves the game log and other indicators to match.
+	 * Whether the slot from [left] to [right] sits against one of the quickslots spanning [spans], by most of a slot's width.
 	 */
+	private static boolean meets(float left, float right, List<float[]> spans) {
+		for (float[] span : spans) {
+			if (Math.min(right, span[1]) - Math.max(left, span[0]) > PITCH / 2f) return true;
+		}
+		return false;
+	}
+
+	/**
+	 * How much taller than normal the toolbar should be: the extra row, less the bezel where it covers the quickslots, and how far the
+	 * quickslots drop.
+	 */
+	private static int wantedExtra() {
+		if (!wantsRow()) return 0;
+		return rowFrame(true)[1] - rowOverlap() + quickslotDrop();
+	}
+
+	/**
+	 * How far the extra row reaches up over the quickslots: their bottom bezel when joined, nothing otherwise.
+	 */
+	private static int rowOverlap() {
+		return isJoined() ? BEZEL : 0;
+	}
+
+	/**
+	 * How far the quickslots sit lower than the game puts them, below the wait, search and backpack buttons' tops. They drop by as much as
+	 * the whole frames of the extra slots under those buttons reach above the row, so the buttons clear them.
+	 */
+	static int quickslotDrop() {
+		if (!wantsRow() || !isJoined()) return 0;
+		return rowFrame(false)[2] + BEZEL;
+	}
+
+	private static boolean resizing;
+
 	/**
 	 * How tall the toolbar is: its real height in a game, or outside one the height it will have.
 	 */
 	static float toolbarHeight() {
 		Object bar = Reflect.gameScenePart("toolbar");
 		if (bar instanceof Component) return ((Component) bar).height();
-		return TOOL_HEIGHT + (wantsRow() ? ROW_HEIGHT : 0);
+		return TOOL_HEIGHT + wantedExtra();
 	}
 
 	/**
-	 * A stand-in for the extra row of quickslots, [width] wide from [left] with its top at [y], framed like the real one.
+	 * A stand-in for the extra row of quickslots, [width] wide from [left] with its line at [y], framed like the real one where it meets the
+	 * quickslots spanning [quickLeft] to [quickRight]. Above the toolbar, [width] ends at the backpack button.
 	 */
-	static List<Image> standInRow(float left, float width, float y) {
+	static List<Image> standInRow(float left, float width, float y, float quickLeft, float quickRight) {
 		List<Image> parts = new ArrayList<>();
 		List<Float> cells = new ArrayList<>();
 		for (float c = left + FIRST_FRAME[2]; c <= left + width - LAST_FRAME[1]; c += PITCH) cells.add(c);
+		List<float[]> spans = Collections.singletonList(new float[] { quickLeft, quickRight });
 		for (int k = 0; k < cells.size(); k++) {
 			int[] frame = cells.size() == 1 ? MIDDLE_FRAME : k == 0 ? FIRST_FRAME : k == cells.size() - 1 ? LAST_FRAME : MIDDLE_FRAME;
-			Image image = new Image(TOOLBAR, frame[0], 0, frame[1], ROW_HEIGHT);
-			image.x = cells.get(k) - (frame == FIRST_FRAME ? FIRST_FRAME[2] : 0);
-			image.y = y;
+			float x = cells.get(k) - (frame == FIRST_FRAME ? FIRST_FRAME[2] : 0);
+			int[] part = rowFrame(meets(x, x + frame[1], spans));
+			Image image = new Image(TOOLBAR, frame[0], part[0], frame[1], part[1]);
+			image.x = x;
+			image.y = y - part[2];
 			parts.add(image);
 		}
 		return parts;
@@ -191,7 +258,8 @@ public final class QuickslotRow {
 	 */
 	static int extraHeight() {
 		Object bar = Reflect.gameScenePart("toolbar");
-		return bar != null && tallToolbars.contains(bar) ? ROW_HEIGHT : 0;
+		Integer extra = bar == null ? null : grown.get(bar);
+		return extra == null ? 0 : extra;
 	}
 
 	/**
@@ -227,17 +295,19 @@ public final class QuickslotRow {
 		}
 	}
 
+	/**
+	 * Grows or shrinks the toolbar when the setting, where the row goes or the quickslot swapper changes during a game, keeping its bottom
+	 * edge in place, and moves the game log and other indicators to match.
+	 */
 	private static void matchHeight(Component bar) {
-		boolean wanted = wantsRow();
-		boolean tall = tallToolbars.contains(bar);
-		if (wanted == tall) return;
+		int wanted = wantedExtra();
+		Integer current = grown.get(bar);
+		int now = current == null ? 0 : current;
+		if (wanted == now) return;
 		float bottom = bar.bottom();
-		float height = bar.height() + (wanted ? ROW_HEIGHT : -ROW_HEIGHT);
-		if (wanted) {
-			tallToolbars.add(bar);
-		} else {
-			tallToolbars.remove(bar);
-		}
+		float height = bar.height() + wanted - now;
+		if (wanted == 0) grown.remove(bar);
+		else grown.put(bar, wanted);
 		resizing = true;
 		try {
 			bar.setRect(bar.left(), bottom - height, bar.width(), height);
@@ -261,19 +331,19 @@ public final class QuickslotRow {
 			Component bar = (Component) toolbar;
 			matchHeight(bar);
 			if (!isOn() || QuickSlot.SIZE < SWAPPER_SLOTS) {
-				rowSlots.clear();
+				clearRow();
 				return;
 			}
 			Object[] quick = (Object[]) field(bar, "btnQuick").get(bar);
 			if (SPDSettings.quickSwapper() && SPDSettings.interfaceSize() == 0) {
-				rowSlots.clear();
+				clearRow();
 				pageWithSwapper(bar, quick);
 				return;
 			}
-			if (tallToolbars.contains(toolbar)) {
+			if (grown.containsKey(toolbar)) {
 				addExtraRow(bar, quick);
 			} else {
-				rowSlots.clear();
+				clearRow();
 			}
 		} catch (Throwable e) {
 			Log.e(TAG, "Could not lay out the extra quickslots", e);
@@ -281,8 +351,9 @@ public final class QuickslotRow {
 	}
 
 	/**
-	 * Fills a row below the toolbar, across the whole width of the screen, with extra quickslots. The slots sit on
-	 * the same columns as the quickslots above, so the two rows line up.
+	 * Fills a row below the toolbar, across the whole width of the screen, with extra quickslots on the same columns as the quickslots above,
+	 * so the two rows line up. Joined, it is drawn in front of them and meets them at one dark line, like slots within a row, and the
+	 * quickslots drop a little so the wait, search and backpack buttons clear the row.
 	 */
 	private static void addExtraRow(Component bar, Object[] quick) throws ReflectiveOperationException {
 		Component anchor = null;
@@ -305,24 +376,66 @@ public final class QuickslotRow {
 		for (float c = cell; c <= maximum; c += PITCH) cells.add(c);
 
 		int count = Math.min(cells.size(), quick.length - GAME_SLOTS);
-		float y = anchor.top() - 2 + TOOL_HEIGHT;
+		List<float[]> spans = new ArrayList<>();
+		int drop = quickslotDrop();
+		for (int i = 0; i < GAME_SLOTS && i < quick.length; i++) {
+			Component slot = (Component) quick[i];
+			if (!slot.visible) continue;
+			slot.setPos(slot.left(), slot.top() + drop);
+			spans.add(new float[] { slot.left(), slot.right() });
+		}
+		float y = anchor.bottom() - rowOverlap();
 		rowSlots.clear();
-		rowY = y;
 		for (int k = 0; k < count; k++) {
 			Component slot = (Component) quick[GAME_SLOTS + k];
 			int[] frame = count == 1 ? MIDDLE_FRAME : k == 0 ? FIRST_FRAME : k == count - 1 ? LAST_FRAME : MIDDLE_FRAME;
-			call(slot, "frame", new Class<?>[] { int.class, int.class, int.class, int.class }, frame[0], 0, frame[1], ROW_HEIGHT);
-			call(slot, "border", new Class<?>[] { int.class, int.class }, frame[2], frame[3]);
 			float x = cells.get(k) - (frame == FIRST_FRAME ? FIRST_FRAME[2] : 0);
-			slot.setPos(x, y);
+			int[] part = rowFrame(meets(x, x + frame[1], spans));
+			call(slot, "frame", new Class<?>[] { int.class, int.class, int.class, int.class }, frame[0], part[0], frame[1], part[1]);
+			call(slot, "border", new Class<?>[] { int.class, int.class }, frame[2], frame[3]);
+			slot.setPos(x, y - part[2]);
 			slot.visible = true;
 			enable(slot, enabled);
-			rowSlots.add(slot);
+			bar.bringToFront(slot);
+			rowSlots.put(slot, y - part[2]);
 		}
+		if (count > 0) addCorners(bar, spans, cells.get(0) - FIRST_FRAME[2], y);
 	}
 
-	private static final List<Component> rowSlots = new ArrayList<>();
-	private static float rowY;
+	private static final List<Image> corners = new ArrayList<>();
+
+	/**
+	 * Forgets the extra row and takes away its corners, when the row is no longer shown.
+	 */
+	private static void clearRow() {
+		rowSlots.clear();
+		for (Image corner : corners) corner.killAndErase();
+		corners.clear();
+	}
+
+	/**
+	 * Where a joined row reaches past the left end of the quickslots, finishes the corner there: the quickslots' inner border carries on
+	 * down to the line dividing the rows, instead of being cut off by the top edge of the extra slot beside them. The row starts at
+	 * [rowLeft] with its dividing line at [line].
+	 */
+	private static void addCorners(Component bar, List<float[]> spans, float rowLeft, float line) {
+		for (Image corner : corners) corner.killAndErase();
+		corners.clear();
+		if (!isJoined() || spans.isEmpty()) return;
+		float left = Float.MAX_VALUE;
+		for (float[] span : spans) left = Math.min(left, span[0]);
+		if (rowLeft < left) addCorner(bar, FIRST_FRAME[0] + 1, left + 1, line - 1);
+	}
+
+	private static void addCorner(Component bar, int column, float x, float y) {
+		Image corner = new Image(TOOLBAR, column, CORNER_ROW, 1, 1);
+		corner.x = x;
+		corner.y = y;
+		bar.add(corner);
+		corners.add(corner);
+	}
+
+	private static final Map<Component, Float> rowSlots = new LinkedHashMap<>();
 	private static int repairs;
 
 	/**
@@ -332,29 +445,31 @@ public final class QuickslotRow {
 	static void verifyRow() {
 		if (rowSlots.isEmpty() || resizing) return;
 		boolean intact = true;
-		for (Component slot : rowSlots) {
-			if (!slot.visible || slot.parent == null || Math.abs(slot.top() - rowY) >= 0.5f) intact = false;
+		for (Map.Entry<Component, Float> entry : rowSlots.entrySet()) {
+			Component slot = entry.getKey();
+			if (!slot.visible || slot.parent == null || Math.abs(slot.top() - entry.getValue()) >= 0.5f) intact = false;
 		}
 		if (intact) {
 			repairs = 0;
 			return;
 		}
 		if (++repairs > 3) {
-			rowSlots.clear();
+			clearRow();
 			repairs = 0;
 			return;
 		}
-		for (Component slot : rowSlots) {
-			if (slot.visible && slot.parent != null && Math.abs(slot.top() - rowY) < 0.5f) continue;
+		for (Map.Entry<Component, Float> entry : rowSlots.entrySet()) {
+			Component slot = entry.getKey();
+			if (slot.visible && slot.parent != null && Math.abs(slot.top() - entry.getValue()) < 0.5f) continue;
 			if (slot.parent == null) {
-				rowSlots.clear();
+				clearRow();
 				return;
 			}
 			try {
 				Reflect.method(Reflect.require("com.shatteredpixel.shatteredpixeldungeon.ui.Toolbar"), "updateLayout").invoke(null);
 			} catch (Throwable e) {
 				Log.e(TAG, "Could not restore the extra quickslots", e);
-				rowSlots.clear();
+				clearRow();
 			}
 			return;
 		}

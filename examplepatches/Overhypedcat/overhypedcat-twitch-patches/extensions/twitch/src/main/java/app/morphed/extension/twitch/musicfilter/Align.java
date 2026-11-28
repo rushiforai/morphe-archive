@@ -1,6 +1,5 @@
 package app.morphed.extension.twitch.musicfilter;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -186,10 +185,49 @@ public final class Align {
     }
 
     static double median(double[] values) {
-        double[] copy = values.clone();
-        Arrays.sort(copy);
-        int n = copy.length;
-        return n % 2 == 1 ? copy[n / 2] : (copy[n / 2 - 1] + copy[n / 2]) / 2;
+        return medianInPlace(values.clone());
+    }
+
+    /**
+     * The median, exactly as a sort would give it, by selection (linear time, not a sort of millions of values);
+     * reorders the array, so only for arrays of one's own.
+     */
+    static double medianInPlace(double[] a) {
+        int n = a.length;
+        double upper = select(a, n / 2);
+        if (n % 2 == 1) return upper;
+        double lower = Double.NEGATIVE_INFINITY; // (the largest of what select left below n / 2)
+        for (int i = 0; i < n / 2; i++) if (a[i] > lower) lower = a[i];
+        return (lower + upper) / 2;
+    }
+
+    /** The k-th smallest; afterwards everything before k is no larger and everything after no smaller. */
+    static double select(double[] a, int k) {
+        int lo = 0, hi = a.length - 1;
+        while (hi > lo) {
+            // median of three as the pivot: sorted or repeating data don't make it quadratic
+            int mid = (lo + hi) >>> 1;
+            if (a[mid] < a[lo]) swap(a, mid, lo);
+            if (a[hi] < a[lo]) swap(a, hi, lo);
+            if (a[hi] < a[mid]) swap(a, hi, mid);
+            double pivot = a[mid];
+            int i = lo, j = hi;
+            while (i <= j) {
+                while (a[i] < pivot) i++;
+                while (a[j] > pivot) j--;
+                if (i <= j) swap(a, i++, j--);
+            }
+            if (k <= j) hi = j;
+            else if (k >= i) lo = i;
+            else return a[k];
+        }
+        return a[k];
+    }
+
+    private static void swap(double[] a, int i, int j) {
+        double t = a[i];
+        a[i] = a[j];
+        a[j] = t;
     }
 
     /** Robust z-scores: (x - median) / (1.4826 * MAD). */
@@ -197,7 +235,7 @@ public final class Align {
         double median = median(likeness);
         double[] deviation = new double[likeness.length];
         for (int i = 0; i < likeness.length; i++) deviation[i] = Math.abs(likeness[i] - median);
-        double spread = 1.4826 * median(deviation) + 1e-12;
+        double spread = 1.4826 * medianInPlace(deviation) + 1e-12;
         double[] scores = new double[likeness.length];
         for (int i = 0; i < likeness.length; i++) scores[i] = (likeness[i] - median) / spread;
         return scores;
@@ -219,7 +257,7 @@ public final class Align {
                 deviation[j] = Math.abs(likeness[j] - median);
                 max = Math.max(max, likeness[j]);
             }
-            double spread = 1.4826 * median(deviation) + 1e-12;
+            double spread = 1.4826 * medianInPlace(deviation) + 1e-12;
             double score = (max - median) / spread;
             if (score > bestScore) {
                 best = i;

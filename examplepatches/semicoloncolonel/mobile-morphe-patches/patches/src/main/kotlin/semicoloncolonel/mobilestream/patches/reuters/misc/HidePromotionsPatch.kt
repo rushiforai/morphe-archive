@@ -1,11 +1,11 @@
 package semicoloncolonel.mobilestream.patches.reuters.misc
 
+import semicoloncolonel.mobilestream.patches.shared.misc.isOptionOn
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.rawResourcePatch
 import semicoloncolonel.mobilestream.patches.reuters.shared.ArticleRenderer
-import semicoloncolonel.mobilestream.patches.reuters.shared.Constants
 import semicoloncolonel.mobilestream.patches.shared.misc.HERMES_BUNDLE
 import semicoloncolonel.mobilestream.patches.shared.misc.HermesBundle
 
@@ -59,6 +59,7 @@ internal object BrazeBeforeInAppMessageDisplayedFingerprint : Fingerprint(
 
 private val discardBrazeMessagesPatch = bytecodePatch {
     execute {
+        if (!isOptionOn(hidePromptsAndPopupsPatch, "promotions")) return@execute
         BrazeBeforeInAppMessageDisplayedFingerprint.method.addInstructions(
             0,
             """
@@ -69,26 +70,12 @@ private val discardBrazeMessagesPatch = bytecodePatch {
     }
 }
 
-// The Breakingviews banner branch: LoadConstString "breaking-views",
-// PutNewOwnById "variant", CreateClosure onPress, PutNewOwnByIdShort
-// "onPress", then Call3 jsx and Ret. Only the Call3 changes, to three
-// LoadConstNull into its result register.
-private fun bannerEdit(prefix: List<Int>, register: Int, jsx: List<Int>) =
-    byteArrayOf().of(*(prefix + listOf(84, register) + jsx + listOf(92, register)).toIntArray()) to
-        byteArrayOf().of(*(prefix + listOf(119, register, 119, register, 119, register, 92, register)).toIntArray())
-
-@Suppress("unused")
-val hidePromotionsPatch = rawResourcePatch(
-    name = "Hide promotions",
-    description = "Removes the Subscribe buttons and offers, the Subscription row in Settings, the Breakingviews " +
-        "promo banners, marketing pop-ups, and the newsletter sign-ups and notification prompts in articles and feeds.",
-) {
-    category("Interface")
-    compatibleWith(Constants.COMPATIBILITY)
-
+// Part of hidePromptsAndPopupsPatch: runs only when its "promotions" option is on.
+internal val hidePromotionsPatch = rawResourcePatch {
     dependsOn(discardBrazeMessagesPatch)
 
     execute {
+        if (!isOptionOn(hidePromptsAndPopupsPatch, "promotions")) return@execute
         val file = get(HERMES_BUNDLE)
         val bundle = HermesBundle(file.readBytes())
         bundle.returnAtStart("SubscribeButton", HermesBundle.Value.NULL)
@@ -103,13 +90,15 @@ val hidePromotionsPatch = rawResourcePatch(
         ArticleRenderer.drop(bundle, "topic-engagement")
 
         val article = listOf("parseArticleNotificationData")
-        // GetById r14, r10, "newsletters"; Neq r16, r14, r4 -> LoadConstFalse r16 (twice),
-        // so the following JmpFalse leaves newsletters undefined.
+        // GetById r14, r10, <cache>, "newsletters"; Neq r16, r14, r4 -> the Neq
+        // becomes LoadConstFalse r16 (twice), so the following JmpFalse leaves
+        // newsletters undefined. The property-cache slot moves between versions,
+        // so it is wildcarded; the registers and the "newsletters" id pin it.
         val newsletters = bundle.stringId("newsletters")
-        bundle.replaceInstructions(
+        bundle.replaceMaskedInstructions(
             "parseArticleDetail", article, VERSION,
-            byteArrayOf().of(55, 14, 10, 44, newsletters and 0xFF, newsletters shr 8, 16, 16, 14, 4),
-            byteArrayOf().of(55, 14, 10, 44, newsletters and 0xFF, newsletters shr 8, 121, 16, 121, 16),
+            intArrayOf(55, 14, 10, -1, newsletters and 0xFF, newsletters shr 8, 16, 16, 14, 4),
+            intArrayOf(-1, -1, -1, -1, -1, -1, 121, 16, 121, 16),
         )
         // GetById r3, r1, "newsletterCard" -> LoadConstUndefined r3 (three times).
         val newsletterCard = bundle.stringId("newsletterCard")
@@ -143,10 +132,11 @@ val hidePromotionsPatch = rawResourcePatch(
         // becomes
         //   PutNewOwnByIdShort r5, r13, children; Call3 r5, ...;
         //   JmpFalse +7, r19; PutOwnByIndex r4, r5, 1; JmpFalse +0x47, r12
-        bundle.replaceInstructions(
+        // The "children" short id moves between versions, so it is wildcarded.
+        bundle.replaceMaskedInstructions(
             "ActionCard", listOf("textContainer"), VERSION,
-            byteArrayOf().of(0x3f, 5, 13, 0x66, 0x54, 5, 8, 3, 7, 5, 0x44, 4, 5, 1, 8, 5, 12, 0x92, 0x43, 5),
-            byteArrayOf().of(0x3f, 5, 13, 0x66, 0x54, 5, 8, 3, 7, 5, 0x92, 7, 19, 0x44, 4, 5, 1, 0x92, 0x47, 12),
+            intArrayOf(0x3f, 5, 13, -1, 0x54, 5, 8, 3, 7, 5, 0x44, 4, 5, 1, 8, 5, 12, 0x92, 0x43, 5),
+            intArrayOf(-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0x92, 7, 19, 0x44, 4, 5, 1, 0x92, 0x47, 12),
         )
         // Settings: the Subscription row is added only when environment
         // slot 23 is set. "JmpTrue +9, r3" becomes "Mov r3, r3", so the list
@@ -157,19 +147,40 @@ val hidePromotionsPatch = rawResourcePatch(
             byteArrayOf().of(0x2e, 3, 1, 23, 8, 3, 3),
         )
 
+        // The Breakingviews banner branch loads "breaking-views", builds the
+        // variant object with an onPress closure, then renders it:
+        //   LoadConstString rX, "breaking-views"; GetByIdShort; CreateClosure
+        //   onPress; PutNewOwnByIdShort rX, onPress; Call3 rX, jsx; Ret rX
+        // The Call3 becomes three LoadConstNull into its result register, so the
+        // branch returns null and the banner does not render. The string ids,
+        // cache slot, closure id, and short id move between versions and are
+        // wildcarded; the opcodes, registers, and the Call and Ret are the
+        // stable anchor.
         val banners = listOf("breakingviews-promo-banner", "breaking-views")
-        // Today and section feeds.
-        val (feedFind, feedReplace) = bannerEdit(
-            listOf(0x73, 0x0b, 0xcc, 0xaf, 0x40, 0x04, 0x0b, 0x5b, 0x67, 0x64, 0x0b, 0x01, 0xef, 0x7e, 0x3f, 0x04, 0x0b, 0xc9),
-            4, listOf(6, 3, 5, 4),
+        // Today and section feeds (jsx call and return in r4).
+        bundle.replaceMaskedInstructions(
+            "", banners + "commentary.highlight.click", VERSION,
+            intArrayOf(
+                0x73, 0x0b, -1, -1, 0x40, 0x04, 0x0b, -1, -1, 0x64, 0x0b, 0x01, -1, -1,
+                0x3f, 0x04, 0x0b, -1, 0x54, 0x04, 0x06, 0x03, 0x05, 0x04, 0x5c, 0x04,
+            ),
+            intArrayOf(
+                -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+                -1, -1, -1, -1, 0x77, 0x04, 0x77, 0x04, 0x77, 0x04, -1, -1,
+            ),
         )
-        bundle.replaceInstructions("", banners + "commentary.highlight.click", VERSION, feedFind, feedReplace)
-        // Topic feeds.
-        val (topicFind, topicReplace) = bannerEdit(
-            listOf(0x73, 0x0d, 0xcc, 0xaf, 0x40, 0x05, 0x0d, 0x5b, 0x67, 0x64, 0x0d, 0x09, 0x4d, 0x85, 0x3f, 0x05, 0x0d, 0xc9),
-            5, listOf(8, 3, 7, 5),
+        // Topic feeds (jsx call and return in r5).
+        bundle.replaceMaskedInstructions(
+            "", banners + "ExploreLinks", VERSION,
+            intArrayOf(
+                0x73, 0x0d, -1, -1, 0x40, 0x05, 0x0d, -1, -1, 0x64, 0x0d, 0x09, -1, -1,
+                0x3f, 0x05, 0x0d, -1, 0x54, 0x05, 0x08, 0x03, 0x07, 0x05, 0x5c, 0x05,
+            ),
+            intArrayOf(
+                -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+                -1, -1, -1, -1, 0x77, 0x05, 0x77, 0x05, 0x77, 0x05, -1, -1,
+            ),
         )
-        bundle.replaceInstructions("", banners + "ExploreLinks", VERSION, topicFind, topicReplace)
         file.writeBytes(bundle.toByteArray())
     }
 }

@@ -12,15 +12,74 @@ private val RET = byteArrayOf(
     0xC0.toByte(), 0x03, 0x5F, 0xD6.toByte(),
 )
 
-private val INTERSTITIAL_OFFSETS = intArrayOf(
-    0x00BA2744,
-    0x00B94C24,
+private class AdSite(
+    val label: String,
+    val offset: Int,
+    val original: ByteArray,
+    val replacement: ByteArray,
 )
 
-private val BANNER_OFFSETS = intArrayOf(
-    0x00BA1D38,
-    0x00B92694,
+private val SITES = listOf(
+    AdSite(
+        "AdsManager.EnableAD",
+        0xBE4E98,
+        byteArrayOf(0xF3.toByte(), 0x0F, 0x1E, 0xF8.toByte()),
+        ENABLE_FALSE,
+    ),
+    AdSite(
+        "AdsManager.ShowInterstitialAd",
+        0xBE653C,
+        byteArrayOf(0xFF.toByte(), 0x03, 0x02, 0xD1.toByte()),
+        ENABLE_FALSE,
+    ),
+    AdSite(
+        "AdsManager.IsInterstitialLoaded",
+        0xBE61C0,
+        byteArrayOf(0xF3.toByte(), 0x0F, 0x1E, 0xF8.toByte()),
+        ENABLE_FALSE,
+    ),
+    AdSite(
+        "AdsManager.ShowBanner",
+        0xBE5B30,
+        byteArrayOf(0xF7.toByte(), 0x0F, 0x1C, 0xF8.toByte()),
+        RET,
+    ),
+    AdSite(
+        "AdsManager.HideBanner",
+        0xBE5EA8,
+        byteArrayOf(0xF5.toByte(), 0x0F, 0x1D, 0xF8.toByte()),
+        RET,
+    ),
+    AdSite(
+        "Adjust.VerifyAndTrackAppStorePurchase",
+        0x13D9634,
+        byteArrayOf(0xF3.toByte(), 0x0F, 0x1E, 0xF8.toByte()),
+        RET,
+    ),
+    AdSite(
+        "Adjust.VerifyAndTrackPlayStorePurchase",
+        0x13D96D4,
+        byteArrayOf(0xF5.toByte(), 0x0F, 0x1D, 0xF8.toByte()),
+        RET,
+    ),
+    AdSite(
+        "AdjustAndroid.VerifyAndTrackPlayStorePurchase",
+        0x13D9770,
+        byteArrayOf(0xFF.toByte(), 0x43, 0x02, 0xD1.toByte()),
+        RET,
+    ),
 )
+
+private fun ByteArray.requireAdRegion(site: AdSite) {
+    require(site.offset >= 0 && site.offset + site.original.size <= size) {
+        "${site.label} offset out of range"
+    }
+    for (i in site.original.indices) {
+        require(this[site.offset + i] == site.original[i]) {
+            "${site.label} does not match target binary"
+        }
+    }
+}
 
 @Suppress("unused")
 val soccerStarAdRemoval = rawResourcePatch(
@@ -34,18 +93,10 @@ val soccerStarAdRemoval = rawResourcePatch(
         val soFile = get("lib/arm64-v8a/libil2cpp.so", true)
         val bytes = soFile.readBytes()
 
-        ENABLE_FALSE.copyInto(bytes, 0x00BA10A0)
-
-        for (offset in INTERSTITIAL_OFFSETS) {
-            ENABLE_FALSE.copyInto(bytes, offset)
+        for (site in SITES) {
+            bytes.requireAdRegion(site)
+            site.replacement.copyInto(bytes, site.offset)
         }
-
-        for (offset in BANNER_OFFSETS) {
-            RET.copyInto(bytes, offset)
-        }
-
-        RET.copyInto(bytes, 0x0121C5E8)
-        RET.copyInto(bytes, 0x0121C684)
 
         soFile.writeBytes(bytes)
     }

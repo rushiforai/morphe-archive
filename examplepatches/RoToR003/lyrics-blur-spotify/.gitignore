@@ -1,0 +1,11 @@
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.iml
+.idea/
+.vscode/
+
+# Scratch
+/tmp/
+*.log
+out/

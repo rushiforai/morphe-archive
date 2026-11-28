@@ -1,0 +1,712 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.hushgram.extension.instagram.feed;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+
+import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.RenderNode;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
+import org.robolectric.annotation.GraphicsMode;
+import org.robolectric.shadows.ShadowLooper;
+
+import java.util.Collections;
+import java.util.List;
+
+import app.hushgram.extension.instagram.misc.GlassTabBar;
+import app.hushgram.extension.instagram.settings.FamilyNames;
+import app.hushgram.extension.instagram.settings.Settings;
+import app.hushgram.extension.shared.SettingsContextRule;
+import app.hushgram.extension.shared.diagnostics.HookStatus;
+import app.hushgram.extension.shared.settings.BaseSettings;
+import app.hushgram.extension.shared.settings.HushgramPause;
+import app.hushgram.extension.shared.settings.PauseForTests;
+
+/** See-through top bar (#418): Home's header shows the feed blurred under it, and goes back when it should. */
+@RunWith(RobolectricTestRunner.class)
+@Config(sdk = {28, 37})
+public class GlassTopBarTest {
+    private static final int WIDE = 1080;
+    private static final int TALL = 2000;
+    private static final int HEADER = 150;
+
+    @Rule public final SettingsContextRule settings = new SettingsContextRule();
+
+    private Activity activity;
+    private FrameLayout screen;
+    private View feed;
+    private FrameLayout header;
+    private FrameLayout logoRow;
+    private View chip;
+    private List<View> views;
+
+    @Before
+    public void prepare() {
+        resetSwitches();
+        activity = Robolectric.buildActivity(Activity.class).setup().get();
+        screen = new FrameLayout(activity);
+        feed = new View(activity);
+        feed.setBackgroundColor(Color.RED);
+        header = new FrameLayout(activity);
+        header.setBackgroundColor(Color.BLACK);
+        logoRow = new FrameLayout(activity);
+        logoRow.setBackgroundColor(Color.BLACK);
+        chip = new View(activity);
+        chip.setBackgroundColor(Color.DKGRAY);
+        logoRow.addView(chip, new FrameLayout.LayoutParams(40, 40));
+        header.addView(logoRow, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        screen.addView(feed, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        screen.addView(header, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, HEADER));
+        activity.setContentView(screen);
+        layout();
+        views = Collections.singletonList(header);
+    }
+
+    @After
+    public void restore() {
+        resetSwitches();
+    }
+
+    private static void resetSwitches() {
+        Settings.SEE_THROUGH_HOME_TOP_BAR.resetToDefault();
+        Settings.KEEP_HOME_TOP_BAR.resetToDefault();
+        Settings.GLASS_TAB_BAR.resetToDefault();
+        Settings.GLASS_TAB_BAR_BLUR.resetToDefault();
+        Settings.GLASS_TAB_BAR_REFRACT.resetToDefault();
+        Settings.GLASS_CHAT_TOP_BAR_OPACITY.resetToDefault();
+        Settings.GLASS_CHAT_BOX_OPACITY.resetToDefault();
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+        HookStatus.clear();
+    }
+
+    private void layout() {
+        ShadowLooper.idleMainLooper();
+        screen.measure(View.MeasureSpec.makeMeasureSpec(WIDE, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(TALL, View.MeasureSpec.EXACTLY));
+        screen.layout(0, 0, WIDE, TALL);
+    }
+
+    private void frame() {
+        header.getViewTreeObserver().dispatchOnPreDraw();
+    }
+
+    private static int colour(View view) {
+        Drawable background = view.getBackground();
+        assertTrue("expected a plain fill, found " + background, background instanceof ColorDrawable);
+        return ((ColorDrawable) background).getColor();
+    }
+
+    @Test
+    public void theSwitchStartsOffAndAsksForARestart() {
+        assertEquals(Boolean.FALSE, Settings.SEE_THROUGH_HOME_TOP_BAR.defaultValue);
+        assertTrue(Settings.SEE_THROUGH_HOME_TOP_BAR.rebootApp);
+    }
+
+    @Test
+    public void offLeavesInstagramsHeaderAlone() {
+        assertSame(views, HomeTopBar.slidingViews(views));
+        frame();
+
+        assertFalse(GlassTopBar.showing(header));
+        assertEquals(Color.BLACK, colour(header));
+        assertEquals(Color.BLACK, colour(logoRow));
+        String report = HookStatus.report().toString();
+        assertFalse(report, report.contains(GlassTopBar.COUNT_GLAZED));
+    }
+
+    @Test
+    public void onGlazesTheHeaderAndTakesOffFillsAsWideAsIt() {
+        Settings.SEE_THROUGH_HOME_TOP_BAR.save(true);
+
+        assertSame("with Keep off the header still slides", views, HomeTopBar.slidingViews(views));
+        frame();
+
+        assertTrue(GlassTopBar.showing(header));
+        assertNull("the logo row's fill would cover the glass", logoRow.getBackground());
+        assertEquals("a button's own chip stays", Color.DKGRAY, colour(chip));
+        assertEquals("the feed under it is untouched", Color.RED, colour(feed));
+        String report = HookStatus.report().toString();
+        assertTrue(report, report.contains(GlassTopBar.COUNT_GLAZED + " 1"));
+    }
+
+    @Test
+    public void withKeepOnTheHeaderStaysAndGetsTheGlass() {
+        Settings.KEEP_HOME_TOP_BAR.save(true);
+        Settings.SEE_THROUGH_HOME_TOP_BAR.save(true);
+        header.setTranslationY(-40f);
+
+        assertTrue(HomeTopBar.slidingViews(views).isEmpty());
+        frame();
+
+        assertEquals(0f, header.getTranslationY(), 0f);
+        assertTrue(GlassTopBar.showing(header));
+    }
+
+    @Test
+    public void handedOverTwiceItIsGlazedOnce() {
+        Settings.SEE_THROUGH_HOME_TOP_BAR.save(true);
+
+        HomeTopBar.slidingViews(views);
+        HomeTopBar.slidingViews(views);
+        frame();
+
+        String report = HookStatus.report().toString();
+        assertTrue(report, report.contains(GlassTopBar.COUNT_GLAZED + " 1"));
+    }
+
+    @Test
+    public void aFillInstagramPutsBackComesOffAndItsLatestGoesBack() {
+        Settings.SEE_THROUGH_HOME_TOP_BAR.save(true);
+        HomeTopBar.slidingViews(views);
+        frame();
+
+        header.setBackground(new ColorDrawable(Color.WHITE));
+        logoRow.setBackgroundColor(Color.GRAY);
+        frame();
+        assertTrue("put back by Instagram, the glass goes on again", GlassTopBar.showing(header));
+        assertNull(logoRow.getBackground());
+
+        Settings.SEE_THROUGH_HOME_TOP_BAR.save(false);
+        frame();
+        assertEquals("Instagram's latest fill goes back", Color.WHITE, colour(header));
+        assertEquals(Color.GRAY, colour(logoRow));
+    }
+
+    @Test
+    public void pauseTakesItOffAndResumingPutsItBack() {
+        Settings.SEE_THROUGH_HOME_TOP_BAR.save(true);
+        HomeTopBar.slidingViews(views);
+        frame();
+
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        frame();
+        assertEquals(Color.BLACK, colour(header));
+        assertEquals(Color.BLACK, colour(logoRow));
+
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+        frame();
+        assertTrue(GlassTopBar.showing(header));
+        assertNull(logoRow.getBackground());
+    }
+
+    @Test
+    public void leavingTheWindowPutsItAllBackAndComingBackGlazesAgain() {
+        Settings.SEE_THROUGH_HOME_TOP_BAR.save(true);
+        HomeTopBar.slidingViews(views);
+        frame();
+
+        screen.removeView(header);
+        assertEquals(Color.BLACK, colour(header));
+        assertEquals(Color.BLACK, colour(logoRow));
+
+        screen.addView(header, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, HEADER));
+        layout();
+        frame();
+        assertTrue(GlassTopBar.showing(header));
+    }
+
+    @Test
+    public void aHeaderHandedOverBeforeItIsShownGlazesOnceItIs() {
+        Settings.SEE_THROUGH_HOME_TOP_BAR.save(true);
+        screen.removeView(header);
+
+        HomeTopBar.slidingViews(views);
+        assertEquals("nothing changes off the window", Color.BLACK, colour(header));
+
+        screen.addView(header, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, HEADER));
+        layout();
+        frame();
+        assertTrue(GlassTopBar.showing(header));
+    }
+
+    @Test
+    public void aThrowingSwitchFailsOpen() {
+        GlassTopBar.glaze(views, () -> {
+            throw new IllegalStateException("boom");
+        });
+
+        assertEquals(Color.BLACK, colour(header));
+        String report = HookStatus.report().toString();
+        assertTrue(report, report.contains(GlassTopBar.HOOK));
+    }
+
+    @Test
+    public void theHostIsTheHeaderOrTheViewWrappedRoundIt() {
+        assertSame(header, GlassTopBar.host(header));
+
+        FrameLayout wrapper = new FrameLayout(activity);
+        View inner = new View(activity);
+        wrapper.addView(inner, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, HEADER));
+        screen.addView(wrapper, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, HEADER));
+        layout();
+        assertSame(wrapper, GlassTopBar.host(inner));
+
+        assertNull("off the screen there's no host", GlassTopBar.host(new View(activity)));
+    }
+
+    @Test
+    public void theTintComesFromInstagramsFillOrTheTheme() {
+        List<Drawable> none = Collections.emptyList();
+        assertEquals(Color.BLACK, GlassTopBar.base(new ColorDrawable(Color.BLACK), none, false));
+        assertEquals(0xff123456, GlassTopBar.base(null, Collections.<Drawable>singletonList(new ColorDrawable(0xff123456)), false));
+        assertEquals("a see-through fill says nothing", Color.WHITE, GlassTopBar.base(new ColorDrawable(0x80000000), none, false));
+        assertEquals(Color.BLACK, GlassTopBar.base(null, none, true));
+        assertEquals(Color.WHITE, GlassTopBar.base(null, none, false));
+
+        assertEquals(GlassTopBar.HAIRLINE_DARK, GlassTopBar.hairline(Color.BLACK));
+        assertEquals(GlassTopBar.HAIRLINE_LIGHT, GlassTopBar.hairline(Color.WHITE));
+
+        assertFalse(GlassTopBar.fills(null));
+        assertFalse(GlassTopBar.fills(new ColorDrawable(Color.TRANSPARENT)));
+        assertTrue(GlassTopBar.fills(new ColorDrawable(Color.RED)));
+    }
+
+    /** #683: a message box's tint takes a chat theme's colour off its pill, and stays white or black otherwise. */
+    @Test
+    public void aMessageBoxsTintTakesAChatThemesColour() {
+        List<Drawable> none = Collections.emptyList();
+        List<Drawable> taken = Collections.<Drawable>singletonList(new ColorDrawable(0xff123456));
+        assertEquals(0xff5b2a86, GlassTopBar.boxBase(themed(0xff5b2a86), none, false, false));
+        assertEquals("at night too", 0xff5b2a86, GlassTopBar.boxBase(themed(0xff5b2a86), none, false, true));
+        assertEquals(0xff123456, GlassTopBar.boxBase(new ColorDrawable(0xff123456), none, false, false));
+        assertEquals("from a fill taken off a view over it", 0xff123456, GlassTopBar.boxBase(null, taken, false, false));
+        assertEquals("the pill's own first", 0xff5b2a86, GlassTopBar.boxBase(themed(0xff5b2a86), taken, false, false));
+        assertEquals("a grey pill passes to the next", 0xff123456, GlassTopBar.boxBase(themed(0xffefefef), taken, false, false));
+        assertEquals("see-through, as it shows over white", 0xffff7f7f, GlassTopBar.boxBase(themed(0x80ff0000), none, false, false));
+        assertEquals("and over black", 0xff800000, GlassTopBar.boxBase(themed(0x80ff0000), none, false, true));
+
+        assertEquals("Instagram's grey pill", Color.WHITE, GlassTopBar.boxBase(themed(0xffefefef), none, false, false));
+        assertEquals(Color.BLACK, GlassTopBar.boxBase(themed(0xff262626), none, false, true));
+        assertEquals("a blue-tinted grey", Color.BLACK, GlassTopBar.boxBase(themed(0xff0c1014), none, false, true));
+        assertEquals(Color.WHITE, GlassTopBar.boxBase(null, none, false, false));
+        assertEquals(Color.BLACK, GlassTopBar.boxBase(null, none, false, true));
+        assertEquals("clear", Color.WHITE, GlassTopBar.boxBase(new ColorDrawable(0x00ff0000), none, false, false));
+        GradientDrawable gradient = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, new int[] {0xffff0000, 0xff0000ff});
+        assertEquals("a gradient has no one colour", Color.WHITE, GlassTopBar.boxBase(gradient, none, false, false));
+        assertEquals("kept dark", Color.BLACK, GlassTopBar.boxBase(themed(0xff5b2a86), taken, true, false));
+    }
+
+    /** On a phone's canvas the feed is recorded under the header and drawn blurred; with nothing under it, only the tint. */
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(sdk = 33)
+    public void theFeedUnderTheHeaderIsRecordedAndDrawn() {
+        Settings.SEE_THROUGH_HOME_TOP_BAR.save(true);
+        HomeTopBar.slidingViews(views);
+        frame();
+        String report = HookStatus.report().toString();
+        assertTrue("no backdrop recorded: " + report, GlassTopBar.recorded(header));
+        assertFalse(report, report.contains(GlassTopBar.HOOK));
+
+        // A GPU canvas takes the recording as a node: drawing it there mustn't throw.
+        RenderNode target = new RenderNode("target");
+        target.setPosition(0, 0, header.getWidth(), header.getHeight());
+        Canvas recording = target.beginRecording(header.getWidth(), header.getHeight());
+        try {
+            header.getBackground().setBounds(0, 0, header.getWidth(), header.getHeight());
+            header.getBackground().draw(recording);
+        } finally {
+            target.endRecording();
+        }
+        assertTrue(target.hasDisplayList());
+
+        // First in its parent, with nothing drawn before it, the header has no feed to show.
+        screen.removeView(header);
+        screen.addView(header, 0, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, HEADER));
+        layout();
+        frame();
+        assertTrue(GlassTopBar.showing(header));
+        assertFalse(GlassTopBar.recorded(header));
+    }
+
+    /** Off the GPU there's no blur: a firmer tint from the bar's colour, and a hairline along the bottom. */
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(sdk = 33)
+    public void aSoftwareCanvasGetsThePlainTintAndTheHairline() {
+        Settings.SEE_THROUGH_HOME_TOP_BAR.save(true);
+        HomeTopBar.slidingViews(views);
+        frame();
+
+        Bitmap bitmap = Bitmap.createBitmap(100, 50, Bitmap.Config.ARGB_8888);
+        Drawable frost = header.getBackground();
+        frost.setBounds(0, 0, 100, 50);
+        frost.draw(new Canvas(bitmap));
+
+        int middle = bitmap.getPixel(50, 20);
+        int tint = GlassTabBar.tint(Color.BLACK, false, GlassTabBar.opacityScale());
+        assertEquals(Color.alpha(tint), Color.alpha(middle), 1);
+        assertEquals(Color.red(tint), Color.red(middle), 2);
+        assertNotEquals("the hairline", middle, bitmap.getPixel(50, 49));
+    }
+
+    /** With the glass tab bar on, Home's header takes the pill's sheen, light at the top fading out (#513). */
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(sdk = 33)
+    public void withTheGlassTabBarOnTheHeaderTakesItsSheen() {
+        Settings.SEE_THROUGH_HOME_TOP_BAR.save(true);
+        HomeTopBar.slidingViews(views);
+        frame();
+        Bitmap plain = drawn(header.getBackground());
+        assertFalse(GlassTopBar.sheened(header));
+
+        Settings.GLASS_TAB_BAR.save(true);
+        Bitmap shiny = drawn(header.getBackground());
+        assertTrue(GlassTopBar.sheened(header));
+        assertTrue("lighter at the top", Color.red(shiny.getPixel(50, 2)) > Color.red(plain.getPixel(50, 2)) + 4);
+        assertEquals("faded out by the bottom", Color.red(plain.getPixel(50, 47)), Color.red(shiny.getPixel(50, 47)), 3);
+
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        drawn(header.getBackground());
+        assertFalse("paused, the tab bar's look rests", GlassTopBar.sheened(header));
+    }
+
+    /** A chat's header takes the glass tab bar's look too, its sheen and its rim bend along the bottom (#391). */
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(sdk = 33)
+    public void aChatsHeaderTakesTheTabBarsLook() {
+        Settings.GLASS_TAB_BAR.save(true);
+        Settings.GLASS_TAB_BAR_REFRACT.save(true);
+        GlassTopBar.glazeChat(header, () -> true);
+        frame();
+        assertTrue(GlassTopBar.showing(header));
+        assertTrue(GlassTopBar.recorded(header));
+
+        drawn(header.getBackground());
+        assertTrue(GlassTopBar.sheened(header));
+        drawnOnTheGpu(header);
+        assertEquals(1, GlassTopBar.bends(header));
+    }
+
+    /**
+     * A message box takes the glass tab bar's sheen while that's on, and its rim bent all the way round while
+     * the tab bar's bends (#391).
+     */
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(sdk = 33)
+    public void aMessageBoxTakesTheTabBarsLook() {
+        screen.setId(View.generateViewId());
+        FrameLayout holder = new FrameLayout(activity);
+        FrameLayout box = new FrameLayout(activity);
+        box.addView(new View(activity), new FrameLayout.LayoutParams(40, 40));
+        holder.addView(box, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, HEADER));
+        screen.addView(holder, 2, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, HEADER));
+        layout();
+        GlassTopBar.glazeBox(box, screen.getId(), true, () -> true, FamilyNames.GLASS_CHAT);
+        frame();
+        assertTrue(GlassTopBar.boxShowing(box));
+        assertTrue(GlassTopBar.recorded(box));
+
+        Bitmap plain = drawn(box.getBackground());
+        drawnOnTheGpu(box);
+        assertFalse(GlassTopBar.sheened(box));
+        assertEquals("no glass tab bar, no bend", 0, GlassTopBar.bends(box));
+
+        Settings.GLASS_TAB_BAR.save(true);
+        Bitmap shiny = drawn(box.getBackground());
+        assertTrue(GlassTopBar.sheened(box));
+        assertTrue("lighter at the top", Color.red(shiny.getPixel(50, 8)) > Color.red(plain.getPixel(50, 8)) + 4);
+        drawnOnTheGpu(box);
+        assertEquals("the tab bar's bend is off", 0, GlassTopBar.bends(box));
+
+        Settings.GLASS_TAB_BAR_REFRACT.save(true);
+        drawnOnTheGpu(box);
+        assertEquals(1, GlassTopBar.bends(box));
+    }
+
+    /**
+     * A chat's top bar tint follows its own slider over the tab bar's Tint intensity, read as it draws, and the
+     * message bar's slider leaves it alone (#688).
+     */
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(sdk = 33)
+    public void aChatsTopBarTintFollowsItsOwnSlider() {
+        GlassTopBar.glazeChat(header, () -> true);
+        frame();
+        assertTrue(GlassTopBar.showing(header));
+        assertEquals("full look by default", tintAlpha(1f), Color.alpha(drawn(header.getBackground()).getPixel(50, 20)), 1);
+
+        Settings.GLASS_CHAT_TOP_BAR_OPACITY.save(40);
+        assertEquals(tintAlpha(0.4f), Color.alpha(drawn(header.getBackground()).getPixel(50, 20)), 1);
+        Settings.GLASS_CHAT_TOP_BAR_OPACITY.save(0);
+        assertEquals("clear at 0%", 0, Color.alpha(drawn(header.getBackground()).getPixel(50, 20)));
+
+        Settings.GLASS_CHAT_TOP_BAR_OPACITY.save(100);
+        Settings.GLASS_CHAT_BOX_OPACITY.save(20);
+        assertEquals("the message bar's slider isn't the top bar's", tintAlpha(1f),
+                Color.alpha(drawn(header.getBackground()).getPixel(50, 20)), 1);
+    }
+
+    /** Home's see-through header keeps its look whatever the chat sliders say (#688). */
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(sdk = 33)
+    public void homesHeaderIgnoresTheChatSliders() {
+        Settings.SEE_THROUGH_HOME_TOP_BAR.save(true);
+        Settings.GLASS_CHAT_TOP_BAR_OPACITY.save(30);
+        Settings.GLASS_CHAT_BOX_OPACITY.save(30);
+        HomeTopBar.slidingViews(views);
+        frame();
+        assertEquals(tintAlpha(1f), Color.alpha(drawn(header.getBackground()).getPixel(50, 20)), 1);
+    }
+
+    /**
+     * A chat's message bar tint follows its own slider, and a story's reply box, which shares the glass but has
+     * no slider of its own, keeps the standard look (#688).
+     */
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(sdk = 33)
+    public void aChatsMessageBarTintFollowsItsOwnSlider() {
+        FrameLayout box = messageBox();
+        GlassTopBar.glazeBox(box, screen.getId(), false, () -> true, FamilyNames.GLASS_CHAT, Settings.GLASS_CHAT_BOX_OPACITY);
+        frame();
+        assertTrue(GlassTopBar.boxShowing(box));
+        assertEquals("full look by default", tintAlpha(1f), Color.alpha(drawn(box.getBackground()).getPixel(50, 25)), 1);
+
+        Settings.GLASS_CHAT_BOX_OPACITY.save(150);
+        assertEquals(tintAlpha(1.5f), Color.alpha(drawn(box.getBackground()).getPixel(50, 25)), 1);
+        Settings.GLASS_CHAT_BOX_OPACITY.save(25);
+        assertEquals(tintAlpha(0.25f), Color.alpha(drawn(box.getBackground()).getPixel(50, 25)), 1);
+        Settings.GLASS_CHAT_TOP_BAR_OPACITY.save(0);
+        assertEquals("the top bar's slider isn't the message bar's", tintAlpha(0.25f),
+                Color.alpha(drawn(box.getBackground()).getPixel(50, 25)), 1);
+
+        FrameLayout story = messageBox();
+        GlassTopBar.glazeBox(story, screen.getId(), true, () -> true, FamilyNames.GLASS_CHAT);
+        frame();
+        assertTrue(GlassTopBar.boxShowing(story));
+        assertEquals("a story's reply box keeps the standard look", tintAlpha(1f),
+                Color.alpha(drawn(story.getBackground()).getPixel(50, 25)), 1);
+    }
+
+    /**
+     * Bigger text makes a chat's message box taller while Instagram keeps its buttons the same size, the same
+     * distance from its edges: the pill's ends then round about the first button, which stays in the middle of the
+     * curve and not out in the corner (#729).
+     */
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(sdk = 33)
+    public void aTallerMessageBoxRoundsItsEndsAboutItsFirstButton() {
+        int edge = 16;
+        int inset = 12;
+        int button = 76;
+        screen.setId(View.generateViewId());
+        FrameLayout holder = new FrameLayout(activity);
+        FrameLayout box = new FrameLayout(activity);
+        FrameLayout.LayoutParams boxAt = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 100);
+        boxAt.leftMargin = edge;
+        boxAt.rightMargin = edge;
+        holder.addView(box, boxAt);
+        View camera = new View(activity);
+        camera.setId(View.generateViewId());
+        FrameLayout.LayoutParams cameraAt = new FrameLayout.LayoutParams(button, button);
+        cameraAt.leftMargin = edge + inset;
+        cameraAt.topMargin = inset;
+        holder.addView(camera, cameraAt);
+        screen.addView(holder, 2, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, HEADER));
+        layout();
+        GlassTopBar.glazeBox(box, screen.getId(), false, () -> true, FamilyNames.GLASS_CHAT,
+                Settings.GLASS_CHAT_BOX_OPACITY, camera.getId());
+        frame();
+        assertTrue(GlassTopBar.boxShowing(box));
+        assertEquals("Instagram's own size: fully round", 50f, GlassTopBar.pillRadius(box), 0.01f);
+
+        boxAt.height = 140;
+        box.setLayoutParams(boxAt);
+        layout();
+        frame();
+        assertEquals(140, box.getHeight());
+        assertEquals("taller: round about the camera's middle", inset + button / 2f, GlassTopBar.pillRadius(box), 0.01f);
+
+        boxAt.height = 60;
+        box.setLayoutParams(boxAt);
+        layout();
+        frame();
+        assertEquals("smaller: fully round", 30f, GlassTopBar.pillRadius(box), 0.01f);
+
+        boxAt.height = 140;
+        box.setLayoutParams(boxAt);
+        camera.setVisibility(View.GONE);
+        layout();
+        frame();
+        assertEquals("no camera showing: fully round", 70f, GlassTopBar.pillRadius(box), 0.01f);
+
+        FrameLayout story = messageBox();
+        GlassTopBar.glazeBox(story, screen.getId(), true, () -> true, FamilyNames.GLASS_CHAT);
+        layout();
+        frame();
+        assertEquals("a box with no button named stays fully round", HEADER / 2f, GlassTopBar.pillRadius(story), 0.01f);
+        String report = HookStatus.report().toString();
+        assertFalse(report, report.contains(GlassTopBar.HOOK));
+    }
+
+    /**
+     * #683: a chat theme colours Instagram's message bar pill, and the glass on it takes that colour as its tint,
+     * on the pill's picture and on the row drawing the pill in its place. Instagram's own grey pill, a chat with no
+     * theme, keeps the glass white, and a story's reply box stays dark whatever it's given.
+     */
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(sdk = 33)
+    public void aChatThemesColourTintsTheMessageBarsGlass() {
+        int pink = 0xffffc8dc;
+        View pill = pill(themed(pink));
+        GlassTopBar.glazeBox(pill, screen.getId(), false, () -> true, FamilyNames.GLASS_CHAT, Settings.GLASS_CHAT_BOX_OPACITY);
+        frame();
+        assertTrue(GlassTopBar.boxShowing(pill));
+        assertTint("the picture's glass", pink, drawn(pill.getForeground()));
+
+        View grey = pill(themed(0xffefefef));
+        GlassTopBar.glazeBox(grey, screen.getId(), false, () -> true, FamilyNames.GLASS_CHAT, Settings.GLASS_CHAT_BOX_OPACITY);
+        frame();
+        assertTint("Instagram's grey pill", Color.WHITE, drawn(grey.getForeground()));
+
+        int purple = 0xff5b2a86;
+        FrameLayout row = messageBox();
+        row.setBackground(themed(purple));
+        GlassTopBar.glazeRow(row, screen.getId(), () -> true, FamilyNames.GLASS_CHAT, Settings.GLASS_CHAT_BOX_OPACITY, 0);
+        frame();
+        assertTrue(GlassTopBar.boxShowing(row));
+        assertTint("the row's glass", purple, drawn(row.getBackground()));
+
+        View story = pill(themed(pink));
+        GlassTopBar.glazeBox(story, screen.getId(), true, () -> true, FamilyNames.GLASS_CHAT);
+        frame();
+        assertTint("a story's reply box", Color.BLACK, drawn(story.getForeground()));
+        String report = HookStatus.report().toString();
+        assertFalse(report, report.contains(GlassTopBar.HOOK));
+    }
+
+    /** A picture of a message bar pill filled with [fill], with nothing in it, in a holder over the feed. */
+    private View pill(Drawable fill) {
+        if (screen.getId() == View.NO_ID) screen.setId(View.generateViewId());
+        FrameLayout holder = new FrameLayout(activity);
+        View pill = new View(activity);
+        pill.setBackground(fill);
+        holder.addView(pill, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, HEADER));
+        screen.addView(holder, 2, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, HEADER));
+        layout();
+        return pill;
+    }
+
+    /** A round pill in [colour] with an outline, as a chat theme gives Instagram's message bar. */
+    private static GradientDrawable themed(int colour) {
+        GradientDrawable fill = new GradientDrawable();
+        fill.setCornerRadius(40);
+        fill.setColor(colour);
+        fill.setStroke(2, colour);
+        return fill;
+    }
+
+    /** That the middle of [glass] shows the unblurred tint made from [base], as a software canvas draws it. */
+    private static void assertTint(String what, int base, Bitmap glass) {
+        int expected = GlassTabBar.tint(base, false, GlassTabBar.opacityScale());
+        int found = glass.getPixel(50, 25);
+        assertEquals(what + ": red", Color.red(expected), Color.red(found), 2);
+        assertEquals(what + ": green", Color.green(expected), Color.green(found), 2);
+        assertEquals(what + ": blue", Color.blue(expected), Color.blue(found), 2);
+    }
+
+    /** A message box in a holder over the feed, laid out, as a chat's composer sits. */
+    private FrameLayout messageBox() {
+        if (screen.getId() == View.NO_ID) screen.setId(View.generateViewId());
+        FrameLayout holder = new FrameLayout(activity);
+        FrameLayout box = new FrameLayout(activity);
+        box.addView(new View(activity), new FrameLayout.LayoutParams(40, 40));
+        holder.addView(box, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, HEADER));
+        screen.addView(holder, 2, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, HEADER));
+        layout();
+        return box;
+    }
+
+    /** The alpha of the unblurred tint at [share] of the tab bar's Tint intensity, as a software canvas draws it. */
+    private static int tintAlpha(float share) {
+        return Color.alpha(GlassTabBar.tint(Color.BLACK, false, GlassTabBar.opacityScale() * share));
+    }
+
+    /** On a phone's canvas, the header bends along its bottom edge only while the tab bar's rim bends (#513). */
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(sdk = 33)
+    public void theHeaderBendsOnlyWhileTheTabBarsRimDoes() {
+        Settings.SEE_THROUGH_HOME_TOP_BAR.save(true);
+        HomeTopBar.slidingViews(views);
+        frame();
+        assertTrue(GlassTopBar.recorded(header));
+
+        drawnOnTheGpu(header);
+        assertEquals("no glass tab bar, no bend", 0, GlassTopBar.bends(header));
+
+        Settings.GLASS_TAB_BAR.save(true);
+        drawnOnTheGpu(header);
+        assertEquals("the tab bar's bend is off", 0, GlassTopBar.bends(header));
+
+        Settings.GLASS_TAB_BAR_REFRACT.save(true);
+        drawnOnTheGpu(header);
+        assertEquals(1, GlassTopBar.bends(header));
+        String report = HookStatus.report().toString();
+        assertFalse(report, report.contains(GlassTopBar.HOOK));
+
+        Settings.GLASS_TAB_BAR_BLUR.save(false);
+        drawnOnTheGpu(header);
+        assertEquals("no blur on the tab bar, nothing of its to bend", 1, GlassTopBar.bends(header));
+
+        drawn(header.getBackground());
+        assertEquals("off the GPU there's no blur to bend", 1, GlassTopBar.bends(header));
+    }
+
+    private static Bitmap drawn(Drawable frost) {
+        Bitmap bitmap = Bitmap.createBitmap(100, 50, Bitmap.Config.ARGB_8888);
+        frost.setBounds(0, 0, 100, 50);
+        frost.draw(new Canvas(bitmap));
+        return bitmap;
+    }
+
+    /** Draws [view]'s glass at its size into a render node, as a phone's canvas does. */
+    private static void drawnOnTheGpu(View view) {
+        RenderNode target = new RenderNode("target");
+        target.setPosition(0, 0, view.getWidth(), view.getHeight());
+        Canvas recording = target.beginRecording(view.getWidth(), view.getHeight());
+        try {
+            Drawable frost = view.getBackground();
+            frost.setBounds(0, 0, view.getWidth(), view.getHeight());
+            frost.draw(recording);
+        } finally {
+            target.endRecording();
+        }
+    }
+}

@@ -34,6 +34,6 @@ jobs:
           fi
           git config user.name "AllMorphe Bot"
           git config user.email "allmorphe-bot@users.noreply.github.com"
-          git add sources.txt bundles.json install-all.sh patches-bundle.json allmorphe/sources.txt allmorphe/bundles.json
+          git add sources.txt bundles.json install-all.sh patches-bundle.json allmorphe_settings.json allmorphe/sources.txt allmorphe/bundles.json allmorphe/allmorphe_settings.json
           git commit -m "chore: update AllMorphe bundle index [skip ci]"
           git push

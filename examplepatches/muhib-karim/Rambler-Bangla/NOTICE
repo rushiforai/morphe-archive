@@ -1,8 +1,13 @@
-Morphe NOTICE
-=============
+NOTICE — Rambler Bangla
+=======================
 
-7c. Project Name Restriction
-----------------------------
+This repository is licensed under the GNU General Public License v3.0 (LICENSE).
+In accordance with GNU GPL v3.0 Sections 5(a), 5(b), and 7(c), the following
+prominent derivation, modification, and project-name notices apply:
+
+
+1. Morphe NOTICE — Section 7(c) Project Name Restriction
+--------------------------------------------------------
 
 This license does not grant permission to use the name "Morphe", or any
 name, logo, or branding that is confusingly similar, as the name or
@@ -19,3 +24,57 @@ provided that such references:
 - Are accurate, factual, and non-misleading;
 - Do not suggest authorship by the Morphe project; and
 - Appear only in a secondary or descriptive context, not as part of the product or project name.
+
+
+2. GPL v3.0 Section 5(a) Upstream Derivation & Modification Notices
+-------------------------------------------------------------------
+
+Gboard Patches / GboardWu (jasonwu1994/Gboard-patches)
+  Source:   https://github.com/jasonwu1994/Gboard-patches
+  Author:   Jason Wu (@jasonwu1994)
+  Snapshot: commit aa6cb2bba1a0b9d1662469dec4f21e39ef4eb790 (2026-11-26)
+  License:  GNU General Public License v3.0 (with Morphe Section 7c notice)
+  Modified: 2026-11-27 by muhib-karim (Rambler Bangla v30.0.0–v31.2.0) —
+            integrated all 46 Gboard 18.5.4 patches, target-binding compiler,
+            and extensions into the unified Rambler Bangla bundle; set
+            enable_agentic_dictation unconditionally true in
+            GboardRamblerStockPolicy; defaulted Package Rename to
+            "Rambler Bangla" / com.aidev2024.ramblerbangla; updated in-app
+            package metadata.
+
+Gboard Rambler Enhancements (abotmaker/gboard-rambler-enhancements)
+  Source:   https://github.com/abotmaker/gboard-rambler-enhancements
+  Author:   @abotmaker
+  Snapshot: commit 5f7e50c210c8f29c01153387303f36f3def40f41 (v1.3.4, 2026-11-26)
+  License:  GNU General Public License v3.0 (incorporating Hex by Anomaly, MIT)
+  Modified: 2026-11-27 by muhib-karim (Rambler Bangla v30.0.0–v31.2.0) —
+            integrated all 7 Rambler enhancement patches, dynamic bytecode
+            resolver, and settings hub; extended RamblerFlagRuntime,
+            RamblerTextPipeline, and RamblerSharedPatches with Bengali phonetic
+            engine hooks, nl-morphe-patches 18.5.4 ports, and native Gboard
+            suggestion-strip @mention integration.
+
+nl-morphe-patches / Dutch App Patches (johninnld/nl-morphe-patches)
+  Source:   https://gitlab.com/johninnld/nl-morphe-patches
+  Docs:     https://nl-morphe-patches-ed90fa.gitlab.io/apps/gboard/
+  Author:   @johninnld
+  Snapshot: commit f5607c15c12448e923dcbc3059bbe3f0b53fe3c4 (2026-11-26)
+  License:  GNU General Public License v3.0 (with Morphe Section 7c notice)
+  Modified: 2026-11-27 by muhib-karim (Rambler Bangla v31.0.0–v31.2.0) —
+            ported AMOLED Dark Keyboard (Material 3 dark surface #000000
+            override), Rambler Toolbar & Revert Extras, unconditional Rambler
+            cloud activation pattern, and OVERRIDE-layer Hidden Flags
+            architecture to Gboard 18.5.4.
+
+PixelBoard (Akshayykadam/PixelBoard)
+  Source:   https://github.com/Akshayykadam/PixelBoard
+  Author:   Akshay Kadam (@Akshayykadam)
+  License:  GNU General Public License v3.0
+  Modified: 2026-09 to 2026-11-27 by muhib-karim — original extension-carrier
+            conventions and 18.3.1 Rambler Lite script-policy foundation
+            extended with Bengali Unicode script preservation, V29.3+ phonetic
+            normalization, loanword transliteration, and Morphe 18.5.4 support.
+
+Full third-party license texts (including MIT notices for Hex by Anomaly and
+QuickJS-NG, MPL-2.0 for Avro Keyboard, and BSD for CMUdict and smali/baksmali)
+are preserved in THIRD-PARTY-NOTICES.md, ATTRIBUTION.md, and NOTICE-cmudict.txt.

@@ -1,6 +1,6 @@
 # AllMorphe
 
-An index of **every Morphe patch bundle** listed on [morphe-patches.software](https://morphe-patches.software/) (589 bundles, ~6,451 patches across ~1,114 apps), so you can install them all at once.
+An index of **every Morphe patch bundle** listed on [morphe-patches.software](https://morphe-patches.software/) (~645 bundles), so you can install them all at once.
 
 ## Why not a single Morphe source?
 
@@ -10,17 +10,25 @@ Morphe treats one GitHub repository as **one patch source**, backed by a single 
 
 ### Android (Morphe app)
 
-Option A — add every community bundle at once:
+**Recommended — bulk import (no lag):** import the ready-made settings file:
+
+1. Download [`allmorphe_settings.json`](allmorphe_settings.json) (or [`allmorphe/allmorphe_settings.json`](allmorphe/allmorphe_settings.json)).
+2. Open Morphe → **Settings** → **System** → **Morphe Settings** → **Import**.
+3. Select the file, choose **Replace existing** when prompted. All bundles are added at once and stay auto-updated.
+
+Option A — paste all URLs at once (Morphe accepts many URLs in the Add source dialog):
 
 1. Open Morphe → **Sources** → **+** (Add source).
-2. Open [`sources.txt`](sources.txt) in this repo and paste its contents into the dialog (Morphe accepts many URLs at once).
-3. Tap **Add**. All 589 bundles are added and stay auto-updated from their own repos.
+2. Open [`sources.txt`](sources.txt) and paste its contents.
+3. Tap **Add**.
 
 Option B — add this repository as a single source (works, provides the official Morphe patches and never errors):
 
 ```
 github.com/Stabber14/allmorphe-patches
 ```
+
+Option C — browse & pick bundles in the **web app** (installable PWA): open the repo's GitHub Pages site, search/filter, select many, then **Download settings import JSON** or **Copy source URLs**.
 
 Or use the deep links on morphe-patches.software per bundle.
 

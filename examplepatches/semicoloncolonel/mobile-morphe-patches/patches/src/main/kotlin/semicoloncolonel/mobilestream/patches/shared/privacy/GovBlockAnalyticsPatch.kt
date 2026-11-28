@@ -14,6 +14,7 @@ val govBlockAnalyticsPatch = bytecodePatch(
     description = "Stops Firebase Analytics, and on NPS, Mapbox's map usage reports.",
     default = false,
 ) {
+    category("Privacy")
     compatibleWith(*GOV_APPS)
 
     dependsOn(analyticsKillSwitchesPatch)

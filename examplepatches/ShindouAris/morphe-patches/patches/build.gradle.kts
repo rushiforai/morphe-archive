@@ -42,6 +42,36 @@ animalsniffer {
     sourceSets = emptyList()
 }
 
+// The Waze Mod's classes that are written in smali (they implement Waze's own interfaces and call Compose methods
+// with names Java cannot spell). They are assembled into a second extension dex, extensions/waze-smali.mpe, which the
+// Waze patch merges next to the Java extension.
+val smaliTool = configurations.create("smaliTool")
+val wazeSmaliDir = layout.projectDirectory.dir("src/main/smali/waze")
+val wazeSmaliOutput = layout.buildDirectory.dir("generated/waze-smali")
+
+dependencies {
+    smaliTool(libs.morphe.patcher)
+}
+
+val assembleWazeSmali = tasks.register<JavaExec>("assembleWazeSmali") {
+    description = "Assembles the Waze Mod's smali classes into an extension dex."
+    val dex = wazeSmaliOutput.map { it.file("extensions/waze-smali.mpe") }
+    inputs.dir(wazeSmaliDir)
+    outputs.file(dex)
+    classpath = smaliTool
+    mainClass.set("com.android.tools.smali.smali.Main")
+    doFirst { dex.get().asFile.parentFile.mkdirs() }
+    argumentProviders += CommandLineArgumentProvider {
+        listOf("assemble", "--api", "29", "--output", dex.get().asFile.absolutePath, wazeSmaliDir.asFile.absolutePath)
+    }
+}
+
+sourceSets.main { resources.srcDir(wazeSmaliOutput) }
+// Every task that reads the resources (processResources, sourcesJar, ...) needs the assembled dex first.
+tasks.configureEach {
+    if (name == "processResources" || name == "sourcesJar") dependsOn(assembleWazeSmali)
+}
+
 tasks {
     register<JavaExec>("generatePatchesList") {
         description = "Build patch with patch list"

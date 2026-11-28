@@ -39,8 +39,6 @@ class FrontendContract(unittest.TestCase):
         base.mkdir(parents=True, exist_ok=True)
         cls.root = Path(tempfile.mkdtemp(prefix='workspace-contract-', dir=base))
         shutil.copytree(ROOT / 'tools/workspace', cls.root / 'tools/workspace')
-        shutil.copyfile(ROOT / 'tools/Verify.ps1', cls.root / 'tools/Verify.ps1')
-        shutil.copyfile(ROOT / 'tools/Enter-Workspace.ps1', cls.root / 'tools/Enter-Workspace.ps1')
         # Only child boundaries are substitutes; actual PS initialization and forwarding run.
         (cls.root / 'tools/check_localization.py').write_text('import os,sys; sys.exit(int(os.getenv("FIXTURE_LOCALIZATION_EXIT","0")))')
         (cls.root / 'tools/verify_current.py').write_text('import os,sys,json,pathlib; pathlib.Path("received.json").write_text(json.dumps(sys.argv[1:])); sys.exit(int(os.getenv("FIXTURE_CHILD_EXIT","0")))')
@@ -143,17 +141,6 @@ class FrontendContract(unittest.TestCase):
         for path in self.root.rglob('*'):
             if path.is_file():
                 self.assertNotIn(self.secret.encode(), path.read_bytes(), str(path))
-
-    def test_source_compatibility_alias_forwards_and_propagates(self):
-        r = subprocess.run(['powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
-                            str(self.root / 'tools/Verify.ps1'), '-RunId', 'alias-01', '-Offline'], cwd=ROOT,
-                           env=dict(self.env, FIXTURE_CHILD_EXIT='31'), capture_output=True, text=True)
-        self.assertEqual(31, r.returncode, r.stdout + r.stderr)
-        self.assertEqual(['--mode', 'candidate', '--run-id', 'alias-01', '--offline'], json.loads((self.root / 'received.json').read_text()))
-        r = subprocess.run(['powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
-                            str(self.root / 'tools/Enter-Workspace.ps1')], cwd=ROOT, env=self.env, capture_output=True, text=True)
-        self.assertEqual(0, r.returncode, r.stdout + r.stderr)
-        self.assertNotIn(self.secret, r.stdout + r.stderr)
 
 
 if __name__ == '__main__':

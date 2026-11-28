@@ -10,6 +10,13 @@ patches {
         license = "GPLv3"
     }
 }
+// Public bundles must not compile or package the optional private ad patch.
+val privateAds = providers.gradleProperty("futatabiPrivateAds").map { it == "true" }.getOrElse(false)
+if (!privateAds) {
+    kotlin.sourceSets.named("main") {
+        kotlin.exclude("**/BlockBannerAdsPatch.kt")
+    }
+}
 val patchListGeneratorClasspath = configurations.create("patchListGeneratorClasspath")
 dependencies {
     compileOnly(libs.gson)

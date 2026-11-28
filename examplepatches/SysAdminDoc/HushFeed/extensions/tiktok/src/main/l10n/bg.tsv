@@ -292,6 +292,8 @@ Blocked %1$s	Блокирано: %1$s
 Blocked %1$s. Unblock	Блокирано: %1$s. Отблокирай
 Couldn't confirm blocking %1$s. Check their profile.	Блокирането на %1$s е неясно. Провери профила.
 Blocked caption words	Блокирани думи в описанията
+Only show videos with these words	Показвай само видеа с тези думи
+For You only. Separate words or phrases with commas, like #recipe, cooking. A video stays only when its caption or hashtags match one, with the same rules as Blocked caption words. A batch with no match keeps one video so the feed keeps moving. Leave it empty to show everything.	Само в За вас. Разделяй думите или фразите със запетаи, например #recipe, cooking. Видеото остава само ако описанието или хаштаговете му съвпадат с някоя от тях, със същите правила като Блокирани думи в описанията. Партида без съвпадение запазва едно видео, за да продължи емисията. Остави празно, за да виждаш всичко.
 Blocked comment words	Блокирани думи в коментарите
 Blocked creators	Блокирани създатели
 Blocked sound ids	Блокирани ID на звуци
@@ -3026,6 +3028,8 @@ Crop and stretch to fill the screen	Изрязване и разпъване д�
 Cover the whole window with half the crop of Fill and half the stretch of Stretch, so neither is easy to spot. A video far from the screen's shape keeps TikTok's size.	Покрива целия прозорец с половината изрязване на „Запълване“ и половината разпъване на „Разпъване“, така че нито едното да не личи. Видео с форма, много различна от тази на екрана, запазва размера на TikTok.
 Watch LIVEs unseen	Гледане на LIVE излъчвания незабелязано
 You stay off the viewer list of LIVEs you open. Tap the eye in a LIVE to let that host see you. Needs Ghost mode on.	Не се появяваш в списъка със зрители на LIVE излъчванията, които отваряш. Докосни окото в LIVE, за да позволиш на водещия да те вижда. Изисква включен „Режим призрак“.
+Double tap to let the host see you	Двойно докосване, за да те вижда водещият
+No eye on the video. Double tap a LIVE to let that host see you, and the next LIVE you open hides you again. Needs Watch LIVEs unseen on.	Без око върху видеото. Докосни два пъти LIVE, за да позволиш на водещия да те вижда, а следващото LIVE излъчване, което отвориш, отново те скрива. Изисква включено Гледане на LIVE излъчвания незабелязано.
 Keep likes on this phone	Запазване на харесванията на този телефон
 A like you give a video stays on this phone. The heart turns red, but TikTok isn't told, so the creator never sees it and it isn't on your profile. Needs Ghost mode on.	Харесването, което даваш на видео, остава на този телефон. Сърцето става червено, но TikTok не разбира, така че създателят никога не го вижда и то не е в профила ти. Изисква включен „Режим призрак“.
 My likes on this phone	Моите харесвания на този телефон
@@ -3155,8 +3159,8 @@ Sort pinned videos with the rest	Сортиране на закачените в
 Pinned videos take their place in the order instead of staying at the top, so Newest first puts them at the date they were posted.	Закачените видеа заемат мястото си в подредбата, вместо да стоят най-горе, така че „Първо най-новите“ ги поставя според датата на публикуване.
 Hide or reorder profile tabs	Скриване или пренареждане на разделите в профила
 Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos, and use the arrows to put the rest in your order. One tab always stays. Restart TikTok to apply this.	Избери разделите, които да скриеш от лентата над видеата на профила, например „Повторни публикации“ или „Харесани видеа“, и със стрелките подреди останалите както искаш. Един раздел винаги остава. Рестартирай TikTok, за да се приложи това.
-Hide Add bio	Скриване на „Добави биография“
-Hide the Add bio prompt TikTok shows on your own profile while it has no bio. You can still add one from Edit profile.	Скрива подканата „Добави биография“, която TikTok показва в твоя профил, докато няма биография. Пак можеш да добавиш такава от „Редактирай профила“.
+Hide tips on your profile	Скриване на подсказките в твоя профил
+Hide the Add bio prompt and the tip bubbles TikTok points at things on your own profile. You can still add a bio from Edit profile.	Скрива подканата „Добави биография“ и балончетата с подсказки, които TikTok насочва към неща в твоя профил. Пак можеш да добавиш биография от „Редактирай профила“.
 Show the picture before saving	Показване на снимката преди запазване
 With the long press save on, holding a profile picture opens it full screen at full size, with a Save button under it.	Когато запазването с дълго натискане е включено, задържането на профилна снимка я отваря на цял екран в пълен размер, с бутон „Запази“ под нея.
 The profile picture couldn't be loaded. Try again.	Профилната снимка не можа да се зареди. Опитай пак.
@@ -3174,7 +3178,6 @@ Gives each video on profile grids rounded corners, on your own profile and on Li
 Gifter level	Ниво на дарител
 SecUID	SecUID
 Unknown (TikTok didn't send it)	Неизвестно (TikTok не го изпрати)
-A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, how many posts, liked videos, favorites and reposts it has, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.	Менюто за споделяне на профил получава бутон „Факти за акаунта“. Той показва какво вече е изпратил TikTok за акаунта: кога е създаден, регионът и езикът му, нивото на дарител и SecUID, колко публикации, харесани видеа, любими и повторни публикации има, кога за последно са сменени потребителското име и показваното име, дали е частен и дали харесаните му видеа са публични. Нищо допълнително не се изтегля.
 # context: LIVE controls: a small line in a LIVE room with the room ID and the viewer's own connection (ping, latency, download speed) from TikTok's player; a tap copies the room ID
 Show the room ID and your connection	Показване на ID на стаята и връзката ти
 Show the room line	Показване на реда на стаята
@@ -3280,3 +3283,76 @@ Unavailable saved video	Неналично запазено видео
 Posted %1$s	Публикувано на %1$s
 Remembered %1$s	Запомнено на %1$s
 Unavailable since %1$s	Не е налично от %1$s
+# context: Number row under Round the corners on profile grids; how big the rounded corners are, in dp
+Corner size on profile grids	Размер на ъглите в мрежите на профилите
+# context: Summary of Corner size on profile grids; dp is the screen unit shown next to the number
+How round the corners are, in dp. TikTok's own cards use about 8.	Колко заоблени са ъглите, в dp. Картите на самия TikTok са около 8.
+# context: Number row in the profile grid settings; extra space between the videos, in dp
+Gap between videos on profile grids	Разстояние между видеата в мрежите на профилите
+# context: Summary of Gap between videos on profile grids; 0 keeps the spacing TikTok draws itself
+Adds space between the videos on profile grids, on top of TikTok's own thin line. Use 0 for TikTok's spacing.	Добавя разстояние между видеата в мрежите на профилите, освен тънката линия на TikTok. Използвай 0 за разстоянието на TikTok.
+# context: Account facts line: the gifter points TikTok sent for the account (pay_grade now_diamond), shown beside Gifter level
+Gifter points	Точки на дарител
+# context: Account facts line: the points figure TikTok sent for the next gifter level (pay_grade next_diamond)
+Gifter points for the next level	Точки на дарител за следващото ниво
+# context: Account facts line: all the gifter points TikTok counted for the account (pay_grade total_diamond_count)
+Gifter points in total	Общо точки на дарител
+# context: Account facts line: web link to the account's profile picture at its smallest size
+Profile picture (small)	Профилна снимка (малка)
+# context: Account facts line: web link to the account's profile picture at its middle size
+Profile picture (medium)	Профилна снимка (средна)
+# context: Account facts line: web link to the account's profile picture at its largest size
+Profile picture (large)	Профилна снимка (голяма)
+# context: Account facts line: web link to the cover picture TikTok keeps for the profile (cover_url)
+Profile cover	Корица на профила
+# context: Toast after tapping one value in the Account facts sheet, which copies just that value
+Copied to the clipboard	Копирано в клипборда
+# context: Summary of Account facts on profiles; the sheet lists what TikTok sent, and a tap on one value copies only that value
+A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, how many posts, liked videos, favorites and reposts it has, when its username and display name last changed, whether it's private and whether its liked videos are public. Links to its profile picture and cover come last. Tap a value to copy just that one. Nothing extra is fetched.	Менюто за споделяне на профил получава бутон „Факти за акаунта“. Той показва какво вече е изпратил TikTok за акаунта: кога е създаден, регионът и езикът му, нивото на дарител и SecUID, колко публикации, харесани видеа, любими и повторни публикации има, кога за последно са сменени потребителското име и показваното име, дали е частен и дали харесаните му видеа са публични. Връзките към профилната снимка и корицата са най-отдолу. Докосни стойност, за да копираш само нея. Нищо допълнително не се изтегля.
+# context: Settings toggle title: a profile's Followers or Following count shows in yellow when that list is private
+Yellow counts for private lists	Жълти бройки за скрити списъци
+# context: Settings toggle summary for Yellow counts for private lists; it also applies to your own profile
+On a profile that keeps its followers or following list private, that count shows in yellow, so you can tell it's private before you tap it. Yours too.	В профил, който държи списъка си с последователи или следвани скрит, тази бройка е в жълто, така че знаеш, че е скрит, преди да я докоснеш. Твоят също.
+# context: Settings toggle title: another app's username in a profile bio (IG, Snap, YT, X, Twitch, Threads, FB) becomes a tappable pill that opens its public page
+Links to other apps in bios	Връзки към други приложения в биографиите
+# context: Settings toggle summary for Links to other apps in bios; IG, Snap, YT, X, Twitch, Threads and FB are the short names people type in bios and stay as written
+A username named after IG, Snap, YT, X, Twitch, Threads or FB in a bio turns into a pill in that app's color. Tapping it opens that account's public page in the app or your browser. Nothing is looked up before you tap.	Потребителско име след IG, Snap, YT, X, Twitch, Threads или FB в биографията става на бутон в цвета на това приложение. Докосването му отваря публичната страница на профила в приложението или в браузъра ти. Нищо не се проверява, преди да докоснеш.
+# context: Settings row title: pick a picture that stands in for the blue verified check beside your own name on your own profile, on this phone only
+Badge picture	Снимка за значката
+# context: Settings row title: deletes the picked badge picture so the blue check comes back
+Remove the badge picture	Премахни снимката за значката
+# context: Summary of the Badge picture row; Local verified badge is the name of the switch just above it
+Pick a picture to show in place of the blue check while Local verified badge is on. It's kept on this phone only and nobody else sees it.	Избери снимка, която да се показва вместо синята отметка, докато Локална значка за потвърден акаунт е включена. Пази се само на този телефон и никой друг не я вижда.
+# context: Summary of the Badge picture row while the picked file is being read
+Reading the picture	Снимката се чете
+# context: Summary of the Remove the badge picture row
+Deletes the picture, and the blue check comes back.	Изтрива снимката и синята отметка се връща.
+# context: Summary of the Remove the badge picture row when there is none
+No badge picture is kept	Няма запазена снимка за значката
+# context: Banner after a badge picture was picked while Local verified badge is on
+Badge picture saved. Open your profile to see it.	Снимката за значката е запазена. Отвори профила си, за да я видиш.
+# context: Banner after a badge picture was picked while Local verified badge is off; Local verified badge is the switch's name
+Badge picture saved. Turn on Local verified badge to see it.	Снимката за значката е запазена. Включи Локална значка за потвърден акаунт, за да я видиш.
+# context: Banner when the picked badge picture could not be written to TikTok's private storage
+Couldn't save the picture in TikTok's storage. Free up some space and try again.	Снимката не можа да се запази в хранилището на TikTok. Освободи малко място и опитай отново.
+# context: Banner when the picked badge picture file is too big; %1$s is the size limit in megabytes
+That picture is larger than %1$s MB. Choose a smaller one.	Тази снимка е по-голяма от %1$s MB. Избери по-малка.
+# context: Banner when the picked badge file is not an image; PNG, JPEG and WebP are file formats and stay as written
+That file isn't a picture this phone can open. Choose a PNG, JPEG or WebP.	Този файл не е снимка, която телефонът може да отвори. Избери PNG, JPEG или WebP.
+# context: Banner after the badge picture was deleted
+Badge picture removed. Your profile shows the blue check again.	Снимката за значката е премахната. Профилът ти отново показва синята отметка.
+# context: Banner when deleting the badge picture failed
+Couldn't remove the badge picture. Try again.	Снимката за значката не можа да се премахне. Опитай отново.
+Keep the letters after the flag	Буквите след знамето
+Shows the country's two letters next to its flag, so a flag you don't recognize still tells you where it is.	Показва двете букви на държавата до знамето ѝ, така че и непознато знаме казва откъде е.
+Write grid dates the way TikTok does	Изписване на датите в мрежата като TikTok
+Profile grids show the date the way TikTok writes it by the creator's name, like 2d ago or 10-12, in place of Oct 12. Day before month, Write the month as a word and Date instead of age change it the same way.	Мрежите на профилите показват датата така, както TikTok я пише до името на създателя, например преди 2 д. или 10-12, вместо Oct 12. „Ден преди месеца“, „Изписване на месеца с дума“ и „Дата вместо изминало време“ я променят по същия начин.
+Where the date goes on grids	Място на датата в мрежите
+Under the view count	Под броя гледания
+After the view count	След броя гледания
+Above the view count	Над броя гледания
+Above the view count takes the video length along with the date.	„Над броя гледания“ премества и дължината на видеото заедно с датата.
+Show notices at the top	Показване на известията горе
+Put Hushfeed's notices, like a finished save or a block's Undo, just under the status bar instead of above the tab bar. Swipe a notice left or right to close it.	Поставя известията на Hushfeed, например за завършено запазване или „Отмени“ след блокиране, точно под лентата на състоянието вместо над лентата с раздели. Плъзнете известие наляво или надясно, за да го затворите.
+Blur behind notices	Размазване зад известията
+Blur the video behind Hushfeed's notices so they look like frosted glass. Needs Android 12 and up. Away from a video they keep the plain dark look.	Размазва видеото зад известията на Hushfeed, така че да приличат на матово стъкло. Изисква Android 12 или по-нов. Извън видео запазват обичайния тъмен вид.

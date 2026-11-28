@@ -1,0 +1,21 @@
+# Build outputs and machine-specific configuration
+.gradle/
+**/build/
+build/
+dist/
+.cache/
+.idea/
+local.properties
+__pycache__/
+*.pyc
+node_modules/
+# Never publish APKs, signing keys, tokens, or device data.
+*.apk
+*.keystore
+*.jks
+*.p12
+*.pfx
+*.pem
+.env
+.env.*
+gradle-local.properties

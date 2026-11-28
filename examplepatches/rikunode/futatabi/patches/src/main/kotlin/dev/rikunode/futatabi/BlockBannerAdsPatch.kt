@@ -22,6 +22,7 @@ val blockBannerAdsPatch = rawResourcePatch(
     description = "Remove the top banner and its reserved space on ARM64 without changing rewarded ads.",
     default = true,
 ) {
+    dependsOn(arm64TargetGuard)
     compatibleWith(
         Compatibility(
             name = "futatter",

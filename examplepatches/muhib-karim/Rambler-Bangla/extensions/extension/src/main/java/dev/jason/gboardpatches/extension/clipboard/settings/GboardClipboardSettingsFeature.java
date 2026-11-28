@@ -10,6 +10,7 @@ import java.util.List;
 
 import dev.jason.gboardpatches.extension.R;
 import dev.jason.gboardpatches.extension.clipboardcontentlimit.GboardClipboardContentLimitSettingsRow;
+import dev.jason.gboardpatches.extension.keyboard.GboardRamblerKeyboardPrefs;
 import dev.jason.gboardpatches.extension.settings.GboardPatchesFeatureAvailability;
 import dev.jason.gboardpatches.extension.settings.GboardPatchesIcons;
 import dev.jason.gboardpatches.extension.settings.GboardPatchesSettingsContract;
@@ -74,6 +75,11 @@ public final class GboardClipboardSettingsFeature
     @Override
     public String getEntryTone() {
         return "amber";
+    }
+
+    @Override
+    public String getRootSectionKey() {
+        return GboardPatchesSettingsContract.ROOT_SECTION_CLIPBOARD_SHARING;
     }
 
     public GboardPatchesSettingsContract.Feature getWebClipboardFeature() {
@@ -168,6 +174,40 @@ public final class GboardClipboardSettingsFeature
                                 .apply()));
 
                 appendSelectAllRows(generalRows, host, context, preferences, clipboardEnabled);
+
+                if (GboardRamblerKeyboardPrefs.isClipboardReorderAvailable()) {
+                    generalRows.add(new GboardPatchesSettingsContract.ToggleRow(
+                            GboardSettingsText.get(context,
+                                    R.string.gboard_patches_clipboard_drag_reorder_title),
+                            GboardSettingsText.get(context,
+                                    R.string.gboard_patches_clipboard_drag_reorder_summary),
+                            true,
+                            GboardRamblerKeyboardPrefs.readClipboardDragReorderEnabled(context),
+                            value -> {
+                                GboardRamblerKeyboardPrefs.writeClipboardDragReorderEnabled(
+                                        context, value);
+                                GboardPatchesSettingsContract.refresh(host);
+                            }));
+                }
+                if (GboardRamblerKeyboardPrefs.isHiddenFlagsAvailable()) {
+                    generalRows.add(new GboardPatchesSettingsContract.ToggleRow(
+                            GboardSettingsText.get(context,
+                                    R.string.gboard_patches_clipboard_quick_paste_title),
+                            GboardSettingsText.get(context,
+                                    R.string.gboard_patches_clipboard_quick_paste_summary),
+                            true,
+                            GboardRamblerKeyboardPrefs.readHiddenFlagOverride(
+                                    context,
+                                    GboardRamblerKeyboardPrefs.FLAG_QUICK_PASTE_DIRECT_CHIP,
+                                    true),
+                            value -> {
+                                GboardRamblerKeyboardPrefs.writeHiddenFlagOverride(
+                                        context,
+                                        GboardRamblerKeyboardPrefs.FLAG_QUICK_PASTE_DIRECT_CHIP,
+                                        value);
+                                GboardPatchesSettingsContract.refresh(host);
+                            }));
+                }
 
                 List<GboardPatchesSettingsContract.Row> metadataRows =
                         new ArrayList<GboardPatchesSettingsContract.Row>();

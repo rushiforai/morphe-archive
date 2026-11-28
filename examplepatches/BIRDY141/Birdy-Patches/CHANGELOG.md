@@ -1,3 +1,277 @@
+## [2.0.9](https://github.com/BIRDY141/Birdy-Patches/compare/v2.0.8...v2.0.9) (2026-11-28)
+
+### 🐛 Bug Fixes
+
+* **sponsorblock:** align seekbar markers to inner bar and keep original skip prompt position ([a446ed6](https://github.com/BIRDY141/Birdy-Patches/commit/a446ed68027a9e57503e709a1046640c762cc3a7))
+
+## [2.0.8](https://github.com/BIRDY141/Birdy-Patches/compare/v2.0.7...v2.0.8) (2026-11-28)
+
+### 🐛 Bug Fixes
+
+* **sponsorblock:** publish release v2.0.8 ([27a51a7](https://github.com/BIRDY141/Birdy-Patches/commit/27a51a72a1b56f894632456f729483d962dc4419))
+* **sponsorblock:** thicker unfocused seekbar and anchor skip prompt to video frame behind controls ([54021b2](https://github.com/BIRDY141/Birdy-Patches/commit/54021b2184ead1964bafdf92cb0ca4557d99edd2))
+
+## [2.0.8](https://github.com/BIRDY141/Birdy-Patches/compare/v2.0.7...v2.0.8) (2026-11-28)
+
+### 🐛 Bug Fixes
+
+* **sponsorblock:** thicker unfocused seekbar and anchor skip prompt to video frame behind controls ([54021b2](https://github.com/BIRDY141/Birdy-Patches/commit/54021b2184ead1964bafdf92cb0ca4557d99edd2))
+
+## [2.0.7](https://github.com/BIRDY141/Birdy-Patches/compare/v2.0.6...v2.0.7) (2026-11-28)
+
+### 🐛 Bug Fixes
+
+* **sponsorblock:** publish release with seekbar thickness and focus-gated skip prompt ([85ced04](https://github.com/BIRDY141/Birdy-Patches/commit/85ced042be7b4e8c35ee99d503117372dd44602b))
+
+## [2.0.6](https://github.com/BIRDY141/Birdy-Patches/compare/v2.0.5...v2.0.6) (2026-11-28)
+
+### 🐛 Bug Fixes
+
+* **sponsorblock:** match unfocused seekbar thickness and only intercept OK when video is focused ([e13d09a](https://github.com/BIRDY141/Birdy-Patches/commit/e13d09a081148dcb1456d0c96d0246802b1ee785))
+
+## [2.0.5](https://github.com/BIRDY141/Birdy-Patches/compare/v2.0.4...v2.0.5) (2026-11-28)
+
+### 🐛 Bug Fixes
+
+* **sponsorblock:** release seekbar segment styling ([0dc9f5b](https://github.com/BIRDY141/Birdy-Patches/commit/0dc9f5b782c4fb3f1ac638188eee07d8f7642824))
+
+## [2.0.4](https://github.com/BIRDY141/Birdy-Patches/compare/v2.0.3...v2.0.4) (2026-11-28)
+
+### 🐛 Bug Fixes
+
+* **captions:** allow manual caption changes when default caption language is video ([8ea4a86](https://github.com/BIRDY141/Birdy-Patches/commit/8ea4a8638cf931aedb3ccfffb2bf08051477afe0))
+
+## [2.0.3](https://github.com/BIRDY141/Birdy-Patches/compare/v2.0.2...v2.0.3) (2026-11-28)
+
+### 🐛 Bug Fixes
+
+* **captions:** use video's defaultCaptionTrackIndex when caption language is set to video ([a0a37c4](https://github.com/BIRDY141/Birdy-Patches/commit/a0a37c41229c2ae8e325e5da2c07a8a343f221af))
+
+## [2.0.2](https://github.com/BIRDY141/Birdy-Patches/compare/v2.0.1...v2.0.2) (2026-11-28)
+
+### 🐛 Bug Fixes
+
+* **captions:** reliably enforce caption language after player init ([6eb3c9a](https://github.com/BIRDY141/Birdy-Patches/commit/6eb3c9a36a48bb3e6ff172016440837eab387e68))
+
+## [2.0.1](https://github.com/BIRDY141/Birdy-Patches/compare/v2.0.0...v2.0.1) (2026-11-28)
+
+### 🐛 Bug Fixes
+
+* **speed:** avoid overwriting chevron element on Speed settings row ([c5c9a60](https://github.com/BIRDY141/Birdy-Patches/commit/c5c9a60918f5d345d9cfbe19ac3e64e963960354))
+
+## [2.0.0](https://github.com/BIRDY141/Birdy-Patches/compare/v1.28.0...v2.0.0) (2026-11-28)
+
+### ⚠ BREAKING CHANGES
+
+* Official release
+* Official release
+
+### ✨ New Features
+
+* official release ([f675292](https://github.com/BIRDY141/Birdy-Patches/commit/f675292f257c2c1bb4109c82cc2737c48418ed1c))
+* official release ([9f5623e](https://github.com/BIRDY141/Birdy-Patches/commit/9f5623e6c4b0f30ba1ea7e9b41306aa1b4cbd23f))
+* **patches:** remove universal Clone app patch ([28a7162](https://github.com/BIRDY141/Birdy-Patches/commit/28a7162a16ce00050a04b60747e52f5fadfd7cc7))
+
+## [1.28.0](https://github.com/BIRDY141/Birdy-Patches/compare/v1.27.0...v1.28.0) (2026-11-27)
+
+### ✨ New Features
+
+* **release:** clean up repo, integrate PiP into settings, remove diagnostics, and update README ([a32dd45](https://github.com/BIRDY141/Birdy-Patches/commit/a32dd4563b2288d89b42f6823e283e3dd0cf32c2))
+
+## [1.27.0](https://github.com/BIRDY141/Birdy-Patches/compare/v1.26.0...v1.27.0) (2026-11-27)
+
+### ✨ New Features
+
+* **settings:** remove startup tab feature ([1ff0f59](https://github.com/BIRDY141/Birdy-Patches/commit/1ff0f593bb8c7e9dc7ca44b0a85b3b200af45e8b))
+
+## [1.26.0](https://github.com/BIRDY141/Birdy-Patches/compare/v1.25.0...v1.26.0) (2026-11-27)
+
+### ✨ New Features
+
+* **branding,settings:** switch to birdy_red_banner, white pills without grey row, and robust startup guide navigation ([fa3fc17](https://github.com/BIRDY141/Birdy-Patches/commit/fa3fc1732da7b4ea4e9c8840004d7e3b5efbadba))
+
+## [1.25.0](https://github.com/BIRDY141/Birdy-Patches/compare/v1.24.0...v1.25.0) (2026-11-27)
+
+### ✨ New Features
+
+* **branding,settings:** fix red launcher banner, white toggles, language dropdown in about, sidebar icon fill, and startup tab ([64873bc](https://github.com/BIRDY141/Birdy-Patches/commit/64873bc2ed6234b676ae6f44dcb66253169899f1))
+
+## [1.24.0](https://github.com/BIRDY141/Birdy-Patches/compare/v1.23.2...v1.24.0) (2026-11-27)
+
+### ✨ New Features
+
+* **speed,ui:** overhaul settings hub UI, per-video speed, default speed setting, startup tab, and smooth speed drawer scrolling ([4c4a767](https://github.com/BIRDY141/Birdy-Patches/commit/4c4a76716b431e44b484f5709a7bcadc8a8ff7fe))
+
+## [1.23.2](https://github.com/BIRDY141/Birdy-Patches/compare/v1.23.1...v1.23.2) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **speed:** apply 38px title, 98px pill containers, and 680px native-width drawer ([8219188](https://github.com/BIRDY141/Birdy-Patches/commit/82191882cc4da229b2ab08a32dd17bde331fef28))
+
+## [1.23.1](https://github.com/BIRDY141/Birdy-Patches/compare/v1.23.0...v1.23.1) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **speed,banner:** fix drawer self-hiding loop, smooth 0.35s animation, and overwrite obfuscated res/dN.png banner ([346a7e5](https://github.com/BIRDY141/Birdy-Patches/commit/346a7e5869d7990559139806b645b25650294add))
+
+## [1.23.0](https://github.com/BIRDY141/Birdy-Patches/compare/v1.22.12...v1.23.0) (2026-11-27)
+
+### ✨ New Features
+
+* **speed,branding:** add slide animation, 740px width, larger pills, and universal launcher banner ([c76d10f](https://github.com/BIRDY141/Birdy-Patches/commit/c76d10f1fcbbfd6e720e427b23e11886ff6627c0))
+
+## [1.22.12](https://github.com/BIRDY141/Birdy-Patches/compare/v1.22.11...v1.22.12) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **build:** add mavenCentral to pluginManagement repositories for transitive plugin dependencies ([d7b6ec0](https://github.com/BIRDY141/Birdy-Patches/commit/d7b6ec0c75c47f96a26898366e319943140e3d44))
+* **speed,settings:** suppress default speed dialog, launch 1-to-1 custom drawer, and fix Birdy settings overlap ([12a6a68](https://github.com/BIRDY141/Birdy-Patches/commit/12a6a68bdfe6d602726a83b3290d505ac6dd951d))
+
+## [1.22.11](https://github.com/BIRDY141/Birdy-Patches/compare/v1.22.10...v1.22.11) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **speed:** complete 1-to-1 re-implementation from scratch for native speed menu ([9a51542](https://github.com/BIRDY141/Birdy-Patches/commit/9a515421d1058c6fbda8dabf80089d735df4750f))
+
+## [1.22.10](https://github.com/BIRDY141/Birdy-Patches/compare/v1.22.9...v1.22.10) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **speed,deploy:** stack speed items cleanly in flex column without breaking dialog layout and update in-place via adb install -r ([49c7294](https://github.com/BIRDY141/Birdy-Patches/commit/49c7294dfe0d3bbd1c0511b85553834dcd73ebf2))
+
+## [1.22.9](https://github.com/BIRDY141/Birdy-Patches/compare/v1.22.8...v1.22.9) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **speed:** remove ancestor clipping boundaries to display full speed list ([f4ff296](https://github.com/BIRDY141/Birdy-Patches/commit/f4ff2960425a50098bd8ce1edd26fddb82d3307d))
+
+## [1.22.8](https://github.com/BIRDY141/Birdy-Patches/compare/v1.22.7...v1.22.8) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **speed:** expand container height and accurately toggle checkmark icons ([70c01f8](https://github.com/BIRDY141/Birdy-Patches/commit/70c01f897ac05c2468a16c7023fb6fb36318d360))
+
+## [1.22.7](https://github.com/BIRDY141/Birdy-Patches/compare/v1.22.6...v1.22.7) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **speed:** preserve native drawer layout and enable full D-pad list navigation ([98f9985](https://github.com/BIRDY141/Birdy-Patches/commit/98f998537fac1bd823e8d15c95ecc301c44b135a))
+
+## [1.22.6](https://github.com/BIRDY141/Birdy-Patches/compare/v1.22.5...v1.22.6) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **speed:** avoid TrustedHTML violation when rebuilding speed menu container ([6ab2c26](https://github.com/BIRDY141/Birdy-Patches/commit/6ab2c26dc02ad1b04b6ed86f98c9cf16800e1371))
+
+## [1.22.5](https://github.com/BIRDY141/Birdy-Patches/compare/v1.22.4...v1.22.5) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **speed,branding:** instant 1-to-1 native speed menu and centered red launcher banner ([df28ab1](https://github.com/BIRDY141/Birdy-Patches/commit/df28ab1a7dd278956b4c18aceeaab6f245ffdfd3))
+
+## [1.22.4](https://github.com/BIRDY141/Birdy-Patches/compare/v1.22.3...v1.22.4) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **speed,branding:** populate speed options in native menu container and restore stock icon/banner resource mapping ([70933bb](https://github.com/BIRDY141/Birdy-Patches/commit/70933bb00600c982a2f775d9393149fdc0bac3a2))
+
+## [1.22.3](https://github.com/BIRDY141/Birdy-Patches/compare/v1.22.2...v1.22.3) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **branding,speed:** use fresh birdy_red_* resource names and mount idom-safe speed picker overlay ([2da045f](https://github.com/BIRDY141/Birdy-Patches/commit/2da045f86a863e89c117fdd66167b3d35ac3b93d))
+
+## [1.22.2](https://github.com/BIRDY141/Birdy-Patches/compare/v1.22.1...v1.22.2) (2026-11-27)
+
+### 🔧 Improvements
+
+* **js:** remove full-DOM D-pad scans in sponsorblock/dearrow and fix speed popup detection ([bc4ddcb](https://github.com/BIRDY141/Birdy-Patches/commit/bc4ddcb0969a34b3e82afa9c671f641bd455fcce))
+
+## [1.22.1](https://github.com/BIRDY141/Birdy-Patches/compare/v1.22.0...v1.22.1) (2026-11-27)
+
+### 🔧 Improvements
+
+* **quality,dearrow:** cache decoded settings, consolidate polling timers, and skip hidden tabs ([a4a3da6](https://github.com/BIRDY141/Birdy-Patches/commit/a4a3da6ae67322dd8ca9d6e0fe84b20cd1da5c8f))
+
+## [1.22.0](https://github.com/BIRDY141/Birdy-Patches/compare/v1.21.1...v1.22.0) (2026-11-27)
+
+### ✨ New Features
+
+* update patches ([39e96d9](https://github.com/BIRDY141/Birdy-Patches/commit/39e96d9c6d3fc93ae918e9d62820ded0515340aa))
+
+## [1.21.1](https://github.com/BIRDY141/Birdy-Patches/compare/v1.21.0...v1.21.1) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **branding:** release restored red BirdyTV logo and banner ([d1df9a1](https://github.com/BIRDY141/Birdy-Patches/commit/d1df9a1eb550609889ef42316495f7932ad7b30b))
+* **branding:** trigger release with restored original red logo and banner ([88555b8](https://github.com/BIRDY141/Birdy-Patches/commit/88555b8c831da1c921a6be9d96a98ecee4324dd2))
+
+## [1.21.1](https://github.com/BIRDY141/Birdy-Patches/compare/v1.21.0...v1.21.1) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **branding:** trigger release with restored original red logo and banner ([88555b8](https://github.com/BIRDY141/Birdy-Patches/commit/88555b8c831da1c921a6be9d96a98ecee4324dd2))
+
+## [1.21.0](https://github.com/BIRDY141/Birdy-Patches/compare/v1.20.1...v1.21.0) (2026-11-27)
+
+### ✨ New Features
+
+* **speed,branding:** populate custom speeds in YouTube speed menu and fix obfuscated icon/banner branding ([faf27cd](https://github.com/BIRDY141/Birdy-Patches/commit/faf27cd56368e875a7fa870440da0261442b318b))
+
+## [1.20.1](https://github.com/BIRDY141/Birdy-Patches/compare/v1.20.0...v1.20.1) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **pip,speed:** move PiP button next to comments with icon/click handler and poll speed rates ([0372c04](https://github.com/BIRDY141/Birdy-Patches/commit/0372c045cbc5f488f17c953384fa63a22636dca2))
+
+## [1.20.0](https://github.com/BIRDY141/Birdy-Patches/compare/v1.19.1...v1.20.0) (2026-11-27)
+
+### ✨ New Features
+
+* **pip,speed:** trigger PiP via player button only and unlock speed menu ([387bf81](https://github.com/BIRDY141/Birdy-Patches/commit/387bf81029300f078996fb7dd4db386827b3e15a))
+
+## [1.19.1](https://github.com/BIRDY141/Birdy-Patches/compare/v1.19.0...v1.19.1) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **pip:** use invoke-static/range for p0 register > v15 ([5d257d6](https://github.com/BIRDY141/Birdy-Patches/commit/5d257d6275e88173cf0ba3fcaca3a6bd31d5eafa))
+
+## [1.19.0](https://github.com/BIRDY141/Birdy-Patches/compare/v1.18.0...v1.19.0) (2026-11-27)
+
+### ✨ New Features
+
+* **pip,speed,branding:** add PiP patch, unlock playback speed (0.25x-4x), and BirdyTV branding icons ([ada700a](https://github.com/BIRDY141/Birdy-Patches/commit/ada700a4b6099243f66f7b34ae3f3a15015d5666))
+
+## [1.18.0](https://github.com/BIRDY141/Birdy-Patches/compare/v1.17.2...v1.18.0) (2026-11-27)
+
+### ✨ New Features
+
+* **player:** add Hide Join button and strengthen Subscribe button matching ([5d36d30](https://github.com/BIRDY141/Birdy-Patches/commit/5d36d30e0fc92c0109ae4518cd9701f402915242))
+
+## [1.17.2](https://github.com/BIRDY141/Birdy-Patches/compare/v1.17.1...v1.17.2) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **captions:** force ON_REQUIRED, update captionTrackIndices, and toggleSubtitlesOn ([3f9298e](https://github.com/BIRDY141/Birdy-Patches/commit/3f9298e8d8ca6d41ac11ed38494e7b240fcc7fcb))
+
+## [1.17.1](https://github.com/BIRDY141/Birdy-Patches/compare/v1.17.0...v1.17.1) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **quality:** use youtv.rawParse to prevent JSON.parse recursion freeze ([6763c33](https://github.com/BIRDY141/Birdy-Patches/commit/6763c337e7174e2e5dce0321b55ba24d2b8caf7b))
+
+## [1.17.0](https://github.com/BIRDY141/Birdy-Patches/compare/v1.16.0...v1.17.0) (2026-11-27)
+
+### ✨ New Features
+
+* **video,shorts:** add caption language, auto-translate, original title, and original audio settings ([377a7ea](https://github.com/BIRDY141/Birdy-Patches/commit/377a7ea379e8c6efe5019f2731bf92d0cb786126))
+
+## [1.16.0](https://github.com/BIRDY141/Birdy-Patches/compare/v1.15.1...v1.16.0) (2026-11-27)
+
+### ✨ New Features
+
+* **quality:** add Video tab and force quality dropdowns for Videos and Shorts ([4663faa](https://github.com/BIRDY141/Birdy-Patches/commit/4663faadb9923b7cd6f4f4a3fb930ede0f9dee8c))
+
 ## [1.15.1](https://github.com/BIRDY141/Birdy-Patches/compare/v1.15.0...v1.15.1) (2026-11-26)
 
 ### 🐛 Bug Fixes

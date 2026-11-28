@@ -14,8 +14,7 @@ gradle.projectsEvaluated {
     receipt.paths = [
         mpp: new File(root.project(':patches').layout.buildDirectory.get().asFile, "libs/patches-${root.version}.mpp").absolutePath,
         mpe: new File(root.project(':extensions:extension').layout.buildDirectory.get().asFile, 'morphe/extensions/extension.mpe').absolutePath,
-        core_classes: new File(root.project(':translation-core').layout.buildDirectory.get().asFile, 'intermediates/javac/debug/compileDebugJavaWithJavac/classes').absolutePath,
-        ui_apk: new File(root.project(':ui-preview').layout.buildDirectory.get().asFile, 'outputs/apk/debug/ui-preview-debug.apk').absolutePath
+        core_classes: new File(root.project(':translation-core').layout.buildDirectory.get().asFile, 'intermediates/javac/debug/compileDebugJavaWithJavac/classes').absolutePath
     ]
     requiredTests.each { taskPath ->
         def t = root.tasks.getByPath(taskPath)

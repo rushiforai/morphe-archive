@@ -1,0 +1,118 @@
+﻿[
+    {
+        "url":  "https://dl.google.com/dl/android/maven2/androidx/activity/activity/1.0.0/activity-1.0.0.jar",
+        "error":  "リモート サーバーがエラーを返しました: (404) 見つかりません"
+    },
+    {
+        "url":  "https://dl.google.com/dl/android/maven2/androidx/appcompat/appcompat-resources/1.2.0-alpha01/appcompat-resources-1.2.0-alpha01.jar",
+        "error":  "リモート サーバーがエラーを返しました: (404) 見つかりません"
+    },
+    {
+        "url":  "https://dl.google.com/dl/android/maven2/androidx/arch/core/core-runtime/2.0.0/core-runtime-2.0.0.jar",
+        "error":  "リモート サーバーがエラーを返しました: (404) 見つかりません"
+    },
+    {
+        "url":  "https://dl.google.com/dl/android/maven2/androidx/asynclayoutinflater/asynclayoutinflater/1.0.0/asynclayoutinflater-1.0.0.jar",
+        "error":  "リモート サーバーがエラーを返しました: (404) 見つかりません"
+    },
+    {
+        "url":  "https://dl.google.com/dl/android/maven2/androidx/browser/browser/1.0.0/browser-1.0.0.jar",
+        "error":  "リモート サーバーがエラーを返しました: (404) 見つかりません"
+    },
+    {
+        "url":  "https://dl.google.com/dl/android/maven2/androidx/coordinatorlayout/coordinatorlayout/1.0.0/coordinatorlayout-1.0.0.jar",
+        "error":  "リモート サーバーがエラーを返しました: (404) 見つかりません"
+    },
+    {
+        "url":  "https://dl.google.com/dl/android/maven2/androidx/cursoradapter/cursoradapter/1.0.0/cursoradapter-1.0.0.jar",
+        "error":  "リモート サーバーがエラーを返しました: (404) 見つかりません"
+    },
+    {
+        "url":  "https://dl.google.com/dl/android/maven2/androidx/customview/customview/1.0.0/customview-1.0.0.jar",
+        "error":  "リモート サーバーがエラーを返しました: (404) 見つかりません"
+    },
+    {
+        "url":  "https://dl.google.com/dl/android/maven2/androidx/documentfile/documentfile/1.0.0/documentfile-1.0.0.jar",
+        "error":  "リモート サーバーがエラーを返しました: (404) 見つかりません"
+    },
+    {
+        "url":  "https://dl.google.com/dl/android/maven2/androidx/drawerlayout/drawerlayout/1.0.0/drawerlayout-1.0.0.jar",
+        "error":  "リモート サーバーがエラーを返しました: (404) 見つかりません"
+    },
+    {
+        "url":  "https://dl.google.com/dl/android/maven2/androidx/fragment/fragment/1.1.0/fragment-1.1.0.jar",
+        "error":  "リモート サーバーがエラーを返しました: (404) 見つかりません"
+    },
+    {
+        "url":  "https://dl.google.com/dl/android/maven2/androidx/interpolator/interpolator/1.0.0/interpolator-1.0.0.jar",
+        "error":  "リモート サーバーがエラーを返しました: (404) 見つかりません"
+    },
+    {
+        "url":  "https://dl.google.com/dl/android/maven2/androidx/legacy/legacy-support-core-ui/1.0.0/legacy-support-core-ui-1.0.0.jar",
+        "error":  "リモート サーバーがエラーを返しました: (404) 見つかりません"
+    },
+    {
+        "url":  "https://dl.google.com/dl/android/maven2/androidx/legacy/legacy-support-core-utils/1.0.0/legacy-support-core-utils-1.0.0.jar",
+        "error":  "リモート サーバーがエラーを返しました: (404) 見つかりません"
+    },
+    {
+        "url":  "https://dl.google.com/dl/android/maven2/androidx/legacy/legacy-support-v4/1.0.0/legacy-support-v4-1.0.0.jar",
+        "error":  "リモート サーバーがエラーを返しました: (404) 見つかりません"
+    },
+    {
+        "url":  "https://dl.google.com/dl/android/maven2/androidx/lifecycle/lifecycle-livedata-core/2.0.0/lifecycle-livedata-core-2.0.0.jar",
+        "error":  "リモート サーバーがエラーを返しました: (404) 見つかりません"
+    },
+    {
+        "url":  "https://dl.google.com/dl/android/maven2/androidx/lifecycle/lifecycle-livedata/2.0.0/lifecycle-livedata-2.0.0.jar",
+        "error":  "リモート サーバーがエラーを返しました: (404) 見つかりません"
+    },
+    {
+        "url":  "https://dl.google.com/dl/android/maven2/androidx/lifecycle/lifecycle-viewmodel/2.1.0/lifecycle-viewmodel-2.1.0.jar",
+        "error":  "リモート サーバーがエラーを返しました: (404) 見つかりません"
+    },
+    {
+        "url":  "https://dl.google.com/dl/android/maven2/androidx/loader/loader/1.0.0/loader-1.0.0.jar",
+        "error":  "リモート サーバーがエラーを返しました: (404) 見つかりません"
+    },
+    {
+        "url":  "https://dl.google.com/dl/android/maven2/androidx/localbroadcastmanager/localbroadcastmanager/1.0.0/localbroadcastmanager-1.0.0.jar",
+        "error":  "リモート サーバーがエラーを返しました: (404) 見つかりません"
+    },
+    {
+        "url":  "https://dl.google.com/dl/android/maven2/androidx/media/media/1.1.0/media-1.1.0.jar",
+        "error":  "リモート サーバーがエラーを返しました: (404) 見つかりません"
+    },
+    {
+        "url":  "https://dl.google.com/dl/android/maven2/androidx/mediarouter/mediarouter/1.1.0/mediarouter-1.1.0.jar",
+        "error":  "リモート サーバーがエラーを返しました: (404) 見つかりません"
+    },
+    {
+        "url":  "https://dl.google.com/dl/android/maven2/androidx/palette/palette/1.0.0/palette-1.0.0.jar",
+        "error":  "リモート サーバーがエラーを返しました: (404) 見つかりません"
+    },
+    {
+        "url":  "https://dl.google.com/dl/android/maven2/androidx/print/print/1.0.0/print-1.0.0.jar",
+        "error":  "リモート サーバーがエラーを返しました: (404) 見つかりません"
+    },
+    {
+        "url":  "https://dl.google.com/dl/android/maven2/androidx/savedstate/savedstate/1.0.0/savedstate-1.0.0.jar",
+        "error":  "リモート サーバーがエラーを返しました: (404) 見つかりません"
+    },
+    {
+        "url":  "https://dl.google.com/dl/android/maven2/androidx/slidingpanelayout/slidingpanelayout/1.0.0/slidingpanelayout-1.0.0.jar",
+        "error":  "リモート サーバーがエラーを返しました: (404) 見つかりません"
+    },
+    {
+        "url":  "https://dl.google.com/dl/android/maven2/androidx/vectordrawable/vectordrawable-animated/1.1.0/vectordrawable-animated-1.1.0.jar",
+        "error":  "リモート サーバーがエラーを返しました: (404) 見つかりません"
+    },
+    {
+        "url":  "https://dl.google.com/dl/android/maven2/androidx/vectordrawable/vectordrawable/1.1.0/vectordrawable-1.1.0.jar",
+        "error":  "リモート サーバーがエラーを返しました: (404) 見つかりません"
+    },
+    {
+        "url":  "https://dl.google.com/dl/android/maven2/androidx/versionedparcelable/versionedparcelable/1.1.0/versionedparcelable-1.1.0.jar",
+        "error":  "リモート サーバーがエラーを返しました: (404) 見つかりません"
+    }
+]

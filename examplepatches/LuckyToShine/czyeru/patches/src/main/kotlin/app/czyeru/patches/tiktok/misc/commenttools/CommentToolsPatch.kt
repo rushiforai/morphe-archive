@@ -232,18 +232,31 @@ val commentToolsPatch = bytecodePatch(
                 write
             },
             {
-                // A comment survey comes from one config getter, and null is its own answer for
-                // no survey. Hide comment surveys asks first and, on yes, answers null.
-                val method = CommentSurveyConfigFingerprint.method
-                method.requireLocals("Comment tools", 1)
-                val write: CommentToolsWrite = {
-                    method.guardAtEntry(
-                        "Comment tools",
-                        "invoke-static {}, $COMMENT_SURVEY_CLASS_DESCRIPTOR->hide()Z",
-                        "const/4 v0, 0x0\nreturn-object v0",
-                    )
+                // 48.0.2 returns a holder instance from Aweme; earlier builds return the item or null.
+                val resolver = CommentSurveyResolverFingerprint.methodOrNull
+                if (resolver != null) {
+                    resolver.requireLocals("Comment tools", 1)
+                    val none = resolver.noCommentSurveyAnswer()
+                    val write: CommentToolsWrite = {
+                        resolver.guardAtEntry(
+                            "Comment tools",
+                            "invoke-static {}, $COMMENT_SURVEY_CLASS_DESCRIPTOR->hide()Z",
+                            "sget-object v0, ${none.definingClass}->${none.name}:${none.type}\nreturn-object v0",
+                        )
+                    }
+                    write
+                } else {
+                    val method = CommentSurveyConfigFingerprint.method
+                    method.requireLocals("Comment tools", 1)
+                    val write: CommentToolsWrite = {
+                        method.guardAtEntry(
+                            "Comment tools",
+                            "invoke-static {}, $COMMENT_SURVEY_CLASS_DESCRIPTOR->hide()Z",
+                            "const/4 v0, 0x0\nreturn-object v0",
+                        )
+                    }
+                    write
                 }
-                write
             },
             {
                 // The comment box's photo, @ and gift buttons go to Hide comment box buttons as the

@@ -1,0 +1,69 @@
+name: App update request
+description: Request support for a newer version of an already supported app
+title: "update: "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        > [!IMPORTANT]
+        > **Before you request**
+        > - Check the [README](https://github.com/amfakh/fakh-patches#readme) to make sure the version is not already supported.
+        > - [Search existing issues](https://github.com/amfakh/fakh-patches/issues?q=is%3Aissue) to see if this update was already requested.
+        > - To suggest a new patch, use a feature request instead.
+        > - To request a new app, use [morphe-patches.software/requests](https://morphe-patches.software/requests).
+  - type: dropdown
+    id: app
+    attributes:
+      label: App
+      options:
+        - BARDI Smart Home
+        - CNN Indonesia
+        - Confluence
+        - CoverScreen OS
+        - detikcom
+        - DoDo Music
+        - Facer
+        - Facer (Wear OS)
+        - FlipSide
+        - FOMO Indonesia
+        - Genius
+        - GitHub
+        - IDN
+        - Jira
+        - KOMPAS.com
+        - LinkedIn
+        - "Mazii: Japanese Dictionary"
+        - Muslim Pro
+        - Radio Indonesia
+        - Smart Life
+        - SYNC by Krisbow
+        - Todaii Super
+        - "Todaii: Learn German A1-C1"
+        - "Todaii: Learn Japanese N5-N1"
+        - Tuya Smart
+        - Warung Life Simulator
+        - Windy
+    validations:
+      required: true
+  - type: input
+    id: app-version
+    attributes:
+      label: New app version
+      placeholder: 7.15.1
+    validations:
+      required: true
+  - type: input
+    id: apk-link
+    attributes:
+      label: Download link
+      description: Link to the new version on APKMirror, APKPure, or APKCube.
+      placeholder: https://www.apkmirror.com/apk/...
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Optional. Mention if the old version forces an update, or if you already tried patching the new version.
+      placeholder: The app now shows a forced update dialog on 7.15.0.

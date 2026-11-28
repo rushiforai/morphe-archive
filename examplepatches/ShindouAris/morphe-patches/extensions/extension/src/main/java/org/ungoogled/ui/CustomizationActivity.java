@@ -175,7 +175,9 @@ public final class CustomizationActivity extends Activity {
         wazeRow.setOnClickListener(v -> {
             Intent request = org.ungoogled.car.WazeModAccessActivity.request(this);
             if (request == null) {
-                Toast.makeText(this, Vi.t("Waze Mod with the Data API is not installed"), Toast.LENGTH_LONG).show();
+                Toast.makeText(this, Vi.t(org.ungoogled.car.AccessCheck.wazeInstalled(this) != null
+                        ? "Installed, but without the Data API (needs V14 or newer)"
+                        : "Waze Mod with the Data API is not installed"), Toast.LENGTH_LONG).show();
                 return;
             }
             startActivity(request);
@@ -263,21 +265,24 @@ public final class CustomizationActivity extends Activity {
     /** Asks Waze Mod and xADAS whether Maps is allowed, and shows the answers under their rows. */
     private void refreshAccess() {
         if (wazeSub == null || xadasSub == null) return;
-        org.ungoogled.car.AccessCheck.waze(this, access -> showAccess(wazeSub, access, WAZE_DESC, "Not allowed yet"));
+        org.ungoogled.car.AccessCheck.waze(this, access -> showAccess(wazeSub, access, WAZE_DESC, "Not allowed yet",
+                org.ungoogled.car.AccessCheck.wazeInstalled(this)));
         org.ungoogled.car.AccessCheck.xadas(this, access -> showAccess(xadasSub, access, XADAS_DESC,
-                "Not allowed, or sharing is off in xADAS Pro"));
+                "Not allowed, or sharing is off in xADAS Pro", org.ungoogled.car.AccessCheck.xadasInstalled(this)));
     }
 
-    private void showAccess(TextView sub, int access, String description, String notAllowed) {
+    /** [found] is what Maps sees of the app ("package version"), shown so a "not installed" can be traced. */
+    private void showAccess(TextView sub, int access, String description, String notAllowed, String found) {
         if (isFinishing() || isDestroyed()) return;
         String status;
         switch (access) {
             case org.ungoogled.car.AccessCheck.ALLOWED: status = "✓ " + Vi.t("Allowed"); break;
             case org.ungoogled.car.AccessCheck.NOT_ALLOWED: status = "✗ " + Vi.t(notAllowed); break;
+            case org.ungoogled.car.AccessCheck.NO_DATA_API: status = "✗ " + Vi.t("Installed, but without the Data API (needs V14 or newer)"); break;
             case org.ungoogled.car.AccessCheck.NOT_INSTALLED: status = "✗ " + Vi.t("Not installed"); break;
             default: status = "? " + Vi.t("Could not check"); break;
         }
-        sub.setText(status + "\n" + Vi.t(description));
+        sub.setText(status + (found != null ? " (" + found + ")" : "") + "\n" + Vi.t(description));
     }
 
     private int styleIndex() {

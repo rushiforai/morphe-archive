@@ -1,3 +1,9 @@
+## [1.5.0](https://github.com/neoKushan/smortthings/compare/v1.4.0...v1.5.0) (2026-11-27)
+
+### ✨ New Features
+
+* experimental "Install alongside SmartThings" side-by-side patch ([6ae6a2d](https://github.com/neoKushan/smortthings/commit/6ae6a2dbea9a4eb999924ca23db3893113570676))
+
 ## [1.4.0](https://github.com/neoKushan/smortthings/compare/v1.3.1...v1.4.0) (2026-11-23)
 
 ### ✨ New Features

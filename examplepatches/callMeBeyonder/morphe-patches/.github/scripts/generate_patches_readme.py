@@ -37,14 +37,59 @@ with open(json_path, encoding="utf-8") as f:
     data = json.load(f)
 
 
-def pkg_emoji(pkg):
-    """Return a standard package emoji regardless of the package name."""
-    return "📦"
+# How the app has to be obtained before patching. `_REQUIRED` is the
+# patcher's "must be this container" marker and is hidden from readers.
+INPUT_LABELS = {
+    "APK": "APK",
+    "APK_REQUIRED": "APK",
+    "APKM": "APKM",
+    "APKM_REQUIRED": "APKM",
+    "APKS": "APKS",
+    "XAPK": "XAPK",
+}
+
+
+def input_label(entry):
+    """Human-readable patch input container (APK / APKM / XAPK / APKS)."""
+    raw = entry.get("apkFileType")
+    if not raw:
+        return "APK"
+    return INPUT_LABELS.get(raw, raw.replace("_REQUIRED", ""))
+
+
+def requires_root(patches):
+    """True when any patch for the app is explicitly a root-only patch.
+
+    Deliberately matches `(Root)` patch names and "Requires root" descriptions
+    only, so `Bypass Root Detection` is not misreported as requiring root.
+    """
+    for p in patches:
+        name = (p.get("name") or "").strip().lower()
+        desc = (p.get("description") or "").lower()
+        if name.endswith("(root)") or "requires root" in desc:
+            return True
+    return False
+
+
+def md_cell(value):
+    """Escape characters that would break a Markdown table cell."""
+    return (value or "").replace("|", "\\|").replace("\n", "<br>")
+
+
+def version_cells(targets):
+    """Render target versions (experimental targets are labelled) for the index table."""
+    cells = []
+    for t in targets or []:
+        ver = t.get("version")
+        if ver is None:
+            continue
+        cells.append(f"{ver} (experimental)" if t.get("isExperimental") else ver)
+    return cells
 
 # Group patches by package; patches with no compatiblePackages are universal.
 # JSON structure: compatiblePackages is a list of objects with
 # { packageName, name, targets: [{ version, isExperimental, description }] }
-by_pkg = {}   # packageName -> { name, emoji, patches, targets }
+by_pkg = {}   # packageName -> { name, patches, targets, apkFileType }
 universal = {}
 
 for patch in data["patches"]:
@@ -59,10 +104,10 @@ for patch in data["patches"]:
         name = pkg_entry.get("name") or pkg  # fall back to package name if no label
         if pkg not in by_pkg:
             by_pkg[pkg] = {
-                "name":    name,
-                "emoji":   pkg_emoji(pkg),
-                "patches": {},
-                "targets": pkg_entry.get("targets", []),
+                "name":        name,
+                "patches":     {},
+                "targets":     pkg_entry.get("targets", []),
+                "apkFileType": pkg_entry.get("apkFileType"),
             }
         # Deduplicate patches that appear across multiple packages
         if patch["name"] not in by_pkg[pkg]["patches"]:
@@ -75,22 +120,32 @@ def anchor(name):
 
 
 def patches_table(patches):
-    """Render a sorted markdown table of patches with name, description, and options."""
+    """Render a sorted markdown table of patches with name, description, and options.
+
+    Patch names are plain text on purpose: there are no per-patch headings in
+    the README, so the old `#patch-name` links pointed nowhere. Navigation lives
+    in the "Apps at a glance" table, which links to each app section.
+    """
     rows = [
-        "| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |",
+        "| Patch | Description | Options |",
         "|----------|----------------|-----------|",
     ]
     for p in sorted(patches, key=lambda x: x["name"]):
-        a = anchor(p["name"])
+        name = f"**{md_cell(p['name'])}**"
+        if p.get("default") is False:
+            name += "<br>*(off by default)*"
         options = p.get("options") or []
         if options:
             # Show only option titles as a bullet list
-            parts = [opt.get("title") or opt.get("key") or "" for opt in options]
+            parts = [
+                md_cell(opt.get("title") or opt.get("key") or "")
+                for opt in options
+            ]
             opts_cell = "<br>".join(f"• {t}" for t in parts)
         else:
             opts_cell = ""
-        desc = (p.get("description") or "").replace("\n", "<br>")
-        rows.append(f"| [{p['name']}](#{a}) | {desc} | {opts_cell} |")
+        desc = md_cell(p.get("description"))
+        rows.append(f"| {name} | {desc} | {opts_cell} |")
     return "\n".join(rows)
 
 
@@ -107,7 +162,7 @@ def versions_table(targets):
         ver   = t["version"]
         if ver is None:
             continue
-        label = f"🧪&nbsp;{ver}" if t.get("isExperimental") else ver
+        label = f"{ver} (experimental)" if t.get("isExperimental") else ver
         cells.append(label)
 
     if not cells:
@@ -125,16 +180,18 @@ def versions_table(targets):
     return "\n".join(rows)
 
 
-def spoiler(label, count, targets, tbl, expanded=False):
+def spoiler(slug, label, count, targets, tbl, expanded=False, meta=""):
     """Wrap a patches table in a <details> spoiler with a versions sub-table.
     If expanded=True, the spoiler is open by default (for repos with few patches).
+    The explicit anchor makes the app reachable from the index table.
     """
     noun = "patch" if count == 1 else "patches"
     vtbl = versions_table(targets)
-    versions_section = f"**🎯 Supported versions:**\n\n{vtbl}\n\n" if vtbl else ""
+    versions_section = f"**Supported versions:**\n\n{vtbl}\n\n" if vtbl else ""
     tag = "<details open>" if expanded else "<details>"
-    return f"""{tag}
-<summary>{label}&nbsp;&nbsp;•&nbsp;&nbsp;{count} {noun}</summary>
+    return f"""<a id="app-{slug}"></a>
+{tag}
+<summary>{label}&nbsp;&nbsp;•&nbsp;&nbsp;{count} {noun}{meta}</summary>
 <br>
 
 {versions_section}{tbl}
@@ -144,17 +201,57 @@ def spoiler(label, count, targets, tbl, expanded=False):
 
 def build_content(expanded=False):
     """Build the full generated patches section."""
+    total_noun = "patch" if total == 1 else "patches"
     lines = [
         f"> **[v{ver}](https://github.com/{owner}/{repo}/releases/tag/v{ver})**"
         f"&nbsp;&nbsp;•&nbsp;&nbsp;`{branch}`&nbsp;&nbsp;•&nbsp;&nbsp;"
-        f"{total} patches total"
+        f"{total} {total_noun} total",
+        "",
     ]
 
-    # One spoiler per app, in the order they appear in the JSON
-    for pkg, entry in by_pkg.items():
+    # Alphabetical app order keeps the list predictable as apps are added.
+    apps = sorted(by_pkg.items(), key=lambda kv: kv[1]["name"].lower())
+
+    # Compact index with the information people need before downloading:
+    # supported versions, required input container, root requirement.
+    if apps:
+        lines.append("**Apps at a glance:**")
+        lines.append("")
+        lines.append("| App | Versions | Input | Root | Patches |")
+        lines.append("| --- | --- | :---: | :---: | :---: |")
+        for _pkg, entry in apps:
+            patches = list(entry["patches"].values())
+            slug = anchor(entry["name"])
+            versions = "<br>".join(md_cell(v) for v in version_cells(entry["targets"])) or "—"
+            root = "🔒" if requires_root(patches) else ""
+            lines.append(
+                f"| [{entry['name']}](#app-{slug}) | {versions} | "
+                f"{input_label(entry)} | {root} | {len(patches)} |"
+            )
+        if universal:
+            lines.append(
+                f"| [Universal](#universal) | — | — |  | {len(universal)} |"
+            )
+        lines.append("")
+        lines.append(
+            "> **Input:** APK = single APK · APKM/XAPK/APKS = split containers — "
+            "patch the whole container, not the base APK. "
+            "**Root:** must be mounted over the Play-signed install."
+        )
+        lines.append("")
+
+    # One spoiler per app, alphabetical.
+    for _pkg, entry in apps:
         patches = list(entry["patches"].values())
-        label   = f"{entry['emoji']} {entry['name']}"
-        lines.append(spoiler(label, len(patches), entry["targets"], patches_table(patches), expanded))
+        slug    = anchor(entry["name"])
+        label   = entry["name"]
+        meta    = f"&nbsp;&nbsp;•&nbsp;&nbsp;{input_label(entry)}"
+        if requires_root(patches):
+            meta += "&nbsp;&nbsp;•&nbsp;&nbsp;🔒 root"
+        lines.append(
+            spoiler(slug, label, len(patches), entry["targets"],
+                    patches_table(patches), expanded, meta)
+        )
         lines.append("")
 
     # Universal patches (no specific app)
@@ -162,8 +259,9 @@ def build_content(expanded=False):
         uni_patches = list(universal.values())
         noun = "patch" if len(uni_patches) == 1 else "patches"
         tag  = "<details open>" if expanded else "<details>"
-        lines.append(f"""{tag}
-<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;{len(uni_patches)} {noun}</summary>
+        lines.append(f"""<a id="universal"></a>
+{tag}
+<summary>Universal&nbsp;&nbsp;•&nbsp;&nbsp;{len(uni_patches)} {noun}</summary>
 <br>
 
 {patches_table(uni_patches)}
@@ -224,4 +322,5 @@ new_readme = re.sub(
     flags=re.DOTALL,
 )
 readme_path.write_text(new_readme, encoding="utf-8")
-print(f"✅ Injected patches section into {readme_path} (v{ver}, branch={branch}, {total} patches, expanded={expanded})")
+noun = "patch" if total == 1 else "patches"
+print(f"Injected patches section into {readme_path} (v{ver}, branch={branch}, {total} {noun}, expanded={expanded})")

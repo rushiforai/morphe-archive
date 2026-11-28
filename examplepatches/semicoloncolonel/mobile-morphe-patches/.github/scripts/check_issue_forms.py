@@ -24,8 +24,8 @@ def excluded_globs():
 
 
 def patched_apps():
-    """The phone apps. The Android TV-only apps, named "... (Android TV)", are in
-    tv-morphe-patches, whose forms build_tv_repo.py writes."""
+    """The apps this source patches. Android TV apps, named "... (Android TV)",
+    are in tv-morphe-patches."""
     globs = excluded_globs()
     names = set()
     for path in Path("patches/src/main/kotlin").rglob("*.kt"):
@@ -76,10 +76,6 @@ def doc_problems(apps):
             problems.append(f"README.md: the Apps table has no {section} row")
         elif int(count.group(1)) != len(names):
             problems.append(f"README.md: {section} should say {len(names)}, as docs/apps.md lists")
-    tv = len(re.findall(r"^\| (?!App \|)(?!-)[^|]+ \|", Path("docs/android-tv.md").read_text().split("\n## ", 1)[0], re.M))
-    tv_badge = re.search(r"badge/Android_TV-(\d+)_apps", readme)
-    if not tv_badge or int(tv_badge.group(1)) != tv:
-        problems.append(f"README.md: the Android TV badge should say {tv}, as docs/android-tv.md lists")
     return problems
 
 

@@ -5,6 +5,12 @@ import app.morphe.patcher.methodCall
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.AppTarget
+import app.morphe.patcher.patch.booleanOption
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
@@ -50,6 +56,8 @@ import io.github.forsigh.waze.WazeConstants.COMPATIBILITY_WAZE
  * anchors are pinned by class, name and signature and the registers were read off this smali.
  */
 private const val MOOD_MANAGER = "Lcom/waze/MoodManager;"
+private const val MOOD_SAVE = "uaSaveMood"
+private const val MOOD_RESTORE = "uaRestoreMood"
 
 internal val MoodEligibilityFingerprint = Fingerprint(
     definingClass = MOOD_MANAGER,
@@ -184,6 +192,12 @@ val unlockMoodsPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_WAZE)
     category("UI Customization")
 
+    val keepMood by booleanOption(
+        "keepMood", false,
+        title = "Keep my mood after a restart",
+        description = "Puts the mood you picked back when Waze starts again.",
+    )
+
     dependsOn(skinRefreshPatch)
     execute {
         val canSet = resolveAnchor(
@@ -263,5 +277,91 @@ val unlockMoodsPatch = bytecodePatch(
             refresh.addInstructions(site, hint + "\n")
         }
         println("unlockMoodsPatch: mood eligibility, baby gate and ${sites.size} catalogue filters opened")
+
+        if (keepMood != true) {
+            println("unlockMoodsPatch: mood memory off")
+            return@execute
+        }
+        // Waze never stores the pick in Java: MoodManager keeps it in memory and pushes it to the
+        // native layer, which re-applies the account's mood at startup. A mood the account does not
+        // own is therefore replaced on the next launch. The two helpers below remember the pick in
+        // Waze's own config store and put it back whenever the mood is refreshed.
+        val moodsClass = mutableClassDefBy(MOOD_MANAGER)
+        listOf(MOOD_SAVE, MOOD_RESTORE).forEach { name ->
+            if (moodsClass.methods.any { it.name == name }) {
+                throw PatchException("unlockMoodsPatch: $name already exists")
+            }
+        }
+        val saveMethod = MutableMethod(
+            ImmutableMethod(
+                MOOD_MANAGER, MOOD_SAVE, listOf(ImmutableMethodParameter("Ljava/lang/String;", emptySet(), null)), "V",
+                AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
+                emptySet(), emptySet(),
+                ImmutableMethodImplementation(3, emptyList(), emptyList(), emptyList()),
+            ),
+        )
+        saveMethod.addInstructions(
+            0,
+            """
+            if-eqz p0, :mood_save_done
+            invoke-virtual {p0}, Ljava/lang/String;->isEmpty()Z
+            move-result v0
+            if-nez v0, :mood_save_done
+            invoke-static {}, Lcom/waze/ConfigManager;->isReady()Z
+            move-result v0
+            if-eqz v0, :mood_save_done
+            invoke-static {}, Lcom/waze/ConfigManager;->getInstance()Lcom/waze/ConfigManager;
+            move-result-object v0
+            if-nez v0, :mood_save_done
+            sget-object v1, Lcom/waze/config/ConfigValues;->CONFIG_VALUE_USER_MOOD:Lcom/waze/config/d;
+            if-nez v1, :mood_save_done
+            invoke-virtual {v0, v1, p0}, Lcom/waze/ConfigManager;->setConfigValueString(Lcom/waze/config/d;Ljava/lang/String;)V
+            :mood_save_done
+            return-void
+            """.trimIndent(),
+        )
+        moodsClass.methods.add(saveMethod)
+
+        val restoreMethod = MutableMethod(
+            ImmutableMethod(
+                MOOD_MANAGER, MOOD_RESTORE, listOf(ImmutableMethodParameter(MOOD_MANAGER, emptySet(), null)), "V",
+                AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
+                emptySet(), emptySet(),
+                ImmutableMethodImplementation(4, emptyList(), emptyList(), emptyList()),
+            ),
+        )
+        restoreMethod.addInstructions(
+            0,
+            """
+            invoke-static {}, Lcom/waze/ConfigManager;->isReady()Z
+            move-result v0
+            if-eqz v0, :mood_res_done
+            sget-object v0, Lcom/waze/config/ConfigValues;->CONFIG_VALUE_USER_MOOD:Lcom/waze/config/d;
+            invoke-virtual {v0}, Lcom/waze/config/d;->a()Ljava/lang/String;
+            move-result-object v0
+            if-eqz v0, :mood_res_done
+            invoke-virtual {v0}, Ljava/lang/String;->isEmpty()Z
+            move-result v1
+            if-nez v1, :mood_res_done
+            const/4 v1, 0x0
+            const/4 v2, 0x1
+            invoke-virtual {p0, v0, v1, v2}, Lcom/waze/MoodManager;->s(Ljava/lang/String;ZZ)V
+            :mood_res_done
+            return-void
+            """.trimIndent(),
+        )
+        moodsClass.methods.add(restoreMethod)
+
+        val setMoodMethod = mutableClassDefBy(MOOD_MANAGER).methods.firstOrNull {
+            it.name == "s" && it.parameterTypes.map(CharSequence::toString) ==
+                listOf("Ljava/lang/String;", "Z", "Z")
+        } ?: throw PatchException("unlockMoodsPatch: MoodManager.s(String,Z,Z) is missing - refusing to guess where the pick is saved")
+        setMoodMethod.addInstructions(0, "invoke-static {p1}, $MOOD_MANAGER->$MOOD_SAVE(Ljava/lang/String;)V")
+
+        val moodRefresh = mutableClassDefBy(MOOD_MANAGER).methods.firstOrNull {
+            it.name == "q" && it.parameterTypes.isEmpty() && it.returnType == "V"
+        } ?: throw PatchException("unlockMoodsPatch: MoodManager.q() is missing - refusing to guess where the mood is refreshed")
+        moodRefresh.addInstructions(0, "invoke-static {p0}, $MOOD_MANAGER->$MOOD_RESTORE($MOOD_MANAGER)V")
+        println("unlockMoodsPatch: mood memory on - picks are stored and restored on every refresh")
     }
 }

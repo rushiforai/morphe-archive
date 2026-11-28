@@ -4,6 +4,7 @@ import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.FormFactor
+import semicoloncolonel.mobilestream.patches.shared.misc.devTarget
 
 object Constants {
     // The Android TV app is a separate codebase (versions 1.1.0.<date>). It plays
@@ -15,7 +16,11 @@ object Constants {
         description = "The NBA app.",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x1D428A,
-        targets = listOf(AppTarget("1.1.0.20261026155843")),
+        targets = listOf(
+            devTarget("1.2.0.20261103221954", versionCode = 6161027),
+            devTarget("1.4.0.20261113201204", versionCode = 6163020),
+            AppTarget("1.1.0.20261026155843"),
+        ),
         formFactor = FormFactor.TV,
     )
 }

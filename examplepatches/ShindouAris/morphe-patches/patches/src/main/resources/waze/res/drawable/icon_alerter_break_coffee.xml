@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!-- Break reminder icon for Waze's native alert panel: same build as icon_alerter_headlights (white disc, dark ring,
+     dark-blue glyph); the cup is Waze's own ic_fill_coffee_24px scaled into the disc. -->
+<vector android:height="96.0dp"
+        android:width="96.0dp"
+        android:viewportWidth="96.0"
+        android:viewportHeight="96.0" xmlns:android="http://schemas.android.com/apk/res/android">
+  <path android:fillColor="#ffffff"
+        android:pathData="M48,6C71.196,6 90,24.804 90,48C90,71.196 71.196,90 48,90C24.804,90 6,71.196 6,48C6,24.804 24.804,6 48,6Z" />
+  <path android:fillColor="#000000"
+        android:pathData="M48,4.5C73.1,4.5 93.5,24.9 93.5,48C93.5,71.1 73.1,91.5 48,91.5C22.9,91.5 2.5,71.1 2.5,48C2.5,24.9 22.9,4.5 48,4.5ZM48,7.5C24.5,7.5 5.5,26 5.5,48C5.5,70 24.5,88.5 48,88.5C71.5,88.5 90.5,70 90.5,48C90.5,26 71.5,7.5 48,7.5Z"
+        android:fillType="evenOdd" />
+  <group android:scaleX="2.6" android:scaleY="2.6" android:translateX="16.8" android:translateY="16.8">
+    <path android:fillColor="#18427c"
+          android:pathData="M18.832,3.555C19.138,3.095 19.014,2.474 18.555,2.168C18.095,1.862 17.474,1.986 17.168,2.445L15.168,5.445C14.862,5.905 14.986,6.526 15.445,6.832C15.905,7.138 16.526,7.014 16.832,6.555L18.832,3.555Z" />
+    <path android:fillColor="#18427c"
+          android:pathData="M3,11C3,9.895 3.895,9 5,9H19C20.652,9 22,10.348 22,12V12.82C22,13.908 21.418,14.917 20.452,15.446L17.555,17.051C16.511,19.937 13.747,22 10.5,22C6.358,22 3,18.642 3,14.5V11ZM18,14.5V11H19C19.548,11 20,11.452 20,12V12.82C20,13.191 19.803,13.521 19.49,13.693L18,14.518L18,14.5Z"
+          android:fillType="evenOdd" />
+    <path android:fillColor="#18427c"
+          android:pathData="M13.555,2.168C14.014,2.474 14.138,3.095 13.832,3.555L11.832,6.555C11.526,7.014 10.905,7.138 10.445,6.832C9.986,6.526 9.862,5.905 10.168,5.445L12.168,2.445C12.474,1.986 13.095,1.862 13.555,2.168Z" />
+    <path android:fillColor="#18427c"
+          android:pathData="M8.832,3.555C9.138,3.095 9.014,2.474 8.555,2.168C8.095,1.862 7.474,1.986 7.168,2.445L5.168,5.445C4.862,5.905 4.986,6.526 5.445,6.832C5.905,7.138 6.526,7.014 6.832,6.555L8.832,3.555Z" />
+  </group>
+</vector>

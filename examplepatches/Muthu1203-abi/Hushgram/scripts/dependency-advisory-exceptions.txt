@@ -1,0 +1,46 @@
+# Copyright 2026 HushGram contributors. https://github.com/SysAdminDoc/HushGram
+# Tooling-scope exceptions only. Shipped-payload exceptions stay in advisory-exceptions.txt.
+# Format: <scope> <advisory> <group>:<name> <YYYY-MM-DD> <reason of at least three words>
+# Scope: settings-plugin, project-plugin, build, test, host-contract, tooling-distribution or external-desktop (one per line).
+# An external-desktop line is a review of how Desktop's own inputs reach the advisory's classes in that JAR.
+# Its reason starts with jar-sha256=<the JAR's SHA-256>, and it counts only when that JAR is the one audited.
+# Dates may be at most 90 days ahead. Expired or unmatched exceptions fail the audit.
+#
+# Desktop 2.3.0, reviewed 2026-11-21 against the exact JAR below: its 3412 Bouncy Castle entries
+# match 2.2.0 entry for entry, and of the four classes outside BC that name it only ApkSigner
+# changed (patcher 2.5.0 can keep the original v1 and v2 signatures), naming the same BC members.
+# The review carries over.
+# Desktop 2.2.0, reviewed 2026-11-16 against the exact JAR below: its 3412 Bouncy Castle entries,
+# SdkDexVerifier, PatchBundleSignature and OkHttp's BC platform match 2.1.1 byte for byte. ApkSigner
+# changed for patcher 2.4.0's v2-only signing but names the same 45 BC members, so the review carries over.
+# Desktop 2.1.1, reviewed 2026-11-06 against the exact JAR below: its 3412 Bouncy Castle entries and
+# the classes outside BC that name it match 2.1.0 byte for byte, so that review carries over.
+# Desktop 2.1.0, reviewed 2026-11-06 against the exact JAR below: its 3412 Bouncy Castle entries and the
+# four classes outside BC that name it (ApkSigner, SdkDexVerifier, PatchBundleSignature, OkHttp's BC
+# platform) match 2.0.0 byte for byte, so the 2026-11-04 review below carries over.
+# Desktop 2.0.0, reviewed 2026-11-04 (javap and class hashes).
+# It still carries Bouncy Castle 1.79. Its 3405 BC classes are 1.20.0's 3380 plus 25 that patcher
+# 2.2.0's PKCS12 keystore writer keeps: the PFX and safe bag builders, BC's PKCS12 PBE encryptor and
+# MAC, and the X509 subject key identifier. Nine stream ciphers differ only by the returnByte method
+# the new CipherOutputStream keeps. SdkDexVerifier, PatchBundleSignature and OkHttp's BC platform
+# match 1.20.0 byte for byte. ApkSigner now reads a keystore's type from its bytes and opens BKS
+# through BC, PKCS12 and JKS through the JDK's providers. KeystoreImporter is gone, and
+# KeystoreService and SignatureIdentity no longer name BC. None of it adds GOST, certificate path,
+# certificate parsing, LDAP store, operator verifier or FrodoKEM use.
+# GHSA-p93r-85wp-75v3 (FrodoKEM decapsulation timing) first showed up in this audit on 2026-11-04.
+# Desktop 1.20.0, reviewed 2026-10-30: its 3387 Bouncy Castle entries and the six outside references
+# 1.19.1 had matched 1.19.1 byte for byte. Its one new reference was patcher 2.1.0's
+# PatchBundleSignature, which signs and verifies bundles with BC's lightweight Ed25519Signer and the
+# JDK's SHA-256. Desktop 1.19.1, reviewed 2026-10-25: its 3380 Bouncy Castle class entries and all
+# six outside references matched 1.19.0 byte for byte.
+# Direct calls are in ApkSigner, PatchBundleSignature and OkHttp's optional BC platform.
+# SdkDexVerifier carries a package-name string. Provider registration appends BC.
+# This review covers the repository's patch CLI with its trusted local BKS signing key and
+# normal JDK provider order. It does not certify imported third-party keys, altered providers
+# or every Desktop GUI flow. The library stays old; these findings are not patched away.
+external-desktop GHSA-574f-3g2m-x479 org.bouncycastle:bcprov-jdk18on 2027-01-14 jar-sha256=e0e49525e1fbe1108d6cfd7398d39e0cd489c58a753e63653c1e8f11a0099757 The reviewed CLI signs with RSA and a trusted BKS key. It does not select GOST 28147 CTR mode.
+external-desktop GHSA-9pwp-9qqc-pr26 org.bouncycastle:bcprov-jdk18on 2027-01-14 jar-sha256=e0e49525e1fbe1108d6cfd7398d39e0cd489c58a753e63653c1e8f11a0099757 The reviewed CLI does not build or validate a BC certificate path. Normal JDK provider order handles the vendor certificate.
+external-desktop GHSA-qp49-qgx5-5m26 org.bouncycastle:bcprov-jdk18on 2027-01-14 jar-sha256=e0e49525e1fbe1108d6cfd7398d39e0cd489c58a753e63653c1e8f11a0099757 The reviewed CLI reads a trusted local BKS key and creates its own certificate. Vendor certificate parsing uses the JDK under normal provider order.
+external-desktop GHSA-c3fc-8qff-9hwx org.bouncycastle:bcprov-jdk18on 2027-01-14 jar-sha256=e0e49525e1fbe1108d6cfd7398d39e0cd489c58a753e63653c1e8f11a0099757 The reviewed CLI opens no LDAP certificate store. LDAPStoreHelper and X509LDAPCertStoreSpi are not selected by its BKS and RSA signing path.
+external-desktop GHSA-wg6q-6289-32hp org.bouncycastle:bcpkix-jdk18on 2027-01-14 jar-sha256=e0e49525e1fbe1108d6cfd7398d39e0cd489c58a753e63653c1e8f11a0099757 CompositeVerifier is absent from this JAR. The reviewed CLI does not verify signatures through BC operator classes.
+external-desktop GHSA-p93r-85wp-75v3 org.bouncycastle:bcprov-jdk18on 2027-01-14 jar-sha256=e0e49525e1fbe1108d6cfd7398d39e0cd489c58a753e63653c1e8f11a0099757 FrodoKEM is reached only by decapsulating a FrodoKEM encapsulation. The reviewed CLI signs with RSA and a trusted BKS key and runs no KEM.

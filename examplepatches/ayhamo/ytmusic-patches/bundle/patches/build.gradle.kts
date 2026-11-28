@@ -4,10 +4,10 @@ patches {
     about {
         name = "Ayham Patches"
         description = "Personal YouTube Music patches, used next to the Morphe bundle"
-        source = "git@github.com:ayhamo/ytmusic-patches.git"
+        source = "https://github.com/ayhamo/ytmusic-patches"
         author = "ayhamo"
-        contact = "na"
-        website = "na"
+        contact = "https://github.com/ayhamo/ytmusic-patches/issues"
+        website = "https://github.com/ayhamo/ytmusic-patches"
         license = "GPLv3"
     }
 }

@@ -33,6 +33,7 @@ val hidePopupsPatch = bytecodePatch(
     name = "Hide pop-ups and rating prompts",
     description = "Stops the rating prompt, the rating card in the feeds, and marketing pop-ups.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

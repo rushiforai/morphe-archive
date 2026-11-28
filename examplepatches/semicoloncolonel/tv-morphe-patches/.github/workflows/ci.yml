@@ -63,9 +63,19 @@ jobs:
         with:
           python-version: '3.12'
 
+      # check_release.py and its tests verify Ed25519 bundle signatures.
+      - name: Install the release check
+        run: python -m pip install --quiet cryptography==50.0.2
+
       - name: Test the update checker's version ordering
         run: python -m unittest discover -s .github/scripts -p 'test_*.py' -v
 
       - name: Check the issue forms list every app
         run: python .github/scripts/check_issue_forms.py
+
+      # On dev, the Signing key workflow updates these files after a key change,
+      # so the check runs on the release pull request, where they must match.
+      - name: Check the published signing key fingerprint
+        if: github.event_name == 'pull_request'
+        run: python .github/scripts/signing_key.py --check
 

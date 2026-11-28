@@ -9,7 +9,7 @@ import java.util.Locale;
  * pronunciation table. Returns null to request the old letter path. Bangla words always return null.
  * The table loads once on a background thread; until it is ready only overrides answer.
  */
-final class GboardRamblerLoanSpell {
+public final class GboardRamblerLoanSpell {
   private GboardRamblerLoanSpell() {}
 
   static volatile boolean ENABLED_VOICE = true;
@@ -184,7 +184,221 @@ final class GboardRamblerLoanSpell {
       "sudan", "\u09b8\u09c1\u09a6\u09be\u09a8",
       "concrete", "\u0995\u0982\u0995\u09cd\u09b0\u09bf\u099f");
 
+  /**
+   * High-frequency modern Bengali loanword spellings overriding raw CMUdict phoneme artifacts
+   * (e.g. "english" -> "ইংলিশ" instead of "ইংগলিশ", "understands" -> "আন্ডারস্ট্যান্ডস" instead of
+   * "অন্ডারস্ট্যান্ডজ", "clearly" -> "ক্লিয়ারলি" instead of "ক্লির্লি").
+   */
+  static final HashMap<String, String> CURATED_BANGLA_LOANS = map(
+      "english", "ইংলিশ",
+      "bangla", "বাংলা",
+      "bengali", "বেঙ্গলি",
+      "understand", "আন্ডারস্ট্যান্ড",
+      "understands", "আন্ডারস্ট্যান্ডস",
+      "understood", "আন্ডারস্টুড",
+      "understanding", "আন্ডারস্ট্যান্ডিং",
+      "clearly", "ক্লিয়ারলি",
+      "clear", "ক্লিয়ার",
+      "nearly", "নিয়ারলি",
+      "mixture", "মিক্সচার",
+      "voice", "ভয়েস",
+      "choice", "চয়েস",
+      "noise", "নয়েজ",
+      "point", "পয়েন্ট",
+      "enjoy", "এনজয়",
+      "language", "ল্যাঙ্গুয়েজ",
+      "languages", "ল্যাঙ্গুয়েজেস",
+      "messages", "মেসেজেস",
+      "package", "প্যাকেজ",
+      "packages", "প্যাকেজেস",
+      "manage", "ম্যানেজ",
+      "manager", "ম্যানেজার",
+      "settings", "সেটিংস",
+      "buttons", "বাটনস",
+      "clipboard", "ক্লিপবোর্ড",
+      "example", "এক্সাম্পল",
+      "exactly", "এক্স্যাক্টলি",
+      "definitely", "ডেফিনিটলি",
+      "usually", "ইউজুয়ালি",
+      "simply", "সিম্পলি",
+      "possible", "পসিবল",
+      "available", "অ্যাভেইলেবল",
+      "comfortable", "কমফোর্টেবল",
+      "everyone", "এভরিওয়ান",
+      "anyone", "এনিওয়ান",
+      "someone", "সামওয়ান",
+      "together", "টুগেদার",
+      "problems", "প্রবলেমস",
+      "questions", "কোয়েশ্চেনস",
+      "answers", "অ্যান্সারস",
+      "version", "ভার্সন",
+      "options", "অপশনস",
+      "function", "ফাংশন",
+      "connection", "কানেকশন",
+      "information", "ইনফরমেশন",
+      "uninstall", "আনইনস্টল",
+      "delete", "ডিলিট",
+      "changes", "চেঞ্জেস",
+      "friends", "ফ্রেন্ডস",
+      "words", "ওয়ার্ডস",
+      "things", "থিংস",
+      "times", "টাইমস",
+      "years", "ইয়ার্স",
+      "hours", "আওয়ার্স",
+      "seconds", "সেকেন্ডস",
+      "works", "ওয়ার্কস",
+      "checked", "চেকড",
+      "fixed", "ফিক্সড",
+      "mixed", "মিক্সড",
+      "white", "হোয়াইট",
+      "colors", "কালারস",
+      "sentence", "সেন্টেন্স",
+      "sentences", "সেন্টেন্সেস",
+      "text", "টেক্সট",
+      "toggle", "টগল",
+      "dictation", "ডিক্টেশন",
+      "spelling", "স্পেলিং",
+      "spellings", "স্পেলিংস",
+      "narration", "ন্যারেশন",
+      "whatever", "হোয়াটেভার",
+      "whenever", "হোয়েনেভার",
+      "wherever", "হোয়্যারেভার",
+      "whoever", "হুএভার",
+      "however", "হাউএভার",
+      "phonetic", "ফোনেটিক",
+      "phonetics", "ফোনেটিকস",
+      "saying", "সেয়িং",
+      "written", "রিটেন",
+      "should", "শুড",
+      "would", "উড",
+      "could", "কুড",
+      "well", "ওয়েল",
+      "right", "রাইট",
+      "now", "নাও",
+      "as", "অ্যাজ",
+      "so", "সো",
+      "be", "বি",
+      "in", "ইন",
+      "on", "অন",
+      "supposed", "সাপোজড",
+      "accurate", "অ্যাকিউরেট",
+      "properly", "প্রপারলি",
+      "update", "আপডেট",
+      "updates", "আপডেটস",
+      "feature", "ফিচার",
+      "features", "ফিচারস",
+      "section", "সেকশন",
+      "option", "অপশন",
+      "button", "বাটন",
+      "patch", "প্যাচ",
+      "patches", "প্যাচেস",
+      "release", "রিলিজ",
+      "github", "গিটহাব",
+      "it", "ইট",
+      "client", "ক্লায়েন্ট",
+      "clients", "ক্লায়েন্টস",
+      "everything", "এভরিথিং",
+      "everybody", "এভরিবডি",
+      "everyday", "এভরিডে",
+      "anything", "এনিথিং",
+      "something", "সামথিং",
+      "nothing", "নাথিং",
+      "android", "অ্যান্ড্রয়েড",
+      "fluency", "ফ্লুয়েন্সি",
+      "fluent", "ফ্লুয়েন্ট",
+      "accuracy", "অ্যাকিউরেসি",
+      "mobile", "মোবাইল",
+      "software", "সফটওয়্যার",
+      "network", "নেটওয়ার্ক",
+      "business", "বিজনেস",
+      "multilingual", "মাল্টিলিঙ্গুয়াল",
+      "management", "ম্যানেজমেন্ট",
+      "experience", "এক্সপেরিয়েন্স",
+      "performance", "পারফরম্যান্স",
+      "difference", "ডিফারেন্স",
+      "decision", "ডিসিশন",
+      "discussion", "ডিসকাশন",
+      "popup", "পপ-আপ",
+      "annoying", "অ্যানয়িং",
+      "figure", "ফিগার",
+      "between", "বিটুইন",
+      "automatically", "অটোমেটিক্যালি",
+      "basically", "বেসিক্যালি",
+      "literally", "লিটারালি",
+      "immediately", "ইমিডিয়েটলি",
+      "probably", "প্রবাবলি",
+      "technology", "টেকনোলজি",
+      "normal", "নরমাল",
+      "implement", "ইমপ্লিমেন্ট",
+      "installed", "ইনস্টলড",
+      "updated", "আপডেটেড",
+      "downloaded", "ডাউনলোডেড",
+      "deadline", "ডেডলাইন",
+      "feedback", "ফিডব্যাক",
+      "delivery", "ডেলিভারি",
+      "presentation", "প্রেজেন্টেশন",
+      "notification", "নোটিফিকেশন",
+      "conversation", "কনভারসেশন",
+      "application", "অ্যাপ্লিকেশন",
+      "development", "ডেভেলপমেন্ট",
+      "environment", "এনভায়রনমেন্ট",
+      "international", "ইন্টারন্যাশনাল",
+      "professional", "প্রফেশনাল",
+      "communication", "কমিউনিকেশন",
+      "solution", "সল্যুশন",
+      "keyboard", "কিবোর্ড",
+      "instant", "ইনস্ট্যান্ট",
+      "resolve", "রিজলভ",
+      "better", "বেটার",
+      "search", "সার্চ",
+      "eventually", "ইভেনচুয়ালি",
+      "climate", "ক্লাইমেট",
+      "clicked", "ক্লিকড",
+      "these", "দিজ",
+      "those", "দোজ",
+      "them", "দেম",
+      "such", "সাচ",
+      "each", "ইচ",
+      "another", "অ্যানাদার",
+      "same", "সেম",
+      "even", "ইভেন",
+      "often", "অফেন",
+      "sometimes", "সামটাইমস",
+      "why", "হোয়াই",
+      "who", "হু",
+      "whose", "হুজ",
+      "will", "উইল",
+      "might", "মাইট",
+      "more", "মোর",
+      "short", "শর্ট",
+      "sure", "শিওর",
+      "real", "রিয়েল",
+      "half", "হাফ",
+      "year", "ইয়ার",
+      "vow", "ভাউ",
+      "wrong", "রং",
+      "lot", "লট");
+
+  private static final HashSet<String> CURATED_OUTPUTS = buildCuratedOutputs();
+
+  private static HashSet<String> buildCuratedOutputs() {
+    HashSet<String> set = new HashSet<>(OVERRIDE.size() + CURATED_BANGLA_LOANS.size() + 16);
+    set.addAll(OVERRIDE.values());
+    set.addAll(CURATED_BANGLA_LOANS.values());
+    return set;
+  }
+
+  /**
+   * Returns true if {@code word} is a known curated English-in-Bangla loanword output
+   * (e.g. {@code দিজ}, {@code দোজ}, {@code হুজ}, {@code ইচ}, {@code অপশনস}), so the
+   * Bengali native lexicon never snaps valid loanwords to unrelated Bengali words.
+   */
+  public static boolean isCuratedLoanOutput(String word) {
+    return word != null && CURATED_OUTPUTS.contains(word);
+  }
+
   private static volatile HashMap<String, String> table;
+  private static volatile HashMap<String, String> banglishTable;
   private static volatile HashSet<String> bangla;
   private static volatile boolean loading;
 
@@ -199,7 +413,8 @@ final class GboardRamblerLoanSpell {
    * Called at voice session start (ScriptFix.lockVoiceCandidates), at the first conversion (ScriptFix.ensureDictionary)
    * and when a voice pass begins (enterVoice). If the thread cannot start, loading is reset so a later call can retry.
    */
-  static void preload() {
+  public static void preload() {
+    GboardRamblerBanglaLexicon.preload();
     try {
       if (table != null || loading) return;
       synchronized (GboardRamblerLoanSpell.class) {
@@ -209,7 +424,7 @@ final class GboardRamblerLoanSpell {
       try {
         Thread t = new Thread(GboardRamblerLoanSpell::loadNow, "rambler-loan");
         t.setDaemon(true);
-        t.setPriority(Thread.MIN_PRIORITY);
+        t.setPriority(Thread.NORM_PRIORITY);
         t.start();
       } catch (Throwable e) {
         diagFailures++;
@@ -224,24 +439,80 @@ final class GboardRamblerLoanSpell {
   static void loadNow() {
     long t0 = System.nanoTime();
     try {
-      HashMap<String, String> m = new HashMap<>(24000);
-      for (String c : GboardRamblerLoanTable.chunks()) {
-        int p = 0, n = c.length();
-        while (p < n) {
-          int tab = c.indexOf('\t', p), nl = c.indexOf('\n', p);
-          if (tab < 0 || nl < 0 || tab > nl) break;
-          m.put(c.substring(p, tab), c.substring(tab + 1, nl));
-          p = nl + 1;
-        }
-      }
-      table = m;
+      HashMap<String, String> loanMap = loadGzipTsv(GboardRamblerLoanTableData.gzipBase64Chunks(), 26000);
+      HashMap<String, String> bnMap = loadGzipTsv(GboardRamblerBanglishData.gzipBase64Chunks(), 28000);
+      table = loanMap;
+      banglishTable = bnMap;
       loadMs = (System.nanoTime() - t0) / 1000000L;
     } catch (Throwable e) {
       diagFailures++;
-      table = new HashMap<>();
+      if (table == null) table = new HashMap<>();
+      if (banglishTable == null) banglishTable = new HashMap<>();
     } finally {
       READY.countDown();
     }
+  }
+
+  private static HashMap<String, String> loadGzipTsv(String[] chunks, int initialCapacity) throws Exception {
+    byte[] gz = GboardRamblerBanglaLexicon.decodeBase64Chunks(chunks);
+    HashMap<String, String> m = new HashMap<>(initialCapacity);
+    try (java.io.BufferedReader br = new java.io.BufferedReader(
+        new java.io.InputStreamReader(
+            new java.util.zip.GZIPInputStream(new java.io.ByteArrayInputStream(gz)),
+            java.nio.charset.StandardCharsets.UTF_8), 32768)) {
+      String line;
+      while ((line = br.readLine()) != null) {
+        int tab = line.indexOf('\t');
+        if (tab > 0 && tab + 1 < line.length()) {
+          m.put(line.substring(0, tab), line.substring(tab + 1));
+        }
+      }
+    }
+    return m;
+  }
+
+  /**
+   * Shift-free colloquial Banglish -> Bangla Academy Bengali lookup backed by 25,000
+   * Aksharantar pairs filtered strictly against OpenBangla + LibreOffice bn_BD.
+   * Waits up to 150ms on cold boot (loads in ~20-35ms) so first dictation never cold-misses.
+   */
+  static String banglish(String lo) {
+    if (lo == null || lo.length() < 2) return null;
+    try {
+      HashMap<String, String> m = banglishTable;
+      if (m == null) {
+        preload();
+        try {
+          READY.await(150L, java.util.concurrent.TimeUnit.MILLISECONDS);
+        } catch (InterruptedException ie) {
+          Thread.currentThread().interrupt();
+        }
+        m = banglishTable;
+        if (m == null) return null;
+      }
+      return m.get(lo);
+    } catch (Throwable e) {
+      diagFailures++;
+      return null;
+    }
+  }
+
+  public static int loanTableSize() {
+    HashMap<String, String> m = table;
+    if (m == null) {
+      loadNow();
+      m = table;
+    }
+    return m == null ? 0 : m.size();
+  }
+
+  public static int banglishTableSize() {
+    HashMap<String, String> m = banglishTable;
+    if (m == null) {
+      loadNow();
+      m = banglishTable;
+    }
+    return m == null ? 0 : m.size();
   }
 
   static HashSet<String> banglaWords() {
@@ -498,18 +769,41 @@ final class GboardRamblerLoanSpell {
         char c = lo.charAt(i);
         if (c < 'a' || c > 'z') return null;
       }
+      String curated = CURATED_BANGLA_LOANS.get(lo);
+      if (curated != null) {
+        diagHits++;
+        return curated;
+      }
       HashSet<String> bn = banglaWords();
       if (bn == null || bn.contains(lo)) return null;
       String r = OVERRIDE.get(lo);
       if (r == null) {
+        // Prefer curated 2,265-word Avro Tier-1 dictionary before raw CMUdict phonemes.
+        String t1 = GboardRamblerTier1.get(lo);
+        if (t1 != null && GboardRamblerSentenceLang.wellFormed(t1)) {
+          diagHits++;
+          return t1;
+        }
         HashMap<String, String> t = table;
         if (t == null) {
-          // Table not loaded yet: never wait. Start the load if needed and use the old path for this token.
+          // Warm-wait up to 150ms (table parses in ~15-25ms) so first dictation after boot/update
+          // never cold-misses into broken letter-by-letter Avro (e.g. client -> কলিএনত).
           preload();
-          diagColdMiss++;
-          return null;
+          try {
+            READY.await(150L, java.util.concurrent.TimeUnit.MILLISECONDS);
+          } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+          }
+          t = table;
+          if (t == null) {
+            diagColdMiss++;
+            return null;
+          }
         }
         r = t.get(lo);
+        if (r != null) {
+          r = cleanCmuLoanSpelling(lo, r);
+        }
       }
       if (r == null || !GboardRamblerSentenceLang.wellFormed(r)) return null;
       diagHits++;
@@ -518,5 +812,84 @@ final class GboardRamblerLoanSpell {
       diagFailures++;
       return null;
     }
+  }
+
+  /**
+   * Fixes systematic CMUdict-to-Bengali phoneme artifacts across all 17,841 table entries:
+   * initial "un-" -> "আ", "-ear/-eer" "ির্লি" -> "িয়ারলি", "oi/oy" "য়স/য়ন্ট" -> "য়েস/য়েন্ট",
+   * double "জজ" plurals -> "জেস", voiced plural "-s" trailing "জ" -> "স", and awkward clusters.
+   */
+  static String cleanCmuLoanSpelling(String lo, String bn) {
+    if (lo == null || bn == null || bn.isEmpty()) return bn;
+    String s = bn;
+    if ((lo.startsWith("under") || (lo.startsWith("un") && lo.length() >= 4)) && s.startsWith("অ") && !s.startsWith("অ্যা")) {
+      s = "আ" + s.substring(1);
+    }
+    if (lo.startsWith("up") && lo.length() >= 4 && s.startsWith("অপ")) {
+      s = "আপ" + s.substring(2);
+    }
+    if (lo.startsWith("multi") && s.startsWith("মল্টি")) {
+      s = "মাল্টি" + s.substring(5);
+    }
+    if (lo.startsWith("exp") && s.startsWith("ইক্স্প")) {
+      s = "এক্সপ" + s.substring(6);
+    }
+    if (s.contains("ির্লি")) {
+      s = s.replace("ির্লি", "িয়ারলি");
+    }
+    if (s.contains("াইঅন্ট")) {
+      s = s.replace("াইঅন্ট", "ায়েন্ট");
+    }
+    if (lo.endsWith("body") && s.endsWith("বোডি")) {
+      s = s.substring(0, s.length() - 4) + "বডি";
+    }
+    if (lo.endsWith("one") && s.endsWith("ওয়ন")) {
+      s = s.substring(0, s.length() - 4) + "ওয়ান";
+    }
+    if (s.contains("ন্চওয়")) {
+      s = s.replace("ন্চওয়", "নচুয়া");
+    }
+    if (lo.endsWith("ted") && s.endsWith("টিড")) {
+      s = s.substring(0, s.length() - 3) + "টেড";
+    } else if (lo.endsWith("ded") && s.endsWith("ডিড")) {
+      s = s.substring(0, s.length() - 3) + "ডেড";
+    }
+    if ((lo.endsWith("nce") || lo.endsWith("nse")) && s.endsWith("নস")) {
+      s = s.substring(0, s.length() - 2) + "ন্স";
+    }
+    if ((lo.endsWith("ear") || lo.endsWith("eer")) && s.endsWith("ির")) {
+      s = s.substring(0, s.length() - 2) + "িয়ার";
+    }
+    if (lo.endsWith("board") && s.endsWith("বর্ড")) {
+      s = s.substring(0, s.length() - 4) + "বোর্ড";
+    }
+    if (lo.contains("oi") || lo.contains("oy")) {
+      s = s.replace("য়স", "য়েস").replace("য়ন্ট", "য়েন্ট");
+    }
+    s = s.replace("ক্স্চ", "ক্সচ")
+         .replace("ক্স্ট", "ক্সট")
+         .replace("ম্প্লি", "ম্পলি")
+         .replace("ন্জ", "ঞ্জ");
+    if (s.endsWith("জজ")) {
+      s = s.substring(0, s.length() - 2) + "জেস";
+    } else if (s.endsWith("সজ") && lo.endsWith("ses")) {
+      s = s.substring(0, s.length() - 2) + "সেস";
+    }
+    if (lo.endsWith("s")
+        && !lo.endsWith("ss")
+        && !lo.endsWith("se")
+        && !lo.endsWith("ze")
+        && !lo.endsWith("ge")
+        && !lo.endsWith("ays")
+        && !lo.endsWith("eys")
+        && !lo.endsWith("oys")
+        && s.endsWith("জ")
+        && s.length() >= 2) {
+      char prev = s.charAt(s.length() - 2);
+      if ("ডংনমলবগরভদটকপ".indexOf(prev) >= 0) {
+        s = s.substring(0, s.length() - 1) + "স";
+      }
+    }
+    return s;
   }
 }

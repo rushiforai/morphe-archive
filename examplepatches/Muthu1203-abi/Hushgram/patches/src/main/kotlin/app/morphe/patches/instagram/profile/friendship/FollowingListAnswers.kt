@@ -1,0 +1,372 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.morphe.patches.instagram.profile.friendship
+
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patches.instagram.misc.extension.classesLoadingString
+import app.morphe.patches.instagram.misc.extension.jumpTargets
+import app.morphe.patches.instagram.misc.extension.stringLoadedAt
+import app.morphe.patches.instagram.misc.settings.EXTENSION_ROOT
+import app.morphe.util.ControlFlow
+import app.morphe.util.namedRegisters
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import java.util.BitSet
+
+internal const val KNOWN = "$FOLLOWING_LIST->known($OBJECT$OBJECT)$OBJECT"
+internal const val ANSWERED = "$FOLLOWING_LIST->answered($OBJECT$OBJECT$OBJECT)V"
+
+/** A follow list's analytics name the method fetching a page of the list loads. */
+internal const val NON_RECIP_FOLLOWERS = "non_recip_followers"
+
+/** The cache of accounts Instagram has drawn, which keeps its name. */
+private const val USER_CACHE = "Lcom/instagram/user/model/UserCache;"
+
+/** The key of the batch answer's statuses, which its parser loads. */
+internal const val FRIENDSHIP_STATUSES = "friendship_statuses"
+
+/**
+ * Where the patch has Instagram ask the server whether each row of your own Following list follows
+ * you, and hands the answers to [FOLLOWING_LIST] (#40). Instagram caches a friendship status for
+ * every account it has drawn anywhere, and the list skipped asking about a row whose cached status
+ * already had an answer, however it got there. The list's own batch request already asks for
+ * followed_by, so other lists' requests are left as they are.
+ */
+internal class FollowAnswers(
+    /** The page fetch, where it branches on a row's cached friendship, and the registers of that and the list. */
+    val fetch: Site,
+    val known: Int,
+    val friendship: Int,
+    val friendshipType: String,
+    val list: Int,
+    /** The list's state holder, and its fields of the list's data and the signed-in account. */
+    val listType: String,
+    val listData: FieldReference,
+    val listSession: FieldReference,
+    /** The answer's parser, the place right after it checks the account is cached, and its registers there. */
+    val parser: Site,
+    val answered: Int,
+    val user: Int,
+    val status: Int,
+    val session: Int,
+    /** The status record's field of followed_by. */
+    val followedBy: FieldReference,
+)
+
+internal class Site(val type: String, val name: String, val parameters: List<String>) {
+    override fun toString() = "$type->$name"
+}
+
+private fun Site(classDef: ClassDef, method: Method) =
+    Site(classDef.type, method.name, method.parameterTypes.map(CharSequence::toString))
+
+/**
+ * Finds the two places, before anything changes:
+ * - the one method loading [NON_RECIP_FOLLOWERS] that asks a [USER] for its [RELATIONSHIP] and,
+ *   when there's none, goes straight to adding the row to a collection: the rows to ask about. The
+ *   list is the one register there written once, before everything else, from a field whose class
+ *   keeps one [FOLLOW_LIST_DATA] and one [USER_SESSION];
+ * - the one method loading [FRIENDSHIP_STATUSES] that hands each status to a static field parser
+ *   loading [FOLLOWED_BY] and writing it to a Boolean field of the status. The hook goes right after
+ *   it checks that the account the status is about, from a `(UserSession, String)` lookup, is cached
+ *   (454 inlines the lookup, so there it's right after the account is made from the cache's entry).
+ *
+ * Fails when any of them isn't there, or there's more than one, since that's an update this patch
+ * hasn't seen, and when a register the hook reads might hold something else where it goes.
+ */
+internal fun BytecodePatchContext.findFollowAnswers(): FollowAnswers {
+    val fetches = mutableListOf<Pair<ClassDef, Method>>()
+    val parsers = mutableListOf<Pair<ClassDef, Method>>()
+    // Either key may be held or asked of a string pool by number: 451's 385713073 pools friendship_statuses.
+    val holders = (classesLoadingString(NON_RECIP_FOLLOWERS) + classesLoadingString(FRIENDSHIP_STATUSES)).mapTo(HashSet()) { it.type }
+    classDefForEach { classDef ->
+        if (classDef.type !in holders || classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+        classDef.methods.forEach { method ->
+            val code = method.implementation?.instructions?.toList() ?: return@forEach
+            val loaded = code.indices.mapNotNullTo(HashSet()) { stringLoadedAt(code, it) }
+            if (NON_RECIP_FOLLOWERS in loaded) fetches += classDef to method
+            if (FRIENDSHIP_STATUSES in loaded) parsers += classDef to method
+        }
+    }
+
+    val pages = fetches.mapNotNull { (classDef, method) -> unknownRow(method)?.let { Triple(classDef, method, it) } }
+    val (fetchClass, fetch, known) = pages.singleOrNull()
+        ?: refuse("expected one method loading $NON_RECIP_FOLLOWERS to ask about rows with no $RELATIONSHIP, found ${pages.size}")
+    val fetchWhere = "${fetchClass.type}->${fetch.name}"
+    val fetchCode = fetch.implementation!!.instructions.toList()
+    val friendship = (fetchCode[known] as OneRegisterInstruction).registerA
+    val friendshipType = fetchCode[known - 2].methodReference()!!.returnType
+    if (known in fetch.jumpTargets()) refuse("$fetchWhere has no place right after asking for a row's $RELATIONSHIP that only that leads to")
+    val holder = listHolder(fetchClass, fetch, known)
+    if (maxOf(friendship, holder.register) > 15) refuse("$fetchWhere keeps the row's $RELATIONSHIP or the list past v15")
+
+    val answers = parsers.flatMap { (classDef, method) -> statusParses(method).map { Triple(classDef, method, it) } }
+    val (parserClass, parser, parse) = answers.singleOrNull()
+        ?: refuse("expected one method loading $FRIENDSHIP_STATUSES to parse each status's $FOLLOWED_BY, found ${answers.size}")
+    val answer = answerSite(parserClass, parser, parse)
+    // The stub reads followed_by off the status from the extension, outside Instagram's packages.
+    val statusClass = classDefByOrNull(parse.followedBy.definingClass)
+        ?: refuse("${parse.followedBy.definingClass}, the friendship status, isn't in this build")
+    if (!AccessFlags.PUBLIC.isSet(statusClass.accessFlags)) refuse("${statusClass.type} isn't public, so the extension can't reach it")
+    if (statusClass.fields.none { it.name == parse.followedBy.name && AccessFlags.PUBLIC.isSet(it.accessFlags) }) {
+        refuse("${parse.followedBy} isn't public")
+    }
+
+    return FollowAnswers(
+        Site(fetchClass, fetch), known, friendship, friendshipType, holder.register, holder.type, holder.data, holder.session,
+        Site(parserClass, parser), answer.at, answer.user, parse.status, answer.session, parse.followedBy,
+    )
+}
+
+/**
+ * Where [method] branches straight to adding a row to a collection when a [USER] it asked has no
+ * [RELATIONSHIP]: the `if-eqz` right after the getter's move-result, or null.
+ */
+private fun unknownRow(method: Method): Int? {
+    val code = method.implementation?.instructions?.toList() ?: return null
+    val sites = code.indices.filter { at ->
+        val asked = code[at].methodReference()
+        val kept = code.getOrNull(at + 1) as? OneRegisterInstruction
+        val branch = code.getOrNull(at + 2)
+        asked != null && asked.definingClass == USER && asked.parameterTypes.isEmpty() && asked.returnType == RELATIONSHIP &&
+            kept != null && code[at + 1].opcode == Opcode.MOVE_RESULT_OBJECT &&
+            branch?.opcode == Opcode.IF_EQZ && (branch as OneRegisterInstruction).registerA == kept.registerA &&
+            addsAt(method, code, at + 2)
+    }
+    return sites.singleOrNull()?.let { it + 2 }
+}
+
+/** Whether the branch at [at] goes to a collection's `add(Object)`. */
+private fun addsAt(method: Method, code: List<Instruction>, at: Int): Boolean {
+    val target = ControlFlow.of(method).normal[at].firstOrNull() ?: return false
+    if (code[at] !is OffsetInstruction) return false
+    val added = code.getOrNull(target)?.methodReference() ?: return false
+    return added.name == "add" && added.parameterTypes.map(CharSequence::toString) == listOf(OBJECT) && added.returnType == "Z"
+}
+
+private class ListHolder(val register: Int, val type: String, val data: FieldReference, val session: FieldReference)
+
+/**
+ * The register holding the list's state at [at]: one written by reading a field whose class keeps
+ * one [FOLLOW_LIST_DATA] and one [USER_SESSION] (or from 457 an Object field cast to that class right
+ * after, `LX/0ijX;->invoke` on 386314341), and holding that value on every way to [at].
+ * Instagram's fetch reads other objects of that shape too (the row binder, say), into registers it
+ * has reused by the time it asks about a row.
+ */
+private fun BytecodePatchContext.listHolder(classDef: ClassDef, method: Method, at: Int): ListHolder {
+    val where = "${classDef.type}->${method.name}"
+    val code = method.implementation!!.instructions.toList()
+    val holders = code.indices.mapNotNull { index ->
+        val read = code[index].fieldReference() ?: return@mapNotNull null
+        if (code[index].opcode != Opcode.IGET_OBJECT) return@mapNotNull null
+        val register = (code[index] as OneRegisterInstruction).registerA
+        // From 457 a merged lambda keeps the list as an Object and casts it right after the read.
+        val cast = code.getOrNull(index + 1)?.takeIf {
+            read.type == OBJECT && it.opcode == Opcode.CHECK_CAST && (it as OneRegisterInstruction).registerA == register
+        }
+        val held = cast?.let { ((it as ReferenceInstruction).reference as TypeReference).type } ?: read.type
+        val write = if (cast != null) index + 1 else index
+        val heldClass = classDefByOrNull(held) ?: return@mapNotNull null
+        val data = heldClass.instanceFields(FOLLOW_LIST_DATA).singleOrNull() ?: return@mapNotNull null
+        val session = heldClass.instanceFields(USER_SESSION).singleOrNull() ?: return@mapNotNull null
+        if (!method.holdsAt(register, write, at)) return@mapNotNull null
+        Triple(write, heldClass, data to session)
+    }
+    val (write, heldClass, fields) = holders.singleOrNull()
+        ?: refuse("expected $where to hold one follow list keeping a $FOLLOW_LIST_DATA and a $USER_SESSION where it asks about a row, found ${holders.size}")
+    if (!AccessFlags.PUBLIC.isSet(heldClass.accessFlags)) refuse("${heldClass.type} isn't public, so the extension can't reach it")
+    return ListHolder((code[write] as OneRegisterInstruction).registerA, heldClass.type, fields.first, fields.second)
+}
+
+private class StatusParse(val at: Int, val status: Int, val followedBy: FieldReference)
+
+/**
+ * The static calls in [method] handing a status to a field parser `(parser, status, String)V` that
+ * loads [FOLLOWED_BY] and right after writes a Boolean field of the status, each with its field.
+ */
+private fun BytecodePatchContext.statusParses(method: Method): List<StatusParse> {
+    val code = method.implementation?.instructions?.toList() ?: return emptyList()
+    return code.indices.mapNotNull { at ->
+        val called = code[at].methodReference() ?: return@mapNotNull null
+        val parameters = called.parameterTypes.map(CharSequence::toString)
+        if (code[at].opcode != Opcode.INVOKE_STATIC || called.returnType != "V" || parameters.size != 3 || parameters[2] != STRING) {
+            return@mapNotNull null
+        }
+        val status = parameters[1]
+        val parser = classDefByOrNull(called.definingClass)?.methods?.singleOrNull {
+            it.name == called.name && it.parameterTypes.map(CharSequence::toString) == parameters && it.returnType == "V"
+        } ?: return@mapNotNull null
+        val field = followedByField(parser, status) ?: return@mapNotNull null
+        StatusParse(at, code[at].namedRegisters()[1], field)
+    }
+}
+
+/** The Boolean field of [status] that [parser] writes first after loading [FOLLOWED_BY], held or pooled, when it's the same each time. */
+private fun BytecodePatchContext.followedByField(parser: Method, status: String): FieldReference? {
+    val code = parser.implementation?.instructions?.toList() ?: return null
+    val fields = code.indices.filter { stringLoadedAt(code, it) == FOLLOWED_BY }.map { loaded ->
+        (loaded + 1 until code.size).map { code[it] }.firstOrNull { it.opcode == Opcode.IPUT_OBJECT || it.opcode == Opcode.RETURN_VOID }
+            ?.fieldReference()?.takeIf { it.definingClass == status && it.type == "Ljava/lang/Boolean;" }
+    }
+    return fields.distinctBy { it?.toString() }.singleOrNull()
+}
+
+private class AnswerSite(val at: Int, val user: Int, val session: Int)
+
+/**
+ * Right after [method] checks, past [parse], that the account a status is about is cached: the
+ * `if-eqz` on the result of its one `(UserSession, String)` lookup of a [USER], or of the lookup
+ * past the parse that takes the status between the two (455). The account, the
+ * status and the session the lookup was handed must each hold the same value there.
+ */
+private fun BytecodePatchContext.answerSite(classDef: ClassDef, method: Method, parse: StatusParse): AnswerSite {
+    val where = "${classDef.type}->${method.name}"
+    val code = method.implementation!!.instructions.toList()
+    val lookups = code.indices.filter { at ->
+        val called = code[at].methodReference()
+        code[at].opcode == Opcode.INVOKE_STATIC && called != null && called.returnType == USER &&
+            called.parameterTypes.map(CharSequence::toString) == listOf(USER_SESSION, STRING) &&
+            code.getOrNull(at + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT
+    }
+    if (lookups.isEmpty()) cacheAsk(code, parse)?.let { (asked, made) ->
+        // 454 inlines the lookup past the parse: the session's cache is asked for the account's
+        // entry, the entry is checked, and the account is made from it. The hook goes right after.
+        if ((asked + 1 until made).none { code[it].opcode == Opcode.IF_EQZ }) refuse("$where doesn't check the account is cached")
+        return answerAt(where, method, code, parse, made + 1, made + 2, asked)
+    }
+    if (lookups.isEmpty()) statusLookup(code, parse)?.let { asked ->
+        // 455 hands the parsed status to a lookup past the parse, as LX/0MNv;->A01 does on
+        // 386113969: it asks the session's cache for the account's entry, answers null when there's
+        // none, and otherwise applies the status and answers the account. The hook goes after the check.
+        val called = code[asked].methodReference()!!
+        val lookup = classDefByOrNull(called.definingClass)?.methods?.singleOrNull {
+            it.name == called.name && it.parameterTypes.map(CharSequence::toString) == called.parameterTypes.map(CharSequence::toString)
+        } ?: refuse("$where looks the account up with ${called.definingClass}->${called.name}, which isn't in this build")
+        if (lookup.implementation?.instructions?.none { asksCache(it) } != false) refuse("${called.definingClass}->${called.name} doesn't ask the session's cache")
+        val user = (code[asked + 1] as OneRegisterInstruction).registerA
+        val check = (asked + 2).takeIf { code.getOrNull(it)?.opcode == Opcode.IF_EQZ && (code[it] as OneRegisterInstruction).registerA == user }
+            ?: refuse("$where doesn't check the account is cached")
+        return answerAt(where, method, code, parse, asked + 1, check + 1, asked)
+    }
+    val lookup = lookups.singleOrNull() ?: refuse("expected $where to look one cached $USER up by its ID, found ${lookups.size}")
+    if (lookup > parse.at) refuse("$where looks the account up after parsing its status")
+    val user = (code[lookup + 1] as OneRegisterInstruction).registerA
+
+    val check = (parse.at + 1 until code.size).firstOrNull {
+        code[it].opcode == Opcode.IF_EQZ && (code[it] as OneRegisterInstruction).registerA == user
+    } ?: refuse("$where doesn't check the account is cached after parsing its status")
+    return answerAt(where, method, code, parse, lookup + 1, check + 1, lookup)
+}
+
+/**
+ * Where 454's parser asks [USER_CACHE] of a session once past [parse], and then the first call
+ * answering a [USER] whose result it keeps, or null when it doesn't.
+ */
+private fun cacheAsk(code: List<Instruction>, parse: StatusParse): Pair<Int, Int>? {
+    val asks = (parse.at + 1 until code.size).filter { asksCache(code[it]) }
+    val asked = asks.singleOrNull() ?: return null
+    val made = (asked + 1 until code.size).firstOrNull { at ->
+        code[at].methodReference()?.returnType == USER && code.getOrNull(at + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT
+    } ?: return null
+    return asked to made
+}
+
+/** Whether [instruction] asks [USER_CACHE] of a session. */
+private fun asksCache(instruction: Instruction): Boolean {
+    val called = instruction.methodReference()
+    return instruction.opcode == Opcode.INVOKE_STATIC && called?.definingClass == USER_CACHE && called.returnType == USER_CACHE &&
+        called.parameterTypes.map(CharSequence::toString) == listOf(USER_SESSION)
+}
+
+/**
+ * Where 455's parser hands the status at [parse] once past it, with the session and the account's
+ * ID, to an instance lookup answering a [USER] it keeps, or null when it doesn't.
+ */
+private fun statusLookup(code: List<Instruction>, parse: StatusParse): Int? = (parse.at + 1 until code.size).filter { at ->
+    val called = code[at].methodReference()
+    (code[at].opcode == Opcode.INVOKE_VIRTUAL || code[at].opcode == Opcode.INVOKE_DIRECT) && called != null && called.returnType == USER &&
+        called.parameterTypes.map(CharSequence::toString) == listOf(USER_SESSION, parse.followedBy.definingClass, STRING) &&
+        code[at].namedRegisters().getOrNull(2) == parse.status && code.getOrNull(at + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT
+}.singleOrNull()
+
+/**
+ * The hook's place [at] with the account kept at [kept] and the session handed to the call at
+ * [asked], once each of them and the status is sure to hold there.
+ */
+private fun answerAt(where: String, method: Method, code: List<Instruction>, parse: StatusParse, kept: Int, at: Int, asked: Int): AnswerSite {
+    val user = (code[kept] as OneRegisterInstruction).registerA
+    // An instance call's first register is its receiver.
+    val receiver = if (code[asked].opcode == Opcode.INVOKE_STATIC) 0 else 1
+    val session = code[asked].namedRegisters()[receiver + code[asked].methodReference()!!.parameterTypes.map(CharSequence::toString).indexOf(USER_SESSION)]
+    if (at >= code.size || at in method.jumpTargets()) refuse("$where has no place right after its check of the account that only the check leads to")
+
+    val statusWrite = (parse.at - 1 downTo 0).firstOrNull { code[it].writes(parse.status) }
+        ?: refuse("$where parses a status it never wrote")
+    val sessionWrite = (asked - 1 downTo 0).firstOrNull { code[it].writes(session) }
+    val held = listOf(
+        "the account" to method.holdsAt(user, kept, at),
+        "the status" to (method.holdsAt(parse.status, statusWrite, parse.at) && method.holdsAt(parse.status, statusWrite, at)),
+        "the session" to (method.holdsAt(session, sessionWrite, asked) && method.holdsAt(session, sessionWrite, at)),
+    )
+    held.firstOrNull { !it.second }?.let { refuse("$where may not hold ${it.first} right after its check of the account") }
+    if (maxOf(user, parse.status, session) > 15) refuse("$where keeps the account, the status or the session past v15")
+    return AnswerSite(at, user, session)
+}
+
+/**
+ * Whether [register] holds the value written at [write] (or held on entry, for null) at [at]: no
+ * way to [at] starts at the method's start or another write of [register] without passing [write].
+ * A write that throws leaves the value it would have replaced.
+ */
+internal fun Method.holdsAt(register: Int, write: Int?, at: Int): Boolean {
+    val flow = ControlFlow.of(this)
+    val writes = flow.instructions.indices.filter { flow.instructions[it].writes(register) }.toSet()
+    val reached = BitSet()
+    val pending = ArrayDeque<Int>()
+    fun visit(next: List<Int>) = next.forEach { if (!reached[it]) { reached.set(it); pending += it } }
+    if (write != null) visit(listOf(0))
+    writes.filter { it != write }.forEach { visit(flow.normal[it]) }
+    while (pending.isNotEmpty()) {
+        val index = pending.removeFirst()
+        if (index == at) return false
+        if (index !in writes) visit(flow.normal[index])
+        visit(flow.exceptional[index])
+    }
+    return true
+}
+
+/**
+ * Puts the two hooks in:
+ * - where the page fetch branches on a row's cached friendship, [KNOWN] on it and the list, the
+ *   answer cast back to the getter's type;
+ * - right after the parser's check that the account is cached, [ANSWERED] on the account, its
+ *   status and the session.
+ */
+internal fun BytecodePatchContext.askFollowAnswers(found: FollowAnswers) {
+    fun method(site: Site) = mutableClassDefBy(site.type).methods.single {
+        it.name == site.name && it.parameterTypes.map(CharSequence::toString) == site.parameters
+    }
+    method(found.fetch).addInstructions(
+        found.known,
+        """
+            invoke-static { v${found.friendship}, v${found.list} }, $KNOWN
+            move-result-object v${found.friendship}
+            check-cast v${found.friendship}, ${found.friendshipType}
+        """,
+    )
+    method(found.parser).addInstructions(
+        found.answered,
+        "invoke-static { v${found.user}, v${found.status}, v${found.session} }, $ANSWERED",
+    )
+}

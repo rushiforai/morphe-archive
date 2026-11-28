@@ -23,6 +23,14 @@ import java.net.URI
 // (e.g. "app.morphe" for Morphe GmsCore).
 const val DEFAULT_GMS_CORE_VENDOR = "app.revanced.android.gms"
 
+/**
+ * MicroG RE's GServicesProvider checks the caller's MANIFEST for this literal
+ * Google-named permission ("callerHasReadPermissionRequested"); non-Google apps can
+ * never satisfy its callerIsGoogle() signature allow-list, so this entry must survive
+ * the vendor rewrite in the manifest. The DEX-side rewrite is unaffected.
+ */
+private const val GSF_READ_PERMISSION_LITERAL = "com.google.android.providers.gsf.permission.READ_GSERVICES"
+
 // Derive the vendor group prefix for com.google.* rewrites
 // e.g. "app.revanced.android.gms" → "app.revanced"
 private fun gmsVendorGroup(vendor: String): String = when {
@@ -206,16 +214,28 @@ fun gmsCoreSupportResourcePatch(
             val manifestNode = doc.getElementsByTagName("manifest").item(0)
             val applicationNode = doc.getElementsByTagName("application").item(0)
 
-            // FAKE_PACKAGE_SIGNATURE permission — MicroG RE reads this to enable spoofing.
-            val existingPerms = doc.getElementsByTagName("uses-permission")
-            val permAlreadyAdded = (0 until existingPerms.length).any { i ->
-                existingPerms.item(i).attributes
-                    ?.getNamedItem("android:name")
-                    ?.nodeValue == "org.microg.gms.permission.FAKE_PACKAGE_SIGNATURE"
-            }
-            if (!permAlreadyAdded) {
+            // Permissions the app must request for MicroG RE (see GSF_READ_PERMISSION_LITERAL
+            // and the EXTENDED_ACCESS note below):
+            //  - org.microg.gms.permission.FAKE_PACKAGE_SIGNATURE — upstream MicroG spoof gate
+            //  - app.revanced.gms.EXTENDED_ACCESS — the ReVanced MicroG RE fork declares this
+            //    dangerous permission and gates account/service provider reads on it
+            //    ("Access denied, missing GET_ACCOUNTS or EXTENDED_ACCESS permission");
+            //    a pm grant only sticks if the app requests it, verified 2026-11-21.
+            //  - GSF_READ_PERMISSION_LITERAL — GServicesProvider reads this LITERAL name from the
+            //    manifest; the vendor-named twin keeps the grant resolvable.
+            val vendorGroup = gmsVendorGroup(gmsCoreVendor)
+            val microGPermissions = listOf(
+                "org.microg.gms.permission.FAKE_PACKAGE_SIGNATURE",
+                "app.revanced.gms.EXTENDED_ACCESS",
+                GSF_READ_PERMISSION_LITERAL,
+                "$vendorGroup.android.providers.gsf.permission.READ_GSERVICES",
+            )
+            val declaredPerms = (0 until doc.getElementsByTagName("uses-permission").length)
+                .mapNotNull { doc.getElementsByTagName("uses-permission").item(it).attributes?.getNamedItem("android:name")?.nodeValue }
+                .toSet()
+            microGPermissions.filter { it !in declaredPerms }.forEach { name ->
                 val permNode = doc.createElement("uses-permission")
-                permNode.setAttribute("android:name", "org.microg.gms.permission.FAKE_PACKAGE_SIGNATURE")
+                permNode.setAttribute("android:name", name)
                 manifestNode.appendChild(permNode)
             }
 
@@ -375,6 +395,10 @@ val gmsCoreVendorOption by stringOption(
                 }
 
                 val vendor = gmsCoreVendorOption ?: DEFAULT_GMS_CORE_VENDOR
+                // MicroG's SPOOFED_PACKAGE_SIGNATURE is the **SHA-1** of the app's original
+                // (Google-signed) certificate. Confirmed against the official bundle: YouTube
+                // uses "24bb24c05e47e0aefa68a58a766179d9b613a600" and YT Music
+                // "afb0fed5eeaebdd86f56a97742f4b6b33ef59875" — both 40-char SHA-1.
                 val sig = autoSha1
                 // Resolve package name: user custom > <original>.revanced
                 resolvedPackageName = customPackageName?.takeIf { it.isNotBlank() }
@@ -384,16 +408,22 @@ val gmsCoreVendorOption by stringOption(
                     val manifestNode = doc.getElementsByTagName("manifest").item(0)
                     val applicationNode = doc.getElementsByTagName("application").item(0)
 
-                    // FAKE_PACKAGE_SIGNATURE permission for MicroG RE.
-                    val existingPerms = doc.getElementsByTagName("uses-permission")
-                    val permAdded = (0 until existingPerms.length).any { i ->
-                        existingPerms.item(i).attributes
-                            ?.getNamedItem("android:name")
-                            ?.nodeValue == "org.microg.gms.permission.FAKE_PACKAGE_SIGNATURE"
-                    }
-                    if (!permAdded) {
+                    // Permissions the app must request for MicroG RE (see the shared
+                    // gmsCoreSupportResourcePatch for why EXTENDED_ACCESS and the literal
+                    // READ_GSERVICES name are required).
+                    val injectionVendorGroup = gmsVendorGroup(vendor)
+                    val microGPermissions = listOf(
+                        "org.microg.gms.permission.FAKE_PACKAGE_SIGNATURE",
+                        "app.revanced.gms.EXTENDED_ACCESS",
+                        GSF_READ_PERMISSION_LITERAL,
+                        "$injectionVendorGroup.android.providers.gsf.permission.READ_GSERVICES",
+                    )
+                    val declaredPerms = (0 until doc.getElementsByTagName("uses-permission").length)
+                        .mapNotNull { doc.getElementsByTagName("uses-permission").item(it).attributes?.getNamedItem("android:name")?.nodeValue }
+                        .toSet()
+                    microGPermissions.filter { it !in declaredPerms }.forEach { name ->
                         val perm = doc.createElement("uses-permission")
-                        perm.setAttribute("android:name", "org.microg.gms.permission.FAKE_PACKAGE_SIGNATURE")
+                        perm.setAttribute("android:name", name)
                         manifestNode.appendChild(perm)
                     }
 
@@ -441,6 +471,9 @@ val gmsCoreVendorOption by stringOption(
                         .forEach { el ->
                             val name = el.getAttribute("android:name").takeIf { it.isNotBlank() } ?: return@forEach
                             when {
+                                // GServicesProvider matches this literal name in the caller's
+                                // manifest; the vendor-named twin is injected separately.
+                                isCustomVendor && name == GSF_READ_PERMISSION_LITERAL -> Unit
                                 isCustomVendor && name in GMS_PERMISSIONS ->
                                     el.setAttribute("android:name", name.replace("com.google", vendorGroup))
                                 isRenaming && name in APP_PERMISSIONS ->

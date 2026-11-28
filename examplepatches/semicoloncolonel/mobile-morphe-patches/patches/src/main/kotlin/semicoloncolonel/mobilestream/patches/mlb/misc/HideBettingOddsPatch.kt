@@ -8,7 +8,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import semicoloncolonel.mobilestream.patches.mlb.shared.Constants
-import semicoloncolonel.mobilestream.patches.shared.misc.phoneOnly
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MLB — Hide betting odds (phone only).
@@ -31,7 +30,7 @@ import semicoloncolonel.mobilestream.patches.shared.misc.phoneOnly
 //
 // Phone only. The Android TV build draws its odds through a different, native
 // path (an odds-provider banner, not this web config, whose class is dead code
-// there), so this patch is excluded from the TV flavor in build.gradle.kts.
+// there).
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Suppress("unused")
@@ -41,7 +40,7 @@ val hideBettingOddsPatch = bytecodePatch(
     default = false,
 ) {
     category("Interface")
-    compatibleWith(Constants.COMPATIBILITY.phoneOnly())
+    compatibleWith(Constants.COMPATIBILITY)
 
     execute {
         var patched = 0

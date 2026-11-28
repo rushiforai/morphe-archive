@@ -1,3 +1,24 @@
+## 3.6.1 (2026-11-27)
+
+### Fixes
+- **IMO HD:** Hide emoji suggestions now also hides the emoji row on phones where it still showed, such as Samsung foldables.
+
+**62 patches for 11 apps.** Full list in the [README](https://github.com/lokesh-sparrow/loki-patches#apps).
+
+## 3.6.0 (2026-11-27)
+
+### New Features
+- **IMO HD:** IMO HD joins the bundle - Remove ads (IMO), Allow screenshots, Allow story recording during calls, Allow sending apps, Disappearing messages, Hide Premium on Me page, Hide emoji suggestions, Hide voice rooms tab and Spoof signature, so the sign-in code arrives.
+
+### Fixes
+- Remove ads and trackers now does nothing on apps with their own ad removal (LinkedIn, Splitwise, Truecaller, Doc Scanner, 1DM, ADM, TrackChecker and IMO HD), which it could break if ticked by mistake.
+
+### Updated App Support
+- **Google Photos:** Google Photos 8.2.1.1030128190 is supported, next to 8.1.0.1023737660.
+- **Truecaller:** Truecaller 26.45.5 is supported, next to 26.44.6.
+
+**62 patches for 11 apps.** Full list in the [README](https://github.com/lokesh-sparrow/loki-patches#apps).
+
 ## 3.5.0 (2026-11-25)
 
 ### New Features

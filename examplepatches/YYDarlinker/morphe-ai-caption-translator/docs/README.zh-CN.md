@@ -1,77 +1,53 @@
 # Anchored AI Captions
 
-使用你自己的 **OpenAI 兼容 API，实时翻译 YouTube 已有字幕**。这是独立维护、兼容 Morphe 的开源补丁源，适用于普通视频、全屏和 Shorts。
+使用你自己的 **OpenAI 兼容 API** 实时翻译 YouTube 已有字幕。Anchored AI Captions 是独立维护、兼容 Morphe 的开源补丁包，为普通视频、全屏播放和 Shorts 提供可自定义的字幕。
 
 [English](../README.md) · [添加到 Morphe](https://morphe.software/add-source?github=YYDarlinker/morphe-ai-caption-translator) · [下载补丁](https://github.com/YYDarlinker/morphe-ai-caption-translator/releases) · [反馈问题](https://github.com/YYDarlinker/morphe-ai-caption-translator/issues)
 
 ## 功能
 
-- 开启 AI 后，在 YouTube 字幕菜单的「自动翻译」中选择目标语言，使用你配置的服务翻译原字幕。
-- 跟随 YouTube 原生「自动翻译」列表与官方 Captions 补丁；语言增减与排序由官方补丁维护，本源不再维护第二套语言列表。
-- 自定义字幕字号、背景透明度和垂直位置；字幕外层按视频物理中心定位，不受应用从左到右／从右到左的界面方向影响。字幕位于播放器控件之上，进度条和时间文字不会盖住字幕。
-- 多套 API 配置、模型选择、缓存和诊断导出；设置界面适配十四语种。
-- 字幕语言完全由 YouTube 原生字幕菜单与官方 Captions 补丁（包括「Preferred caption language」）决定；本源不再保存另一套目标语言。
-- 详情页、全屏、Shorts 和评论区共用同一套稳定字幕层；字号与分页按真实视频视口计算，评论区动画中字幕随面板连续缩放，而不是等动画结束后才变。
-- 视频已自带所选目标语言的字幕时，直接以 AI 字幕样式显示，不发起翻译请求。上传字幕保留作者原有的换行和双行排版；只有自动生成字幕会在本地优化分句与翻页。
-- 视频有多条字幕轨道时，优先翻译口述语言的轨道（人工优先于自动，其次为人工英语），而不是 YouTube 预选的那一条。
+- 使用 YouTube 原生的「自动翻译」菜单和官方 **Captions** 补丁选择目标语言。视频已有目标语言字幕，或你直接选择原字幕时，会显示已有字幕，不调用翻译 API。作者上传的字幕保留原有换行。
+- 可调整字幕字号和背景透明度，长按字幕框即可自由拖动。播放普通视频时，字幕会自动避开显示中的底部进度条和播放控件，控件隐藏后回到保存的位置。
+- 字幕会随可用画面区域调整，打开 Shorts 评论区时也一样。
+- 设置采用 Morphe 风格的圆角弹窗，支持 14 种语言。可在列表中直接切换、重命名或删除 API 方案，并为每套方案单独设置地址、密钥和模型。
 
-视频必须有可取得的字幕。本项目不对无字幕视频进行音频识别。选择原字幕不会产生翻译 API 调用。
+视频需要有可用字幕，你也需要一个兼容 OpenAI 聊天补全接口的 API 服务。本补丁翻译已有字幕，不做音频转写。
 
-## 支持与推荐版本
+## 支持版本
 
-| 项目 | 当前声明 | 证据边界 |
-| --- | --- | --- |
-| 官方 Morphe Patches / Patcher | **2.0.0 / 2.0.0**；保留 **1.48.0 / 2.0.0** 旧组合 | 精确组合及证据见兼容说明 |
-| 原版 YouTube APK | 官方 2.0.0：**21.30.216、21.28.208、21.23.492**；实验：**21.43.523、21.42.241**；保留的 1.48.0 目标：**21.41.525、21.20.405、21.16.256** | 离散声明；保留实验标记，设备验收另计 |
-| Android | minSdk 28；**21.28.208 及更高的已声明版本**需 minSdk 29 | 还须核对实际 APK 的 ABI、签名及变体 |
-
-兼容修复支持 Morphe Patches 2.0.0 中发生变化的宿主绑定。旧的 1.5.9 与该官方补丁包组合会失效，即使设置入口仍在。验证和设备范围见[项目状态](PROJECT-STATE.md)。
-
-下载与更新内容见 [Releases](https://github.com/YYDarlinker/morphe-ai-caption-translator/releases)，已验证组合及适用限制见[兼容说明](COMPATIBILITY.md)。
+需要 **Morphe Manager 2.8.0+** 或 **Morphe Desktop 2.4.0+**，搭配[官方 Morphe Patches 2.4.0](https://github.com/MorpheApp/morphe-patches/releases/tag/v2.4.0)。请选择未经打补丁的原版 YouTube **21.30.216（稳定）**或 **21.47.483（实验）** APK。APK 要求和已验证组合见[兼容说明](COMPATIBILITY.md)。
 
 ## 安装
 
-1. 安装 [Morphe Manager](https://github.com/MorpheApp/morphe-manager/releases/latest)，在设置中启用「专家模式」。
-2. 点击[添加到 Morphe](https://morphe.software/add-source?github=YYDarlinker/morphe-ai-caption-translator)，或在「补丁源→添加→远程」粘贴 `https://github.com/YYDarlinker/morphe-ai-caption-translator`。
-3. 从离散声明列表选择与官方包匹配的**原始、未打补丁 YouTube APK**，先核对兼容表中的实际变体和证据。
-4. 保留对应官方默认补丁组合，包含其字幕、设置、播放器接缝支持。在本项目源内只选择 **AI caption translator**；字幕语言由 YouTube 原生菜单/官方 Captions 补丁决定，本源不提供单独的语言记忆补丁。
-5. 由 Morphe 完成补丁、签名与安装；若官方补丁要求 GmsCore，按其指引设置。
-
-不要同时选择旧AI字幕addon或其他重叠的字幕补丁。官方 Captions 补丁保持语言决定权；本源只跟随原生选择，不凭空添加目标语言。本源需要与官方补丁组合，不替代官方源。`.mpp` 是补丁包，不能直接作为 YouTube APK 安装。
+1. 安装 [Morphe Manager](https://github.com/MorpheApp/morphe-manager/releases/tag/v2.8.0) 或 [Morphe Desktop](https://github.com/MorpheApp/morphe-desktop/releases/tag/v2.4.0)。使用 Manager 时，在设置中启用「专家模式」。
+2. 在 Manager 中使用上方的「添加到 Morphe」，或在「补丁源 → 添加 → 远程」粘贴 `https://github.com/YYDarlinker/morphe-ai-caption-translator`。使用 Desktop 时，从上方的「下载补丁」获取本项目的 `.mpp`，与官方补丁包一起加载。
+3. 选择匹配的原版 YouTube APK，保留官方 **Captions** 补丁，并在本补丁源中选中 **AI caption translator**。避免叠加功能重叠的字幕补丁。
+4. 按 Morphe 指引打补丁、签名和安装。如果选用的官方补丁需要 GmsCore，按指引完成配置。
 
 ## 配置与使用
 
-1. 打开「YouTube→设置→Morphe→视频→AI字幕翻译」。
-2. 填写 API 地址、密钥与模型，执行「测试API」。不同服务可分别保存为命名配置。
-3. 开启AI字幕，在视频字幕菜单中选择「自动翻译→目标语言」，视频已有该目标语言的字幕时直接显示；否则使用你配置的AI服务翻译优先选取的源字幕。
-4. 用预览调整字号和背景；设置界面语言可以跟随 Morphe。
+1. 打开「YouTube → 设置 → Morphe → 视频 → AI 字幕翻译」。
+2. 填写 API 地址、密钥和模型，点击「测试 API」。使用多个服务商时，可以分别保存为命名方案。
+3. 开启 AI 字幕，在视频字幕菜单中选择「自动翻译 → 目标语言」。
+4. 在预览中调整字幕字号和背景透明度。播放视频时长按字幕框即可移动。
 
-AI 开关是字幕绘制方式的唯一开关：开启时 YouTube 原生字幕窗口不绘制，由本源显示 AI 字幕层；关闭时立即恢复 YouTube 原生绘制。字幕是否出现、用哪条语言轨道仍由官方 Captions/播放器 CC 状态决定；没有开启 CC 时不显示任何字幕。若原生轨和目标语言尚未到达，可能出现短暂空白，但不会先显示原生样式。
+关闭 AI 字幕即可恢复 YouTube 原生字幕。
 
-关闭AI后使用YouTube原生翻译。直接选择人工／自动生成的原字幕时，显示原文，不调用翻译API，上传字幕保留作者原有换行，自动生成字幕才在本地优化分句与翻页（不联网、不使用模型）。发送给翻译服务的文本会移除括号内的日语注音，避免译文重复。普通视频与Shorts的菜单开关显示选项互相独立，也不等同于引擎开关。
+## 费用、隐私与限制
 
-### 选择 API 服务
-
-使用与本项目请求协议兼容的聊天补全服务，并用自己的字幕比较译文质量、延迟和服务商当前价格。本仓库不维护已验证的模型价格排名，也不保证某个模型始终最好。
-
-## 费用、隐私与边界
-
-- 已选视频的字幕及有限上下文会发送至你指定的服务商，翻译和预取可能产生token费用。本项目不提供API账号或免费额度。
-- 密钥使用Android Keystore在本地加密存储；输入时可见，请注意输入法隐私。分享诊断前自行检查：虽然会屏蔽凭据，仍可能包含视频标识、字幕、服务商响应和端点信息。
-- 网络、服务商和源字幕影响等待时间与翻译自然度；源时间可能为估计值，不承诺与音频绝对同步。未保证每种OEM、视频或组合都无异常。
+- 所选视频的字幕及有限上下文会发给你配置的 API 服务商。翻译和预取可能消耗付费 token，请查看服务商的价格和用量限制。
+- API 密钥在设备上通过 Android Keystore 加密。分享诊断前请检查内容。即使凭据已脱敏，诊断仍可能包含视频标识、字幕、服务商响应和端点信息。
+- 翻译质量和延迟取决于源字幕、网络和服务商。
 
 ## 排查与更新
 
-API测试失败时检查地址、key、模型后重测。并非所有声称OpenAI兼容的端点都接受同一协议。缺少目标语言时在 YouTube 原生「自动翻译」列表中选择（该列表由官方 Captions 补丁维护），再重开播放器字幕菜单。没有字幕或等待过长时核查源字幕、API和网络；从AI设置导出诊断，在[项目Issue](https://github.com/YYDarlinker/morphe-ai-caption-translator/issues/new/choose)提供脱敏复现材料。
-
-更新时刷新Morphe内的远程补丁源，再重新打补丁。更新补丁源不会自动修改已安装YouTube。保留原签名配置，便于覆盖更新并保留应用数据。
+- 「测试 API」失败时，检查地址、密钥和模型后重试。
+- 找不到目标语言时，查看 YouTube 原生「自动翻译」列表。该列表由官方 **Captions** 补丁管理。
+- 字幕没有显示或等待过长时，检查视频是否有可用字幕，以及 API 和网络是否正常。可以在 AI 字幕设置中导出诊断，脱敏后随问题一起提交。
+- 更新补丁时，在 Manager 中刷新远程补丁源，或为 Desktop 下载新的 `.mpp`，然后重新给 YouTube 打补丁。使用原签名密钥覆盖安装可保留应用数据。
 
 ## 开发与许可
 
-[架构](ARCHITECTURE.md) · [开发与贡献](../CONTRIBUTING.md) · [开发环境与命令](DEVELOPMENT.md) · [日常维护](MAINTAINING.md) · [发布流程](RELEASING.md) · [更新历史](../CHANGELOG.md)
+参阅[开发指南](DEVELOPMENT.md)和[发布流程](RELEASING.md)。
 
-YYDarlinker 独立维护，非 Morphe 官方项目。遵循 [GPLv3](../LICENSE) 并保留 [NOTICE](../NOTICE)；Morphe 名称仅用于兼容说明。
-
-## 维护与工作区
-
-当前资料从[文档入口](README.md)、[项目状态](PROJECT-STATE.md)和[WORKSPACE](WORKSPACE.md)进入。旧报告及反汇编可按[历史索引](history/README.md)单独恢复；私有输入和证据留在本机。
+Anchored AI Captions 由 YYDarlinker 独立维护，采用 GPLv3 许可。

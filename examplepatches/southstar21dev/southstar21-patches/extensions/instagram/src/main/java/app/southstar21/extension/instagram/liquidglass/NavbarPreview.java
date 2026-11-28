@@ -203,6 +203,11 @@ final class NavbarPreview extends FrameLayout {
 
     /** The looping demo of one setting, for its "?" button. */
     static View demo(Activity activity, Setting setting) {
+        // No demo of their own: the explanation says it all.
+        if (setting == LiquidGlassNavBarPatch.REELS_FULL_SCREEN
+                || setting == LiquidGlassNavBarPatch.WHITE_HEADER_TITLE) {
+            return null;
+        }
         return new NavbarPreview(activity, setting);
     }
 
@@ -248,8 +253,11 @@ final class NavbarPreview extends FrameLayout {
         NavbarStyle.Source source = demo != null ? demo::style
                 : () -> comparing ? NavbarStyle.defaults() : NavbarStyle.get();
         controller = new LiquidGlassController(bar, null, true, source);
-        // The share sheet covers the bar, like Instagram's.
-        if (demo != null && demo.setting == LiquidGlassNavBarPatch.GLASS_SHARE_MENU) scene = new ShareScene(activity);
+        // The share sheet and the comments cover the bar, like Instagram's.
+        if (demo != null && (demo.setting == LiquidGlassNavBarPatch.GLASS_SHARE_MENU
+                || demo.setting == LiquidGlassNavBarPatch.GLASS_COMMENTS)) {
+            scene = new ShareScene(activity, demo.setting == LiquidGlassNavBarPatch.GLASS_COMMENTS);
+        }
         // Above a share sheet, and over a scene's header, moved down out of its way.
         if (demo != null) demo.caption.setTranslationZ(dp(32));
         if (demo != null) addView(demo.caption, new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -739,8 +747,8 @@ final class NavbarPreview extends FrameLayout {
     }
 
     /**
-     * The share menu rising over the feed and the bar, holding, and going down again, once per
-     * act. On, it's the real frosted glass sheet; off, Instagram's plain one.
+     * The share menu (or the comments) rising over the feed and the bar, holding, and going down
+     * again, once per act. On, it's the real frosted glass sheet; off, Instagram's plain one.
      */
     private final class ShareScene implements Scene {
         private final View dim;
@@ -749,7 +757,7 @@ final class NavbarPreview extends FrameLayout {
         private final GradientDrawable plain = new GradientDrawable();
         private boolean glassy;
 
-        ShareScene(Activity activity) {
+        ShareScene(Activity activity, boolean comments) {
             dim = new View(activity);
             dim.setBackgroundColor(0x59000000);
             dim.setAlpha(0f);
@@ -768,6 +776,10 @@ final class NavbarPreview extends FrameLayout {
                     paint.setColor(dark ? 0x66FFFFFF : 0x33000000);
                     r.set(w / 2 - 18 * u, 8 * u, w / 2 + 18 * u, 12 * u);
                     canvas.drawRoundRect(r, 2 * u, 2 * u, paint);
+                    if (comments) {
+                        drawComments(canvas, w, u, ink, field);
+                        return;
+                    }
                     paint.setColor(field);
                     r.set(16 * u, 22 * u, w - 16 * u, 50 * u);
                     canvas.drawRoundRect(r, 14 * u, 14 * u, paint);
@@ -792,6 +804,43 @@ final class NavbarPreview extends FrameLayout {
                         paint.setColor(ink);
                         canvas.drawCircle(cx, 148 * u, 4 * u, paint);
                     }
+                }
+
+                /** A title, three comments with a heart each, and the field to type in. */
+                private void drawComments(Canvas canvas, float w, float u, int ink, int field) {
+                    paint.setStyle(Paint.Style.FILL);
+                    paint.setColor(ink);
+                    paint.setTextSize(13 * u);
+                    paint.setTextAlign(Paint.Align.CENTER);
+                    canvas.drawText("Comments", w / 2, 34 * u, paint);
+                    paint.setTextAlign(Paint.Align.LEFT);
+                    int[][] avatars = {{0xFFFF7E5F, 0xFFFEB47B}, {0xFF2193B0, 0xFF6DD5ED}, {0xFF8E2DE2, 0xFF4A00E0}};
+                    float[] lengths = {0.55f, 0.75f, 0.4f};
+                    int faint = (ink & 0x00FFFFFF) | 0x8C000000;
+                    for (int i = 0; i < 3; i++) {
+                        float top = 48 * u + i * 30 * u;
+                        float cy = top + 11 * u;
+                        paint.setShader(new LinearGradient(18 * u, cy - 11 * u, 40 * u, cy + 11 * u,
+                                avatars[i][0], avatars[i][1], Shader.TileMode.CLAMP));
+                        canvas.drawCircle(29 * u, cy, 11 * u, paint);
+                        paint.setShader(null);
+                        paint.setColor(ink);
+                        r.set(50 * u, top + 3 * u, 50 * u + 70 * u, top + 8 * u);
+                        canvas.drawRoundRect(r, 2.5f * u, 2.5f * u, paint);
+                        paint.setColor(faint);
+                        r.set(50 * u, top + 13 * u, 50 * u + (w - 110 * u) * lengths[i], top + 18 * u);
+                        canvas.drawRoundRect(r, 2.5f * u, 2.5f * u, paint);
+                        paint.setStyle(Paint.Style.STROKE);
+                        paint.setStrokeWidth(1.5f * u);
+                        canvas.drawCircle(w - 28 * u, cy, 6 * u, paint);
+                        paint.setStyle(Paint.Style.FILL);
+                    }
+                    // The field: a glass capsule on the glass sheet, a grey one on the plain sheet.
+                    paint.setColor(field);
+                    r.set(16 * u, 144 * u, w - 16 * u, 172 * u);
+                    canvas.drawRoundRect(r, 14 * u, 14 * u, paint);
+                    paint.setColor(dark ? 0xFF98989F : 0xFF8E8E93);
+                    canvas.drawText("Add a comment...", 32 * u, 163 * u, paint);
                 }
             };
             glass = new ShareGlassDrawable(sheet, density);

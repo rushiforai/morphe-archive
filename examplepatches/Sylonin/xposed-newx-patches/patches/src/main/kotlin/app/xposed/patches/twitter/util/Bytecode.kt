@@ -147,6 +147,13 @@ internal fun BytecodePatchContext.toStringFields(toString: Method): Map<String, 
     return fields
 }
 
+/** [toStringFields] of the `toString()` that [type] declares. */
+internal fun BytecodePatchContext.toStringFieldsOf(type: String): Map<String, FieldReference> {
+    val toString = classDefBy(type).methods.firstOrNull { it.name == "toString" && it.parameterTypes.isEmpty() }
+        ?: throw PatchException("$type has no toString")
+    return toStringFields(toString)
+}
+
 internal fun Map<String, FieldReference>.field(owner: String, label: String, type: String? = null): FieldReference {
     val field = this[label] ?: throw PatchException("$owner.toString() prints no \"$label\" (has ${keys.joinToString()})")
     if (type != null && field.type != type) throw PatchException("$owner.$label is ${field.type}, expected $type")

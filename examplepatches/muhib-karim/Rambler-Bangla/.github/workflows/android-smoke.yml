@@ -155,6 +155,19 @@ jobs:
             adb shell ime list -s > smoke-artifacts/ime-list-after.txt
             grep -F -q "$(cat smoke-artifacts/ime-id.txt)" smoke-artifacts/ime-list-after.txt
             echo "Registered and enabled IME: $(cat smoke-artifacts/ime-id.txt)" | tee smoke-artifacts/ime-result.txt
+            # Real ART dex2oat verification + live IME keyboard inflation check (catches VerifyError in Lrmt;/Lfqi;/etc.)
+            adb logcat -c
+            adb shell cmd package compile -m verify -f "$PACKAGE_NAME" | tee smoke-artifacts/art-verify.txt
+            adb shell am start -a android.settings.APPLICATION_DEVELOPMENT_SETTINGS >/dev/null 2>&1 || adb shell am start -a android.settings.SETTINGS >/dev/null 2>&1 || true
+            sleep 2
+            adb shell am start -a android.intent.action.WEB_SEARCH --es query "" >/dev/null 2>&1 || adb shell input keyevent 84 || true
+            sleep 4
+            adb shell dumpsys input_method > smoke-artifacts/ime-dump.txt || true
+            adb exec-out screencap -p > smoke-artifacts/after-ime.png || true
+            adb logcat -d -v threadtime > smoke-artifacts/logcat-after-ime.txt
+            if grep -A1 "FATAL EXCEPTION" smoke-artifacts/logcat-after-ime.txt | grep -q "Process: $PACKAGE_NAME"; then echo "Fatal exception for $PACKAGE_NAME after IME/ART check" >&2; exit 1; fi
+            if grep -E "VerifyError.*(Lrmt;|Lfqi;|rambler|gboardpatches)" smoke-artifacts/logcat-after-ime.txt; then echo "ART VerifyError in patched class detected" >&2; exit 1; fi
+            if grep -q "ANR in $PACKAGE_NAME" smoke-artifacts/logcat-after-ime.txt; then echo "ANR for $PACKAGE_NAME after IME check" >&2; exit 1; fi
 
       - name: Upload smoke evidence
         if: always()

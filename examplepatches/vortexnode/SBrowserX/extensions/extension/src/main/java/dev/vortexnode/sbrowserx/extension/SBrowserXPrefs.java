@@ -21,6 +21,7 @@ public final class SBrowserXPrefs {
     public static final String KEY_COMPACT_BAR_BLUR = "compact_bar_blur_enabled";
     public static final String KEY_COMPACT_BAR_TRANSPARENCY = "compact_bar_transparency_percent";
     public static final String KEY_COMPACT_AI_BUTTON = "compact_ai_slot_button";
+    public static final String KEY_HOME_LONG_PRESS_CLOSE_BG = "home_long_press_close_bg";
     public static final String KEY_UNLIMITED_TABS = "unlimited_tabs_enabled";
     public static final String KEY_TEXT_REFLOW_ZOOM = "text_reflow_zoom_enabled";
     public static final String KEY_BACKUP_LOCAL_AUTO = "backup_local_auto";
@@ -44,6 +45,8 @@ public final class SBrowserXPrefs {
     public static final String KEY_SP_WX_CITY = "start_page_wx_city";
     public static final String KEY_SP_WX_UNIT = "start_page_wx_unit";
     public static final String KEY_SP_SHORTCUTS = "start_page_shortcuts_json";
+    public static final String KEY_SP_GRID_COLS = "start_page_grid_cols";
+    public static final String KEY_SP_TILE_FILL = "start_page_tile_fill";
     public static final String KEY_AMOLED_BLACK = "amoled_black_enabled";
     public static final String KEY_FORCE_ADAPTIVE_DARK = "force_adaptive_dark_enabled";
     public static final String KEY_DARK_BRIGHT_IMAGES = "dark_bright_images_enabled";
@@ -59,6 +62,9 @@ public final class SBrowserXPrefs {
     public static final String KEY_TRANS_NEVER_LANGS = "google_translate_never_langs";
     public static final String KEY_TRANS_ALWAYS_LANGS = "google_translate_always_langs";
     public static final String KEY_TRANS_NEVER_SITES = "google_translate_never_sites";
+    public static final String KEY_TRANS_GUIDE_ACK = "trans_guide_ack_v137";
+    public static final String KEY_CHANGELOG_VER = "last_seen_changelog_ver";
+    public static final String KEY_SUPPORT_VIEWED = "support_viewed_v137";
     public static final String KEY_HIGHLIGHT_DAYS = "new_feature_highlight_days";
 
     public static final String WEBRTC_DEFAULT = "default";
@@ -96,8 +102,18 @@ public final class SBrowserXPrefs {
             FEATURE_EXT_DOWNLOADER,
             FEATURE_AUTO_CLOSE_1DAY,
             FEATURE_GOOGLE_TRANSLATE,
-            FEATURE_HIDE_ADBLOCKERS,
-            FEATURE_FORCE_DARK
+            FEATURE_HIDE_ADBLOCKERS
+    };
+
+    private static final String[] HUB_FEATURES = new String[] {
+            FEATURE_EXT_PACK,
+            FEATURE_EXT_INSTALLER,
+            FEATURE_WEBRTC,
+            FEATURE_FINGERPRINT,
+            FEATURE_GOOGLE_TRANSLATE,
+            FEATURE_EXT_DOWNLOADER,
+            FEATURE_AMOLED,
+            FEATURE_BOTTOM_BLUR
     };
 
     private static volatile Context sAppContext;
@@ -338,12 +354,25 @@ public final class SBrowserXPrefs {
         prefs(context).edit().putBoolean(KEY_BACKUP_DRIVE_INCLUDE_BOOKMARKS, enabled).apply();
     }
 
+    private static final String KEY_SP_DEFAULT_APPLIED = "start_page_default_applied_v1";
+
     public static boolean isStartPageEnabled(Context context) {
-        return prefs(context).getBoolean(KEY_SP_ENABLED, false);
+        return prefs(context).getBoolean(KEY_SP_ENABLED, true);
     }
 
     public static void setStartPageEnabled(Context context, boolean enabled) {
-        prefs(context).edit().putBoolean(KEY_SP_ENABLED, enabled).apply();
+        prefs(context).edit()
+                .putBoolean(KEY_SP_ENABLED, enabled)
+                .putBoolean(KEY_SP_DEFAULT_APPLIED, true)
+                .apply();
+    }
+
+    public static boolean isStartPageDefaultApplied(Context context) {
+        return prefs(context).getBoolean(KEY_SP_DEFAULT_APPLIED, false);
+    }
+
+    public static void markStartPageDefaultApplied(Context context) {
+        prefs(context).edit().putBoolean(KEY_SP_DEFAULT_APPLIED, true).apply();
     }
 
     public static String getStartPageWallpaperMode(Context context) {
@@ -428,6 +457,23 @@ public final class SBrowserXPrefs {
         prefs(context).edit().putString(KEY_SP_SHORTCUTS, json != null ? json : "[]").apply();
     }
 
+    public static int getStartPageGridColumns(Context context) {
+        int cols = prefs(context).getInt(KEY_SP_GRID_COLS, 4);
+        return cols == 5 ? 5 : 4;
+    }
+
+    public static void setStartPageGridColumns(Context context, int cols) {
+        prefs(context).edit().putInt(KEY_SP_GRID_COLS, cols == 5 ? 5 : 4).apply();
+    }
+
+    public static boolean isStartPageTileFillEnabled(Context context) {
+        return prefs(context).getBoolean(KEY_SP_TILE_FILL, false);
+    }
+
+    public static void setStartPageTileFillEnabled(Context context, boolean enabled) {
+        prefs(context).edit().putBoolean(KEY_SP_TILE_FILL, enabled).apply();
+    }
+
     public static boolean isExternalDownloaderEnabled(Context context) {
         return prefs(context).getBoolean(KEY_EXTERNAL_DOWNLOADER, false);
     }
@@ -476,7 +522,7 @@ public final class SBrowserXPrefs {
     public static String getTranslateTargetLang(Context context) {
         String saved = prefs(context).getString(KEY_TRANS_TARGET_LANG, "");
         if (saved != null && !saved.isEmpty()) return saved;
-        String sys = Locale.getDefault().getLanguage();
+        String sys = SBrowserXStrings.getAppLang();
         return (sys != null && !sys.isEmpty()) ? sys.toLowerCase(Locale.US) : "en";
     }
 
@@ -486,11 +532,11 @@ public final class SBrowserXPrefs {
     }
 
     public static String getTranslateEngine(Context context) {
-        return prefs(context).getString(KEY_TRANS_ENGINE, "google");
+        return prefs(context).getString(KEY_TRANS_ENGINE, "bing");
     }
 
     public static void setTranslateEngine(Context context, String engine) {
-        prefs(context).edit().putString(KEY_TRANS_ENGINE, engine != null ? engine : "google").apply();
+        prefs(context).edit().putString(KEY_TRANS_ENGINE, engine != null ? engine : "bing").apply();
         markFeatureViewed(context, FEATURE_GOOGLE_TRANSLATE);
     }
 
@@ -516,7 +562,7 @@ public final class SBrowserXPrefs {
         SharedPreferences sp = prefs(context);
         if (!sp.contains(KEY_TRANS_NEVER_LANGS)) {
             Set<String> def = new HashSet<>();
-            String sys = Locale.getDefault().getLanguage();
+            String sys = SBrowserXStrings.getAppLang();
             if (sys != null && !sys.isEmpty()) def.add(sys.toLowerCase(Locale.US));
             return def;
         }
@@ -546,6 +592,30 @@ public final class SBrowserXPrefs {
 
     public static void setTranslateNeverSites(Context context, Set<String> sites) {
         prefs(context).edit().putStringSet(KEY_TRANS_NEVER_SITES, new HashSet<>(sites)).apply();
+    }
+
+    public static boolean isTranslateGuideAcked(Context context) {
+        return prefs(context).getBoolean(KEY_TRANS_GUIDE_ACK, false);
+    }
+
+    public static void setTranslateGuideAcked(Context context, boolean acked) {
+        prefs(context).edit().putBoolean(KEY_TRANS_GUIDE_ACK, acked).apply();
+    }
+
+    public static String getLastSeenChangelogVersion(Context context) {
+        return prefs(context).getString(KEY_CHANGELOG_VER, "");
+    }
+
+    public static void setLastSeenChangelogVersion(Context context, String version) {
+        prefs(context).edit().putString(KEY_CHANGELOG_VER, version != null ? version : "").apply();
+    }
+
+    public static boolean isSupportBadgeVisible(Context context) {
+        return !prefs(context).getBoolean(KEY_SUPPORT_VIEWED, false);
+    }
+
+    public static void markSupportViewed(Context context) {
+        prefs(context).edit().putBoolean(KEY_SUPPORT_VIEWED, true).apply();
     }
 
     public static void resetTranslateSettings(Context context) {
@@ -582,6 +652,22 @@ public final class SBrowserXPrefs {
         if (editor != null) editor.apply();
     }
 
+    public static boolean isAnyFeatureNew(Context context) {
+        if (getHighlightDays(context) <= 0) return false;
+        for (String feat : ALL_FEATURES) {
+            if (isFeatureNew(context, feat)) return true;
+        }
+        return false;
+    }
+
+    public static boolean isAnyHubFeatureNew(Context context) {
+        if (getHighlightDays(context) <= 0) return false;
+        for (String feat : HUB_FEATURES) {
+            if (isFeatureNew(context, feat)) return true;
+        }
+        return false;
+    }
+
     public static boolean isFeatureNew(Context context, String featureId) {
         int days = getHighlightDays(context);
         if (days <= 0) return false;
@@ -594,6 +680,14 @@ public final class SBrowserXPrefs {
 
     public static void markFeatureViewed(Context context, String featureId) {
         prefs(context).edit().putBoolean("viewed_" + featureId, true).apply();
+    }
+
+    public static boolean isHomeLongPressCloseBgEnabled(Context context) {
+        return prefs(context).getBoolean(KEY_HOME_LONG_PRESS_CLOSE_BG, false);
+    }
+
+    public static void setHomeLongPressCloseBgEnabled(Context context, boolean enabled) {
+        prefs(context).edit().putBoolean(KEY_HOME_LONG_PRESS_CLOSE_BG, enabled).apply();
     }
 
     public static void markAllViewed(Context context) {

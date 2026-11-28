@@ -153,14 +153,15 @@ internal val FieldReference.smali get() = "$definingClass->$name:$type"
  * @param parameters The types of its parameters.
  * @param registers The registers it uses, parameters included.
  * @param smali Its body.
+ * @param returns Its return type.
  */
-private fun addHelper(name: String, parameters: List<String>, registers: Int, smali: String) {
+private fun addHelper(name: String, parameters: List<String>, registers: Int, smali: String, returns: String = "V") {
     mutableClassDefBy(SETTINGS_FRAGMENT).methods.add(
         ImmutableMethod(
             SETTINGS_FRAGMENT,
             name,
             parameters.map { ImmutableMethodParameter(it, null, null) },
-            "V",
+            returns,
             AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
             null,
             null,
@@ -175,7 +176,7 @@ private fun addHelper(name: String, parameters: List<String>, registers: Int, sm
  */
 private fun addRowHelper(api: PreferenceApi) = addHelper(
     "fakhRow",
-    listOf(OBJECT, STRING, STRING, STRING, OBJECT),
+    listOf(OBJECT, STRING, STRING, CHAR_SEQUENCE, OBJECT),
     8,
     """
         check-cast p0, $PREFERENCE_GROUP
@@ -204,6 +205,35 @@ private fun addRowHelper(api: PreferenceApi) = addHelper(
     """,
 )
 
+/**
+ * Adds `fakhHeader(screen, title, divider)`: a header, after a divider if asked, which returns the group its rows go
+ * into.
+ */
+private fun addHeaderHelper(api: PreferenceApi) = addHelper(
+    "fakhHeader",
+    listOf(OBJECT, STRING, "Z"),
+    6,
+    """
+        check-cast p0, $PREFERENCE_GROUP
+        iget-object v0, p0, ${api.context.smali}
+        if-eqz p2, :header
+        new-instance v1, $PREFERENCE_CATEGORY
+        const/4 v2, 0x0
+        invoke-direct { v1, v0, v2 }, $PREFERENCE_CATEGORY-><init>(${CONTEXT}Landroid/util/AttributeSet;)V
+        const v2, ${api.dividerLayout}
+        iput v2, v1, ${api.layout.smali}
+        invoke-virtual { p0, v1 }, ${api.addPreference.smali}
+        :header
+        new-instance v1, $STYLED_CATEGORY
+        invoke-direct { v1, v0 }, $STYLED_CATEGORY-><init>($CONTEXT)V
+        invoke-virtual { v1, p1 }, ${api.setTitle.smali}
+        invoke-virtual { v1 }, ${api.finish.smali}
+        invoke-virtual { p0, v1 }, ${api.addPreference.smali}
+        return-object v1
+    """,
+    OBJECT,
+)
+
 /** Adds the card of GitHub's Settings, headed Patches, whose one row opens the Fakh Patches pages. */
 private fun addCardHelper(api: PreferenceApi) = addHelper(
     "fakhAddPatchesSection",
@@ -229,7 +259,7 @@ private fun addCardHelper(api: PreferenceApi) = addHelper(
         const-string v3, "Fakh Patches"
         const/4 v4, 0x0
         move-object v0, v4
-        invoke-static { v1, v2, v3, v4, v0 }, $SETTINGS_FRAGMENT->fakhRow($OBJECT$STRING$STRING$STRING$OBJECT)V
+        invoke-static { v1, v2, v3, v4, v0 }, $SETTINGS_FRAGMENT->fakhRow($OBJECT$STRING$STRING$CHAR_SEQUENCE$OBJECT)V
         return-void
     """,
 )
@@ -326,6 +356,7 @@ internal val githubSettingsPatch = patch {
         } ?: throw PatchException("The settings context getter not found")
 
         addRowHelper(api)
+        addHeaderHelper(api)
         addCardHelper(api)
         // From the end of the method to its start, so the places found above stay where they are. The General category
         // is on the screen at the first, so the new card lands right after it.
@@ -373,6 +404,8 @@ internal val githubSettingsPatch = patch {
 private const val STRING = "Ljava/lang/String;"
 
 private const val OBJECT = "Ljava/lang/Object;"
+
+private const val CHAR_SEQUENCE = "Ljava/lang/CharSequence;"
 
 private const val PREFERENCE_SCREEN = "Landroidx/preference/PreferenceScreen;"
 

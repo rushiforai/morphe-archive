@@ -5,6 +5,7 @@ import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.FormFactor
 import app.morphe.patcher.patch.SupportedAbi
+import semicoloncolonel.mobilestream.patches.shared.misc.devTarget
 
 object Constants {
     val COMPATIBILITY = Compatibility(
@@ -28,6 +29,7 @@ object Constants {
             // copy Google Play gives a Shield are accepted. Tested on an NVIDIA
             // Shield (Android 11) on 2026-11-16.
             AppTarget("26.44.5"),
+            devTarget("26.45.4", versionCode = 2645004),
         ),
         formFactor = FormFactor.TV,
     )

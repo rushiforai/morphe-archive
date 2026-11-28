@@ -49,15 +49,19 @@ internal object CountFormatterFingerprint : Fingerprint(
 /** How many count formatters a build may have: the main one and up to three copies. */
 internal val COUNT_FORMATTERS = 2..4
 
-/** Calls in this method to TikTok's general number formatter, (Number, style, I, Boolean, I) to text. */
+/**
+ * Calls in this method to TikTok's general number formatter, (Number, style, I, Boolean, I) to
+ * text up to 47.9.3. 48.0.2's (LX/01Tk;->LIZIZ) takes a String after the style.
+ */
 internal fun Method.compactNumberFormatterCalls(): Int =
     implementation?.instructions?.count { instruction ->
         val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
-        instruction.opcode == Opcode.INVOKE_STATIC && reference != null &&
+        instruction.opcode in setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE) && reference != null &&
             reference.returnType == "Ljava/lang/CharSequence;" &&
             reference.parameterTypes.map { it.toString() }.let {
-                it.size == 5 && it[0] == "Ljava/lang/Number;" && it[2] == "I" &&
-                    it[3] == "Ljava/lang/Boolean;" && it[4] == "I"
+                it.firstOrNull() == "Ljava/lang/Number;" &&
+                    (it.drop(2) == listOf("I", "Ljava/lang/Boolean;", "I") ||
+                        it.drop(2) == listOf("Ljava/lang/String;", "I", "Ljava/lang/Boolean;", "I"))
             }
     } ?: 0
 

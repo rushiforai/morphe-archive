@@ -2,11 +2,15 @@ package org.ungoogled.patches.samsungcontacts.misc
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import org.ungoogled.patches.samsung.addOneUiFrameworkResources
 import org.ungoogled.patches.samsung.android13Patch
@@ -63,8 +67,10 @@ private val telephonyPatch = bytecodePatch(
 
 /**
  * Contacts reads and writes Android's contacts provider as if it were Samsung's (sec_* columns, UNICODE_NATURAL
- * collation, applyBatch saves with Samsung columns): off One UI the list stayed empty and saving failed. Its calls are
- * fitted to Android's provider (see ProviderCalls); missing providers are not watched (see Providers).
+ * collation, applyBatch saves with Samsung columns, its group paths): off One UI the list stayed empty, saving failed and
+ * groups showed no members, and contacts saved to "Phone" (Samsung's account) vanished when any account was added or
+ * removed. Its calls are fitted to Android's provider (see ProviderCalls, Groups, LocalAccount); missing providers are
+ * not watched (see Providers).
  */
 private val providersPatch = bytecodePatch(
     description = "Fits the app's contacts provider calls to Android's.",
@@ -77,6 +83,42 @@ private val providersPatch = bytecodePatch(
         java.util.logging.Logger.getLogger(LOG).info("Provider calls: $calls, observers: $observers")
         // Measured against 16.3.00.87: 538 calls and 29 observers.
         if (calls < 200 || observers < 10) throw PatchException("only $calls provider calls found")
+
+        // Where a refused query left the app its stand-in cursor, it added its keys to Android's shared empty extras
+        // (opening the emergency contacts group crashed): the extras it reads can be added to (see ProviderCalls.extras).
+        val extras = redirectCalls(
+            mapOf(
+                "Landroid/database/Cursor;->getExtras()Landroid/os/Bundle;" to
+                    "$EXT/ProviderCalls;->extras(Landroid/database/Cursor;)Landroid/os/Bundle;",
+            ),
+        )
+        java.util.logging.Logger.getLogger(LOG).info("Cursor extras calls: $extras")
+        // Measured against 16.3.00.87: 38 calls.
+        if (extras < 10) throw PatchException("only $extras cursor extras calls found")
+
+        // "Phone" storage was Samsung's account vnd.sec.contact.phone, which Android's provider deletes with everything
+        // in it whenever an account is added or removed: it is the phone's local storage now (see LocalAccount), also
+        // for the batch the profile's medical info is saved with and for the app's question what the local account is.
+        val batch = "Ljava/util/ArrayList;)[Landroid/content/ContentProviderResult;"
+        val client = "Landroid/content/ContentProviderClient;"
+        val batches = redirectCalls(
+            mapOf(
+                "$client->applyBatch($batch" to "$EXT/ProviderCalls;->applyBatch(${client}$batch",
+                "$client->applyBatch(Ljava/lang/String;$batch" to "$EXT/ProviderCalls;->applyBatch(${client}Ljava/lang/String;$batch",
+            ),
+        )
+        val raw = "Landroid/provider/ContactsContract\$RawContacts;"
+        val local = redirectCalls(
+            mapOf(
+                "$raw->getLocalAccountName(Landroid/content/Context;)Ljava/lang/String;" to
+                    "$EXT/LocalAccount;->getLocalAccountName(Landroid/content/Context;)Ljava/lang/String;",
+                "$raw->getLocalAccountType(Landroid/content/Context;)Ljava/lang/String;" to
+                    "$EXT/LocalAccount;->getLocalAccountType(Landroid/content/Context;)Ljava/lang/String;",
+            ),
+        )
+        java.util.logging.Logger.getLogger(LOG).info("Provider client batches: $batches, local account calls: $local")
+        // Measured against 16.3.00.87: 1 batch and 2 local account calls.
+        if (batches < 1 || local < 2) throw PatchException("only $batches provider client batches and $local local account calls found")
     }
 }
 
@@ -220,6 +262,48 @@ private val updateCheckPatch = bytecodePatch(
     }
 }
 
+private const val WIDGET_UPDATE_LOG = "onChange! start DirectWidgetUpdateJobService"
+
+/** DirectWidgetUpdateRequest's answer to a contacts change: starts the widget update service. */
+private object WidgetUpdateRequestFingerprint : Fingerprint(
+    strings = listOf(WIDGET_UPDATE_LOG),
+)
+
+/**
+ * When contacts changed while Contacts was in the background, its widget refresh started a service from the background,
+ * which Android refuses for a downloaded app: the background process crashed. That start goes through WidgetUpdates,
+ * which runs the refresh as a job when Android refuses.
+ */
+private val widgetUpdatePatch = bytecodePatch(
+    description = "Refreshes the widgets with a job when the app is in the background.",
+) {
+    extendWith(SAMSUNG_CONTACTS_EXTENSION)
+
+    execute {
+        val method = WidgetUpdateRequestFingerprint.methodOrNull
+            ?: throw PatchException("Contacts' widget update request was not found")
+        val insns = method.implementation!!.instructions.toList()
+        val log = insns.indexOfFirst {
+            it.opcode == Opcode.CONST_STRING && ((it as ReferenceInstruction).reference as StringReference).string == WIDGET_UPDATE_LOG
+        }
+        val index = (log + 1 until insns.size).firstOrNull { i ->
+            val r = (insns[i] as? ReferenceInstruction)?.reference as? MethodReference
+            (insns[i].opcode == Opcode.INVOKE_VIRTUAL || insns[i].opcode == Opcode.INVOKE_VIRTUAL_RANGE) && r != null &&
+                r.name == "startService" && r.parameterTypes == listOf("Landroid/content/Intent;") &&
+                r.returnType == "Landroid/content/ComponentName;"
+        }
+        if (log < 0 || index == null) throw PatchException("the widget update service start was not found")
+        val target = "$EXT/WidgetUpdates;->startService(Landroid/content/Context;Landroid/content/Intent;)Landroid/content/ComponentName;"
+        val call = when (val insn = insns[index]) {
+            is FiveRegisterInstruction -> "invoke-static { v${insn.registerC}, v${insn.registerD} }, $target"
+            is RegisterRangeInstruction ->
+                "invoke-static/range { v${insn.startRegister} .. v${insn.startRegister + insn.registerCount - 1} }, $target"
+            else -> throw PatchException("unexpected ${insn.opcode} for the widget update service start")
+        }
+        method.replaceInstruction(index, call)
+    }
+}
+
 /** 16.3.00.87 runs on Android 13: its Android 14 and newer calls made without a version check go through Android13. */
 private val android13Patch =
     android13Patch(SAMSUNG_CONTACTS_EXTENSION, "Lorg/ungoogled/samsungcontacts/Android13;", "SamsungContacts")
@@ -238,7 +322,7 @@ val enableNonOneUiPatch = bytecodePatch(
     dependsOn(
         manifestPatch, telephonyPatch, providersPatch, displayPatch, settingsPatch, oneUiMembersPatch, systemServicesPatch,
         sprDrawablesPatch,
-        galaxyStoreChecksPatch("Samsung Contacts"), updateCheckPatch,
+        galaxyStoreChecksPatch("Samsung Contacts"), updateCheckPatch, widgetUpdatePatch,
         android13Patch,
     )
     extendWith(SAMSUNG_CONTACTS_EXTENSION)

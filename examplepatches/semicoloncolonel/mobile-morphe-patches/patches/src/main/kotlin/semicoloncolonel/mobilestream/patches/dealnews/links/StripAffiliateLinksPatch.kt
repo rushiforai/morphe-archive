@@ -6,6 +6,5 @@ import semicoloncolonel.mobilestream.patches.shared.links.stripAffiliateLinksPat
 @Suppress("unused")
 val stripAffiliateLinksPatch = stripAffiliateLinksPatch(
     Constants.COMPATIBILITY,
-    category = "Privacy",
     description = "Opens each deal at the store's own page, without affiliate tags or click tracking.",
 )

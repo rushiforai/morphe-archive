@@ -1,3 +1,12 @@
+## [0.30.67](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.67) (2026-11-27)
+
+Stable build for Waze **5.28.4.900**. Both additions are off by default, so an existing setup
+behaves exactly as it did on 0.30.66 until you switch them on.
+
+### New
+* **Unlock driver moods** gained an option, off by default: *Keep my mood after a restart*. Waze applies the account's mood from its profile every time Waze starts, so a mood the account does not own disappears on the next launch. With the option on, the pick is remembered in Waze's own config store and put back on every mood refresh.
+* **Accept AARE as car host** (new row, off by default) turns off Waze's host validation so its car screen opens under AARE instead of only under Google's projection app. It flips one config Waze already reads in `WazeCarAppService.createHostValidator`, so no library code is touched and a normal Android Auto session still works.
+
 ## [0.30.66](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.66) (2026-11-23)
 
 Stable build for Waze **5.28.4.900**. Result of a row-by-row audit that treated every patch as

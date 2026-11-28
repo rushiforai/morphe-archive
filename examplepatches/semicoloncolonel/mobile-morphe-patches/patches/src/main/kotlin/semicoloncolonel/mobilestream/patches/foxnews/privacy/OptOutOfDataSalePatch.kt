@@ -1,5 +1,6 @@
 package semicoloncolonel.mobilestream.patches.foxnews.privacy
 
+import semicoloncolonel.mobilestream.patches.shared.misc.isOptionOn
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
@@ -8,7 +9,6 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
-import semicoloncolonel.mobilestream.patches.foxnews.shared.Constants
 
 private const val PRIVACY_STRING = "Lcom/foxnews/data/model/DnsPrivacyString;"
 
@@ -37,15 +37,10 @@ internal object KetchIsUserOptedOutFingerprint : Fingerprint(
     returnType = "Z",
 )
 
-@Suppress("unused")
-val optOutOfDataSalePatch = bytecodePatch(
-    name = "Opt out of data sale & sharing",
-    description = "Starts the app opted out of the sale and sharing of your data.",
-) {
-    category("Privacy")
-    compatibleWith(Constants.COMPATIBILITY)
-
+// Part of blockAnalyticsPatch: runs only when its "dataSale" option is on.
+internal val optOutOfDataSalePatch = bytecodePatch {
     execute {
+        if (!isOptionOn(blockAnalyticsPatch, "dataSale")) return@execute
         listOf(EnsureDnsValueFingerprint, SyncStoredUsPrivacyStringFingerprint).forEach { fingerprint ->
             fingerprint.method.apply {
                 implementation!!.instructions.toList().forEachIndexed { index, instruction ->

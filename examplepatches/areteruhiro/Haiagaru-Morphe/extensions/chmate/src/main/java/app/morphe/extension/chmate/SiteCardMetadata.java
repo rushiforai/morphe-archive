@@ -93,7 +93,8 @@ final class SiteCardMetadata {
                 if(!response.isSuccessful()||response.body()==null)throw new IOException("No preview response");
                 String type=response.header("Content-Type","");
                 if(image?!type.toLowerCase(Locale.ROOT).startsWith("image/"):
-                        !(type.toLowerCase(Locale.ROOT).contains("text/html")||type.toLowerCase(Locale.ROOT).contains("application/xhtml+xml")))
+                        !(type.toLowerCase(Locale.ROOT).contains("text/html")||type.toLowerCase(Locale.ROOT).contains("application/xhtml+xml")
+                        ||url.startsWith("https://www.youtube.com/oembed?")&&type.toLowerCase(Locale.ROOT).contains("application/json")))
                     throw new IOException("Not preview content");
                 int limit=(int)MobileMediaPolicy.fileLimit(image?2*1024*1024:512*1024);
                 ByteArrayOutputStream output=new ByteArrayOutputStream();
@@ -114,6 +115,16 @@ final class SiteCardMetadata {
         throw new IOException("Too many redirects");
     }
     static Data fetch(String url) throws Exception {
+        String videoId=YouTubeCard.id(url);
+        if(videoId!=null){
+            String endpoint="https://www.youtube.com/oembed?format=json&url="+URLEncoder.encode("https://www.youtube.com/watch?v="+videoId,"UTF-8");
+            Content response=get(endpoint,false);
+            JSONObject data=new JSONObject(new String(response.bytes,StandardCharsets.UTF_8));
+            String title=data.optString("title").trim(),author=data.optString("author_name").trim();
+            String thumbnail=safeUrl(data.optString("thumbnail_url"));
+            if(title.isEmpty()||author.isEmpty())throw new IOException("YouTube metadata unavailable");
+            return new Data(url,clean(title,200),clean(author,200),thumbnail==null?"":thumbnail,"YouTube");
+        }
         Content content=get(url,false);
         Charset charset=StandardCharsets.UTF_8;
         String prefix=new String(content.bytes,0,Math.min(content.bytes.length,4096),StandardCharsets.ISO_8859_1);

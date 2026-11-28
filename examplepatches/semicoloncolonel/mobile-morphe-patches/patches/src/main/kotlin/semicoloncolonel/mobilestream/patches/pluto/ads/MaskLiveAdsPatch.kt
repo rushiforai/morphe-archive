@@ -6,11 +6,12 @@
 
 package semicoloncolonel.mobilestream.patches.pluto.ads
 
+import semicoloncolonel.mobilestream.patches.shared.misc.enableAdBreakTranslation
+import semicoloncolonel.mobilestream.patches.shared.misc.isOptionOn
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
-import semicoloncolonel.mobilestream.patches.pluto.shared.Constants
 
 private const val LIVE_MASK = "Lsemicoloncolonel/mobilestream/extension/pluto/ads/PlutoLiveMask;"
 
@@ -40,16 +41,13 @@ private val PLAYER_HOSTS = listOf(
     "Lcom/cbs/app/tv/ui/activity/HomeActivity;",
 )
 
-@Suppress("unused")
-val maskLiveAdsPatch = bytecodePatch(
-    name = "Mask live ad breaks",
-    description = "Covers live ad breaks with a \"We'll be right back!\" screen and mutes them.",
-) {
-    compatibleWith(Constants.COMPATIBILITY)
-
+// Part of skipAdsPatch: runs only when its "maskLiveAds" option is on.
+internal val maskLiveAdsPatch = bytecodePatch {
     extendWith("extensions/extension.mpe")
 
     execute {
+        if (!isOptionOn(skipAdsPatch, "maskLiveAds")) return@execute
+        if (isOptionOn(skipAdsPatch, "translate")) enableAdBreakTranslation()
         // 1) Every ad tag is a tick. Call the helper with the finished tag
         //    (p0) before each return in the constructor, after the fields
         //    are set, so the helper can read the ad's timing from it.

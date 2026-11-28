@@ -1,3 +1,24 @@
+## [1.9.0](https://github.com/toidicakhia/morphe-app-patches/compare/v1.8.0...v1.9.0) (2026-11-28)
+
+### ✨ New Features
+
+* **locket:** support 1.247.3 with Gold unlock, SSL pinning bypass, and Firebase signing certificate spoof ([cf51d98](https://github.com/toidicakhia/morphe-app-patches/commit/cf51d987f0faaca1ae13c9e42050026384ef91d1))
+* **proxyman:** add Unlock Pro patch ([2961e35](https://github.com/toidicakhia/morphe-app-patches/commit/2961e3531ea92915ca65c09e515fbbef883d4adb))
+* add Ko-fi funding link ([366d05e](https://github.com/toidicakhia/morphe-app-patches/commit/366d05ec1bc610f5ce923f6d3d4b839b5ac0b1d5))
+
+### 🐛 Bug Fixes
+
+* correct the Ko-fi username in FUNDING.yml ([2fcce68](https://github.com/toidicakhia/morphe-app-patches/commit/2fcce681c8e97083a71a6110f2cd1303ae61543e))
+
+### ♻️ Refactors
+
+* remove the Locket spoofer server and Remote Config overrides patches and the port-plan document ([cf51d98](https://github.com/toidicakhia/morphe-app-patches/commit/cf51d987f0faaca1ae13c9e42050026384ef91d1))
+* remove semantic-release automation ([1f05574](https://github.com/toidicakhia/morphe-app-patches/commit/1f05574f9920840d2d3c6f6211fd1832e701a71e))
+
+### 🛠️ Maintenance
+
+* bump Gradle wrapper from 9.8.2 to 9.9.1 ([fcc770c](https://github.com/toidicakhia/morphe-app-patches/commit/fcc770c6c1280088ec5fabd1b3cdaaf7d246b933))
+
 ## [1.8.0](https://github.com/toidicakhia/morphe-app-patches/compare/v1.7.2...v1.8.0) (2026-11-25)
 
 ### 🐛 Bug Fixes

@@ -40,6 +40,7 @@ public final class SBrowserXTranslateSettingsActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         SBrowserXPrefs.init(this);
+        SBrowserXPrefs.markFeatureViewed(this, SBrowserXPrefs.FEATURE_GOOGLE_TRANSLATE);
 
         boolean night = SBrowserXHooks.isBrowserNightMode(this);
         boolean amoled = night && SBrowserXPrefs.isAmoledBlackEnabled(this);
@@ -117,6 +118,76 @@ public final class SBrowserXTranslateSettingsActivity extends Activity {
         setContentView(scroll);
         refresh();
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        refresh();
+        showTranslateGuideDialogIfNeeded(this);
+    }
+
+    public static void showTranslateGuideDialogIfNeeded(Activity act) {
+        if (act == null || act.isFinishing() || SBrowserXPrefs.isTranslateGuideAcked(act)) return;
+        boolean night = SBrowserXHooks.isBrowserNightMode(act);
+        int theme = night ? android.R.style.Theme_DeviceDefault_Dialog_Alert
+                : android.R.style.Theme_DeviceDefault_Light_Dialog_Alert;
+        float dens = act.getResources().getDisplayMetrics().density;
+        int padH = Math.round(24 * dens);
+        int padV = Math.round(12 * dens);
+
+        android.widget.ScrollView sv = new android.widget.ScrollView(act);
+        android.widget.LinearLayout box = new android.widget.LinearLayout(act);
+        box.setOrientation(android.widget.LinearLayout.VERTICAL);
+        box.setPadding(padH, padV, padH, Math.round(6 * dens));
+
+        android.widget.TextView tv = new android.widget.TextView(act);
+        tv.setText(SBrowserXStrings.getTransGuideBody());
+        tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 15.8f);
+        tv.setLineSpacing(Math.round(4 * dens), 1.05f);
+        tv.setTextColor(night ? 0xFFF1F3F5 : 0xFF18181B);
+        box.addView(tv);
+
+        int oneUiBlue = night ? 0xFF3E82F7 : 0xFF0381FE;
+        int uncheckedCol = night ? 0xFF6B7280 : 0xFF9CA3AF;
+        android.content.res.ColorStateList cbTint = new android.content.res.ColorStateList(
+                new int[][] { new int[] { android.R.attr.state_checked }, new int[] {} },
+                new int[] { oneUiBlue, uncheckedCol });
+        android.widget.CheckBox cb = new android.widget.CheckBox(act);
+        cb.setText(SBrowserXStrings.getTransGuideCheck());
+        cb.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16f);
+        cb.setTypeface(android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL));
+        cb.setTextColor(night ? 0xFFFFFFFF : 0xFF111827);
+        cb.setButtonTintList(cbTint);
+        cb.setPadding(Math.round(8 * dens), Math.round(18 * dens), 0, Math.round(8 * dens));
+        box.addView(cb);
+
+        sv.addView(box);
+
+        android.app.AlertDialog dlg = new android.app.AlertDialog.Builder(act, theme)
+                .setTitle(SBrowserXStrings.getTransGuideTitle())
+                .setView(sv)
+                .setCancelable(false)
+                .setPositiveButton(android.R.string.ok, (d, w) -> {
+                    SBrowserXPrefs.setTranslateGuideAcked(act, true);
+                })
+                .create();
+        dlg.setCanceledOnTouchOutside(false);
+        dlg.setOnShowListener(di -> {
+            android.widget.Button okBtn = dlg.getButton(android.app.AlertDialog.BUTTON_POSITIVE);
+            if (okBtn != null) {
+                okBtn.setEnabled(false);
+                okBtn.setAlpha(0.4f);
+                okBtn.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16f);
+                cb.setOnCheckedChangeListener((btn, checked) -> {
+                    okBtn.setEnabled(checked);
+                    okBtn.setAlpha(checked ? 1.0f : 0.4f);
+                    okBtn.setTextColor(checked ? oneUiBlue : uncheckedCol);
+                });
+            }
+        });
+        dlg.show();
+    }
+
 
     private void refresh() {
         masterSwitch.setChecked(SBrowserXPrefs.isGoogleTranslateEnabled(this));
@@ -295,14 +366,15 @@ public final class SBrowserXTranslateSettingsActivity extends Activity {
     }
 
     private boolean isRu() {
-        String l = java.util.Locale.getDefault().getLanguage();
+        String l = SBrowserXStrings.getAppLang();
         return "ru".equals(l) || "uk".equals(l);
     }
 
     private String getEngineLabel(String engine) {
-        if ("microsoft".equalsIgnoreCase(engine)) return "Microsoft Translator (Edge NMT)";
+        if ("bing".equalsIgnoreCase(engine) || "microsoft".equalsIgnoreCase(engine)) return "Bing Translator (Web NMT)";
+        if ("yandex".equalsIgnoreCase(engine)) return "Yandex Translate (Web NMT)";
         if ("deepl".equalsIgnoreCase(engine)) return "DeepL API (Free / Pro)";
-        if ("gemini".equalsIgnoreCase(engine)) return "Gemini 2.5 Flash (AI)";
+        if ("gemini".equalsIgnoreCase(engine)) return "Gemini 3.5 Flash-Lite (AI ★)";
         return "Google Translate (Chrome NMT)";
     }
 
@@ -318,11 +390,12 @@ public final class SBrowserXTranslateSettingsActivity extends Activity {
     private void showEnginePicker() {
         String[] labels = new String[] {
                 "Google Translate (Chrome NMT)",
-                "Microsoft Translator (Edge NMT)",
+                "Bing Translator (Web NMT)",
+                "Yandex Translate (Web NMT)",
                 "DeepL API (Free / Pro)",
-                "Gemini 2.5 Flash (AI)"
+                "Gemini 3.5 Flash-Lite (AI ★)"
         };
-        String[] values = new String[] {"google", "microsoft", "deepl", "gemini"};
+        String[] values = new String[] {"google", "bing", "yandex", "deepl", "gemini"};
         String cur = SBrowserXPrefs.getTranslateEngine(this);
         int sel = 0;
         for (int i = 0; i < values.length; i++) {

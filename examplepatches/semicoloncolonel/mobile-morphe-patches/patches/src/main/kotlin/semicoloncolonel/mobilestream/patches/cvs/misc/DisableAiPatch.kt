@@ -39,6 +39,7 @@ val disableAiPatch = bytecodePatch(
     description = "Turns off AI search, insights, and summaries, and proactive AI on pharmacy orders.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

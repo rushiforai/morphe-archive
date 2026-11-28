@@ -1,0 +1,839 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.morphe.patches.instagram.download.story
+
+import app.morphe.ExtensionDex
+import app.morphe.Fixtures
+import app.morphe.PatchContexts
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patches.instagram.FixtureDex
+import app.morphe.patches.instagram.download.IMAGE_INFO
+import app.morphe.patches.instagram.download.IMAGE_URL
+import app.morphe.patches.instagram.download.INSTAGRAM_MEDIA
+import app.morphe.patches.instagram.download.MEDIA
+import app.morphe.patches.instagram.download.PANDO_IMAGE_INFO
+import app.morphe.patches.instagram.download.PANDO_VIDEO_VERSION
+import app.morphe.patches.instagram.download.USER
+import app.morphe.patches.instagram.download.mediaBridges
+import app.morphe.patches.instagram.download.VIDEO_VERSION
+import app.morphe.patches.shared.compat.AppCompatibilities
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.SwitchPayload
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
+import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
+import com.android.tools.smali.dexlib2.immutable.ImmutableField
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import com.android.tools.smali.dexlib2.immutable.value.ImmutableStringEncodedValue
+import java.io.File
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class DownloadStoryHookTest {
+    /** A Pando tree's read of an optional int field by its hash, which 454 inlines its getters into. */
+    private val TREE_INT = "Lcom/instagram/pando/livetree/LiveTreeJNI;->getOptionalIntValueByHashCode(I)Ljava/lang/Integer;"
+    private val helper = "Lfixture/StoryMenu;"
+    private val other = "Lfixture/OtherMenu;"
+    private val dismiss = "Landroid/content/DialogInterface\$OnDismissListener;"
+    private val labels = "[Ljava/lang/CharSequence;"
+    private val label = "Ljava/lang/CharSequence;"
+    private val listener = "Lfixture/OldDialogClick;"
+    private val clickListener = "Landroid/content/DialogInterface\$OnClickListener;"
+
+    /** The hooks the patch writes are in the extension the bundle ships, public and static. */
+    @Test
+    fun theHooksAreInTheExtension() {
+        for (hook in listOf(LABELS, SAVE_STORY, BUILDING, LABEL_LIST, MENU_CLOSED)) {
+            val declared = ExtensionDex.classDef(hook.substringBefore("->")).methods
+                .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
+                .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
+            assertTrue("$hook is not in the extension: $declared", hook.substringAfter("->") in declared)
+        }
+    }
+
+    /**
+     * Each builder's labels go through labels() where it returns, the jump that lands on the return
+     * included, and one returning from a register above v15 uses the range form. A class of another
+     * name with the same shape stays Instagram's.
+     */
+    @Test
+    fun theBuildersPassTheirLabelsThrough() {
+        val context = PatchContexts.of(classes())
+
+        context.offerDownloadOnEveryStory()
+
+        val code = context.method(helper, "A0o").code()
+        val returns = code.indices.filter { code[it].opcode == Opcode.RETURN_OBJECT }
+        assertEquals("the returns", 2, returns.size)
+        returns.forEach { at ->
+            assertEquals(listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT_OBJECT, Opcode.RETURN_OBJECT), code.subList(at - 2, at + 1).map { it.opcode })
+            assertEquals(LABELS, code[at - 2].referenceText())
+            val register = (code[at] as OneRegisterInstruction).registerA
+            assertEquals("labels()'s argument", register, (code[at - 2] as Instruction35c).registerC)
+            assertEquals("labels()'s answer", register, (code[at - 1] as OneRegisterInstruction).registerA)
+        }
+        assertEquals("the jump to the last return", returns.last() - 2, code.target(code.indexOfFirst { it.opcode == Opcode.IF_EQZ }))
+
+        val high = context.method(helper, "A0m").code()
+        val call = high[high.size - 3]
+        assertEquals(Opcode.INVOKE_STATIC_RANGE, call.opcode)
+        assertEquals(LABELS, call.referenceText())
+        assertEquals("the range", 20, (call as RegisterRangeInstruction).startRegister)
+        assertEquals(20, (high.last() as OneRegisterInstruction).registerA)
+
+        assertTrue("another class's builder changed", context.method(other, "A0o").code().none { it.referenceText() == LABELS })
+    }
+
+    /**
+     * Each builder's first instruction hands building() the menu it was given, before the body can
+     * reuse that register: from a parameter above v15 through the range form. Another class's
+     * builder of the same shape stays Instagram's.
+     */
+    @Test
+    fun eachBuilderNamesItsMenuFirst() {
+        val context = PatchContexts.of(classes())
+
+        context.offerDownloadOnEveryStory()
+
+        val low = context.method(helper, "A0o").code()
+        assertEquals(BUILDING, low[0].referenceText())
+        assertEquals("the menu, p0 of four registers", 3, (low[0] as Instruction35c).registerC)
+        assertEquals("the original code moved", "$helper->story:$REEL_ITEM", low[1].referenceText())
+
+        val high = context.method(helper, "A0m").code()
+        assertEquals(Opcode.INVOKE_STATIC_RANGE, high[0].opcode)
+        assertEquals(BUILDING, high[0].referenceText())
+        assertEquals("the menu, the second of three parameters in 24 registers", 22, (high[0] as RegisterRangeInstruction).startRegister)
+
+        assertTrue("another class's builder changed", context.method(other, "A0o").code().none { it.referenceText() == BUILDING })
+        assertEquals("a handler names its menu", 0, context.method(helper, "A0I").code().count { it.referenceText() == BUILDING })
+    }
+
+    /**
+     * #339: your own highlights' menu is built as a list. Its builder names its menu first, and each
+     * return hands the list to labelList() in place, the jump that lands on the return included.
+     */
+    @Test
+    fun theHighlightListGetsTheRowsInPlace() {
+        val context = PatchContexts.of(classes())
+
+        context.offerDownloadOnEveryStory()
+
+        val code = context.method(helper, "A05").code()
+        assertEquals(BUILDING, code[0].referenceText())
+        assertEquals("the menu, p0 of five registers", 3, (code[0] as Instruction35c).registerC)
+        assertEquals("the original code moved", Opcode.NEW_INSTANCE, code[1].opcode)
+        val at = code.indexOfFirst { it.opcode == Opcode.RETURN_OBJECT }
+        assertEquals(listOf(Opcode.INVOKE_STATIC, Opcode.RETURN_OBJECT), code.subList(at - 1, at + 1).map { it.opcode })
+        assertEquals(LABEL_LIST, code[at - 1].referenceText())
+        assertEquals("labelList()'s argument", (code[at] as OneRegisterInstruction).registerA, (code[at - 1] as Instruction35c).registerC)
+        assertEquals("the jump to the return", at - 1, code.target(code.indexOfFirst { it.opcode == Opcode.IF_EQZ }))
+        assertEquals("one return", 1, code.count { it.opcode == Opcode.RETURN_OBJECT })
+    }
+
+    /**
+     * A tap asks save() first, with the tapped label and the menu's class; any other label goes on.
+     * After a yes, a handler given the menu's dismiss listener hands it to menuClosed(), which plays
+     * the story again (#610); one without a listener just returns.
+     */
+    @Test
+    fun theHandlersAskSaveFirst() {
+        val context = PatchContexts.of(classes())
+
+        context.offerDownloadOnEveryStory()
+
+        val ask = listOf(Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_FROM16, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_EQZ)
+        for ((name, registers, dismiss) in listOf(Triple("A0I", 23 to 17, 11), Triple("A0P", 9 to 8, null))) {
+            val code = context.method(helper, name).code()
+            val yes = if (dismiss == null) listOf(Opcode.RETURN_VOID) else listOf(Opcode.MOVE_OBJECT_FROM16, Opcode.INVOKE_STATIC, Opcode.RETURN_VOID)
+            val moved = ask.size + yes.size
+            assertEquals(name, ask + yes, code.take(moved).map { it.opcode })
+            assertEquals("$name: the label", registers.first, (code[0] as TwoRegisterInstruction).registerB)
+            assertEquals("$name: the menu", registers.second, (code[1] as TwoRegisterInstruction).registerB)
+            assertEquals(SAVE_STORY, code[2].referenceText())
+            if (dismiss != null) {
+                assertEquals("$name: the dismiss listener", dismiss, (code[5] as TwoRegisterInstruction).registerB)
+                assertEquals("$name: menuClosed()'s argument", 0, (code[6] as Instruction35c).registerC)
+                assertEquals(MENU_CLOSED, code[6].referenceText())
+            }
+            assertEquals("$name: the original code moved", Opcode.CONST_STRING, code[moved].opcode)
+            assertEquals("$name: the branch", moved, code.target(4))
+        }
+        assertEquals("a method taking no label changed", Opcode.RETURN_VOID, context.method(helper, "A0J").code().first().opcode)
+    }
+
+    /**
+     * An old dialog's click listener, which looks the tapped label up in the labels itself, asks
+     * save() right after the lookup with the label and the menu, and its answer takes the array's
+     * register, which the listener sets anew next. A yes ends the click.
+     */
+    @Test
+    fun theOldDialogsAskSaveAfterTheLookup() {
+        val context = PatchContexts.of(classes())
+
+        context.offerDownloadOnEveryStory()
+
+        val code = context.method(listener, "onClick").code()
+        val lookup = code.indexOfFirst { it.opcode == Opcode.AGET_OBJECT }
+        assertEquals(
+            listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.RETURN_VOID, Opcode.IGET_OBJECT),
+            code.subList(lookup + 1, lookup + 6).map { it.opcode },
+        )
+        val save = code[lookup + 1] as Instruction35c
+        assertEquals(SAVE_STORY, save.referenceText())
+        assertEquals("the label and the menu", listOf(2, 4), listOf(save.registerC, save.registerD))
+        assertEquals("the answer", 0, (code[lookup + 2] as OneRegisterInstruction).registerA)
+        assertEquals("the branch", lookup + 5, code.target(lookup + 3))
+    }
+
+    /** A listener that reads the array again after the lookup leaves no register to use, and nothing changes. */
+    @Test
+    fun aLookupWhoseArrayIsReadAgainFailsBeforeAnythingChanges() {
+        val context = PatchContexts.of(classes(arrayReadAgain = true))
+        assertThrows(PatchException::class.java) { context.offerDownloadOnEveryStory() }
+        assertUntouched(context)
+        assertTrue("the listener changed", context.method(listener, "onClick").code().none { it.referenceText() == SAVE_STORY })
+    }
+
+    /** A jump onto the lookup reaches it without the builder's call, so the menu isn't known there, and nothing changes. */
+    @Test
+    fun aJumpOntoTheLookupFailsBeforeAnythingChanges() {
+        val context = PatchContexts.of(classes(jumpToLookup = true))
+        val failure = assertThrows(PatchException::class.java) { context.offerDownloadOnEveryStory() }
+        assertTrue(failure.message!!, failure.message!!.contains("a jump lands between"))
+        assertUntouched(context)
+        assertTrue("the listener changed", context.method(listener, "onClick").code().none { it.referenceText() == SAVE_STORY })
+    }
+
+    /** storyMedia() reads the menu's story, then the story's Media the builders read. */
+    @Test
+    fun theStoryBridgeReadsTheMenusMedia() {
+        val context = PatchContexts.of(classes())
+
+        context.offerDownloadOnEveryStory()
+
+        val code = context.method(INSTAGRAM_MEDIA, "storyMedia").code()
+        assertEquals(
+            listOf(Opcode.CHECK_CAST, Opcode.IGET_OBJECT, Opcode.IF_EQZ, Opcode.IGET_OBJECT, Opcode.RETURN_OBJECT),
+            code.take(5).map { it.opcode },
+        )
+        assertEquals(helper, code[0].referenceText())
+        assertEquals("$helper->story:$REEL_ITEM", code[1].referenceText())
+        assertEquals("$REEL_ITEM->A16:$MEDIA", code[3].referenceText())
+        assertEquals("a null story skips the Media", 4, code.target(2))
+    }
+
+    /** storyItemMedia() reads that same Media straight off a story item, for Loop this story's check (#610). */
+    @Test
+    fun theItemBridgeReadsTheSameMedia() {
+        val context = PatchContexts.of(classes())
+
+        context.offerDownloadOnEveryStory()
+
+        val code = context.method(INSTAGRAM_MEDIA, "storyItemMedia").code()
+        assertEquals(listOf(Opcode.IF_EQZ, Opcode.CHECK_CAST, Opcode.IGET_OBJECT, Opcode.RETURN_OBJECT), code.take(4).map { it.opcode })
+        assertEquals(REEL_ITEM, code[1].referenceText())
+        assertEquals("$REEL_ITEM->A16:$MEDIA", code[2].referenceText())
+        assertEquals("a null item skips the Media", 3, code.target(0))
+    }
+
+    /** Each picture bridge casts its argument and calls the getter that reads its field. */
+    @Test
+    fun thePictureBridgesCallTheGetters() {
+        val context = PatchContexts.of(classes())
+
+        context.offerDownloadOnEveryStory()
+
+        val expected = mapOf(
+            "imageVersions" to ("$MEDIA->A3F()$IMAGE_INFO" to Opcode.MOVE_RESULT_OBJECT),
+            "imageCandidates" to ("$IMAGE_INFO->Bd1()Ljava/util/List;" to Opcode.MOVE_RESULT_OBJECT),
+            "candidateUrl" to ("$IMAGE_URL->getUrl()Ljava/lang/String;" to Opcode.MOVE_RESULT_OBJECT),
+            "candidateWidth" to ("$IMAGE_URL->getWidth()I" to Opcode.MOVE_RESULT),
+            "candidateHeight" to ("$IMAGE_URL->getHeight()I" to Opcode.MOVE_RESULT),
+            "storyImageWithMusic" to ("$MEDIA->A5d()Ljava/lang/Boolean;" to Opcode.MOVE_RESULT_OBJECT),
+            "originalMediaType" to ("$MEDIA->A6P()Ljava/lang/Integer;" to Opcode.MOVE_RESULT_OBJECT),
+            "accessibilityCaption" to ("$MEDIA->A72()Ljava/lang/String;" to Opcode.MOVE_RESULT_OBJECT),
+        )
+        expected.forEach { (bridge, call) ->
+            val code = context.method(INSTAGRAM_MEDIA, bridge).code()
+            assertEquals(bridge, Opcode.CHECK_CAST, code[0].opcode)
+            assertEquals(bridge, call.first, code[1].referenceText())
+            assertEquals(bridge, call.second, code[2].opcode)
+        }
+        assertEquals("the video bridges", Opcode.CHECK_CAST, context.method(INSTAGRAM_MEDIA, "videoVersions").code().first().opcode)
+    }
+
+    /** With Download any reel's bridges written first, the story's are written once and the video's aren't written again. */
+    @Test
+    fun bridgesWrittenBeforeStayAsTheyAre() {
+        val context = PatchContexts.of(classes())
+        context.mediaBridges("Download any reel")()
+        val written = context.method(INSTAGRAM_MEDIA, "videoVersions").code().size
+
+        context.offerDownloadOnEveryStory()
+
+        assertEquals("the video bridge was written again", written, context.method(INSTAGRAM_MEDIA, "videoVersions").code().size)
+    }
+
+    @Test
+    fun aMissingMenuClassFailsThePatch() {
+        val context = PatchContexts.of(classes(name = "SomethingElse"))
+        val failure = assertThrows(PatchException::class.java) { context.offerDownloadOnEveryStory() }
+        assertTrue(failure.message!!, failure.message!!.contains(HELPER_NAME))
+    }
+
+    @Test
+    fun aSecondMediaReadFailsBeforeAnythingChanges() {
+        val context = PatchContexts.of(classes(secondMedia = true))
+        assertThrows(PatchException::class.java) { context.offerDownloadOnEveryStory() }
+        assertUntouched(context)
+    }
+
+    @Test
+    fun aMissingPictureGetterFailsBeforeAnythingChanges() {
+        val context = PatchContexts.of(classes(leaveOutCandidates = true))
+        val failure = assertThrows(PatchException::class.java) { context.offerDownloadOnEveryStory() }
+        assertTrue(failure.message!!, failure.message!!.contains("candidates"))
+        assertUntouched(context)
+    }
+
+    @Test
+    fun aMissingMusicGetterFailsBeforeAnythingChanges() {
+        val context = PatchContexts.of(classes(leaveOutMusic = true))
+        val failure = assertThrows(PatchException::class.java) { context.offerDownloadOnEveryStory() }
+        assertTrue(failure.message!!, failure.message!!.contains("is_story_image_with_music"))
+        assertUntouched(context)
+    }
+
+    /** Without the getter for the type a story was posted as, a photo with music can't be told, and nothing changes. */
+    @Test
+    fun aMissingPostedTypeGetterFailsBeforeAnythingChanges() {
+        val context = PatchContexts.of(classes(leaveOutPostedType = true))
+        val failure = assertThrows(PatchException::class.java) { context.offerDownloadOnEveryStory() }
+        assertTrue(failure.message!!, failure.message!!.contains("original_media_type"))
+        assertUntouched(context)
+    }
+
+    /**
+     * #789: without the getter for Instagram's description of a story, only Copy text in the story
+     * menu loses it, so the patch goes on, Download still offered, and the description's bridge stays
+     * as built, answering null, which sends every story to Lens.
+     */
+    @Test
+    fun aMissingAltTextGetterLeavesTheRestOfThePatch() {
+        val context = PatchContexts.of(classes(leaveOutAltText = true))
+
+        context.offerDownloadOnEveryStory()
+
+        assertEquals("the posted type bridge", Opcode.CHECK_CAST, context.method(INSTAGRAM_MEDIA, "originalMediaType").code().first().opcode)
+        val unwritten = context.method(INSTAGRAM_MEDIA, "accessibilityCaption").code()
+        assertEquals("the description's bridge was written", listOf(Opcode.CONST_4, Opcode.RETURN_OBJECT), unwritten.map { it.opcode })
+    }
+
+    @Test
+    fun aHandlerWithoutLocalsFailsBeforeAnythingChanges() {
+        val context = PatchContexts.of(classes(handlerLocals = 1))
+        assertThrows(PatchException::class.java) { context.offerDownloadOnEveryStory() }
+        assertUntouched(context)
+    }
+
+    /**
+     * In each declared build, the story menu's class is found by its kept name, every builder's
+     * returns pass the labels through labels() and no jump skips that, every handler asks save()
+     * first, and every bridge is written.
+     */
+    @Test
+    fun eachDeclaredBuildOffersDownloadOnEveryStory() {
+        val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
+        val checked = mutableSetOf<String>()
+        for (version in versions) {
+            for (bundle in Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") }) {
+                val classes = storyClasses(bundle)
+                val context = PatchContexts.of(classes)
+
+                context.offerDownloadOnEveryStory()
+
+                val menu = classes.single { it.isStoryMenu() }
+                val statics = menu.methods.filter { AccessFlags.STATIC.isSet(it.accessFlags) }
+                val builders = statics.filter { it.returnType == labels && menu.type in it.parameterTypes.map(Any::toString) }
+                assertTrue("${bundle.name}: no builder", builders.isNotEmpty())
+                builders.forEach { builder ->
+                    val code = context.method(menu.type, builder.name, builder.parameterTypes.map(Any::toString)).code()
+                    val parameters = builder.parameterTypes.map(Any::toString)
+                    val words = { types: List<String> -> types.sumOf { if (it == "J" || it == "D") 2 else 1 } }
+                    val given = builder.implementation!!.registerCount - words(parameters) + words(parameters.take(parameters.indexOf(menu.type)))
+                    assertEquals("${bundle.name}: ${builder.name} names its menu first", BUILDING, code[0].referenceText())
+                    val named = (code[0] as? RegisterRangeInstruction)?.startRegister ?: (code[0] as Instruction35c).registerC
+                    assertEquals("${bundle.name}: ${builder.name}'s menu parameter", given, named)
+                    val returns = code.indices.filter { code[it].opcode == Opcode.RETURN_OBJECT }
+                    assertTrue("${bundle.name}: ${builder.name} doesn't return", returns.isNotEmpty())
+                    returns.forEach { at ->
+                        assertEquals("${bundle.name}: ${builder.name} before the return at $at", LABELS, code[at - 2].referenceText())
+                    }
+                    // Opcode.name is the smali name, "if-eqz" or "goto/16".
+                    code.indices.filter { index -> code[index] is OffsetInstruction && code[index].opcode.name.let { it.startsWith("if-") || it.startsWith("goto") } }
+                        .forEach { jump ->
+                            val target = code.target(jump)
+                            assertTrue("${bundle.name}: the jump at $jump in ${builder.name} skips labels()",
+                                target !in returns && target !in returns.map { it - 1 })
+                        }
+                }
+                // #339: your own highlights' menus are lists, the highlight sheet's among them. 453.0.0.57.79's
+                // 385914557 loads the name with const-string/jumbo, its dex having more strings than a short index reaches.
+                val lists = statics.filter { it.returnType == "Ljava/util/ArrayList;" && menu.type in it.parameterTypes.map(Any::toString) }
+                val stringLoads = setOf(Opcode.CONST_STRING, Opcode.CONST_STRING_JUMBO)
+                assertTrue("${bundle.name}: no list builder holds the highlight sheet's name", lists.any { list ->
+                    list.code().any { it.opcode in stringLoads && it.referenceText() == "story_highlight_action_sheet" }
+                })
+                val notJumps = setOf(Opcode.PACKED_SWITCH, Opcode.SPARSE_SWITCH, Opcode.FILL_ARRAY_DATA)
+                lists.forEach { list ->
+                    val code = context.method(menu.type, list.name, list.parameterTypes.map(Any::toString)).code()
+                    assertEquals("${bundle.name}: ${list.name} names its menu first", BUILDING, code[0].referenceText())
+                    val returns = code.indices.filter { code[it].opcode == Opcode.RETURN_OBJECT }
+                    assertTrue("${bundle.name}: ${list.name} doesn't return", returns.isNotEmpty())
+                    returns.forEach { at -> assertEquals("${bundle.name}: ${list.name} before the return at $at", LABEL_LIST, code[at - 1].referenceText()) }
+                    code.indices.filter { code[it] is OffsetInstruction && code[it].opcode !in notJumps }
+                        .forEach { jump -> assertTrue("${bundle.name}: the jump at $jump in ${list.name} skips labelList()", code.target(jump) !in returns) }
+                }
+                val handlers = statics.filter { it.returnType == "V" && it.parameterTypes.lastOrNull()?.toString() == label && menu.type in it.parameterTypes.map(Any::toString) }
+                assertTrue("${bundle.name}: fewer handlers than builders", handlers.size >= builders.size)
+                handlers.forEach { handler ->
+                    val code = context.method(menu.type, handler.name, handler.parameterTypes.map(Any::toString)).code()
+                    assertEquals("${bundle.name}: ${handler.name}'s first call", SAVE_STORY, code[2].referenceText())
+                    if (dismiss in handler.parameterTypes.map(Any::toString)) {
+                        assertEquals("${bundle.name}: ${handler.name} after a yes", MENU_CLOSED, code[6].referenceText())
+                    }
+                }
+                assertTrue(
+                    "${bundle.name}: no handler takes the dismiss listener",
+                    handlers.any { handler -> dismiss in handler.parameterTypes.map(Any::toString) },
+                )
+                val lookups = classes.filter { it.looksLabelsUp() }.flatMap { listenerClass ->
+                    val code = context.method(listenerClass.type, "onClick", listOf("Landroid/content/DialogInterface;", "I")).code()
+                    code.indices.filter { index ->
+                        code[index].opcode == Opcode.INVOKE_STATIC && code[index].referenceText()?.startsWith("${menu.type}->") == true &&
+                            code[index].referenceText()!!.endsWith(")$labels")
+                    }.map { call -> listenerClass.type to code[call + 3].referenceText() }
+                }
+                assertEquals("${bundle.name}: the old dialogs' lookups", 2, lookups.size)
+                lookups.forEach { (owner, first) -> assertEquals("${bundle.name}: $owner after the lookup", SAVE_STORY, first) }
+                val bridges = context.classDefBy(INSTAGRAM_MEDIA).methods.filter { AccessFlags.STATIC.isSet(it.accessFlags) && it.name in storyBridges }
+                bridges.forEach { assertEquals("${bundle.name}: ${it.name}", Opcode.CHECK_CAST, it.code().first().opcode) }
+                assertEquals(
+                    "${bundle.name}: the item bridge reads the menu's Media",
+                    context.method(INSTAGRAM_MEDIA, "storyMedia").code()[3].referenceText(),
+                    context.method(INSTAGRAM_MEDIA, "storyItemMedia").code()[2].referenceText(),
+                )
+                checked += version
+            }
+        }
+        assertEquals("a declared build has no fixture", versions, checked)
+    }
+
+    /**
+     * A photo story with music that Instagram serves as a video (#98). Only some uploads set the
+     * music flag, and Instagram's own story viewer tells the rest from a filmed video by the type
+     * the story was posted as. In the declared build and every other build of its version,
+     * originalMediaType() calls the getter the viewer calls on the Media of the story that
+     * storyMedia() reads, and the viewer compares the answer with the media type Instagram builds
+     * with the number the extension takes for a photo.
+     */
+    @Test
+    fun eachBuildReadsAStorysPostedTypeWhereItsViewerDoes() {
+        val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
+        val declared = versions.flatMap { version -> Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") } }
+        val photo = ExtensionDex.intConstant(LABELS.substringBefore("->"), "POSTED_PHOTO")
+        for (bundle in declared + Fixtures.otherBuilds()) {
+            val build = if (bundle.name == "base.apk") bundle.parentFile.name else bundle.name
+            val context = PatchContexts.of(storyClasses(bundle))
+
+            context.offerDownloadOnEveryStory()
+
+            val bridge = context.method(INSTAGRAM_MEDIA, "originalMediaType").code()
+            assertEquals("$build: the posted type bridge's cast", MEDIA, bridge[0].referenceText())
+            val getter = bridge[1].referenceText()!!
+            assertTrue("$build: the posted type bridge calls $getter", getter.startsWith("$MEDIA->") && getter.endsWith("()Ljava/lang/Integer;"))
+            val story = context.method(INSTAGRAM_MEDIA, "storyMedia").code()[3].referenceText()!!
+            // The hash the getter asks the Media's tree for, which 454's viewer asks for itself.
+            val hash = context.method(MEDIA, getter.substringAfter("->").substringBefore("(")).code()
+                .firstNotNullOfOrNull { (it as? NarrowLiteralInstruction)?.takeIf { load -> load.opcode == Opcode.CONST }?.narrowLiteral }
+            val viewers = FixtureDex.methodsWhere(bundle, { dex -> dex.fieldSection.any { it.toString() == story } }) { method ->
+                method.implementation?.instructions?.any { (it as? ReferenceInstruction)?.reference?.toString() == story } == true &&
+                    method.postedTypeChecks(story, getter, hash).isNotEmpty()
+            }
+            val compared = viewers.flatMap { it.postedTypeChecks(story, getter, hash) }.toSet()
+            assertTrue("$build: nothing reads $getter on $story and compares it with a media type", compared.isNotEmpty())
+            val types = FixtureDex.classes(bundle, compared.mapTo(HashSet()) { it.substringBefore("->") })
+            compared.forEach { constant ->
+                val numbers = types.getValue(constant.substringBefore("->")).constantNumbers()
+                assertEquals("$build: Instagram's number for $constant, the type its viewer compares with", photo, numbers[constant])
+            }
+        }
+    }
+
+    /**
+     * The check above counts a story's Media only when nothing jumps in between its read and the
+     * getter. A jump out, like 385914546's cached type check, leaves it counted; a jump landing on
+     * the call brings whatever Media the other path put in the register.
+     */
+    @Test
+    fun aJumpLandingOnTheGetterLosesTheStorysMedia() {
+        val type = "Lfixture/MediaType;"
+        val story = "$REEL_ITEM->A16:$MEDIA"
+        val getter = "$MEDIA->A6P()Ljava/lang/Integer;"
+        val compare = """
+            invoke-virtual { v0 }, $getter
+            move-result-object v1
+            invoke-static { v1 }, $type->A00(Ljava/lang/Integer;)$type
+            move-result-object v1
+            sget-object v2, $type->A01:$type
+            if-ne v1, v2, :no
+            const/4 v0, 0x1
+            return v0
+            :no
+            const/4 v0, 0x0
+            return v0
+        """.trimIndent()
+        val viewer = { body: String -> method("Lfixture/Viewer;", "A00", listOf(REEL_ITEM, MEDIA), "Z", 6, static = true, body = body + "\n" + compare) }
+        val jumpOut = viewer("""
+            iget-object v0, p0, $story
+            iget-object v3, p0, $REEL_ITEM->cached:$type
+            if-nez v3, :no
+        """.trimIndent())
+        assertEquals(listOf("$type->A01:$type"), jumpOut.postedTypeChecks(story, getter))
+        val jumpIn = viewer("""
+            if-eqz p1, :story
+            move-object v0, p1
+            goto :read
+            :story
+            iget-object v0, p0, $story
+            :read
+        """.trimIndent())
+        assertEquals("the other path's Media reaches the getter", emptyList<String>(), jumpIn.postedTypeChecks(story, getter))
+    }
+
+    /** The classes Download any story reads in [bundle], with the extension's bridges. */
+    private fun storyClasses(bundle: File): List<ClassDef> {
+        val types = setOf(MEDIA, USER, VIDEO_VERSION, PANDO_VIDEO_VERSION, IMAGE_INFO, PANDO_IMAGE_INFO, IMAGE_URL)
+        val classes = mutableListOf<ClassDef>(ExtensionDex.classDef(INSTAGRAM_MEDIA))
+        FixtureDex.forEach(bundle) { dex ->
+            for (classDef in dex.classes) {
+                if (classDef.type in types || classDef.isStoryMenu() || classDef.looksLabelsUp()) classes += ImmutableClassDef.of(classDef)
+            }
+        }
+        return classes
+    }
+
+    /**
+     * The media type constants [this] method compares a story's posted type with: where it reads the
+     * story's Media from [story], calls [getter] on it, turns the answer into Instagram's media type
+     * through a static method taking the number, and loads one of that type's constants. The Media
+     * the getter is called on is the one last put in its register before the call, which 453.0.0.57.79's
+     * 385914546 reads five instructions earlier, checking a cached copy of the type first. Only the
+     * straight run ending at the call counts: a jump landing in it could bring another Media.
+     *
+     * 454's Redex inlines the getter, so there the viewer asks a tree field of the story's Media for
+     * [hash] itself, the number the getter asks for, and looks the answer up in the media type's own
+     * map of numbers instead of calling a static method.
+     */
+    private fun Method.postedTypeChecks(story: String, getter: String, hash: Int? = null): List<String> {
+        val code = code()
+        val entered = entries()
+        fun writer(register: Int, from: Int, run: Int) = (from downTo run).firstOrNull { at ->
+            code[at].opcode.setsRegister() && (code[at] as? OneRegisterInstruction)?.registerA == register
+        }
+        return code.indices.mapNotNull { call ->
+            if (code[call].opcode != Opcode.INVOKE_VIRTUAL) return@mapNotNull null
+            val asked = code[call].referenceText() == getter
+            val inlined = hash != null && code[call].referenceText() == TREE_INT
+            if (!asked && !inlined) return@mapNotNull null
+            val run = (call downTo 0).firstOrNull { it in entered } ?: 0
+            var media = (code[call] as Instruction35c).registerC
+            var before = call - 1
+            if (inlined) {
+                val key = writer((code[call] as Instruction35c).registerD, call - 1, run)?.let { code[it] as? NarrowLiteralInstruction }
+                if (key?.narrowLiteral != hash) return@mapNotNull null
+                val tree = writer(media, call - 1, run) ?: return@mapNotNull null
+                val field = (code[tree] as? ReferenceInstruction)?.reference as? FieldReference
+                if (code[tree].opcode != Opcode.IGET_OBJECT || field?.definingClass != MEDIA) return@mapNotNull null
+                media = (code[tree] as TwoRegisterInstruction).registerB
+                before = tree - 1
+            }
+            val set = writer(media, before, run)
+            val read = set != null && code[set].opcode == Opcode.IGET_OBJECT && code[set].referenceText() == story
+            if (!read) return@mapNotNull null
+            val after = code.subList(call + 1, minOf(code.size, call + 10))
+            val type = after.firstNotNullOfOrNull { instruction ->
+                when (val reference = (instruction as? ReferenceInstruction)?.reference) {
+                    is MethodReference -> reference.returnType.takeIf {
+                        instruction.opcode == Opcode.INVOKE_STATIC && reference.parameterTypes.map(Any::toString) == listOf("Ljava/lang/Integer;")
+                    }
+                    is FieldReference -> reference.definingClass.takeIf { instruction.opcode == Opcode.SGET_OBJECT && reference.type == "Ljava/util/Map;" }
+                    else -> null
+                }
+            } ?: return@mapNotNull null
+            after.firstOrNull { instruction ->
+                instruction.opcode == Opcode.SGET_OBJECT &&
+                    ((instruction as ReferenceInstruction).reference as FieldReference).let { it.definingClass == type && it.type == type }
+            }?.referenceText()
+        }
+    }
+
+    /** The indices of [this] method's code that another path enters at: jump and switch targets, and catch handlers. */
+    private fun Method.entries(): Set<Int> {
+        val code = code()
+        val address = IntArray(code.size + 1)
+        code.forEachIndexed { i, instruction -> address[i + 1] = address[i] + instruction.codeUnits }
+        val index = address.withIndex().associate { (i, at) -> at to i }
+        val entries = HashSet<Int>()
+        code.forEachIndexed { i, instruction ->
+            if (instruction !is OffsetInstruction) return@forEachIndexed
+            val landing = index.getValue(address[i] + instruction.codeOffset)
+            if (instruction.opcode == Opcode.PACKED_SWITCH || instruction.opcode == Opcode.SPARSE_SWITCH) {
+                (code[landing] as SwitchPayload).switchElements.forEach { entries += index.getValue(address[i] + it.offset) }
+            } else {
+                entries += landing
+            }
+        }
+        implementation?.tryBlocks?.forEach { block -> block.exceptionHandlers.forEach { entries += index.getValue(it.handlerCodeAddress) } }
+        return entries
+    }
+
+    /**
+     * The number each constant of [this] enum is built with in its static initializer, the last of
+     * its constructor's two ints, which is how Instagram's media types map the server's numbers.
+     */
+    private fun ClassDef.constantNumbers(): Map<String, Int> {
+        val constants = setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST)
+        val literals = mutableMapOf<Int, Int>()
+        var built: Int? = null
+        val numbers = mutableMapOf<String, Int>()
+        for (instruction in methods.single { it.name == "<clinit>" }.code()) {
+            when {
+                instruction.opcode in constants ->
+                    literals[(instruction as OneRegisterInstruction).registerA] = (instruction as NarrowLiteralInstruction).narrowLiteral
+                instruction.referenceText() == "$type-><init>(Ljava/lang/String;II)V" -> built = when (instruction) {
+                    is Instruction35c -> literals[instruction.registerF]
+                    is RegisterRangeInstruction -> literals[instruction.startRegister + 3]
+                    else -> null
+                }
+                instruction.opcode == Opcode.SPUT_OBJECT && ((instruction as ReferenceInstruction).reference as FieldReference).type == type -> {
+                    built?.let { numbers[instruction.referenceText()!!] = it }
+                    built = null
+                }
+                // A two-register instruction is a one-register one too, by its first register.
+                instruction.opcode.setsRegister() -> (instruction as? OneRegisterInstruction)?.let { literals.remove(it.registerA) }
+            }
+        }
+        return numbers
+    }
+
+    /** The bridges this patch writes; the feed menu's two belong to Download any video. */
+    private val storyBridges = setOf(
+        "videoVersions", "dashManifest", "mediaId", "owner", "takenAt", "username", "versionUrl", "versionWidth", "versionHeight",
+        "imageVersions", "imageCandidates", "candidateUrl", "candidateWidth", "candidateHeight", "storyMedia", "storyImageWithMusic",
+        "originalMediaType", "accessibilityCaption",
+    )
+
+    /** A dialog click listener that calls a static method answering labels. */
+    private fun ClassDef.looksLabelsUp() = clickListener in interfaces && methods.any { method ->
+        method.name == "onClick" && method.code().any { it.opcode == Opcode.INVOKE_STATIC && it.referenceText()?.endsWith(")$labels") == true }
+    }
+
+    private fun ClassDef.isStoryMenu() = fields.any {
+        it.name == "__redex_internal_original_name" && (it.initialValue as? StringEncodedValue)?.value == HELPER_NAME
+    }
+
+    private fun assertUntouched(context: BytecodePatchContext) {
+        assertTrue("a builder changed", context.method(helper, "A0o").code().none { it.referenceText() == LABELS || it.referenceText() == BUILDING })
+        assertTrue("the list builder changed", context.method(helper, "A05").code().none { it.referenceText() == LABEL_LIST || it.referenceText() == BUILDING })
+        assertEquals("a handler changed", Opcode.CONST_STRING, context.method(helper, "A0I").code().first().opcode)
+        assertEquals("the story bridge was written", Opcode.CONST_4, context.method(INSTAGRAM_MEDIA, "storyMedia").code().first().opcode)
+        assertEquals("the item bridge was written", Opcode.CONST_4, context.method(INSTAGRAM_MEDIA, "storyItemMedia").code().first().opcode)
+        assertEquals("a bridge was written", Opcode.CONST_4, context.method(INSTAGRAM_MEDIA, "videoVersions").code().first().opcode)
+        assertEquals("the music bridge was written", Opcode.CONST_4, context.method(INSTAGRAM_MEDIA, "storyImageWithMusic").code().first().opcode)
+        assertEquals("the posted type bridge was written", Opcode.CONST_4, context.method(INSTAGRAM_MEDIA, "originalMediaType").code().first().opcode)
+    }
+
+    private fun BytecodePatchContext.method(type: String, name: String, parameters: List<String>? = null): Method =
+        classDefBy(type).methods.single { it.name == name && (parameters == null || it.parameterTypes.map(Any::toString) == parameters) }
+
+    private fun Method.code(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
+
+    private fun Instruction.referenceText(): String? = (this as? ReferenceInstruction)?.reference?.toString()
+
+    /** The index [branch] at [index] lands on. */
+    private fun List<Instruction>.target(index: Int): Int {
+        val address = IntArray(size + 1)
+        forEachIndexed { i, instruction -> address[i + 1] = address[i] + instruction.codeUnits }
+        return address.indexOf(address[index] + (this[index] as OffsetInstruction).codeOffset)
+    }
+
+    // ---- stand-ins shaped like Instagram 449's -------------------------------------------------
+
+    private fun classes(
+        name: String = HELPER_NAME,
+        secondMedia: Boolean = false,
+        leaveOutCandidates: Boolean = false,
+        handlerLocals: Int = 11,
+        leaveOutMusic: Boolean = false,
+        leaveOutPostedType: Boolean = false,
+        leaveOutAltText: Boolean = false,
+        arrayReadAgain: Boolean = false,
+        jumpToLookup: Boolean = false,
+    ): List<ClassDef> {
+        // An old dialog's click listener: the tapped label is the builder's labels at `which`.
+        val oldDialog = ImmutableClassDef(
+            listener, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, "Ljava/lang/Object;", listOf(clickListener), null, null,
+            listOf(ImmutableField(listener, "menu", "Ljava/lang/Object;", AccessFlags.PUBLIC.value, null, null, null)),
+            listOf(
+                method(listener, "onClick", listOf("Landroid/content/DialogInterface;", "I"), "V", 8, static = false, body = """
+                    iget-object v4, p0, $listener->menu:Ljava/lang/Object;
+                    ${if (jumpToLookup) "if-eqz v4, :lookup" else ""}
+                    check-cast v4, $helper
+                    invoke-static { v4 }, $helper->A0o($helper)$labels
+                    move-result-object v0
+                    :lookup
+                    aget-object v2, v0, p2
+                    ${if (arrayReadAgain) "array-length v0, v0" else "iget-object v0, v4, $helper->other:$label"}
+                    return-void
+                """),
+            ),
+        )
+        val builder = { owner: String ->
+            method(owner, "A0o", listOf(owner), labels, 4, static = true, body = """
+                iget-object v0, p0, $owner->story:$REEL_ITEM
+                iget-object v1, v0, $REEL_ITEM->A16:$MEDIA
+                ${if (secondMedia) "iget-object v1, v0, $REEL_ITEM->A08:$MEDIA" else ""}
+                const/4 v2, 0x0
+                new-array v1, v2, $labels
+                if-eqz v2, :done
+                const/4 v2, 0x1
+                new-array v1, v2, $labels
+                return-object v1
+                :done
+                return-object v1
+            """)
+        }
+        val menu = ImmutableClassDef(
+            helper, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, "Ljava/lang/Object;", null, null, null,
+            listOf(
+                ImmutableField(helper, "__redex_internal_original_name", "Ljava/lang/String;",
+                    AccessFlags.PUBLIC.value or AccessFlags.STATIC.value or AccessFlags.FINAL.value, ImmutableStringEncodedValue(name), null, null),
+                ImmutableField(helper, "story", REEL_ITEM, AccessFlags.PUBLIC.value, null, null, null),
+            ),
+            listOf(
+                builder(helper),
+                // A builder whose labels end up above v15.
+                method(helper, "A0m", listOf("Lfixture/Kind;", helper, "Lfixture/Logger;"), labels, 24, static = true, body = """
+                    const/4 v0, 0x0
+                    new-array v0, v0, $labels
+                    move-object/from16 v20, v0
+                    return-object v20
+                """),
+                // Your own highlight's menu, built as a list (#339), with a jump to its return.
+                method(helper, "A05", listOf(helper, "Lfixture/Sheet;"), "Ljava/util/ArrayList;", 5, static = true, body = """
+                    new-instance v0, Ljava/util/ArrayList;
+                    invoke-direct { v0 }, Ljava/util/ArrayList;-><init>()V
+                    const-string v1, "story_highlight_action_sheet"
+                    if-eqz v1, :done
+                    const/4 v2, 0x0
+                    :done
+                    return-object v0
+                """),
+                // The new sheet's handler: the menu seventh of thirteen, the label last.
+                method(helper, "A0I", listOf(dismiss) + List(5) { "Lfixture/Arg$it;" } + listOf(helper) + List(5) { "Lfixture/More$it;" } + listOf(label),
+                    "V", 13 + handlerLocals, static = true, body = """
+                    const-string v0, "ReelOptionsDialog"
+                    return-void
+                """),
+                method(helper, "A0P", listOf("Lfixture/Sheet;", helper, label), "V", 10, static = true, body = """
+                    const-string v0, "about"
+                    return-void
+                """),
+                // Takes the menu, but no label: not a handler.
+                method(helper, "A0J", listOf(dismiss, helper), "V", 2, static = true, body = "return-void"),
+            ),
+        )
+        val otherMenu = classDef(other, listOf(builder(other)), listOf(ImmutableField(other, "story", REEL_ITEM, AccessFlags.PUBLIC.value, null, null, null)))
+        val mediaGetters = listOf(
+            "AAh" to ("video_versions" to "Ljava/util/List;"),
+            "A8P" to ("video_dash_manifest" to "Ljava/lang/String;"),
+            "A3Q" to ("user" to USER),
+            "A6v" to ("taken_at" to "Ljava/lang/Long;"),
+            "A3F" to ("image_versions2" to IMAGE_INFO),
+        ).plus(if (leaveOutMusic) emptyList() else listOf("A5d" to ("is_story_image_with_music" to "Ljava/lang/Boolean;")))
+            .plus(if (leaveOutPostedType) emptyList() else listOf("A6P" to ("original_media_type" to "Ljava/lang/Integer;")))
+            .plus(if (leaveOutAltText) emptyList() else listOf("A72" to ("accessibility_caption" to "Ljava/lang/String;")))
+            .map { (name, field) -> getter(MEDIA, name, field.first, field.second) } +
+            method(MEDIA, "getId", emptyList(), "Ljava/lang/String;", 1, static = false, body = """
+                const/4 v0, 0x0
+                return-object v0
+            """)
+        val versionGetters = listOf("getUrl" to ("url" to "Ljava/lang/String;"), "DvO" to ("width" to "Ljava/lang/Integer;"),
+            "CK7" to ("height" to "Ljava/lang/Integer;"))
+        val imageGetters = if (leaveOutCandidates) emptyList() else listOf("Bd1" to ("candidates" to "Ljava/util/List;"))
+        return listOf(
+            menu, otherMenu, oldDialog,
+            classDef(MEDIA, mediaGetters),
+            classDef(USER, listOf(getter(USER, "A89", "username", "Ljava/lang/String;"))),
+            anInterface(VIDEO_VERSION, versionGetters.map { it.first to it.second.second }),
+            classDef(PANDO_VIDEO_VERSION, versionGetters.map { (name, field) -> getter(PANDO_VIDEO_VERSION, name, field.first, field.second) }),
+            anInterface(IMAGE_INFO, imageGetters.map { it.first to it.second.second }),
+            classDef(PANDO_IMAGE_INFO, imageGetters.map { (name, field) -> getter(PANDO_IMAGE_INFO, name, field.first, field.second) }),
+            anInterface(IMAGE_URL, listOf("getUrl" to "Ljava/lang/String;", "getWidth" to "I", "getHeight" to "I")),
+            ExtensionDex.classDef(INSTAGRAM_MEDIA),
+        )
+    }
+
+    private fun anInterface(type: String, methods: List<Pair<String, String>>): ClassDef = ImmutableClassDef(
+        type, AccessFlags.PUBLIC.value or AccessFlags.INTERFACE.value or AccessFlags.ABSTRACT.value,
+        "Ljava/lang/Object;", null, null, null, null,
+        methods.map { (name, returns) ->
+            ImmutableMethod(type, name, emptyList(), returns, AccessFlags.PUBLIC.value or AccessFlags.ABSTRACT.value, null, null, null)
+        },
+    )
+
+    private fun getter(owner: String, name: String, field: String, returns: String) =
+        method(owner, name, emptyList(), returns, 2, static = false, body = """
+            const v0, ${field.hashCode()}
+            const/4 v0, 0x0
+            return-object v0
+        """)
+
+    private fun method(owner: String, name: String, parameters: List<String>, returns: String, registers: Int, static: Boolean, body: String): Method {
+        val flags = AccessFlags.PUBLIC.value or (if (static) AccessFlags.STATIC.value else 0)
+        val mutable = MutableMethod(
+            ImmutableMethod(
+                owner, name, parameters.map { ImmutableMethodParameter(it, null, null) }, returns, flags, null, null,
+                ImmutableMethodImplementation(registers, emptyList(), null, null),
+            ),
+        )
+        mutable.addInstructionsWithLabels(0, body.trimIndent())
+        return ImmutableMethod.of(mutable)
+    }
+
+    private fun classDef(type: String, methods: List<Method>, fields: List<ImmutableField> = emptyList()): ClassDef =
+        ImmutableClassDef(type, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null, fields, methods)
+}

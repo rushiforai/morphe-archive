@@ -23,22 +23,21 @@ public final class ControlsLayout {
     }
 
     /**
-     * The song pill goes right after the player's own pills (uptime, viewers), as one more of them, when it fits
-     * before the row's next button; otherwise (a narrow player, a long problem text) on a line of its own just
-     * above them, as wide as the controls allow.
+     * The song pill goes right after the player's own pills (uptime, viewers), as one more of them, whatever it
+     * says (a problem too: its words are cut short to the room there, the Options have them whole). Only when the
+     * row has not even {@code minimum} left (a narrow player) does it go on a line of its own just above them.
      *
      * @param statsLeft,statsTop,statsRight,statsHeight the player's own pills
      * @param gap                                       the space the player leaves between its pills
      * @param nextLeft                                  the left edge of the next control in that row
      * @param controlsRight                             the right edge of the controls
-     * @param wanted                                    the pill's width with its whole text
-     * @param ownLine                                   put it on its own line whether it fits or not
+     * @param minimum                                   the narrowest the pill may be
      */
     public static Pill pill(int statsLeft, int statsTop, int statsRight, int statsHeight, int gap, int nextLeft,
-                            int controlsRight, int wanted, boolean ownLine) {
+                            int controlsRight, int minimum) {
         int left = statsRight + gap;
         int room = Math.min(nextLeft, controlsRight) - gap - left;
-        if (!ownLine && wanted <= room) return new Pill(left, statsTop, room, true);
+        if (room >= minimum) return new Pill(left, statsTop, room, true);
         return new Pill(statsLeft, statsTop - gap - statsHeight, Math.max(0, controlsRight - gap - statsLeft), false);
     }
 

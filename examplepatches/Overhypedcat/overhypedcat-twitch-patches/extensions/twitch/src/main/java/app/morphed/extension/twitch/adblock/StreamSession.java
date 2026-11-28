@@ -126,7 +126,7 @@ final class StreamSession {
      * Ends breaks of qualities the player has left (no poll for a while), for example when it
      * switched quality during an ad. Returns true if that ended the break as a whole.
      */
-    boolean endLeftBreaks(long now) {
+    boolean endLeftBreaks(long now, String url) {
         boolean ended = false;
         boolean stillInBreak = false;
         for (QualityState state : qualities.values()) {
@@ -140,7 +140,7 @@ final class StreamSession {
             }
         }
         if (!ended || stillInBreak) return false;
-        resetAfterBreak();
+        resetAfterBreak(UrlKey.of(variantUrlFor(url)), now);
         return true;
     }
 
@@ -162,14 +162,23 @@ final class StreamSession {
             if (other.swappingAds && now - other.lastPoll < QUALITY_LEFT_MS) return false;
         }
         for (QualityState other : qualities.values()) other.swappingAds = false;
-        resetAfterBreak();
+        resetAfterBreak(key, now);
         return true;
     }
 
-    private void resetAfterBreak() {
+    /** @param polledKey the quality being polled now: its stitcher hands back to Twitch's playlist itself */
+    private void resetAfterBreak(String polledKey, long now) {
         // No quality is in a break any more: the next one starts with a fresh search, and searches
         // still running from this break drop their results.
         breakGeneration.incrementAndGet();
+        // A quality left mid-break would keep the numbers it had then: switched back to later, it would answer
+        // far behind the stream (and hand those back to the shared numbering). Started afresh from it instead.
+        // (one the player still polls finishes its own hand-back)
+        stitchers.entrySet().removeIf(e -> {
+            QualityState polled = qualities.get(e.getKey());
+            return !e.getKey().equals(polledKey) && e.getValue().isRewriting()
+                    && (polled == null || now - polled.lastPoll >= QUALITY_LEFT_MS);
+        });
         backupResults.clear();
         refreshFailures.clear();
         for (Refresh refresh : refreshes.values()) refresh.future.cancel(true);

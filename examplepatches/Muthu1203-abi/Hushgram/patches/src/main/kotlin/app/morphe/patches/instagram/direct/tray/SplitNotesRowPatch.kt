@@ -1,0 +1,104 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.morphe.patches.instagram.direct.tray
+
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.instagram.misc.extension.enableStatus
+import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
+import app.morphe.patches.instagram.misc.extension.requireStatusMethod
+import app.morphe.patches.instagram.misc.flags.FlagLoad
+import app.morphe.patches.instagram.misc.flags.answerFlagLoads
+import app.morphe.patches.instagram.misc.flags.findFlagLoads
+import app.morphe.patches.instagram.misc.settings.settingsPatch
+import app.morphe.patches.shared.compat.AppCompatibilities
+
+private const val PATCH = "Split the notes row"
+internal const val SPLIT_NOTES_ROW_STATUS = "splitNotesRow"
+internal const val SPLIT_NOTES_ROW = "$EXTENSION_PACKAGE/direct/SplitNotesRow;->split(I)Z"
+
+/**
+ * The server test behind the split top of your messages on 456 (0x8115d300007550 on 455, 0x8115f000007436 on 454): Instants, Notes and Stories as
+ * three stacks instead of one row of notes. It's read four times, each as a yes or no: when your
+ * messages open (a fragment's onCreate, which picks the split row's maker over the old row's),
+ * in the notes row's constructor, and in two places that get the row's contents ready.
+ */
+// 457 moved it from 456's 0x8115ae0000761e.
+internal const val SPLIT_NOTES_ROW_FLAG = 0x81158300007669L
+
+internal const val SPLIT_NOTES_STORIES = "$EXTENSION_PACKAGE/direct/SplitNotesRow;->storiesOff(I)Z"
+
+/**
+ * A second server test, on 456 (0x8115d3000e755d on 455, 0x8115f0000e7443 on 454), that leaves the Stories stack out of the
+ * split row (#717): read once where the row's stacks get registered (a yes skips Stories) and once
+ * on the way into your messages (a yes skips loading the stories it shows). Accounts in the split
+ * test with this one on see only Instants and Notes.
+ */
+// 457 moved it from 456's 0x8115ae000e762b.
+internal const val SPLIT_NOTES_STORIES_OFF_FLAG = 0x811583000e7676L
+
+/** The read that picks the split row when your messages open: an onCreate taking a Bundle. */
+private val INBOX_OPEN = listOf("Landroid/os/Bundle;")
+
+/**
+ * Split the notes row (#558). Instagram already draws the split row for the accounts in its test,
+ * so the patch only answers the test's reads through [SPLIT_NOTES_ROW]: yes while the switch is on,
+ * Instagram's own answer otherwise.
+ */
+@Suppress("unused")
+val splitNotesRowPatch = bytecodePatch(
+    name = "Split the notes row",
+    description = "Splits the row of notes at the top of your messages into three stacks, Instants, Notes and " +
+        "Stories, the layout Instagram is trying out. It takes a restart. Starts off. Turn it on in HushGram " +
+        "settings > Messages.",
+    default = true,
+) {
+    category("Messages")
+    dependsOn(settingsPatch, instagramExtensionPatch)
+    compatibleWith(*AppCompatibilities.instagram())
+
+    execute {
+        requireStatusMethod(SPLIT_NOTES_ROW_STATUS)
+        splitNotesRow()
+        enableStatus(SPLIT_NOTES_ROW_STATUS)
+    }
+}
+
+/**
+ * Answers every read of [SPLIT_NOTES_ROW_FLAG] through [SPLIT_NOTES_ROW], and every read of
+ * [SPLIT_NOTES_STORIES_OFF_FLAG] through [SPLIT_NOTES_STORIES]. A build without the second test
+ * keeps the split row as it is.
+ */
+internal fun BytecodePatchContext.splitNotesRow() {
+    answerFlagLoads(findSplitNotesRow().map { it to SPLIT_NOTES_ROW } + findSplitNotesStories().map { it to SPLIT_NOTES_STORIES })
+}
+
+/** Every read of [SPLIT_NOTES_STORIES_OFF_FLAG], none shared with another flag, or none at all. */
+internal fun BytecodePatchContext.findSplitNotesStories(): List<FlagLoad> {
+    val reads = findFlagLoads(PATCH, SPLIT_NOTES_STORIES_OFF_FLAG, "Z")
+    reads.firstOrNull { it.shared }?.let {
+        refuse("the read of ${SPLIT_NOTES_STORIES_OFF_FLAG.toString(16)} in ${it.type}->${it.name} is shared with another flag")
+    }
+    return reads
+}
+
+private fun refuse(detail: String): Nothing = throw PatchException("$PATCH: $detail")
+
+/**
+ * Every read of [SPLIT_NOTES_ROW_FLAG], each its own (not shared with another flag), one of them
+ * the onCreate that opens your messages. Fails before anything changes when that isn't so, since
+ * that's an update this patch hasn't seen.
+ */
+internal fun BytecodePatchContext.findSplitNotesRow(): List<FlagLoad> {
+    val flag = SPLIT_NOTES_ROW_FLAG.toString(16)
+    val reads = findFlagLoads(PATCH, SPLIT_NOTES_ROW_FLAG, "Z")
+    if (reads.isEmpty()) refuse("nothing reads the split notes row flag $flag")
+    reads.firstOrNull { it.shared }?.let { refuse("the read of $flag in ${it.type}->${it.name} is shared with another flag") }
+    val opens = reads.count { it.name == "onCreate" && it.parameters == INBOX_OPEN && it.returnType == "V" }
+    if (opens != 1) refuse("expected one read of $flag in an onCreate(Bundle), found $opens in ${reads.map { "${it.type}->${it.name}" }}")
+    return reads
+}

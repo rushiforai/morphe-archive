@@ -31,17 +31,41 @@ public final class BindBridge {
     private static final long SURFACE_WINDOW_MS = 200L;
 
     private static boolean announcedFeed;
+    private static int bindLogs = 60;
 
     private BindBridge() {}
+
+    /**
+     * Comment cell bind entry and exit. Marks the surface for the duration of the bind, so the
+     * renderer does not have to walk the stack for every comment: that walk was the comment list's
+     * cost, once per name drawn.
+     */
+    public static void enterComments() {
+        CURRENT_SURFACE.set(Surfaces.COMMENTS);
+    }
+
+    public static void leaveComments() {
+        CURRENT_SURFACE.remove();
+    }
 
     /** Feed binder entry — the one place the item and its author are both in hand. */
     public static void onBind(Object videoItemParams) {
         if (!announcedFeed) {
             announcedFeed = true;
-            Debug.print("feed bind hook fired");
+            Debug.mark("first feed bind");
+            Debug.print("feed bind hook fired" + Debug.by(4));
         }
         markSurface(Surfaces.FEED);
         captureItem(videoItemParams);
+        // One line per bind: the same item bound twice in a row is what a re-render is, and this is
+        // the only place it can be seen.
+        if (bindLogs-- > 0) {
+            Object aweme = Reflect.property(videoItemParams, "getAweme", "mAweme");
+            Object author = Reflect.property(aweme, "getAuthor", "author");
+            Debug.print("feed bind @" + RegionSource.handleOf(author)
+                    + " aid=" + Reflect.string(aweme, "getAid", "aid")
+                    + " pos=" + Reflect.property(videoItemParams, "getCurrentPosition", "currentPosition") + Debug.by(4));
+        }
     }
 
     /** Secondary capture: any other place that touches the item's region. */
@@ -68,6 +92,10 @@ public final class BindBridge {
             Object author = Reflect.property(aweme, "getAuthor", "author");
             if (author == null) return;
             RegionSource.remember(RegionSource.handleOf(author), RegionSource.accountRegion(author));
+            // The author is the one user a video carries in full, and a comment made by that
+            // author can later be recognised by uid even when its own payload omits the region.
+            RegionSource.rememberAuthor(
+                    Reflect.string(author, "getUid", "uid"), RegionSource.forAweme(aweme));
         } catch (Throwable ignored) {
         }
     }

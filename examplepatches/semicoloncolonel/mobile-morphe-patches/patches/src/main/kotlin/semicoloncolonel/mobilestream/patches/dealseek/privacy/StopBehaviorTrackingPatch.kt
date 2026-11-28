@@ -1,7 +1,7 @@
 package semicoloncolonel.mobilestream.patches.dealseek.privacy
 
+import semicoloncolonel.mobilestream.patches.shared.misc.isOptionOn
 import app.morphe.patcher.patch.bytecodePatch
-import semicoloncolonel.mobilestream.patches.dealseek.shared.Constants
 import semicoloncolonel.mobilestream.patches.shared.misc.filterJsRequests
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -28,19 +28,12 @@ import semicoloncolonel.mobilestream.patches.shared.misc.filterJsRequests
 private const val BEHAVIOR_BLOCKER =
     "Lsemicoloncolonel/mobilestream/extension/dealseek/privacy/BehaviorBlocker;"
 
-@Suppress("unused")
-val stopBehaviorTrackingPatch = bytecodePatch(
-    name = "Stop behavioral tracking",
-    description = "Stops the app from reporting the deals you view and click, which feeds " +
-        "personalized ranking and your viewed-deal history. Does not delete history already saved.",
-    default = false,
-) {
-    category("Privacy")
-    compatibleWith(Constants.COMPATIBILITY)
-
+// Part of blockAnalyticsPatch: runs only when its "behavioralTracking" option is on.
+internal val stopBehaviorTrackingPatch = bytecodePatch {
     extendWith("extensions/extension.mpe")
 
     execute {
+        if (!isOptionOn(blockAnalyticsPatch, "behavioralTracking")) return@execute
         filterJsRequests(BEHAVIOR_BLOCKER)
     }
 }

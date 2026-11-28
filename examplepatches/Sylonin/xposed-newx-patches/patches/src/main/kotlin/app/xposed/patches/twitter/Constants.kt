@@ -33,6 +33,11 @@ object Constants {
         }
     }
 
+    /** This bundle's version, which the build writes into a resource, or null without one. */
+    fun bundleVersion(): String? = Constants::class.java.getResourceAsStream("/app/xposed/patches/version.txt")
+        ?.use { it.readBytes().decodeToString().trim() }
+        ?.takeIf { Regex("\\d+\\.\\d+\\.\\d+[-+.0-9A-Za-z]*").matches(it) }
+
     /** Compares the numbers in two X version names: 12.40.1-prod.01 is 12, 40, 1, 1. */
     private fun compareVersions(a: String, b: String): Int {
         val partsA = versionParts(a)

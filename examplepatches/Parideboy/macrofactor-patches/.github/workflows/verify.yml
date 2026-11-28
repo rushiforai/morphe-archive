@@ -1,0 +1,36 @@
+name: Verify
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Build patches and run tests
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_ACTOR: ${{ github.actor }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      # ubuntu-latest images ship the Android SDK; the extension modules are Android libraries
+      # and :patches:buildAndroid builds them, so ANDROID_HOME is all the build needs.
+
+      - name: Verify
+        run: ./gradlew :patches:buildAndroid :extensions:macrofactor:test --no-daemon

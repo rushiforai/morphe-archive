@@ -34,6 +34,8 @@ public final class Features {
         public final boolean defaultOn;
         /** What the switch does in English, or an empty string when the title says it. */
         public final String description;
+        /** The English header it is listed under within its section, or an empty string. */
+        public final String group;
 
         Feature(String[] fields) {
             id = fields[0];
@@ -43,6 +45,7 @@ public final class Features {
             restart = Boolean.parseBoolean(fields[4]);
             defaultOn = Boolean.parseBoolean(fields[5]);
             description = fields[6];
+            group = fields[7];
         }
     }
 
@@ -58,7 +61,7 @@ public final class Features {
 
     /**
      * Rewritten at patch time: one line per feature, its fields separated by tabs (id, title, section, dependsOn,
-     * restart, default, description).
+     * restart, default, description, group).
      */
     static String registry() {
         return "";
@@ -79,7 +82,7 @@ public final class Features {
             Map<String, Feature> ids = new HashMap<>();
             for (String line : registry().split("\n")) {
                 String[] fields = line.split("\t", -1);
-                if (fields.length != 7) continue;
+                if (fields.length != 8) continue;
                 Feature feature = new Feature(fields);
                 list.add(feature);
                 ids.put(feature.id, feature);
@@ -114,6 +117,13 @@ public final class Features {
         } catch (RuntimeException failure) {
             return false;
         }
+    }
+
+    /** Whether a change of a switch applies only after the app restarts; true for an id that is not a feature. */
+    public static boolean needsRestart(String id) {
+        all();
+        Feature feature = byId.get(id);
+        return feature == null || feature.restart;
     }
 
     /** Whether a switch is on, whatever its dependency says; its default until the user changes it. */

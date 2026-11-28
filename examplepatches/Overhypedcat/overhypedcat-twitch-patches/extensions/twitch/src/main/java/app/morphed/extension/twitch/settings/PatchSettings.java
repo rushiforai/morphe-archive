@@ -82,6 +82,12 @@ public final class PatchSettings {
         if (now != before) tell(SONG_REMOVAL, now);
     }
 
+    /** The channel being watched (its name), or null when it's a past broadcast or nothing. */
+    public static String watchingChannel() {
+        String stream = watching;
+        return stream != null && stream.startsWith("channel:") ? stream.substring("channel:".length()) : null;
+    }
+
     /** Whether a past broadcast is being watched (its song removal switch is its own, not its channel's). */
     public static boolean watchingVideo() {
         String stream = watching;

@@ -4,17 +4,21 @@ import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
 import semicoloncolonel.mobilestream.patches.appletv.shared.Constants
 
-// Apple TV Android TV 17.0.2. Every "Coming ..." label for an upcoming title
-// or episode comes from ProductNode.comingSoonData (app.js), which reads only
-// the item's comingSoonDate ("2026-11-11", a UTC date) and shows a weekday
-// ("This Wednesday") or a date. A release at 4:00 PM Pacific on Tuesday is
-// midnight UTC on Wednesday, so it shows as Wednesday.
+// Apple TV Android TV 17.0.2 to 17.0.4. Every "Coming ..." label for an
+// upcoming title or episode comes from ProductNode.comingSoonData (app.js),
+// which reads only the item's comingSoonDate ("2026-11-11", a calendar date
+// with no time zone) and shows a weekday ("This Wednesday") or a date.
 //
 // The item also carries its exact releaseDate (milliseconds), directly or in
-// canonicalMetadata. When that time falls on the comingSoonDate in UTC, the
-// label shows its day and time in the device's time zone instead, such as
-// "Coming Tuesday at 4:00 PM PST", or "Coming Nov 21 at 4:00 PM PST" more than
-// a week out. Otherwise the app's own label is kept. Labels are English.
+// canonicalMetadata. When that time falls on the comingSoonDate in some time
+// zone (UTC-14 to UTC+14), the label shows its day and time in the device's
+// time zone instead, such as "Coming Tuesday at 4:00 PM PST", or "Coming
+// Nov 21 at 4:00 PM PST" more than a week out. Otherwise the app's own label
+// is kept. Labels are English.
+//
+// Until 17.0.3 the time had to fall on the comingSoonDate in UTC. An evening
+// release in the Americas is the next day in UTC (9:00 PM Eastern is 2:00 AM
+// UTC), so most US releases kept the app's label without a time.
 //
 // Over-the-air updates are turned off (see AppZip), so a downloaded diff
 // cannot undo the change. The phone app has no app.zip; its own Show release
@@ -27,8 +31,9 @@ if(typeof r!=="number"&&e.canonicalMetadata)r=e.canonicalMetadata.releaseDate;
 if(typeof r!=="number"||typeof c!=="string"||c.split("-").length!==3)return null;
 if(r<1e12)r*=1000;
 var p=function(n){return(n<10?"0":"")+n};
+var q=c.split("-"),s=Date.UTC(+q[0],q[1]-1,+q[2]);
+if(!(r>=s-504e5&&r<s+1368e5))return null;
 var u=new Date(r);
-if(u.getUTCFullYear()+"-"+p(u.getUTCMonth()+1)+"-"+p(u.getUTCDate())!==c)return null;
 if(r<Date.now()-864e5)return null;
 var D=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 var M=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];

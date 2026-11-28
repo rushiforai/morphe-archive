@@ -16,6 +16,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.traps.Trap;
 import com.shatteredpixel.shatteredpixeldungeon.plants.Plant;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
+import com.watabou.utils.PathFinder;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -616,12 +617,72 @@ public final class FloorEditor {
 		if (level == null) return;
 		for (int i = 0; i < level.length(); i++) {
 			if (level.discoverable[i]) level.mapped[i] = true;
-			if (level.secret[i]) level.discover(i);
 		}
+		uncoverSecrets(level);
 		Dungeon.observe();
 		GameScene.updateFog();
 	}
 
+	/**
+	 * Uncovers every secret door and hidden trap on [level].
+	 */
+	private static void uncoverSecrets(Level level) {
+		for (int i = 0; i < level.length(); i++) {
+			if (level.secret[i]) level.discover(i);
+		}
+	}
+
+	/**
+	 * Shows where every creature on the floor is, as Mind Vision does, without taking any time. It lasts until the game next works out
+	 * what the hero sees, which it does as soon as they act. Unlike Mind Vision, it also shows mimics still in disguise. Objects stay
+	 * hidden.
+	 */
+	static void revealCreatures() {
+		Level level = level();
+		Hero hero = Dungeon.hero;
+		if (level == null || hero == null) return;
+		for (Mob mob : level.mobs.toArray(new Mob[0])) {
+			if (Char.hasProp(mob, Char.Property.OBJECT)) continue;
+			sense(level, mob.pos);
+			if (!hero.mindVisionEnemies.contains(mob)) hero.mindVisionEnemies.add(mob);
+		}
+		afterSensing();
+	}
+
+	/**
+	 * Shows where every item on the floor is, as the game's awareness does, without taking any time. The tiles around each are marked
+	 * explored, so the hero remembers where the items are once the view moves on.
+	 */
+	static void revealItems() {
+		Level level = level();
+		if (level == null || Dungeon.hero == null) return;
+		for (Heap heap : level.heaps.valueList()) {
+			sense(level, heap.pos);
+			heap.seen = true;
+		}
+		afterSensing();
+	}
+
+	/**
+	 * Lets the hero see [cell] and the tiles around it for now, and marks them explored.
+	 */
+	private static void sense(Level level, int cell) {
+		for (int offset : PathFinder.NEIGHBOURS9) {
+			int around = cell + offset;
+			if (around < 0 || around >= level.length()) continue;
+			level.heroFOV[around] = true;
+			level.visited[around] = true;
+		}
+	}
+
+	private static void afterSensing() {
+		GameScene.updateFog();
+		GameScene.afterObserve();
+	}
+
+	/**
+	 * Marks every tile as explored, as if the hero had walked past it, uncovers every secret door and hidden trap, and shows every item.
+	 */
 	static void exploreMap() {
 		Level level = level();
 		if (level == null) return;
@@ -630,6 +691,8 @@ public final class FloorEditor {
 			level.mapped[i] = true;
 			level.visited[i] = true;
 		}
+		uncoverSecrets(level);
+		for (Heap heap : level.heaps.valueList()) heap.seen = true;
 		Dungeon.observe();
 		GameScene.updateFog();
 	}

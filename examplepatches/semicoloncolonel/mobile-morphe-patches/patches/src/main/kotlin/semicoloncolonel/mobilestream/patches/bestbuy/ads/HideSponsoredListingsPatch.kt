@@ -38,6 +38,7 @@ val hideSponsoredListingsPatch = bytecodePatch(
     name = "Hide sponsored listings",
     description = "Turns on Best Buy's own option for search results without sponsored listings.",
 ) {
+    category("Ads")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

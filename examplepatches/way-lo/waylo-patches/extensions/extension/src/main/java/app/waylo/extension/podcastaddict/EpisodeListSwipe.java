@@ -69,8 +69,12 @@ public final class EpisodeListSwipe {
             if (!candidate) return;
 
             ListView listView = (ListView) list;
-            PlaylistSwipeToRemove.onRemoveListenerSet(listView, new Host(fragment, listView));
-            listView.setOnTouchListener(new Touch());
+            Host host = new Host(fragment, listView);
+            PlaylistSwipeToRemove.onRemoveListenerSet(listView, host);
+            // The engine only keeps a weak reference to the host. The touch listener keeps it
+            // alive for as long as the list exists; otherwise it is garbage collected and swipes
+            // stop working a while after the screen opens.
+            listView.setOnTouchListener(new Touch(host));
         } catch (Exception ignored) {
         }
     }
@@ -144,7 +148,13 @@ public final class EpisodeListSwipe {
      * screen is swipeable.
      */
     private static final class Touch implements View.OnTouchListener {
+        @SuppressWarnings({"FieldCanBeLocal", "unused"})
+        private final Host host;
         private boolean active;
+
+        Touch(Host host) {
+            this.host = host;
+        }
 
         @Override
         public boolean onTouch(View view, MotionEvent event) {

@@ -198,8 +198,10 @@
             ".birdy-skip-icon { width: 1.4rem; height: 1.4rem; fill: #ffffff; margin-left: 0.6rem; vertical-align: middle; flex-shrink: 0; }" +
             "[dir='rtl'] .birdy-skip-icon { margin-left: 0; margin-right: 0.6rem; transform: scaleX(-1); }" +
             ".birdy-sb-track-markers { position: fixed; left: 0; top: 0; width: 0; height: 4px; -webkit-transform: translateY(-50%); transform: translateY(-50%);" +
-            " pointer-events: none; z-index: 2147483640; overflow: hidden; border-radius: 2px; display: none; }" +
-            ".birdy-sb-marker { position: absolute; top: 0; bottom: 0; height: 100%; border-radius: 1px; opacity: 0.95; pointer-events: none; }" +
+            " pointer-events: none; z-index: 2147483640; overflow: hidden; border-radius: 9999px; display: none;" +
+            " transition: height 120ms ease, opacity 120ms ease; }" +
+            ".birdy-sb-marker { position: absolute; top: 0; bottom: 0; height: 100%; border-radius: 0; opacity: 0.88;" +
+            " box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22); pointer-events: none; }" +
             ".birdy-setting-prompt-button { outline: none; cursor: pointer; }");
         document.adoptedStyleSheets = document.adoptedStyleSheets.concat([sheet]);
     } catch (e) {}
@@ -277,8 +279,34 @@
         window.removeEventListener("keydown", onPromptKeyDown, true);
     }
 
+    function isVideoPlayerFocused() {
+        if (typeof document === "undefined") return true;
+        try {
+            var hub = document.getElementById("birdytv-settings-hub");
+            if (hub && hub.style && hub.style.display !== "none") return false;
+            var speedDrawer = document.getElementById("birdy-custom-speed-drawer");
+            if (speedDrawer && speedDrawer.style && speedDrawer.style.display !== "none") return false;
+
+            var active = document.activeElement;
+            if (active && active !== document.body && active !== document.documentElement) {
+                if (active.closest) {
+                    if (active.closest("#birdytv-settings-hub, #birdy-custom-speed-drawer, ytlr-popup-container, [role='dialog'], [role='menu'], [role='menuitem'], ytlr-transport-controls-renderer, ytlr-progress-bar, .ytlr-progress-bar, ytlr-button-renderer, [role='button'], [role='slider'], button")) {
+                        return false;
+                    }
+                }
+                var tag = (active.tagName || "").toUpperCase();
+                if (tag === "BUTTON" || tag === "INPUT" || tag === "A") return false;
+            }
+
+            var bar = findProgressBar();
+            if (bar && getBarVisibilityAndOpacity(bar) > 0.15) return false;
+        } catch (e) {}
+        return true;
+    }
+
     function onPromptKeyDown(e) {
         if (!isPromptShowing() || !activePromptSegment) return;
+        if (!isVideoPlayerFocused()) return;
         var code = e.keyCode || e.which;
         if (code === 13 || code === 23 || e.key === "Enter" || e.key === "Select") {
             e.preventDefault();
@@ -313,6 +341,37 @@
         if (icon && prompt.appendChild) prompt.appendChild(icon);
     }
 
+    function syncPromptPosition() {
+        if (!prompt || !isPromptShowing()) return;
+        try {
+            var focused = isVideoPlayerFocused();
+            prompt.style.zIndex = focused ? "2147483647" : "1";
+
+            var videoEl = document.querySelector ? document.querySelector("video") : null;
+            if (videoEl && typeof videoEl.getBoundingClientRect === "function") {
+                var vRect = videoEl.getBoundingClientRect();
+                var winW = window.innerWidth || 1920;
+                var winH = window.innerHeight || 1080;
+                if (vRect && vRect.width > 100 && vRect.height > 100 && vRect.width < winW * 0.92) {
+                    var padX = Math.max(16, Math.round(vRect.width * 0.03));
+                    var padY = Math.max(20, Math.round(vRect.height * 0.06));
+                    if (prompt.dir === "rtl") {
+                        prompt.style.left = Math.max(16, Math.round(vRect.left + padX)) + "px";
+                        prompt.style.right = "auto";
+                    } else {
+                        prompt.style.right = Math.max(16, Math.round(winW - vRect.right + padX)) + "px";
+                        prompt.style.left = "auto";
+                    }
+                    prompt.style.bottom = Math.max(20, Math.round(winH - vRect.bottom + padY)) + "px";
+                } else {
+                    prompt.style.left = "";
+                    prompt.style.right = "";
+                    prompt.style.bottom = "";
+                }
+            }
+        } catch (e) {}
+    }
+
     function showPrompt(s) {
         if (!document.body) return;
         if (!prompt) {
@@ -337,6 +396,7 @@
 
         updatePromptView();
         prompt.className = "birdy-skip-prompt farotv-skip-prompt show";
+        syncPromptPosition();
 
         window.removeEventListener("keydown", onPromptKeyDown, true);
         window.addEventListener("keydown", onPromptKeyDown, true);
@@ -354,15 +414,30 @@
 
     function findProgressBar() {
         if (!document || typeof document.querySelector !== "function") return null;
-        // 1. Direct multi-markers player bar element or inner slider
-        var inner = document.querySelector("ytlr-multi-markers-player-bar-renderer") ||
-                    document.querySelector("[idomkey='multi-markers-player-bar']") ||
-                    document.querySelector("[idomkey='player-bar']") ||
-                    document.querySelector(".ytlr-multi-markers-player-bar-renderer-bar") ||
+        // 1. Prefer the inner visual bar track (avoids outer wrapper padding offset)
+        var inner = document.querySelector(".ytlr-multi-markers-player-bar-renderer-bar") ||
                     document.querySelector(".progress-bar-line") ||
-                    document.querySelector(".ytp-progress-bar-container") ||
                     document.querySelector(".ytp-progress-bar");
         if (inner && inner.tagName !== "VIDEO" && typeof inner.querySelector === "function") return inner;
+
+        var multi = document.querySelector("ytlr-multi-markers-player-bar-renderer") ||
+                    document.querySelector("[idomkey='multi-markers-player-bar']") ||
+                    document.querySelector("[idomkey='player-bar']") ||
+                    document.querySelector(".ytp-progress-bar-container");
+        if (multi && multi.tagName !== "VIDEO" && typeof multi.getBoundingClientRect === "function") {
+            var mRect = multi.getBoundingClientRect();
+            if (multi.children && mRect && mRect.width > 0) {
+                for (var m = 0; m < multi.children.length; m++) {
+                    var mc = multi.children[m];
+                    if (!mc || typeof mc.getBoundingClientRect !== "function") continue;
+                    var mcRect = mc.getBoundingClientRect();
+                    if (mcRect && mcRect.width >= mRect.width * 0.85 && mcRect.height >= 2 && mcRect.height <= 14) {
+                        return mc;
+                    }
+                }
+            }
+            return multi;
+        }
 
         // 2. Look inside ytlr-progress-bar for the middle child (between current time and duration labels)
         var pb = document.querySelector("ytlr-progress-bar, .ytlr-progress-bar");
@@ -474,7 +549,7 @@
                 if (pb && typeof pb.matches === "function" && pb.matches(":focus, :focus-within")) isFocused = true;
             }
         } catch (e) {}
-        var height = isFocused ? 8 : 4;
+        var height = isFocused ? Math.max(8, Math.min(12, Math.round(rect.height * 10) / 10)) : 6;
         var roundedOpacity = Math.round(opacity * 100) / 100;
 
         if (!lastBox.visible) {
@@ -752,14 +827,9 @@
         updateButtonCheckmarks(pane, activeCat.key);
     }
 
-    try {
-        window.addEventListener("focusin", enhanceSettingsPane, true);
-        window.addEventListener("keydown", function () { setTimeout(enhanceSettingsPane, 50); }, true);
-    } catch (e) {}
-
     // ---- main playback tick -------------------------------------------------------------------
     setInterval(function () {
-        enhanceSettingsPane();
+        if (typeof document !== "undefined" && document.hidden) return;
         var id = (feature.enabled() || (seekbarFeature && seekbarFeature.enabled())) ? currentVideoId() : null;
         if (id !== videoId) {
             videoId = id;
@@ -769,7 +839,9 @@
             if (id) load(id);
         }
 
+        if (!videoId) return;
         updateSeekbarMarkers();
+        if (isPromptShowing()) syncPromptPosition();
 
         if (!segments.length || !feature.enabled()) return;
         var video = document.querySelector("video");

@@ -1,6 +1,6 @@
 # Patches
 
-> Generated from `patches-list.json` — **v1.3.0** (`main`) · **31 patches** across **1 app** · back to [README](README.md)
+> Generated from `patches-list.json` — **v1.4.0** (`main`) · **34 patches** across **2 apps** · back to [README](README.md)
 
 ---
 
@@ -41,5 +41,17 @@
 | **Speeding chime** | Plays a chime when your speed passes the speed limit during navigation, as Waze does. Maps itself only turns its speedometer red. When it chimes is chosen in Speeding chime, a row on the account sheet. |
 | **Trim account menu** | Removes Your Timeline, Location sharing, Your data in Maps and Help &amp; feedback from the account sheet. Left out with Add microG-RE support, whose account features need them. |
 | **Zoom controls in navigation** | Adds +, − and reset tiles during turn-by-turn that change the navigation zoom while the camera keeps following the car. |
+
+---
+
+## Waze (com.waze)
+
+**Supported versions:** `5.27.90.900`
+
+| Patch | Details |
+|---|---|
+| **Add microG-RE support for Waze** | Signs in to your Google account through microG-RE (MicroG-RE or ReVanced GmsCore) instead of Google Play services. Not for root installs; for original microG, use Add original microG support for Waze. |
+| **Add original microG support for Waze** | Signs in through original microG on ROMs with signature spoofing. Keeps Waze's own package name; allow signature spoofing for it. |
+| **Waze Mod** | Adds the Waze Mod to Waze: its alert lists, speed signs, HUD link, settings and more. |
 
 ---

@@ -40,6 +40,7 @@ val hideSponsoredListingsPatch = bytecodePatch(
     description = "Asks Lowe's search for results without sponsored products, and turns off " +
         "the sponsored row on product pages.",
 ) {
+    category("Ads")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

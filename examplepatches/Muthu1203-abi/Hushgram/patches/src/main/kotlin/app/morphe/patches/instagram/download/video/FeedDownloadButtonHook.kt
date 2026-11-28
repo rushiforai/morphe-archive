@@ -1,0 +1,784 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.morphe.patches.instagram.download.video
+
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patches.instagram.download.MEDIA
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.instagram.misc.extension.classesCalling
+import app.morphe.patches.instagram.misc.extension.classesLoading
+import app.morphe.patches.instagram.misc.extension.freeLocalsAt
+import app.morphe.patches.instagram.misc.extension.localRegisterCount
+import app.morphe.patches.instagram.misc.extension.parameterRegisterNumber
+import app.morphe.patches.instagram.misc.extension.patchLog
+import app.morphe.patches.instagram.misc.extension.requireLocals
+import app.morphe.patches.instagram.misc.settings.EXTENSION_ROOT
+import app.morphe.patches.instagram.share.findFeedUfiSite
+import app.morphe.util.ControlFlow
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableFieldReference
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
+
+private const val PATCH = "Download any video"
+
+internal const val FEED_BUTTON =
+    "$EXTENSION_PACKAGE/download/FeedDownloadButton;->bind(Landroid/view/View;Ljava/lang/Object;Ljava/lang/Object;Landroid/app/Activity;)V"
+
+/** Feed's inflated Save button in Instagram 457 (`row_feed_button_save`; 0x7f0b3732 in 456, 0x7f0b3727 in 455, 0x7f0b36e5 in 454), the same id in both 457 builds. */
+internal const val SAVE_BUTTON_ID = 0x7f0b3717
+
+private const val BOUNCY = "Lcom/instagram/ui/widget/bouncyufibutton/IgBouncyUfiButtonImageView;"
+private const val ACTIVITY = "Landroid/app/Activity;"
+
+/**
+ * Where a feed post's action row is bound, and what the "Download button on feed posts" hook reads
+ * there: the holder's Save button ([save]), the post the row's state keeps ([media], read from the
+ * parameter at [state]), the feed state at [item] that knows the carousel page on screen, and the
+ * activity the binder keeps ([activity]). [holder] is the parameter that holds the row's views.
+ */
+internal class FeedButtonSite(
+    val type: String,
+    val name: String,
+    val parameters: List<String>,
+    val holder: Int,
+    val state: Int,
+    val item: Int,
+    val save: FieldReference,
+    val media: FieldReference,
+    val activity: FieldReference,
+)
+
+private fun refuse(detail: String): Nothing = throw PatchException("$PATCH: $detail")
+
+/**
+ * Finds the binder Hide the Repost button hooks (the one inflating `reposts_ufi_icon`), then what
+ * the button hook reads in it, all by structure: the holder is the parameter of the class that
+ * keeps the repost icon, its Save button the bouncy field its constructor stores the view
+ * [SAVE_BUTTON_ID] names into, the state the one other parameter holding a [MEDIA] field, the feed
+ * state the one parameter of the type [page] reads the carousel page from, and the activity the
+ * binder's one Activity field. Fails naming what it didn't find exactly once.
+ */
+internal fun BytecodePatchContext.findFeedButtonSite(page: PageIndex): FeedButtonSite {
+    val ufi = try {
+        findFeedUfiSite()
+    } catch (failure: PatchException) {
+        refuse("the Feed action-row binder isn't found (${failure.message})")
+    }
+    val binder = classDefByOrNull(ufi.type) ?: refuse("${ufi.type} is missing")
+    val binders = binder.methods.filter { it.name == ufi.name && it.parameterTypes.map(CharSequence::toString) == ufi.parameters }
+    val method = binders.singleOrNull() ?: refuse("expected one ${ufi.type}->${ufi.name}, found ${binders.size}")
+    if (AccessFlags.STATIC.isSet(method.accessFlags)) refuse("${ufi.type}->${ufi.name} is static")
+    val holderType = ufi.icon.definingClass
+
+    val holders = ufi.parameters.indices.filter { ufi.parameters[it] == holderType }
+    val holder = holders.singleOrNull() ?: refuse("${ufi.type}->${ufi.name} takes the row's holder ${holders.size} times")
+    val holderClass = classDefByOrNull(holderType) ?: refuse("$holderType is missing")
+    val saves = holderClass.methods.flatMap { constructor ->
+        val code = constructor.implementation?.instructions?.toList() ?: return@flatMap emptyList()
+        code.indices.filter { code[it].loadsLiteral(SAVE_BUTTON_ID) }.mapNotNull { code.fieldStoreAfter(it, holderType) }
+    }.distinctBy { it.toString() }
+    val save = saves.singleOrNull() ?: refuse("expected one Save button stored from view $SAVE_BUTTON_ID in $holderType, found ${saves.size}")
+
+    val states = ufi.parameters.indices.filter { index ->
+        index != holder && classDefByOrNull(ufi.parameters[index])?.fields?.count {
+            !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == MEDIA
+        } == 1
+    }
+    val state = states.singleOrNull() ?: refuse("expected one parameter of ${ufi.type}->${ufi.name} holding a $MEDIA, found ${states.size}")
+    val media = classDefBy(ufi.parameters[state]).fields.single { !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == MEDIA }
+
+    val items = ufi.parameters.indices.filter { ufi.parameters[it] == page.index.definingClass }
+    val item = items.singleOrNull() ?: refuse(
+        "expected one parameter of ${ufi.type}->${ufi.name} for the carousel page's feed state ${page.index.definingClass}, found ${items.size}",
+    )
+    if (item == state || item == holder) refuse("${ufi.type}->${ufi.name}'s feed state is also its row state or holder")
+
+    val activities = binder.fields.filter { !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == ACTIVITY }
+    val activity = activities.singleOrNull() ?: refuse("expected one Activity field in ${ufi.type}, found ${activities.size}")
+
+    return FeedButtonSite(
+        ufi.type, ufi.name, ufi.parameters, holder, state, item,
+        save,
+        ImmutableFieldReference(media.definingClass, media.name, media.type),
+        ImmutableFieldReference(activity.definingClass, activity.name, activity.type),
+    )
+}
+
+/**
+ * First thing in the binder, hands [FEED_BUTTON] the holder's Save button, the post, the feed state
+ * and the activity. Nothing is live yet but the parameters, so the four locals it borrows are free;
+ * each parameter is copied with a 16-bit move since its register can be past what a field read
+ * reaches.
+ */
+internal fun BytecodePatchContext.addFeedDownloadButton(site: FeedButtonSite) {
+    val method = mutableClassDefBy(site.type).methods.single {
+        it.name == site.name && it.parameterTypes.map(CharSequence::toString) == site.parameters
+    }
+    method.requireLocals(PATCH, 4)
+    val self = method.localRegisterCount()
+    method.addInstructions(
+        0,
+        """
+            move-object/from16 v0, v${method.parameterRegisterNumber(site.holder)}
+            iget-object v0, v0, ${site.save}
+            move-object/from16 v1, v${method.parameterRegisterNumber(site.state)}
+            iget-object v1, v1, ${site.media}
+            move-object/from16 v2, v${method.parameterRegisterNumber(site.item)}
+            move-object/from16 v3, v$self
+            iget-object v3, v3, ${site.activity}
+            invoke-static { v0, v1, v2, v3 }, $FEED_BUTTON
+        """,
+    )
+}
+
+private fun Instruction.loadsLiteral(value: Int) =
+    this is NarrowLiteralInstruction && opcode == Opcode.CONST && narrowLiteral == value
+
+/** The bouncy field of [holder] stored within a few instructions after the view lookup at [start]. */
+private fun List<Instruction>.fieldStoreAfter(start: Int, holder: String): FieldReference? {
+    for (at in start + 1 until minOf(size, start + 12)) {
+        val instruction = this[at]
+        if (instruction.opcode != Opcode.IPUT_OBJECT || instruction !is TwoRegisterInstruction) continue
+        val field = ((instruction as? ReferenceInstruction)?.reference as? FieldReference) ?: continue
+        if (field.definingClass == holder && field.type == BOUNCY) return field
+    }
+    return null
+}
+
+// The rows Home draws as components (#97).
+
+internal const val LITHO_BUTTON =
+    "$EXTENSION_PACKAGE/download/FeedDownloadButton;->litho(Ljava/util/List;Ljava/lang/Object;Ljava/lang/Object;)V"
+private const val FEED_BUTTON_CLASS = "$EXTENSION_PACKAGE/download/FeedDownloadButton;"
+
+/** The Feed action row's own id (`row_feed_view_group_buttons`, 457, the same in both builds; 0x7f0b3770 in 456, 0x7f0b3765 in 455, 0x7f0b3728 in 454), set on the host that holds the buttons. */
+internal const val ROW_BUTTONS_ID = 0x7f0b3755
+
+private const val OBJECT = "Ljava/lang/Object;"
+private const val CHAR_SEQUENCE_TYPE = "Ljava/lang/CharSequence;"
+private const val INTEGER = "Ljava/lang/Integer;"
+private const val SCALE_TYPE = "Landroid/widget/ImageView\$ScaleType;"
+private const val FUNCTION1 = "Lkotlin/jvm/functions/Function1;"
+private val LISTS = setOf("Ljava/util/AbstractCollection;", "Ljava/util/ArrayList;", "Ljava/util/List;", "Ljava/util/Collection;")
+
+/**
+ * How a component modifier is taken apart and put back together. A modifier is a chain of parts
+ * ([part], an interface): [walk] hands each part to a function in the order they apply, [join]
+ * answers the modifier with one more part at the end, and [empty] is the modifier with none. Each
+ * part answers its kind through [kind], and [saveKinds] are the two kinds Save's id and binder
+ * styles make their parts of: the binder kind (what mounts the view with Instagram's own logic, such
+ * as the view-interaction tracker's Save element) and the common prop kind (id, tap, long press,
+ * selected state). Parts of either kind belong to Save alone.
+ */
+internal class ModifierParts(
+    val walk: MethodReference,
+    val join: MethodReference,
+    val empty: FieldReference,
+    val part: String,
+    val kind: MethodReference,
+    val saveKinds: List<String>,
+)
+
+/**
+ * Where the component-backed Feed row builds its Save button, and what the hook there needs. [at]
+ * is the instruction right after the constructor of Save's icon spec ([specType], built with
+ * [specConstructor]), where [spec] holds that spec, [list] the list of the right-hand buttons the
+ * spec's button is about to join, and [state] the row's state ([stateType]).
+ *
+ * The spec keeps its modifier ([modifier], of [modifierType]), scale type, default color and flag.
+ * The styles [id], [click], [longClick] and [description] are the calls Save's own modifier is
+ * built with, found by where they sit around Save's id. [parts] takes Save's modifier apart so the
+ * Download icon keeps only its size, padding and placement.
+ */
+internal class LithoSaveSite(
+    val type: String,
+    val name: String,
+    val parameters: List<String>,
+    val at: Int,
+    val list: Int,
+    val spec: Int,
+    val state: Int,
+    val specType: String,
+    val specConstructor: MethodReference,
+    val modifierType: String,
+    val modifier: FieldReference,
+    val scale: FieldReference,
+    val color: FieldReference,
+    val flag: FieldReference,
+    val id: MethodReference,
+    val click: MethodReference,
+    val longClick: MethodReference,
+    val description: MethodReference,
+    val stateType: String,
+    val media: FieldReference,
+    val item: FieldReference,
+    val parts: ModifierParts,
+)
+
+private fun Instruction.calls(): MethodReference? =
+    (this as? ReferenceInstruction)?.reference as? MethodReference
+
+private fun MethodReference.takes(vararg types: String) = parameterTypes.map(CharSequence::toString) == types.toList()
+
+private fun Instruction.writes(register: Int): Boolean =
+    opcode.setsRegister() && this is OneRegisterInstruction &&
+        (registerA == register || (opcode.setsWideRegister() && registerA + 1 == register))
+
+/**
+ * Finds the one method that composes the Feed action row ([ROW_BUTTONS_ID]) with its Save button
+ * ([SAVE_BUTTON_ID]) as a component, and in it Save's icon spec: the constructor taking a scale
+ * type, a modifier, an Integer, two ints and a flag, right after the modifier is given Save's id.
+ * What differs in a build is found by that shape, and the registers the hook reads are checked to
+ * keep their value up to the hook. Fails naming what it didn't find.
+ */
+internal fun BytecodePatchContext.findLithoSaveSite(button: FeedButtonSite, page: PageIndex): LithoSaveSite {
+    val stateType = button.media.definingClass
+    val saveBuilders = saveCandidates(stateType).filter { !it.type.startsWith(EXTENSION_ROOT) }.flatMap { classDef ->
+        classDef.methods.filter { method ->
+            val code = method.implementation?.instructions?.toList() ?: return@filter false
+            !AccessFlags.CONSTRUCTOR.isSet(method.accessFlags) &&
+                method.returnType.startsWith("L") && code.any { it.loadsLiteral(SAVE_BUTTON_ID) }
+        }
+    }
+    // 451 makes the row's buttons and Save's icon spec in one method. 452 splits them: one method
+    // makes Save's spec and answers it, and the method composing the row calls it and adds the answer.
+    val whole = saveBuilders.filter { method -> method.implementation!!.instructions.any { it.loadsLiteral(ROW_BUTTONS_ID) } }
+    val split = whole.isEmpty()
+    val builders = if (split) saveBuilders else whole
+    val builder = builders.singleOrNull()
+        ?: refuse("expected one component row builder loading Save ($SAVE_BUTTON_ID) and the row ($ROW_BUTTONS_ID), found ${builders.size}")
+    val label = "${builder.definingClass}->${builder.name}"
+    val code = builder.implementation!!.instructions.toList()
+
+    val saves = code.indices.filter { code[it].loadsLiteral(SAVE_BUTTON_ID) }
+    val idAt = saves.singleOrNull() ?: refuse("$label loads Save's id ${saves.size} times")
+    val idRegister = (code[idAt] as OneRegisterInstruction).registerA
+    val idCall = (idAt + 1..minOf(code.lastIndex, idAt + 3)).firstOrNull { at ->
+        val call = code[at].calls()
+        call != null && code[at].opcode == Opcode.INVOKE_STATIC && call.returnType.startsWith("L") &&
+            call.takes(call.returnType, "I") && (code[at] as FiveRegisterInstruction).let {
+                it.registerCount == 2 && it.registerD == idRegister
+            }
+    } ?: refuse("$label gives Save's id to no modifier style")
+    val idStyle = code[idCall].calls()!!
+    val modifierType = idStyle.returnType
+
+    val constructorAt = (idCall + 1 until code.size).firstOrNull { at ->
+        val call = code[at].calls()
+        call != null && (code[at].opcode == Opcode.INVOKE_DIRECT || code[at].opcode == Opcode.INVOKE_DIRECT_RANGE) &&
+            call.name == "<init>" && call.takes(SCALE_TYPE, modifierType, INTEGER, "I", "I", "Z")
+    } ?: refuse("$label builds no icon spec (scale type, modifier, Integer, two ints, flag) after Save's id")
+    val constructor = code[constructorAt].calls()!!
+    val specType = constructor.definingClass
+    val spec = when (val instruction = code[constructorAt]) {
+        is RegisterRangeInstruction -> instruction.startRegister
+        is FiveRegisterInstruction -> instruction.registerC
+        else -> refuse("$label's icon spec constructor has no receiver")
+    }
+
+    val functionStyles = (idCall + 1 until constructorAt).mapNotNull { at ->
+        code[at].calls()?.takeIf {
+            code[at].opcode == Opcode.INVOKE_STATIC && it.returnType == modifierType && it.takes(modifierType, FUNCTION1)
+        }
+    }
+    if (functionStyles.size != 2) {
+        refuse("expected a tap style and a long press style between Save's id and its icon in $label, found ${functionStyles.size}")
+    }
+    val descriptions = (maxOf(0, idAt - 30) until idAt).mapNotNull { at ->
+        code[at].calls()?.takeIf {
+            code[at].opcode == Opcode.INVOKE_STATIC && it.returnType == modifierType && it.takes(modifierType, CHAR_SEQUENCE_TYPE)
+        }
+    }
+    val description = descriptions.lastOrNull() ?: refuse("$label gives Save no description style before its id")
+    // The binder style registering Save's view with the view-interaction tracker, the first static
+    // style after the id taking the modifier and more besides.
+    val binder = (idCall + 1 until constructorAt).firstNotNullOfOrNull { at ->
+        code[at].calls()?.takeIf {
+            code[at].opcode in setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE) && it.returnType == modifierType &&
+                modifierType in it.parameters() && it.parameterTypes.size > 2
+        }
+    } ?: refuse("$label gives Save no binder style after its id")
+
+    val specClass = classDefByOrNull(specType) ?: refuse("$specType is missing")
+    val constructors = specClass.methods.filter {
+        it.name == "<init>" && it.parameterTypes.map(CharSequence::toString) == constructor.parameterTypes.map(CharSequence::toString)
+    }
+    val specBuilder = constructors.singleOrNull() ?: refuse("expected one $specType constructor, found ${constructors.size}")
+    val stored = specBuilder.implementation!!.instructions.toList()
+    val locals = specBuilder.localRegisterCount()
+    fun kept(parameter: Int, type: String): FieldReference {
+        val fields = stored.filter {
+            (it.opcode == Opcode.IPUT || it.opcode == Opcode.IPUT_OBJECT || it.opcode == Opcode.IPUT_BOOLEAN) &&
+                it is TwoRegisterInstruction && it.registerA == locals + 1 + parameter && it.registerB == locals
+        }.mapNotNull { (it as ReferenceInstruction).reference as? FieldReference }
+            .filter { it.type == type && it.definingClass == specType }
+        return fields.singleOrNull() ?: refuse("expected one field of $specType kept from constructor parameter $parameter, found ${fields.size}")
+    }
+    val scale = kept(0, SCALE_TYPE)
+    val modifier = kept(1, modifierType)
+    kept(2, INTEGER)
+    val drawable = kept(3, "I")
+    val color = kept(4, "I")
+    val flag = kept(5, "Z")
+    if (drawable == color) refuse("$specType keeps its drawable and its color in one field")
+
+    val hook = if (split) {
+        splitHook(builder, stateType)
+    } else {
+        wholeHook(builder, label, code, idAt, constructorAt, spec, stateType)
+    }
+
+    val stateClass = classDefByOrNull(stateType) ?: refuse("$stateType is missing")
+    val items = stateClass.fields.filter { !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == page.index.definingClass }
+    val item = items.singleOrNull()
+        ?: refuse("expected one ${page.index.definingClass} field in $stateType for the carousel page's feed state, found ${items.size}")
+
+    return LithoSaveSite(
+        hook.type, hook.name, hook.parameters, hook.at, hook.list, hook.spec, hook.state,
+        specType, constructor, modifierType, modifier, scale, color, flag,
+        idStyle, functionStyles[0], functionStyles[1], description,
+        stateType, button.media, ImmutableFieldReference(item.definingClass, item.name, item.type),
+        findModifierParts(modifierType, idStyle, binder),
+    )
+}
+
+/** Where the hook goes: [type]'s [name] at instruction [at], with the button list, Save's spec and the row state in these registers. */
+private class HookPoint(
+    val type: String,
+    val name: String,
+    val parameters: List<String>,
+    val at: Int,
+    val list: Int,
+    val spec: Int,
+    val state: Int,
+)
+
+/** 451: right after the icon spec is made, in the method that also adds it to the list. */
+private fun wholeHook(
+    builder: Method,
+    label: String,
+    code: List<Instruction>,
+    idAt: Int,
+    constructorAt: Int,
+    spec: Int,
+    stateType: String,
+): HookPoint {
+    val addAt = (constructorAt + 1 until minOf(code.size, constructorAt + 40)).firstOrNull { at ->
+        val call = code[at].calls()
+        call != null && (code[at].opcode == Opcode.INVOKE_VIRTUAL || code[at].opcode == Opcode.INVOKE_INTERFACE) &&
+            call.name == "add" && call.definingClass in LISTS && call.returnType == "Z" && call.takes(OBJECT)
+    } ?: refuse("$label adds Save's button to no list after its icon spec")
+    val list = (code[addAt] as FiveRegisterInstruction).registerC
+    for (at in constructorAt + 1 until addAt) {
+        if (code[at].writes(list)) refuse("$label changes the button list between Save's icon spec and its add")
+    }
+    val at = constructorAt + 1
+    val flow = ControlFlow.of(builder)
+    if (flow.normal.indices.any { from -> from != constructorAt && at in flow.normal[from] }) {
+        refuse("$label is branched to right after Save's icon spec")
+    }
+
+    val castAt = code.indices.firstOrNull { index ->
+        index < idAt && code[index].opcode == Opcode.CHECK_CAST &&
+            ((code[index] as ReferenceInstruction).reference as? TypeReference)?.type == stateType
+    } ?: refuse("$label never narrows to the row state $stateType before Save")
+    val state = (code[castAt] as OneRegisterInstruction).registerA
+    for (index in castAt + 1..constructorAt) {
+        val instruction = code[index]
+        val narrowsAgain = instruction.opcode == Opcode.CHECK_CAST && (instruction as OneRegisterInstruction).registerA == state &&
+            ((instruction as ReferenceInstruction).reference as? TypeReference)?.type == stateType
+        if (!narrowsAgain && instruction.writes(state)) {
+            refuse("$label puts something else in the row state's register v$state before Save's icon spec")
+        }
+    }
+    if (list == spec || list == state || spec == state) refuse("$label keeps the list, the spec and the state in one register")
+    return HookPoint(builder.definingClass, builder.name, builder.parameterTypes.map(CharSequence::toString), at, list, spec, state)
+}
+
+/**
+ * 452: right after the one call of [builder], which answers Save's spec, in the one method that
+ * composes the row. The list is the ArrayList made before that call and added to after it, and the
+ * row state is the argument handed to [builder] as its [stateType].
+ */
+private fun BytecodePatchContext.splitHook(builder: Method, stateType: String): HookPoint {
+    val parameters = builder.parameterTypes.map(CharSequence::toString)
+    val callers = (listOf(classDefBy(builder.definingClass)) + classesCalling(builder.definingClass, builder.name)).distinctBy { it.type }.flatMap { classDef ->
+        classDef.methods.filter { method ->
+            val code = method.implementation?.instructions?.toList() ?: return@filter false
+            code.any { it.loadsLiteral(ROW_BUTTONS_ID) } && code.any { instruction ->
+                instruction.calls()?.let { it.definingClass == builder.definingClass && it.name == builder.name && it.parameters() == parameters } == true
+            }
+        }
+    }
+    val caller = callers.singleOrNull()
+        ?: refuse("expected one method composing the row ($ROW_BUTTONS_ID) that calls ${builder.definingClass}->${builder.name}, found ${callers.size}")
+    val label = "${caller.definingClass}->${caller.name}"
+    val code = caller.implementation!!.instructions.toList()
+    val calls = code.indices.filter { at ->
+        code[at].calls()?.let { it.definingClass == builder.definingClass && it.name == builder.name && it.parameters() == parameters } == true
+    }
+    val callAt = calls.singleOrNull() ?: refuse("$label calls Save's spec ${calls.size} times")
+    val result = code.getOrNull(callAt + 1)
+    if (result?.opcode != Opcode.MOVE_RESULT_OBJECT) refuse("$label doesn't keep Save's spec")
+    val spec = (result as OneRegisterInstruction).registerA
+    val arguments = when (val call = code[callAt]) {
+        is RegisterRangeInstruction -> (0 until call.registerCount).map { call.startRegister + it }
+        is FiveRegisterInstruction -> listOf(call.registerC, call.registerD, call.registerE, call.registerF, call.registerG).take(call.registerCount)
+        else -> refuse("$label calls Save's spec by neither a range nor a plain invoke")
+    }
+    val stateParameters = parameters.indices.filter { parameters[it] == stateType }
+    val stateParameter = stateParameters.singleOrNull()
+        ?: refuse("${builder.definingClass}->${builder.name} takes the row state $stateType ${stateParameters.size} times")
+    val state = arguments[stateParameter + if (AccessFlags.STATIC.isSet(builder.accessFlags)) 0 else 1]
+
+    val listAt = (callAt - 1 downTo 0).firstOrNull { at ->
+        val made = code[at]
+        made.opcode == Opcode.NEW_INSTANCE && ((made as ReferenceInstruction).reference as TypeReference).type == "Ljava/util/ArrayList;"
+    } ?: refuse("$label makes no list before Save's spec")
+    val list = (code[listAt] as OneRegisterInstruction).registerA
+    for (at in listAt + 1 until callAt) {
+        if (code[at].writes(list)) refuse("$label changes the button list between making it and Save's spec")
+    }
+    val addAt = (callAt + 2 until minOf(code.size, callAt + 40)).firstOrNull { at ->
+        val called = code[at].calls()
+        called != null && (code[at].opcode == Opcode.INVOKE_VIRTUAL || code[at].opcode == Opcode.INVOKE_INTERFACE) &&
+            called.name == "add" && called.definingClass in LISTS && called.returnType == "Z" && called.takes(OBJECT) &&
+            (code[at] as FiveRegisterInstruction).registerC == list
+    } ?: refuse("$label adds nothing to the button list after Save's spec")
+    for (at in callAt + 2 until addAt) {
+        if (code[at].writes(list)) refuse("$label changes the button list between Save's spec and its add")
+    }
+    val at = callAt + 2
+    val flow = ControlFlow.of(caller)
+    if (flow.normal.indices.any { from -> from != callAt + 1 && at in flow.normal[from] }) {
+        refuse("$label is branched to right after Save's spec")
+    }
+    if (list == spec || list == state || spec == state) refuse("$label keeps the list, the spec and the state in one register")
+    return HookPoint(caller.definingClass, caller.name, caller.parameterTypes.map(CharSequence::toString), at, list, spec, state)
+}
+
+private fun MethodReference.parameters() = parameterTypes.map(CharSequence::toString)
+
+/**
+ * The parts of [modifierType] by shape: its one instance field of an interface type is the part,
+ * its one call taking a Function1 the walk, its one call taking a part and answering a modifier the
+ * join, and its one static field of its own type or a subclass the empty modifier. Save's id style
+ * [idStyle] and binder style [binder] make their parts in two kinds between them, each the part
+ * constructor's first parameter, and the part's
+ * one call that takes nothing and answers a type both kinds implement is the kind. Fails naming
+ * what it didn't find exactly once.
+ */
+internal fun BytecodePatchContext.findModifierParts(modifierType: String, idStyle: MethodReference, binder: MethodReference): ModifierParts {
+    val modifier = classDefByOrNull(modifierType) ?: refuse("$modifierType is missing")
+    fun instance(flags: Int) = !AccessFlags.STATIC.isSet(flags)
+    val partTypes = modifier.fields.filter { instance(it.accessFlags) && it.type != modifierType && it.type.startsWith("L") }.map { it.type }.distinct()
+    val part = partTypes.singleOrNull() ?: refuse("expected one part field in $modifierType, found ${partTypes.size}")
+    val partClass = classDefByOrNull(part) ?: refuse("$part is missing")
+    if (!AccessFlags.INTERFACE.isSet(partClass.accessFlags)) refuse("$modifierType's part $part is not an interface")
+    fun one(what: String, found: List<Method>) =
+        found.singleOrNull() ?: refuse("expected one $what in $modifierType, found ${found.size}")
+    val walk = one("walk over its parts", modifier.methods.filter {
+        instance(it.accessFlags) && it.returnType == "V" && it.parameterTypes.map(CharSequence::toString) == listOf(FUNCTION1)
+    })
+    val join = one("call adding a part", modifier.methods.filter {
+        instance(it.accessFlags) && it.returnType == modifierType && it.parameterTypes.map(CharSequence::toString) == listOf(part)
+    })
+    val empties = modifier.fields.filter {
+        AccessFlags.STATIC.isSet(it.accessFlags) && (it.type == modifierType || classDefByOrNull(it.type)?.superclass == modifierType)
+    }
+    val empty = empties.singleOrNull() ?: refuse("expected one empty $modifierType, found ${empties.size}")
+
+    fun body(style: MethodReference, what: String): Method {
+        val styles = classDefByOrNull(style.definingClass)?.methods?.filter {
+            it.name == style.name && it.returnType == style.returnType && it.parameterTypes.map(CharSequence::toString) == style.parameters()
+        }.orEmpty()
+        return styles.singleOrNull() ?: refuse("expected one $what $style, found ${styles.size}")
+    }
+    /** The kinds of part [style] makes, and with [depth] left, those the modifier styles it calls make. */
+    fun kindsMade(style: Method, depth: Int): List<String> {
+        val calls = style.implementation?.instructions?.toList().orEmpty().mapNotNull { instruction -> instruction.calls()?.let { instruction to it } }
+        val own = calls.mapNotNull { (instruction, call) ->
+            call.takeIf {
+                (instruction.opcode == Opcode.INVOKE_DIRECT || instruction.opcode == Opcode.INVOKE_DIRECT_RANGE) && it.name == "<init>" &&
+                    it.parameterTypes.size == 2 && it.parameterTypes[1].toString() == OBJECT &&
+                    classDefByOrNull(it.definingClass)?.interfaces?.contains(part) == true
+            }?.parameterTypes?.get(0)?.toString()
+        }
+        if (depth == 0) return own
+        return own + calls.filter { (_, call) -> call.name != "<init>" && call.returnType == modifierType }
+            .flatMap { (_, call) -> kindsMade(body(call, "modifier style"), depth - 1) }
+    }
+    // Up to 456 the id style makes its part in either kind, by a server flag. 457's makes only the
+    // common prop kind, and the binder's style makes the binder kind.
+    val kinds = (kindsMade(body(idStyle, "id style"), 0) + kindsMade(body(binder, "binder style"), 1)).distinct()
+    if (kinds.size != 2) refuse("expected Save's id and binder styles to make their parts in two kinds, found ${kinds.size}")
+    val kindClasses = kinds.map { classDefByOrNull(it) ?: refuse("$it is missing") }
+    val getters = partClass.methods.filter { getter ->
+        instance(getter.accessFlags) && getter.parameterTypes.isEmpty() && kindClasses.all { getter.returnType in it.interfaces }
+    }
+    val kind = getters.singleOrNull() ?: refuse("expected one call on $part answering its kind, found ${getters.size}")
+
+    fun reference(method: Method) =
+        ImmutableMethodReference(method.definingClass, method.name, method.parameterTypes.map(CharSequence::toString), method.returnType)
+    return ModifierParts(
+        reference(walk), reference(join), ImmutableFieldReference(empty.definingClass, empty.name, empty.type),
+        part, reference(kind), kinds,
+    )
+}
+
+/**
+ * Right after Save's icon spec is made, hands [LITHO_BUTTON] the button list, the spec and the row
+ * state, and writes the bridges it asks Instagram's classes through. Three locals nothing reads
+ * afterwards carry the arguments.
+ *
+ * The icon's modifier isn't Save's: Save's carries the binder that registers the view with
+ * Instagram's view-interaction tracker as the post's Save element, and its selected state, which
+ * TalkBack reads out. The extension walks Save's modifier through the part bridges, drops every part
+ * of Save's two kinds and joins the rest (its size, padding and placement) into a new one, and the
+ * icon bridge gives that its own id, tap, long press and description.
+ */
+internal fun BytecodePatchContext.addLithoDownloadButton(site: LithoSaveSite) {
+    val method = mutableClassDefBy(site.type).methods.single {
+        it.name == site.name && it.parameterTypes.map(CharSequence::toString) == site.parameters
+    }
+    val bridges = mutableClassDefBy(FEED_BUTTON_CLASS)
+    fun stub(name: String, vararg parameters: String, returns: String) = bridges.methods.singleOrNull {
+        it.name == name && AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == returns &&
+            it.parameterTypes.map(CharSequence::toString) == parameters.toList()
+    } ?: refuse("$FEED_BUTTON_CLASS has no static $returns $name(${parameters.joinToString()})")
+    val postOf = stub("lithoPost", OBJECT, returns = OBJECT)
+    val itemOf = stub("lithoItem", OBJECT, returns = OBJECT)
+    val iconOf = stub("lithoIcon", OBJECT, OBJECT, OBJECT, OBJECT, "I", CHAR_SEQUENCE_TYPE, "I", returns = OBJECT)
+    val modifierOf = stub("lithoModifier", OBJECT, returns = OBJECT)
+    val partsOf = stub("lithoParts", OBJECT, OBJECT, returns = "V")
+    val emptyOf = stub("lithoEmpty", returns = OBJECT)
+    val joinOf = stub("lithoJoin", OBJECT, OBJECT, returns = OBJECT)
+    val saveOnlyOf = stub("lithoSaveOnly", OBJECT, returns = "I")
+    val (list, spec, state) = method.freeLocalsAt(PATCH, site.at, 3, except = listOf(site.list, site.spec, site.state))
+
+    /** Swaps [stub] for the same method with [locals] locals and [body], every parameter one register wide. */
+    fun rewrite(stub: MutableMethod, locals: Int, body: String) {
+        bridges.methods.remove(stub)
+        bridges.methods.add(
+            ImmutableMethod(
+                stub.definingClass, stub.name, stub.parameters, stub.returnType, stub.accessFlags, stub.annotations,
+                stub.hiddenApiRestrictions, ImmutableMethodImplementation(locals + stub.parameters.size, emptyList(), null, null),
+            ).toMutable().apply { addInstructions(0, body) },
+        )
+    }
+    val parts = site.parts
+
+    method.addInstructions(
+        site.at,
+        """
+            move-object/from16 v$list, v${site.list}
+            move-object/from16 v$spec, v${site.spec}
+            move-object/from16 v$state, v${site.state}
+            invoke-static { v$list, v$spec, v$state }, $LITHO_BUTTON
+        """,
+    )
+    postOf.addInstructions(
+        0,
+        """
+            check-cast p0, ${site.stateType}
+            iget-object p0, p0, ${site.media}
+            return-object p0
+        """,
+    )
+    itemOf.addInstructions(
+        0,
+        """
+            check-cast p0, ${site.stateType}
+            iget-object p0, p0, ${site.item}
+            return-object p0
+        """,
+    )
+    rewrite(
+        modifierOf, 0,
+        """
+            check-cast p0, ${site.specType}
+            iget-object p0, p0, ${site.modifier}
+            return-object p0
+        """,
+    )
+    rewrite(
+        partsOf, 0,
+        """
+            check-cast p0, ${site.modifierType}
+            check-cast p1, $FUNCTION1
+            invoke-virtual { p0, p1 }, ${parts.walk}
+            return-void
+        """,
+    )
+    rewrite(
+        emptyOf, 1,
+        """
+            sget-object v0, ${parts.empty}
+            return-object v0
+        """,
+    )
+    rewrite(
+        joinOf, 0,
+        """
+            check-cast p0, ${site.modifierType}
+            check-cast p1, ${parts.part}
+            invoke-virtual { p0, p1 }, ${parts.join}
+            move-result-object p0
+            return-object p0
+        """,
+    )
+    rewrite(
+        saveOnlyOf, 2,
+        """
+            check-cast p0, ${parts.part}
+            invoke-interface { p0 }, ${parts.kind}
+            move-result-object p0
+            instance-of v0, p0, ${parts.saveKinds[0]}
+            instance-of v1, p0, ${parts.saveKinds[1]}
+            or-int/2addr v0, v1
+            return v0
+        """,
+    )
+    // p0 Save's spec, p1 the icon's own modifier, p2 the tap, p3 the long press, p4 the id,
+    // p5 the description, p6 the drawable.
+    rewrite(
+        iconOf, 8,
+        """
+            check-cast p0, ${site.specType}
+            check-cast p1, ${site.modifierType}
+            invoke-static { p1, p4 }, ${site.id}
+            move-result-object v0
+            check-cast p2, $FUNCTION1
+            invoke-static { v0, p2 }, ${site.click}
+            move-result-object v0
+            check-cast p3, $FUNCTION1
+            invoke-static { v0, p3 }, ${site.longClick}
+            move-result-object v0
+            invoke-static { v0, p5 }, ${site.description}
+            move-result-object v0
+            new-instance v1, ${site.specType}
+            iget-object v2, p0, ${site.scale}
+            move-object v3, v0
+            const/4 v4, 0x0
+            move v5, p6
+            iget v6, p0, ${site.color}
+            iget-boolean v7, p0, ${site.flag}
+            invoke-direct/range { v1 .. v7 }, ${site.specConstructor}
+            return-object v1
+        """,
+    )
+}
+
+// Row icons kept at their own size (#840).
+
+internal const val ICON_BOUNDS =
+    "$EXTENSION_PACKAGE/download/FeedDownloadButton;->iconBounds(Landroid/graphics/drawable/Drawable;Landroid/graphics/Rect;I)Landroid/graphics/Rect;"
+private const val CONTEXT = "Landroid/content/Context;"
+private const val RECT = "Landroid/graphics/Rect;"
+private const val SET_BOUNDS = "Landroid/graphics/drawable/Drawable;->setBounds(Landroid/graphics/Rect;)V"
+
+/**
+ * What draws a component row's icons: [iconType], the drawable Save's icon spec makes when it
+ * renders (from a Context, the theme holder, the tint, the glyph and color ids and the flag), and
+ * [wrapperType], its superclass, whose bounds change hands the glyph inside the whole box it gets.
+ */
+internal class RowIconBounds(val iconType: String, val wrapperType: String)
+
+/**
+ * The drawable behind the icons of the row Save's icon spec [specType] is in, and the bounds change
+ * the glyph's size is kept in. Null, with a warning, when the spec makes no such drawable or its
+ * superclass passes the bounds on some other way: the patch goes in all the same, and the icons
+ * are drawn as Instagram draws them.
+ */
+internal fun BytecodePatchContext.findRowIconBounds(specType: String): RowIconBounds? {
+    fun skip(detail: String): RowIconBounds? {
+        patchLog.warning("$PATCH: $detail. Download button on feed posts goes in, but Instagram's row icons can stretch to fill their boxes.")
+        return null
+    }
+    val spec = classDefByOrNull(specType) ?: return skip("$specType is missing")
+    val made = spec.methods.flatMap { method ->
+        method.implementation?.instructions?.mapNotNull { instruction ->
+            val call = instruction.calls() ?: return@mapNotNull null
+            call.definingClass.takeIf {
+                (instruction.opcode == Opcode.INVOKE_DIRECT || instruction.opcode == Opcode.INVOKE_DIRECT_RANGE) &&
+                    call.name == "<init>" && call.parameters().let { types ->
+                        types.size == 6 && types[0] == CONTEXT && types[2] == INTEGER && types[3] == "I" && types[4] == "I" && types[5] == "Z"
+                    }
+            }
+        } ?: emptyList()
+    }.distinct()
+    val iconType = made.singleOrNull()
+        ?: return skip("expected $specType to make one icon drawable (Context, theme, Integer, two ints, flag), found ${made.size}")
+    val wrapperType = classDefByOrNull(iconType)?.superclass ?: return skip("$iconType is missing")
+    val wrapper = classDefByOrNull(wrapperType) ?: return skip("$wrapperType is missing")
+    val bounds = wrapper.methods.filter { it.name == "onBoundsChange" && it.parameters() == listOf(RECT) && it.returnType == "V" }
+    val method = bounds.singleOrNull() ?: return skip("expected one bounds change in $wrapperType, found ${bounds.size}")
+    val code = method.implementation?.instructions?.toList() ?: return skip("$wrapperType's bounds change has no body")
+    val rect = method.parameterRegisterNumber(0)
+    val handed = code.filter { it.opcode == Opcode.INVOKE_VIRTUAL && it.calls()?.toString() == SET_BOUNDS }
+    if (handed.size != 1 || (handed[0] as FiveRegisterInstruction).registerD != rect) {
+        return skip("$wrapperType's bounds change doesn't hand its glyph the box it gets")
+    }
+    if (method.localRegisterCount() < 1) return skip("$wrapperType's bounds change has no local register")
+    if (rect > 15) return skip("$wrapperType's bounds change keeps its bounds past v15")
+    return RowIconBounds(iconType, wrapperType)
+}
+
+/**
+ * Hands the bounds of every icon [icons] finds through FeedDownloadButton.iconBounds first thing in
+ * its superclass's bounds change, with 1 for one of the row's icons and 0 for any other drawable of
+ * that class. The glyph then gets the box the extension answers. Nothing branches: the call takes
+ * the instance-of answer as an int, and its answer replaces the bounds parameter.
+ */
+internal fun BytecodePatchContext.keepRowIconsAtTheirSize(icons: RowIconBounds) {
+    val method = mutableClassDefBy(icons.wrapperType).methods.single {
+        it.name == "onBoundsChange" && it.parameters() == listOf(RECT) && it.returnType == "V"
+    }
+    method.requireLocals(PATCH, 1)
+    method.addInstructions(
+        0,
+        """
+            instance-of v0, p0, ${icons.iconType}
+            invoke-static { p0, p1, v0 }, $ICON_BOUNDS
+            move-result-object p1
+        """,
+    )
+}
+
+/**
+ * The classes that can load Save's id in a component row: the ones the literal index finds, and
+ * the ones with a method taking the row state. The index misses 452's builder, a private method
+ * of many registers, so the classes are read by their method signatures too.
+ */
+private fun BytecodePatchContext.saveCandidates(stateType: String): List<ClassDef> {
+    val taking = ArrayList<ClassDef>()
+    classDefForEach { classDef ->
+        if (!classDef.type.startsWith(EXTENSION_ROOT) &&
+            classDef.methods.any { method -> method.parameterTypes.any { it.toString() == stateType } }
+        ) {
+            taking += classDef
+        }
+    }
+    return (classesLoading(SAVE_BUTTON_ID.toLong()) + taking).distinctBy { it.type }
+}

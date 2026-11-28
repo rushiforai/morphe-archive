@@ -5,8 +5,18 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.Compatibility
 import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardTargetAdmission
 
-/** The release this tree has audited targets for beyond the generated 18.6.3 projection. */
+/** The releases this tree has audited targets for beyond the generated 18.6.3 projection. */
 internal const val GBOARD_18_8_TARGET = "18.8.0.1022711984-beta-arm64-v8a"
+
+/**
+ * The next upload of the same build number. Its `classes2..4.dex` are byte-identical to
+ * [GBOARD_18_8_TARGET], `classes.dex` keeps the same size, and the class list is the same 42,458
+ * types, so every audited table resolves unchanged and only the advertised target differs.
+ */
+internal const val GBOARD_18_8_1_TARGET = "18.8.1.1022711984-beta-arm64-v8a"
+
+/** Every 18.8-line build the audited target tables have been checked against. */
+internal val GBOARD_18_8_TARGETS = listOf(GBOARD_18_8_TARGET, GBOARD_18_8_1_TARGET)
 
 /**
  * Compatibility for one feature that carries an audited 18.8 target set.
@@ -28,6 +38,9 @@ internal fun gboardCompatibility18_8(): Compatibility = Compatibility(
         )
     } + AppTarget(
         version = GBOARD_18_8_TARGET,
+        isExperimental = false,
+    ) + AppTarget(
+        version = GBOARD_18_8_1_TARGET,
         isExperimental = false,
     ),
 )

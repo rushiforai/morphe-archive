@@ -23,10 +23,9 @@ import app.onlynazril.extension.tiktok.internal.Debug;
  * The custom-font switch, the imported fonts, and the one in use.
  * <p>
  * An imported font is copied into the app's own files directory,
- * where the extension reads it without a permission: the picker is
- * only the way in. The list and the selection live in the same
- * prefs as every other switch, and the selection is what the
- * patch's hook answers the factory with.
+ * where the extension reads it without a permission. The settings
+ * backup carries the file's bytes, gzipped, so a reinstall or another
+ * device gets the face back without the storage surviving by itself.
  * <p>
  * The face is loaded once and cached against the file's
  * timestamp, because the factory is asked for a face on
@@ -39,17 +38,53 @@ public final class CustomFontSettings {
     private static final String KEY_NAMES = "custom_font_names";
     private static final String KEY_SELECTED = "custom_font_selected";
 
-    /** Where imported fonts live: the app's own directory, no permission needed. */
+    /** Where the working copy lives: the app's own directory, no permission needed. */
     private static final String FONTS_DIRECTORY = "fonts";
 
     private static volatile File servedFrom;
     private static volatile long servedStamp;
     private static volatile Typeface served;
 
+    /** The font directory and its listing, resolved once: this path runs on every text render. */
+    private static volatile File cachedDir;
+    private static volatile List<String> cachedNames;
+    private static volatile long cachedAt;
+    private static volatile boolean migrated;
+    private static final long LIST_TTL_MS = 2000L;
+    /** The heaviest font a backup carries; a bigger file stays on its own device. */
+    private static final long MAX_BACKUP_BYTES = 8L * 1024 * 1024;
+
     private CustomFontSettings() {}
 
+    private static volatile Boolean enabledCache;
+
+    /**
+     * Loads the switch off the main thread. The first SharedPreferences read costs a few hundred
+     * milliseconds on a cold start, and the font is asked for during the splash.
+     */
+    public static void warm(Context ctx) {
+        if (ctx == null || enabledCache != null) return;
+        Context app = ctx.getApplicationContext();
+        Thread thread = new Thread(() -> {
+            try {
+                enabledCache = prefs(app).getBoolean(KEY_ENABLED, false);
+                names(app);
+            } catch (Throwable ignored) {
+                enabledCache = Boolean.FALSE;
+            }
+        }, "tiktok-font-warm");
+        thread.setDaemon(true);
+        thread.start();
+    }
+
     public static boolean isEnabled(Context ctx) {
-        return ctx != null && prefs(ctx).getBoolean(KEY_ENABLED, false);
+        if (ctx == null) return false;
+        Boolean cached = enabledCache;
+        if (cached != null) return cached;
+        // Not loaded yet: do not block the render thread for it. The warm thread answers in a few
+        // milliseconds and the faces that follow use it.
+        warm(ctx);
+        return false;
     }
 
     public static boolean isEnabled() {
@@ -57,24 +92,90 @@ public final class CustomFontSettings {
     }
 
     public static void setEnabled(Context ctx, boolean value) {
+        enabledCache = value;
         prefs(ctx).edit().putBoolean(KEY_ENABLED, value).apply();
     }
 
-    /** The imported fonts, the newest first. */
+    /**
+     * The imported fonts the working directory holds, newest first. Read from the directory rather
+     * than prefs, so a font is listed by what is actually here. Fonts an earlier build left under
+     * Android/media are moved in on the first look.
+     */
     public static List<String> names(Context ctx) {
-        List<String> names = new ArrayList<>();
-        JSONArray array = namesArray(prefs(ctx));
-        for (int i = 0; i < array.length(); i++) {
-            String name = array.optString(i, null);
-            if (name != null) names.add(name);
+        if (ctx == null) return new ArrayList<>();
+        long now = System.currentTimeMillis();
+        List<String> cached = cachedNames;
+        if (cached != null && now - cachedAt < LIST_TTL_MS) return new ArrayList<>(cached);
+        if (!migrated) {
+            migrated = true;
+            migrate(ctx);
         }
-        return names;
+        List<String> found = files(ctx);
+        cachedNames = found;
+        cachedAt = now;
+        return new ArrayList<>(found);
+    }
+
+    /** Every font the screen offers: the working directory, newest first. */
+    public static List<String> list(Context ctx) {
+        return names(ctx);
+    }
+
+    /** Whether a name is on the device: a file in the working directory. */
+    public static boolean has(Context ctx, String name) {
+        if (ctx == null || name == null) return false;
+        return new File(fontsDir(ctx), name).isFile();
+    }
+
+    /** Moves the fonts an earlier build wrote under Android/media into the working directory, once. */
+    private static void migrate(Context ctx) {
+        File directory = fontsDir(ctx);
+        File legacy = legacyMediaDir(ctx);
+        File[] old = legacy == null ? null : legacy.listFiles();
+        if (old == null) return;
+        for (File file : old) {
+            if (!isFontName(file.getName())) continue;
+            File target = new File(directory, file.getName());
+            if (target.exists() || !file.renameTo(target)) {
+                try {
+                    copyFile(file, target);
+                } catch (IOException ignored) {
+                    continue;
+                }
+            }
+            deleteQuietly(file);
+        }
+    }
+
+    private static boolean isFontName(String name) {
+        String lower = name.toLowerCase(java.util.Locale.ROOT);
+        return lower.endsWith(".ttf") || lower.endsWith(".otf");
+    }
+
+    private static void copyFile(File source, File target) throws IOException {
+        try (InputStream in = new java.io.FileInputStream(source);
+                FileOutputStream out = new FileOutputStream(target)) {
+            byte[] buffer = new byte[8192];
+            int read;
+            while ((read = in.read(buffer)) > 0) out.write(buffer, 0, read);
+        }
     }
 
     /** The font the feature serves, or null while none picked or the picked one is gone. */
     public static String selected(Context ctx) {
+        List<String> names = names(ctx);
+        if (names.isEmpty()) return null;
         String name = prefs(ctx).getString(KEY_SELECTED, null);
-        return name != null && names(ctx).contains(name) ? name : null;
+        if (name != null && names.contains(name)) return name;
+        // After an install the selection is gone but the files are not: the newest is used.
+        String newest = names.get(0);
+        prefs(ctx).edit().putString(KEY_SELECTED, newest).apply();
+        return newest;
+    }
+
+    /** The stored name, without the newest-file fallback: what a backup should carry. */
+    public static String storedSelection(Context ctx) {
+        return ctx == null ? null : prefs(ctx).getString(KEY_SELECTED, null);
     }
 
     public static void select(Context ctx, String name) {
@@ -82,7 +183,7 @@ public final class CustomFontSettings {
     }
 
     /**
-     * Copies a picked font into the app's files directory and makes it the one in use.
+     * Copies a picked font into the working directory and makes it the one in use.
      * <p>
      * A file that is not a working font is deleted again and leaves the list
      * alone, so a bad pick never disables what was imported before it.
@@ -111,7 +212,57 @@ public final class CustomFontSettings {
         names.add(0, name);
         saveNames(ctx, names);
         select(ctx, name);
+        cachedNames = null;
         return true;
+    }
+
+    /**
+     * Writes font bytes a backup carries into the working directory and lists them again. Answers
+     * the name it was stored under, or null when the bytes are not a working font, in which case
+     * nothing is added.
+     */
+    static String restore(Context ctx, String name, byte[] bytes) {
+        if (ctx == null || name == null || bytes == null || bytes.length == 0) return null;
+        String stored = sanitize(name);
+        if (stored == null) return null;
+        File directory = fontsDir(ctx);
+        if (!directory.isDirectory() && !directory.mkdirs()) return null;
+        File target = new File(directory, stored);
+        try {
+            write(target, bytes);
+        } catch (IOException e) {
+            deleteQuietly(target);
+            return null;
+        }
+        if (load(target) == null) {
+            deleteQuietly(target);
+            return null;
+        }
+        cachedNames = null;
+        return stored;
+    }
+
+    /** An imported font's bytes, for the settings backup. Null when the name is not a file here. */
+    static byte[] bytes(Context ctx, String name) {
+        if (ctx == null || name == null) return null;
+        File file = new File(fontsDir(ctx), name);
+        if (!file.isFile() || file.length() > MAX_BACKUP_BYTES) return null;
+        try (InputStream in = new java.io.FileInputStream(file)) {
+            java.io.ByteArrayOutputStream out =
+                    new java.io.ByteArrayOutputStream((int) file.length());
+            byte[] buffer = new byte[8192];
+            int read;
+            while ((read = in.read(buffer)) > 0) out.write(buffer, 0, read);
+            return out.toByteArray();
+        } catch (IOException | OutOfMemoryError e) {
+            return null;
+        }
+    }
+
+    private static void write(File target, byte[] bytes) throws IOException {
+        try (FileOutputStream out = new FileOutputStream(target)) {
+            out.write(bytes);
+        }
     }
 
     /**
@@ -121,8 +272,12 @@ public final class CustomFontSettings {
     public static void deleteFont(Context ctx, String name) {
         if (ctx == null || name == null) return;
         List<String> names = new ArrayList<>(names(ctx));
-        if (!names.remove(name)) return;
         deleteQuietly(new File(fontsDir(ctx), name));
+        deleteLegacyCopy(ctx, name);
+        if (!names.remove(name)) {
+            refresh();
+            return;
+        }
         saveNames(ctx, names);
         if (name.equals(prefs(ctx).getString(KEY_SELECTED, null))) {
             if (names.isEmpty()) {
@@ -131,6 +286,7 @@ public final class CustomFontSettings {
                 select(ctx, names.get(0));
             }
         }
+        refresh();
     }
 
     /** Removes every imported font and its file, and the selection with them. */
@@ -143,8 +299,41 @@ public final class CustomFontSettings {
                 deleteQuietly(file);
             }
         }
+        // A copy an earlier build left under Android/media would be migrated back in on the next
+        // launch, so it goes with the rest.
+        File legacy = legacyMediaDir(ctx);
+        File[] old = legacy == null ? null : legacy.listFiles();
+        if (old != null) {
+            for (File file : old) {
+                if (isFontName(file.getName())) deleteQuietly(file);
+            }
+        }
         saveNames(ctx, new ArrayList<>());
         prefs(ctx).edit().remove(KEY_SELECTED).apply();
+        refresh();
+    }
+
+    private static void deleteLegacyCopy(Context ctx, String name) {
+        File legacy = legacyMediaDir(ctx);
+        if (legacy != null) deleteQuietly(new File(legacy, name));
+    }
+
+    /** Drops the listing cache, for a caller that just changed the directory. */
+    public static void refresh() {
+        cachedNames = null;
+        cachedAt = 0L;
+    }
+
+    /**
+     * Puts the font feature back to nothing: every imported file, the selection and the switch.
+     * The reset prompt promises the chosen font goes too, and files are not prefs.
+     */
+    public static void reset(Context ctx) {
+        clearFonts(ctx);
+        enabledCache = Boolean.FALSE;
+        served = null;
+        servedFrom = null;
+        servedStamp = 0L;
     }
 
     /**
@@ -227,8 +416,44 @@ public final class CustomFontSettings {
         prefs(ctx).edit().putString(KEY_NAMES, array.toString()).apply();
     }
 
+    /**
+     * The working copy the renderer reads: the app's own files directory, which needs no
+     * permission and is always writable. A settings backup carries the bytes, so the file does
+     * not have to survive an uninstall.
+     */
     private static File fontsDir(Context ctx) {
-        return new File(ctx.getFilesDir(), FONTS_DIRECTORY);
+        File cached = cachedDir;
+        if (cached != null) return cached;
+        File dir = new File(ctx.getFilesDir(), FONTS_DIRECTORY);
+        if (!dir.isDirectory()) dir.mkdirs();
+        cachedDir = dir;
+        Debug.mark("font dir resolved");
+        return dir;
+    }
+
+    /** The directory earlier builds wrote to; read once so its fonts are not stranded. */
+    private static File legacyMediaDir(Context ctx) {
+        try {
+            File root = android.os.Environment.getExternalStorageDirectory();
+            if (root == null) return null;
+            File dir = new File(new File(new File(root, "Android"), "media"),
+                    ctx.getPackageName() + "/" + FONTS_DIRECTORY);
+            return dir.isDirectory() ? dir : null;
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    /** The names of the font files present, newest first. */
+    private static List<String> files(Context ctx) {
+        List<String> found = new ArrayList<>();
+        File[] files = fontsDir(ctx).listFiles();
+        if (files == null) return found;
+        java.util.Arrays.sort(files, (a, b) -> Long.compare(b.lastModified(), a.lastModified()));
+        for (File file : files) {
+            if (isFontName(file.getName())) found.add(file.getName());
+        }
+        return found;
     }
 
     /** The picker's name for the file, without the directory it came from. */
@@ -250,20 +475,25 @@ public final class CustomFontSettings {
     }
 
     /**
-     * Flattens a picked name into one the app's files directory can hold:
-     * a short base name of word characters and a {@code .ttf} or {@code .otf}
-     * extension, which is all the file is ever addressed by.
+     * Flattens a picked name into one the app's files directory can hold. The extension the file
+     * came with is kept as it is: only a name without a font extension gets one, because the
+     * listing and the H5 response both read the extension. Nothing is ever appended twice.
      */
     private static String sanitize(String name) {
         if (name == null) return null;
-        int dot = name.lastIndexOf('.');
-        String base = dot > 0 ? name.substring(0, dot) : name;
-        String extension = dot > 0 ? name.substring(dot).toLowerCase() : ".ttf";
-        base = base.replaceAll("[^\\w\\-.]", "_");
+        String flat = name.replaceAll("[^\\w\\-.]", "_");
+        String lower = flat.toLowerCase(java.util.Locale.ROOT);
+        boolean font = lower.endsWith(".ttf") || lower.endsWith(".otf");
+        String base = font ? flat.substring(0, flat.length() - 4) : flat;
+        if (!font) {
+            // A name with another extension or none: the last dot goes, so "x.woff2" becomes
+            // "x.ttf" rather than "x.woff2.ttf".
+            int dot = base.lastIndexOf('.');
+            if (dot > 0) base = base.substring(0, dot);
+        }
         if (base.isEmpty()) base = "font";
         if (base.length() > 48) base = base.substring(0, 48);
-        if (!extension.equals(".ttf") && !extension.equals(".otf")) extension = ".ttf";
-        return base + extension;
+        return base + (font ? lower.substring(lower.length() - 4) : ".ttf");
     }
 
     private static void copy(Context ctx, Uri uri, File target) throws IOException {

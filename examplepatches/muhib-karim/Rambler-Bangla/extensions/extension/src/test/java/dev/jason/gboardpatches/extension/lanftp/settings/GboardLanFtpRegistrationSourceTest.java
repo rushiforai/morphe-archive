@@ -9,17 +9,14 @@ import java.nio.file.Path;
 
 public final class GboardLanFtpRegistrationSourceTest {
     @Test
-    public void featureIsRegisteredUnderMoreSettings() throws Exception {
+    public void featureIsRegisteredUnderClipboardAndSharing() throws Exception {
         String registry = read("src/main/java/dev/jason/gboardpatches/extension/"
                 + "settings/GboardPatchesSettingsFeatureRegistry.java");
+        String ftp = read("src/main/java/dev/jason/gboardpatches/extension/"
+                + "lanftp/settings/GboardLanFtpSettingsFeature.java");
 
-        Assert.assertTrue(registry.contains("new GboardMoreSettingsGroupFeature(context)"));
-        Assert.assertFalse(registry.contains("new GboardLanFtpSettingsFeature(context)"));
-        String more = read("src/main/java/dev/jason/gboardpatches/extension/"
-                + "settings/GboardMoreSettingsGroupFeature.java");
-        Assert.assertTrue(more.contains("new GboardLanFtpSettingsFeature(context)"));
-        Assert.assertFalse(registry.contains("GboardClipboardFamilySettingsFeature(context), "
-                + "new GboardLanFtpSettingsFeature"));
+        Assert.assertTrue(registry.contains("new GboardLanFtpSettingsFeature(context)"));
+        Assert.assertTrue(ftp.contains("ROOT_SECTION_CLIPBOARD_SHARING"));
     }
 
     @Test
@@ -34,9 +31,9 @@ public final class GboardLanFtpRegistrationSourceTest {
         Assert.assertTrue(availability.contains(
                 "dev.jason.gboardpatches.feature.lan_ftp_server"));
         int clipboard = registry.indexOf("new GboardClipboardSettingsFeature()");
-        int more = registry.indexOf("new GboardMoreSettingsGroupFeature(context)");
+        int ftp = registry.indexOf("new GboardLanFtpSettingsFeature(context)");
         Assert.assertTrue(clipboard >= 0);
-        Assert.assertTrue(clipboard < more);
+        Assert.assertTrue(clipboard < ftp);
         Assert.assertTrue(provider.contains("AUTHORITY_SUFFIX = \".lan_ftp_status\""));
         Assert.assertTrue(provider.contains("context.getPackageName() + AUTHORITY_SUFFIX"));
         Assert.assertFalse(provider.contains("BuildConfig.APPLICATION_ID"));

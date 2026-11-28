@@ -31,6 +31,7 @@ val blockAnalyticsPatch = bytecodePatch(
     description = "Stops Sentry, the Facebook SDK, AppsFlyer, and on-device ad retargeting.",
     default = false,
 ) {
+    category("Privacy")
     compatibleWith(Constants.COMPATIBILITY)
 
     dependsOn(analyticsKillSwitchesPatch)

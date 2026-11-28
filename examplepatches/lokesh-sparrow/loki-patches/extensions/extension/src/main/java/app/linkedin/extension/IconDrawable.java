@@ -159,6 +159,24 @@ public final class IconDrawable extends Drawable {
     /** Set while the bounds change rewrites {@link #scaled}, so the two are never confused. */
     private boolean haveBounds;
 
+    /** The size an ImageView or row view lays this icon out at; -1 (no size) until {@link #sized} is called. */
+    private int size = -1;
+
+    public IconDrawable sized(int pixels) {
+        size = pixels;
+        return this;
+    }
+
+    @Override
+    public int getIntrinsicWidth() {
+        return size;
+    }
+
+    @Override
+    public int getIntrinsicHeight() {
+        return size;
+    }
+
     public IconDrawable(String pathData, int color) {
         PathData.parse(pathData, new PathBuilder(source));
         ink.setColor(color);

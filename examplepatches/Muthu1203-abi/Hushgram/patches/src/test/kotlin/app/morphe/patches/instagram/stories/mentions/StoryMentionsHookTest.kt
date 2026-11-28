@@ -1,0 +1,563 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.morphe.patches.instagram.stories.mentions
+
+import app.morphe.ExtensionDex
+import app.morphe.Fixtures
+import app.morphe.PatchContexts
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patches.instagram.FixtureDex
+import app.morphe.patches.instagram.download.IMAGE_URL
+import app.morphe.patches.instagram.download.INSTAGRAM_MEDIA
+import app.morphe.patches.instagram.download.MEDIA
+import app.morphe.patches.instagram.download.PROFILE_PICTURE_INFO
+import app.morphe.patches.instagram.download.USER
+import app.morphe.patches.instagram.download.accountBridges
+import app.morphe.patches.instagram.media.taptoplay.FRAGMENT_ACTIVITY
+import app.morphe.patches.instagram.media.taptoplay.TOUCH as TAP_CLOCK
+import app.morphe.patches.instagram.stories.autoadvance.STORY_VIEWER
+import app.morphe.patches.instagram.stories.time.STORY_ITEM
+import app.morphe.patches.instagram.stories.zoom.PAUSE_MARK
+import app.morphe.patches.instagram.stories.zoom.RESUME_MARK
+import app.morphe.patches.shared.compat.AppCompatibilities
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
+import com.android.tools.smali.dexlib2.immutable.ImmutableField
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11n
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21c
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21t
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction22c
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction31i
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction3rc
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableFieldReference
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableTypeReference
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+/**
+ * See who a story mentions: both story binders hand the page and its story to StoryMentions.bind
+ * right after putting the story into the page, and the five stubs read the page's media view, the
+ * story's Media, its mentions, each mention's account and the account's full name. A build where
+ * any of it isn't there once fails the patch before anything changes.
+ */
+class StoryMentionsHookTest {
+    private val page = "Lfixture/StoryPage;"
+    private val mention = "Lfixture/MentionSticker;"
+    private val shared = "Lfixture/MentionHolder;"
+    private val otherShared = "Lfixture/MentionHolderToo;"
+    private val mainBinder = "Lfixture/ReelBinder;"
+    private val catchUpBinder = "Lfixture/CatchUpBinder;"
+    private val string = "Ljava/lang/String;"
+    private val public = AccessFlags.PUBLIC.value or AccessFlags.FINAL.value
+
+    private fun method(owner: String, name: String, parameters: List<String>, returns: String, flags: Int, registers: Int, vararg code: Instruction) =
+        ImmutableMethod(
+            owner, name, parameters.map { ImmutableMethodParameter(it, null, null) }, returns, flags, null, null,
+            ImmutableMethodImplementation(registers, code.toList(), null, null),
+        )
+
+    private fun field(owner: String, name: String, type: String, flags: Int = AccessFlags.PUBLIC.value) =
+        ImmutableField(owner, name, type, flags, null, null, null)
+
+    private fun type(
+        owner: String, fields: List<ImmutableField> = emptyList(), methods: List<Method> = emptyList(),
+        flags: Int = AccessFlags.PUBLIC.value, interfaces: List<String>? = null,
+    ) = ImmutableClassDef(owner, flags, "Ljava/lang/Object;", interfaces, null, null, fields, methods)
+
+    /** An interface of [name] declaring one abstract no-arg getter of the account. */
+    private fun holder(name: String, getter: String, flags: Int) = type(
+        name, methods = listOf(ImmutableMethod(name, getter, emptyList(), USER, AccessFlags.PUBLIC.value or AccessFlags.ABSTRACT.value, null, null, null)),
+        flags = flags,
+    )
+
+    /** A getter of [owner] answering [returns] that holds the hash of [field], then loads [classes] by const-class. */
+    private fun getter(owner: String, name: String, returns: String, field: String, vararg classes: String, flags: Int = public) =
+        method(
+            owner, name, emptyList(), returns, flags, 2,
+            ImmutableInstruction31i(Opcode.CONST, 0, field.hashCode()),
+            *classes.map { ImmutableInstruction21c(Opcode.CONST_CLASS, 1, ImmutableTypeReference(it)) }.toTypedArray(),
+            ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0),
+        )
+
+    /**
+     * A binder loading the trace name, reading the story's Media and putting the story into the
+     * page, as 450's do. In registers v0 and v1 its locals, then the page and the story.
+     */
+    private fun binder(owner: String, static: Boolean, puts: Int = 1): ClassDef {
+        val pageRegister = if (static) 2 else 3
+        val itemRegister = pageRegister + 1
+        val code = listOf(
+            ImmutableInstruction21c(Opcode.CONST_STRING, 0, ImmutableStringReference(BIND_MEDIA)),
+            ImmutableInstruction22c(Opcode.IGET_OBJECT, 1, itemRegister, ImmutableFieldReference(STORY_ITEM, "A17", MEDIA)),
+        ) + List(puts) {
+            ImmutableInstruction22c(Opcode.IPUT_OBJECT, itemRegister, pageRegister, ImmutableFieldReference(page, "A03", STORY_ITEM))
+        } + ImmutableInstruction10x(Opcode.RETURN_VOID)
+        val flags = if (static) public or AccessFlags.STATIC.value else public
+        return type(
+            owner,
+            methods = listOf(method(owner, if (static) "A03" else "A0U", listOf(page, STORY_ITEM), "V", flags, itemRegister + 1, *code.toTypedArray())),
+        )
+    }
+
+    /** [closed] names the parts made package-private: item, media, mentions, mention, user or fullName. */
+    private fun standIns(
+        puts: Int = 1,
+        mentionTypes: List<String> = listOf(mention),
+        viewFlags: Int = AccessFlags.PUBLIC.value,
+        binders: Boolean = true,
+        closed: Set<String> = emptySet(),
+        interfaces: List<String> = listOf(shared),
+    ): List<ClassDef> {
+        fun flags(part: String, open: Int) = if (part in closed) open and AccessFlags.PUBLIC.value.inv() else open
+        return listOfNotNull(
+            binder(mainBinder, static = true, puts = puts).takeIf { binders },
+            binder(catchUpBinder, static = false).takeIf { binders },
+            type(page, listOf(field(page, "A1Y", REEL_VIEW_GROUP, viewFlags), field(page, "A03", STORY_ITEM)), flags = public),
+            type(STORY_ITEM, listOf(field(STORY_ITEM, "A17", MEDIA, public), field(STORY_ITEM, "A08", MEDIA)), flags = flags("item", public)),
+            type(MEDIA, methods = listOf(
+                getter(MEDIA, "A9U", "Ljava/util/List;", REEL_MENTIONS, *mentionTypes.toTypedArray(), flags = flags("mentions", public)),
+                getter(MEDIA, "A9V", "Ljava/util/List;", "carousel_media"),
+            ), flags = flags("media", public)),
+            type(mention, methods = listOf(
+                method(mention, "Dqh", emptyList(), USER, public, 1, ImmutableInstruction21c(Opcode.CONST_CLASS, 0, ImmutableTypeReference(USER)), ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0)),
+                method(mention, "A00", emptyList(), USER, public or AccessFlags.STATIC.value, 1, ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0)),
+            ), flags = public, interfaces = interfaces),
+            holder(shared, "Dqh", flags("holder", AccessFlags.PUBLIC.value or AccessFlags.INTERFACE.value or AccessFlags.ABSTRACT.value)),
+            holder(otherShared, "Dqi", AccessFlags.PUBLIC.value or AccessFlags.INTERFACE.value or AccessFlags.ABSTRACT.value),
+            type(USER, methods = listOf(
+                getter(USER, "B0x", "Ljava/lang/String;", FULL_NAME, flags = flags("fullName", public)),
+                getter(USER, "B0y", "Ljava/lang/String;", "username"),
+            ), flags = flags("user", public)),
+            ExtensionDex.classDef(STORY_MENTIONS),
+        )
+    }
+
+    @Test
+    fun theHooksAreInTheExtension() {
+        val declared = ExtensionDex.classDef(STORY_MENTIONS).methods
+            .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
+            .map { "${it.name}(${it.parameterTypes.joinToString("")})" }
+        assertTrue("bind is not in the extension: $declared", BIND.substringAfter("->").substringBefore(")") + ")" in declared)
+        assertTrue("touch is not in the extension: $declared", PILL_TOUCH.substringAfter("->").substringBefore(")") + ")" in declared)
+        for (stub in STUBS) assertTrue("$stub is not in the extension: $declared", "$stub(Ljava/lang/Object;)" in declared)
+        for (hook in listOf(VIEWER_SHOWN, HOLDS_STORY)) {
+            assertTrue("$hook is not in the extension: $declared", hook.substringAfter("->").substringBefore(")") + ")" in declared)
+        }
+        for ((stub, count) in HOLD_STUBS) {
+            assertTrue("$stub is not in the extension: $declared", "$stub(${"Ljava/lang/Object;".repeat(count)})" in declared)
+        }
+    }
+
+    /**
+     * The story viewer: its static pause and resume loading their marks, and its own onResume. The
+     * resume has [resumeLocals] locals, [jumpsBack] branches back onto its first instruction, and
+     * [closed] names what's made package-private: viewer, pause or resume.
+     */
+    private fun viewer(resumeLocals: Int = 5, onResume: Boolean = true, jumpsBack: Boolean = false, closed: Set<String> = emptySet()): ClassDef {
+        fun flags(part: String, open: Int) = if (part in closed) open and AccessFlags.PUBLIC.value.inv() else open
+        val static = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value
+        // With no local the mark goes in the reason's register.
+        val mark = if (resumeLocals > 0) 0 else 1
+        val resume = listOfNotNull(
+            ImmutableInstruction21c(Opcode.CONST_STRING, mark, ImmutableStringReference(RESUME_MARK)),
+            ImmutableInstruction21t(Opcode.IF_EQZ, resumeLocals + 2, -2).takeIf { jumpsBack },
+            ImmutableInstruction10x(Opcode.RETURN_VOID),
+        )
+        return type(
+            STORY_VIEWER,
+            methods = listOfNotNull(
+                method(
+                    STORY_VIEWER, "A18", listOf(STORY_VIEWER, string), "V", flags("pause", static), 3,
+                    ImmutableInstruction21c(Opcode.CONST_STRING, 0, ImmutableStringReference(PAUSE_MARK)),
+                    ImmutableInstruction10x(Opcode.RETURN_VOID),
+                ),
+                method(STORY_VIEWER, "A19", listOf(STORY_VIEWER, string, "Z"), "V", flags("resume", static), resumeLocals + 3, *resume.toTypedArray()),
+                method(STORY_VIEWER, "onResume", emptyList(), "V", AccessFlags.PUBLIC.value, 1, ImmutableInstruction10x(Opcode.RETURN_VOID))
+                    .takeIf { onResume },
+            ),
+            flags = flags("viewer", public),
+        )
+    }
+
+    /**
+     * #403: the viewer's onResume says which viewer shows, its resume asks first whether a list
+     * holds that viewer's story and returns when one does, and the stubs pause through the viewer's
+     * pause and play through its resume the way lifting a finger does.
+     */
+    @Test
+    fun theListHoldsTheStoryThroughTheViewersOwnPauseAndResume() {
+        val context = PatchContexts.of(standIns() + viewer())
+        context.hookStoryHold(context.findStoryHold(), context.storyHoldStubs())
+
+        val methods = context.mutableClassDefBy(STORY_VIEWER).methods
+        val shown = methods.single { it.name == "onResume" }.instructions()
+        assertEquals(VIEWER_SHOWN, shown[0].referenceText())
+        assertEquals("the viewer itself", listOf(0, 1), (shown[0] as RegisterRangeInstruction).let { listOf(it.startRegister, it.registerCount) })
+        assertEquals(Opcode.RETURN_VOID, shown[1].opcode)
+
+        val resume = methods.single { it.name == "A19" }.instructions()
+        assertEquals(HOLDS_STORY, resume[0].referenceText())
+        assertEquals("the viewer", listOf(5, 1), (resume[0] as RegisterRangeInstruction).let { listOf(it.startRegister, it.registerCount) })
+        assertEquals(Opcode.MOVE_RESULT, resume[1].opcode)
+        assertEquals("into a local", 0, (resume[1] as OneRegisterInstruction).registerA)
+        assertEquals(Opcode.IF_EQZ, resume[2].opcode)
+        assertEquals("a no plays the story as Instagram asked", 4, (resume[2] as BuilderOffsetInstruction).target.location.index)
+        assertEquals("a yes keeps it held", Opcode.RETURN_VOID, resume[3].opcode)
+        assertEquals(Opcode.CONST_STRING, resume[4].opcode)
+
+        val held = context.stub("holdStory")
+        assertEquals(listOf(Opcode.CHECK_CAST, Opcode.CONST_STRING, Opcode.INVOKE_STATIC, Opcode.RETURN_VOID), held.take(4).map { it.opcode })
+        assertEquals(STORY_VIEWER, ((held[0] as ReferenceInstruction).reference as TypeReference).type)
+        assertEquals(HOLD_REASON, ((held[1] as ReferenceInstruction).reference as StringReference).string)
+        assertEquals("$STORY_VIEWER->A18($STORY_VIEWER$string)V", held[2].referenceText())
+        val played = context.stub("playStory")
+        assertEquals(
+            listOf(Opcode.CHECK_CAST, Opcode.CONST_STRING, Opcode.CONST_4, Opcode.INVOKE_STATIC, Opcode.RETURN_VOID),
+            played.take(5).map { it.opcode },
+        )
+        assertEquals("resume", ((played[1] as ReferenceInstruction).reference as StringReference).string)
+        assertEquals("with true", 1, (played[2] as NarrowLiteralInstruction).narrowLiteral)
+        assertEquals("$STORY_VIEWER->A19($STORY_VIEWER${string}Z)V", played[3].referenceText())
+    }
+
+    @Test
+    fun noViewerFailsTheHold() = refuses("no $STORY_VIEWER loads") { PatchContexts.of(standIns()).findStoryHold() }
+
+    @Test
+    fun aResumeWithNoLocalFailsTheHold() =
+        refuses("no local register for the hold's answer") { PatchContexts.of(standIns() + viewer(resumeLocals = 0)).findStoryHold() }
+
+    @Test
+    fun aResumeJumpingBackToItsStartFailsTheHold() =
+        refuses("jumps back to its first instruction") { PatchContexts.of(standIns() + viewer(jumpsBack = true)).findStoryHold() }
+
+    @Test
+    fun aViewerWithoutItsOwnOnResumeFailsTheHold() =
+        refuses("has no onResume() of its own") { PatchContexts.of(standIns() + viewer(onResume = false)).findStoryHold() }
+
+    /** The stubs cast to the viewer and call its pause and resume from the extension's package. */
+    @Test
+    fun whatTheHoldsStubsCantReachFailsTheHold() {
+        for ((part, named) in mapOf("viewer" to STORY_VIEWER, "pause" to "$STORY_VIEWER->A18", "resume" to "$STORY_VIEWER->A19")) {
+            refuses("$named isn't public") { PatchContexts.of(standIns() + viewer(closed = setOf(part))).findStoryHold() }
+        }
+    }
+
+    @Test
+    fun aHoldRefusalChangesNothing() {
+        val built = standIns() + viewer(onResume = false)
+        val context = PatchContexts.of(built)
+        val before = built.associate { it.type to it.methods.sumOf { m -> m.instructions().size } }
+        assertThrows(PatchException::class.java) { context.findStoryHold() }
+        val after = built.associate { c -> c.type to context.classDefBy(c.type).methods.sumOf { it.instructions().size } }
+        assertEquals(before, after)
+    }
+
+    /** Both binders call bind right after the put, with the page and the story, and each stub reads its part. */
+    @Test
+    fun bothBindersHandThePageAndStoryOver() {
+        val context = PatchContexts.of(standIns())
+
+        val found = context.findStoryMentions()
+        context.storyMentionStubs().fill(found)
+        context.hookStoryBinds(found)
+
+        assertEquals(2, found.binds.size)
+        for (owner in listOf(mainBinder, catchUpBinder)) {
+            val code = context.mutableClassDefBy(owner).methods.single().instructions()
+            val put = code.indexOfFirst { it.opcode == Opcode.IPUT_OBJECT }
+            val call = code[put + 1]
+            assertEquals("$owner: the call after the put", BIND, ((call as ReferenceInstruction).reference as MethodReference).toString())
+            val registers = code[put] as TwoRegisterInstruction
+            assertEquals("$owner: the page", registers.registerB, (call as FiveRegisterInstruction).registerC)
+            assertEquals("$owner: the story", registers.registerA, call.registerD)
+            assertEquals("$owner: one call", 1, code.count { it.referenceText() == BIND })
+        }
+
+        assertEquals("$page->A1Y:$REEL_VIEW_GROUP", context.stub("itemView")[1].referenceText())
+        assertEquals("$STORY_ITEM->A17:$MEDIA", context.stub("media")[1].referenceText())
+        assertEquals("$MEDIA->A9U()Ljava/util/List;", context.stub("mentions")[1].referenceText())
+        assertEquals("$shared->Dqh()$USER", context.stub("mentionUser")[1].referenceText())
+        assertEquals(Opcode.INVOKE_INTERFACE, context.stub("mentionUser")[1].opcode)
+        assertEquals(shared, ((context.stub("mentionUser")[0] as ReferenceInstruction).reference as TypeReference).type)
+        assertEquals("$USER->B0x()Ljava/lang/String;", context.stub("fullName")[1].referenceText())
+        for (name in STUBS) {
+            val code = context.stub(name)
+            assertEquals("$name casts first", Opcode.CHECK_CAST, code[0].opcode)
+            assertTrue("$name returns what it read", code.take(4).any { it.opcode == Opcode.RETURN_OBJECT })
+        }
+    }
+
+    /**
+     * IgFragmentActivity with its own dispatchTouchEvent: [locals] locals, then the activity and the
+     * event. It loads its trace name and answers false, after Tap to play's call when [tapClock].
+     */
+    private fun activity(locals: Int = 7, tapClock: Boolean = false): ClassDef {
+        val self = locals
+        val answer = if (locals > 0) 0 else self
+        val code = listOfNotNull(
+            ImmutableInstruction3rc(
+                Opcode.INVOKE_STATIC_RANGE, self, 2,
+                ImmutableMethodReference(TAP_CLOCK.substringBefore("->"), "touch", listOf("Landroid/app/Activity;", "Landroid/view/MotionEvent;"), "V"),
+            ).takeIf { tapClock },
+            ImmutableInstruction21c(Opcode.CONST_STRING, answer, ImmutableStringReference("dispatchTouchEvent")),
+            ImmutableInstruction11n(Opcode.CONST_4, answer, 0),
+            ImmutableInstruction11x(Opcode.RETURN, answer),
+        )
+        return ImmutableClassDef(
+            FRAGMENT_ACTIVITY, AccessFlags.PUBLIC.value, "Landroidx/appcompat/app/AppCompatActivity;", null, null, null, null,
+            listOf(method(FRAGMENT_ACTIVITY, "dispatchTouchEvent", listOf("Landroid/view/MotionEvent;"), "Z", AccessFlags.PUBLIC.value, locals + 2, *code.toTypedArray())),
+        )
+    }
+
+    /**
+     * The activity hands each touch to the pill's hook first thing, answers true when it says so,
+     * and otherwise runs on from its own first instruction, with the answer in its first local.
+     */
+    @Test
+    fun aTapOnThePillIsCaughtFirstThingInTheActivity() {
+        val context = PatchContexts.of(standIns() + activity())
+        val touch = context.findPillTouch()
+        hookPillTouch(touch)
+
+        val code = touch.implementation!!.instructions.toList()
+        assertEquals(Opcode.INVOKE_STATIC_RANGE, code[0].opcode)
+        assertEquals(PILL_TOUCH, code[0].referenceText())
+        assertEquals("this and the event", listOf(7, 2), (code[0] as RegisterRangeInstruction).let { listOf(it.startRegister, it.registerCount) })
+        assertEquals(Opcode.MOVE_RESULT, code[1].opcode)
+        assertEquals(0, (code[1] as OneRegisterInstruction).registerA)
+        assertEquals(Opcode.IF_EQZ, code[2].opcode)
+        assertEquals("the branch goes to Instagram's own first instruction", 4, (code[2] as BuilderOffsetInstruction).target.location.index)
+        assertEquals(Opcode.RETURN, code[3].opcode)
+        assertEquals(0, (code[3] as OneRegisterInstruction).registerA)
+        assertEquals(Opcode.CONST_STRING, code[4].opcode)
+    }
+
+    /** Tap to play's call stays first, since its contract holds it there, and the pill's comes right after. */
+    @Test
+    fun withTapToPlaysHookInThePillsGoesRightAfterIt() {
+        val context = PatchContexts.of(standIns() + activity(tapClock = true))
+        val touch = context.findPillTouch()
+        hookPillTouch(touch)
+
+        val code = touch.implementation!!.instructions.toList()
+        assertEquals(TAP_CLOCK, code[0].referenceText())
+        assertEquals(PILL_TOUCH, code[1].referenceText())
+        assertEquals("the branch goes past both hooks", 5, (code[3] as BuilderOffsetInstruction).target.location.index)
+        assertEquals(Opcode.CONST_STRING, code[5].opcode)
+    }
+
+    @Test
+    fun anActivityWithNoLocalFailsThePatch() = refuses("no local register") {
+        PatchContexts.of(standIns() + activity(locals = 0)).findPillTouch()
+    }
+
+    @Test
+    fun noActivityFailsThePatch() = refuses("this build has no") {
+        PatchContexts.of(standIns()).findPillTouch()
+    }
+
+    @Test
+    fun noBinderFailsThePatch() = refuses("no method loads") { PatchContexts.of(standIns(binders = false)).findStoryMentions() }
+
+    @Test
+    fun aBinderPuttingTheStoryTwiceFailsThePatch() = refuses("found 2") { PatchContexts.of(standIns(puts = 2)).findStoryMentions() }
+
+    @Test
+    fun mentionsOfTwoTypesFailThePatch() =
+        refuses("one type of mention, found 2") { PatchContexts.of(standIns(mentionTypes = listOf(mention, USER))).findStoryMentions() }
+
+    @Test
+    fun aMentionWithNoSharedInterfaceFailsThePatch() =
+        refuses("found 0") { PatchContexts.of(standIns(interfaces = emptyList())).findStoryMentions() }
+
+    @Test
+    fun aMentionWithTwoSharedInterfacesFailsThePatch() =
+        refuses("found 2") { PatchContexts.of(standIns(interfaces = listOf(shared, otherShared))).findStoryMentions() }
+
+    @Test
+    fun aPrivateMediaViewFailsThePatch() =
+        refuses("isn't public") { PatchContexts.of(standIns(viewFlags = AccessFlags.PRIVATE.value)).findStoryMentions() }
+
+    /** Every type a stub casts to and every getter it calls is reached from the extension's package. */
+    @Test
+    fun whatTheStubsCantReachFailsThePatch() {
+        for ((part, named) in mapOf(
+            "item" to STORY_ITEM, "media" to MEDIA, "mentions" to "$MEDIA->A9U", "holder" to shared,
+            "user" to USER, "fullName" to "$USER->B0x",
+        )) {
+            refuses("$named isn't public") { PatchContexts.of(standIns(closed = setOf(part))).findStoryMentions() }
+        }
+    }
+
+    /** A refusal leaves every class as it was, since everything is found before anything changes. */
+    @Test
+    fun aRefusalChangesNothing() {
+        val built = standIns(puts = 2)
+        val context = PatchContexts.of(built)
+        val before = built.associate { it.type to it.methods.sumOf { m -> m.instructions().size } }
+        assertThrows(PatchException::class.java) { context.findStoryMentions() }
+        val after = built.associate { c -> c.type to context.classDefBy(c.type).methods.sumOf { it.instructions().size } }
+        assertEquals(before, after)
+    }
+
+    /**
+     * In each declared build, the two binders holding the trace name are found and hooked once
+     * each, the stubs are filled, the account's picture bridges are written and the activity hands
+     * each touch to the pill's hook first thing.
+     */
+    @Test
+    fun eachDeclaredBuildHooksBothBinders() {
+        val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
+        var checked = 0
+        val bundles = versions.flatMap { version -> Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") } } +
+            Fixtures.otherBuilds()
+        assertEquals("the declared build and the others", Fixtures.BUILDS, bundles.size)
+        run {
+            for (bundle in bundles) {
+                // 452's catch-up binder asks a string pool for the name, so the pool and its askers come too.
+                val binders = FixtureDex.classesLoading(bundle, BIND_MEDIA)
+                val pages = binders.flatMap { it.methods }.flatMap { it.instructions() }
+                    .filter { it.opcode == Opcode.IPUT_OBJECT }
+                    .mapNotNull { ((it as ReferenceInstruction).reference as FieldReference).takeIf { f -> f.type == STORY_ITEM }?.definingClass }
+                    .toSet()
+                val models = FixtureDex.classes(bundle, pages + setOf(STORY_ITEM, MEDIA, USER, PROFILE_PICTURE_INFO, IMAGE_URL, FRAGMENT_ACTIVITY))
+                val key = REEL_MENTIONS.hashCode()
+                val mentionTypes = models.getValue(MEDIA).methods
+                    .filter { method -> method.instructions().any { (it as? NarrowLiteralInstruction)?.narrowLiteral == key } }
+                    .flatMap { it.instructions() }
+                    .filter { it.opcode == Opcode.CONST_CLASS }
+                    .map { ((it as ReferenceInstruction).reference as TypeReference).type }
+                    .toSet()
+                val mentionClasses = FixtureDex.classes(bundle, mentionTypes)
+                val holders = FixtureDex.classes(bundle, mentionClasses.values.flatMap { it.interfaces }.toSet())
+                // The story viewer, whose pause and resume hold the story under the list, and the pools they ask.
+                val viewers = FixtureDex.withStringPools(
+                    bundle, listOf(PAUSE_MARK, RESUME_MARK).flatMap { FixtureDex.classesLoading(bundle, it) }.distinctBy { it.type },
+                )
+                val classes = (binders + models.values + mentionClasses.values + holders.values + viewers +
+                    ExtensionDex.classDef(STORY_MENTIONS) + ExtensionDex.classDef(INSTAGRAM_MEDIA)).distinctBy { it.type }
+                val context = PatchContexts.of(classes)
+
+                val found = context.findStoryMentions()
+                val touch = context.findPillTouch()
+                val stubs = context.storyMentionStubs()
+                val hold = context.findStoryHold()
+                val holdStubs = context.storyHoldStubs()
+                val pictures = context.accountBridges(PATCH)
+                val cast = { context.mutableClassDefBy(INSTAGRAM_MEDIA).methods
+                    .filter { it.instructions().firstOrNull()?.opcode == Opcode.CHECK_CAST }.map { it.name }.toSet() }
+                val castBefore = cast()
+                stubs.fill(found)
+                pictures()
+                context.hookStoryBinds(found)
+                hookPillTouch(touch)
+                context.hookStoryHold(hold, holdStubs)
+
+                val viewerMethods = context.mutableClassDefBy(STORY_VIEWER).methods
+                val shown = viewerMethods.single { it.name == "onResume" && it.parameterTypes.isEmpty() }.instructions()
+                assertEquals("${buildOf(bundle)}: onResume says which viewer shows, first thing", VIEWER_SHOWN, shown[0].referenceText())
+                val resume = viewerMethods.single {
+                    it.name == hold.playback.resume.name && it.parameterTypes.map(Any::toString) == hold.playback.resume.parameterTypes.map(Any::toString)
+                }.instructions()
+                assertEquals("${buildOf(bundle)}: the resume asks first", HOLDS_STORY, resume[0].referenceText())
+                assertEquals("${buildOf(bundle)}: Instagram's own resume after the guard", 4, (resume[2] as BuilderOffsetInstruction).target.location.index)
+                assertEquals("${buildOf(bundle)}: a held story returns", Opcode.RETURN_VOID, resume[3].opcode)
+                assertEquals("${buildOf(bundle)}: the hold pauses through the viewer", hold.playback.pause.name,
+                    ((context.stub("holdStory")[2] as ReferenceInstruction).reference as MethodReference).name)
+                assertEquals("${buildOf(bundle)}: the play resumes through it", hold.playback.resume.name,
+                    ((context.stub("playStory")[3] as ReferenceInstruction).reference as MethodReference).name)
+
+                assertEquals("${buildOf(bundle)}: the binders", 2, found.binds.size)
+                val touched = touch.implementation!!.instructions.toList()
+                assertEquals("${buildOf(bundle)}: the pill's hook first in dispatchTouchEvent", PILL_TOUCH, touched[0].referenceText())
+                assertEquals("${buildOf(bundle)}: Instagram's own code after it", 4, (touched[2] as BuilderOffsetInstruction).target.location.index)
+                for (bind in found.binds) {
+                    val code = context.mutableClassDefBy(bind.type).methods.single {
+                        it.name == bind.name && it.parameterTypes.map(Any::toString) == bind.parameters
+                    }.instructions()
+                    assertEquals("${buildOf(bundle)}: ${bind.type}->${bind.name} calls bind once", 1, code.count { it.referenceText() == BIND })
+                }
+                for (name in STUBS) assertEquals("${buildOf(bundle)}: $name", Opcode.CHECK_CAST, context.stub(name)[0].opcode)
+                val user = context.stub("mentionUser")
+                assertEquals("${buildOf(bundle)}: the account is read through an interface", Opcode.INVOKE_INTERFACE, user[1].opcode)
+                assertEquals("${buildOf(bundle)}: the cast", found.mention, ((user[0] as ReferenceInstruction).reference as TypeReference).type)
+                val holder = holders.getValue(found.mention)
+                assertTrue("${buildOf(bundle)}: ${found.mention} is public", AccessFlags.PUBLIC.isSet(holder.accessFlags))
+                assertTrue("${buildOf(bundle)}: ${found.mention} is an interface", AccessFlags.INTERFACE.isSet(holder.accessFlags))
+                val getters = holder.methods.filter {
+                    it.parameterTypes.isEmpty() && it.returnType == USER && AccessFlags.ABSTRACT.isSet(it.accessFlags)
+                }
+                assertEquals("${buildOf(bundle)}: the interface's one getter of the account", listOf(found.mentionUser), getters.map { it.name })
+                assertTrue("${buildOf(bundle)}: the named mention class implements it", mentionClasses.values.any { found.mention in it.interfaces })
+                // The plain model Instagram's JSON parser fills the cached list with implements it too:
+                // another public class taking a User in its constructor.
+                val implementers = mutableSetOf<String>()
+                val jsonModels = mutableSetOf<String>()
+                FixtureDex.forEach(bundle) { dex ->
+                    for (classDef in dex.classes) if (found.mention in classDef.interfaces) {
+                        implementers += classDef.type
+                        if (AccessFlags.PUBLIC.isSet(classDef.accessFlags) && classDef.type !in mentionClasses &&
+                            classDef.methods.any { it.name == "<init>" && it.parameterTypes.any { type -> type == USER } }
+                        ) jsonModels += classDef.type
+                    }
+                }
+                assertTrue("${buildOf(bundle)}: no other public class taking a User implements ${found.mention}: $implementers", jsonModels.isNotEmpty())
+                assertTrue("${buildOf(bundle)}: ${found.mention} is implemented by ${implementers}", true)
+                println("MENTION-INTERFACE ${bundle.name} ${found.mention}->${found.mentionUser} json=$jsonModels named=${mentionClasses.keys.filter { found.mention in mentionClasses.getValue(it).interfaces }}")
+                // The account's username and picture, and nothing only a profile's own patches read.
+                assertEquals("${buildOf(bundle)}: the bridges written", setOf("profilePicture", "username", "candidateUrl"), cast() - castBefore)
+                checked++
+            }
+        }
+        assertTrue("no fixture was checked", checked > 0)
+    }
+
+    private fun name(bundle: java.io.File) = bundle.parentFile?.name ?: bundle.name
+
+    private fun buildOf(bundle: java.io.File) = bundle.parentFile?.name ?: bundle.name
+
+    private fun refuses(detail: String, run: () -> Unit) {
+        val failure = assertThrows(PatchException::class.java) { run() }
+        assertTrue(failure.message, failure.message!!.contains(detail))
+    }
+
+    private fun app.morphe.patcher.patch.BytecodePatchContext.stub(name: String): List<Instruction> =
+        mutableClassDefBy(STORY_MENTIONS).methods.single { it.name == name }.instructions()
+
+    private fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
+
+    private fun Instruction.referenceText(): String? = (this as? ReferenceInstruction)?.reference?.let {
+        when (it) {
+            is MethodReference -> "${it.definingClass}->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}"
+            is FieldReference -> "${it.definingClass}->${it.name}:${it.type}"
+            else -> it.toString()
+        }
+    }
+}

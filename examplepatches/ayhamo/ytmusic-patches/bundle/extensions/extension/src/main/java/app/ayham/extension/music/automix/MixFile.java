@@ -201,6 +201,19 @@ public final class MixFile {
         return r;
     }
 
+    /**
+     * Rule 8, a saved override as a file holds it: its beat match as it plays (beatMatchOf, rule 6,
+     * 2026-11-27), then its gridBpm as saved, else [aBpm] (this app's tempo for A, NaN when A isn't
+     * analysed). In that order: a file carries gridBpm, so an Auto mix written without its beat match
+     * would come back as Sync, and an imported one with none is written as "sync". A copy.
+     */
+    public static MixOverride forExport(MixOverride saved, double aBpm) {
+        MixOverride o = saved.copy();
+        if (o.beatMatch == null && !o.loop()) o.beatMatch = o.beatMatchOf();
+        if (!(o.gridBpm > 0) && aBpm >= 20 && aBpm <= 400) o.gridBpm = aBpm;
+        return o;
+    }
+
     /** Rule 8: the file's object; an entry with no valid song or override is left out. */
     public static Map<String, Object> write(List<Mix> entries) {
         List<Object> mixes = new ArrayList<>();
@@ -287,10 +300,16 @@ public final class MixFile {
         return s.isEmpty() ? "song" : s;
     }
 
-    /** Whether two overrides carry the same edit (engine, savedAt and gridBpm aside: rule 5). */
+    /**
+     * Whether two overrides carry the same edit (rule 5): engine, savedAt and gridBpm aside, the beat
+     * match as it plays (beatMatchOf; a loop mix has none), so an own export's "auto" is the saved
+     * mix's unwritten Auto (automix.js sameMix, 2026-11-27).
+     */
     public static boolean same(MixOverride a, MixOverride b) {
         MixOverride x = carried(a), y = carried(b);
         if (x == null || y == null) return x == y;
+        x.beatMatch = x.loop() ? null : x.beatMatchOf();
+        y.beatMatch = y.loop() ? null : y.beatMatchOf();
         x.gridBpm = 0;
         y.gridBpm = 0;
         return Json.write(x.toJson()).equals(Json.write(y.toJson()));
@@ -310,7 +329,7 @@ public final class MixFile {
                 {"effects", lane(a, MixOverride.FX), lane(b, MixOverride.FX)},
                 {"looping", lane(a, MixOverride.LOOPING), lane(b, MixOverride.LOOPING)},
                 {"length", a.bars > 0 ? a.bars + " bars" : "auto", b.bars > 0 ? b.bars + " bars" : "auto"},
-                {"beat match", a.beatMatch != null ? a.beatMatch : "auto", b.beatMatch != null ? b.beatMatch : "auto"},
+                {"beat match", a.beatMatchOf(), b.beatMatchOf()},   // an imported mix with none plays as Sync (rule 6)
                 {"speed", speedText(a), speedText(b)},
                 {"mix-out", pos(a.out), pos(b.out)},
                 {"mix-in", pos(a.in), pos(b.in)},

@@ -122,7 +122,7 @@ Test: `node --test scripts/test_automix_plan.mjs` (the "Spotify mix exports" tes
 
 9. **[all] Afterwards**, mix-file.md rule 7's line, then, when there are any:
    - "N lanes in a Spotify style with no match here play the default shape";
-   - "not carried: …", the kinds of rule 6 the file used (filter resonance);
+   - "not carried: …", the kinds of rule 6 the file used (filter resonance, jogwheel);
    - "N mixes bring B in late in an older export's unsigned time: here B starts with the mix"
      (rule 3);
    - while an app doesn't play song speeds yet (rule 10): "N mixes set a song's speed: saved, but
@@ -142,7 +142,8 @@ Test: `node --test scripts/test_automix_plan.mjs` (the "Spotify mix exports" tes
     - **[each app] Playing it:** the song plays at its speed with its pitch kept, from its start to
       its end, through both its mixes. In a mix, A's tempo is its BPM × its speed and B's its BPM ×
       its speed (the played tempos). Every tempo gate compares the played tempos, not the BPMs: the
-      v2 stretch limit (`V2_MAX_STRETCH`, 8%), Sync and Glide's limit and the stretch allowed. Found
+      v2 stretch limit (`V2_MAX_STRETCH`, 8%) and the stretch allowed (Sync and Glide, picked, have
+      no limit since 2026-11-26, editor.md §4). Found
       2026-11-25 by BitChord on BUDGET #5, Stay x0.97057 → Cold Water x1.03228: on its BPMs 102.3
       and 93.0 the raw tempos are 10% apart and the 2 bars fell back to a plain fade; played, 99.3
       and 96.0 are 3.4% apart, so it beat-matches (editor-cases.json, plans "songs at a speed").

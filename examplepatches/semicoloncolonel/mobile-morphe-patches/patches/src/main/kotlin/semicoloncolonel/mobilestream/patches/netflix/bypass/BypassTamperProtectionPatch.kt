@@ -30,6 +30,7 @@ val bypassTamperProtectionPatch = bytecodePatch(
         "fatal signal Netflix's native integrity guard raises against itself, so the app runs " +
         "and plays normally, with no root. Required for any other Netflix patch to take effect.",
 ) {
+    category("Setup")
     compatibleWith(Constants.COMPATIBILITY)
 
     dependsOn(bundleTamperBypassPatch)

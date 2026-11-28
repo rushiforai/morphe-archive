@@ -58,8 +58,12 @@ These rules keep the patch safe across X releases. Follow them for every new hoo
   hands `this` to `Hooks.onGraphqlApi`; lookups use the most recent one.
 - About this account: the repository with `"Missing GraphqlUser.screen_name for "` and a
   `(String, ContinuationImpl)` method (`com.x.repositories.profile.r`). Field names come from
-  the `toString` of `ProfileAboutMetadata`, `AffiliateData`, `MinimalUser` and
-  `UserWithProfileAboutMetadata`, and reach `XAboutApi` as a spec string.
+  the `toString` of `ProfileAboutMetadata` (location, source, accuracy, `verifiedSince`,
+  `verifiedSinceOverride`, `isIdVerified`, `usernameChangeData`), `UsernameChangeData`
+  (`count`), `AffiliateData`, `MinimalUser` and `UserWithProfileAboutMetadata`, and reach
+  `XAboutApi` as a spec string. The patch requires `verifiedSince` to have the type of
+  `MinimalUser.createdAt`, since one stub converts both. The result's user goes to `Observed`
+  for the account sheet.
 
 ## Badges
 
@@ -71,12 +75,68 @@ These rules keep the patch safe across X releases. Follow them for every new hoo
 - The badge row (the method in the same class that calls `y.a` and tests `instance-of x2`)
   gives the badge list type, `kotlinx.collections.immutable.b`.
 - The name rows get an `xposed:` item appended through `Hooks.onNameRow`. They are the
-  static methods in the same class that call the badge row and take `(name, ...)` first, the
-  badge list and a later `String`, the handle: `y.o` for post headers and user rows, and
-  `y.e` for the reply header, which also shows the time. The patch clears the list's
-  `$changed` bits so the row compares the new list with the last one. `NameBadges` returns
-  the same list object for the same inputs, so unchanged rows still skip.
-- The profile page header builds its name line with other composables and is not hooked.
+  static methods in the same class that call the badge row and take `(name, ...)` first and
+  the badge list. `y.p` (post headers and user rows) and `y.e` (the reply header and the chat
+  title) also take a later `String`, the handle. `y.g` (the profile header, the 1:1 chat
+  header and mini profiles) takes none. The patch clears the list's `$changed` bits so the
+  row compares the new list with the last one. `NameBadges` returns the same list object for
+  the same inputs, so unchanged rows still skip.
+- Rows without a handle, and `y.e` rows whose handle is null, find it through the list. X
+  builds every badge list with one static builder in the same class, `(User, ...) -> list`
+  (`y.s`, which ends in `toImmutableList`). It calls `Hooks.beginBadgeList(user)` first and
+  `Hooks.onBadgeList(list)` on its result. `BadgeOwners` then maps that list object, by
+  identity, to the user's handle. For an empty result X returns its one shared empty list,
+  so the hook returns a new empty list instead, and each row keeps a list of its own. The
+  patch builds it with the `(Object[])` constructor of the list type's array-backed class,
+  the one with a static instance of itself (`immutableList.h`).
+- `y.g` lays badges out as inline text content: each gets a square `Placeholder` one badge
+  size wide, which would shrink ours to fit. After the row casts a badge item, it calls
+  `Hooks.noteInlineBadge(item)`. The `Placeholder` it builds next (the class with
+  `"Placeholder(width="`) passes through `Hooks.inlineBadgePlaceholder`, which returns one
+  with our badge's width and height. The patch requires that the cast reaches the
+  placeholder without a branch, so each note pairs with its own placeholder.
+- Compose restarts a row with the arguments of its last run, which for a hooked row is the
+  list with the badge in it. `NameBadges` remembers the lists it made and unwraps them, so a
+  restart neither adds a second badge nor loses the owner.
+
+## Sharing
+
+- The share button is an `xposed:share:` item after the badge, on rows that belong to a known
+  post. Two kinds of rows know their post:
+  - Post headers (`y.f`, `(User, ..., Instant, ...)`, with the post's time) call the badge
+    builder. `Hooks.onPostTime(time)` runs just before that call. `BadgeOwners` matches the
+    handle and time against the posts that `onPost` and `onQuote` saw (4000 entries). When
+    one account has two posts at the same time, neither gets a button.
+  - Other rows read the author from an `AvailablePost`: an `iget-object` of
+    `AvailablePost.author` that feeds a builder call, with no call or branch in between (the
+    focal post's name row, `com.x.urt.items.post.n1`). `Hooks.onPostBadges(post)` runs just
+    before it, and the list must belong to that post's author.
+- The card's data come from the last `CanonicalPost` seen for each post ID (300, in
+  `Observed`), through more `ModelBridge` stubs: `createdAt` (and `AvailablePost.timestamp`),
+  `text`, `displayTextRange` (`DisplayTextRange(startIdx, endIdx)`, in code points),
+  `entityList.urls` (`UrlEntity.url` and `expandedUrl`), `media` (`MediaContentImage`:
+  `imageUrl`, `originalImgWidth`, `originalImgHeight`, `sensitiveMediaWarning`) and
+  `inlineActionEntry` (`InlineActionEntry`: `actionType` and `count`). The action types
+  `Reply`, `Retweet`, `UndoRetweet`, `Favorite`, `Unfavorite` and `ViewCount` are read as
+  enum constants.
+- "Open in X" sends `ACTION_SEND` with the card image to the activity alias whose name
+  ends in `.ComposerActivity` (`com.twitter.composer.ComposerActivity`, exported for
+  `image/*` and `text/plain`). X's own handler (`com.x.composer.deeplink.a`) opens a reply
+  when the intent has a `replied_tweet_id` extra, and a new post otherwise. The patch finds it
+  as the `invoke(Object)` with the string `"android.intent.action.SEND_MULTIPLE"` whose class
+  holds one `Intent` and which reads `"replied_tweet_id"` itself (12.40) or calls a method
+  that does (12.41). In 12.41 the class also serves a second lambda, which gets a deeplink
+  route instead of the action, so the hook answers only when the argument is `SEND`.
+- X's share handling has no quotes. The handler first calls
+  `Hooks.composerArgs(intent, action)`. When the intent has `app.xposed.extra.QUOTED_POST_ID`,
+  it returns X's `QuoteAPost` (from `"QuoteAPost(quotedPostId="`) with the quoted post, the
+  caption and the image, and the handler returns that. `QuoteAPost` is built with the
+  constructor kotlinx.serialization generates: its first `int` marks the given parameters,
+  whose positions the patch reads from the constructor's field stores.
+- The card is drawn on the device, 400dp wide, in X's theme colors. The avatar and photos
+  load from `pbs.twimg.com`; copies go through X's FileProvider, like the account card.
+- The card's footer shows the bundle version. The Gradle build writes it into the resource
+  `app/xposed/patches/version.txt`, and the patch writes it into `Hooks.version`.
 
 ## Filters
 
@@ -184,6 +244,26 @@ These rules keep the patch safe across X releases. Follow them for every new hoo
   `rest_id` and `userProfileOnly` (`location.location`, `website.url`, `tweet_counts.tweets`,
   and `profile_bio.entities.url.graphqlEntitySet.urls`, whose `url` matches the website to its
   `expanded_url`), as X does for `ProfileUser`.
+
+### Account sheet (`AccountCard`)
+
+- `Observed` keeps the last user model X showed per handle (300 handles): post and quote
+  authors, people rows, profiles and About results. The sheet copies it once into an
+  `AccountCard.Person`, so X's model can be freed.
+- More `ModelBridge` stubs read the user interface: `profileImageUrl`, `profileImageShape`
+  (constant `Square`), `isProtected`, `createdAt` and `RelationshipCounts.followers`.
+  `verification` maps `verifiedType` to the extension's codes from the constants `User`,
+  `Business`, `Government` and `NotVerified`; X's other types, its reserved ones, count as
+  verified.
+- `instantMillis` converts a `kotlin.time.Instant` from its only `long` field (seconds) and
+  only `int` field (nanoseconds).
+- The label (`UserLabel`): `badgeImageUrl` and `onClickOpenUrl`. Its link is an
+  `ExternalUrl` or a `Deeplink` (from `"ExternalUrl(url="` and `"Deeplink(url="`), whose
+  superclass must be the type of `onClickOpenUrl`.
+- Copy and Share write the card image under the cache directory that X's own FileProvider
+  serves (`com.x.android.fileprovider.ExternalFileProvider`, an androidx `FileProvider`, with
+  `<cache-path name="public_cache" path="public">` in 12.40). `CardImage` finds the provider
+  and path in X's manifest at runtime, so the patch changes no resources.
 
 ## Recomposition
 

@@ -405,6 +405,16 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             ));
             addPreference(new TogglePreference(
                     context,
+                    "Write grid dates the way TikTok does",
+                    "Profile grids show the date the way TikTok writes it by the creator's name, like 2d ago or 10-12, in place of Oct 12. Day before month, Write the month as a word and Date instead of age change it the same way.",
+                    Settings.PUBLISH_DATE_GRID_LIKE_TIKTOK
+            ));
+            addPreference(new ChoicePreference(context, "Where the date goes on grids", Settings.PUBLISH_DATE_GRID_SPOT,
+                    new String[]{"Under the view count", "After the view count", "Above the view count"},
+                    new String[]{"under", "beside", "above"})
+                    .withNote("Above the view count takes the video length along with the date."));
+            addPreference(new TogglePreference(
+                    context,
                     "Show video length on profile grids",
                     "Show how long each video runs under its view count on profile grids. Photo posts and videos TikTok sent no length for show none.",
                     Settings.VIDEO_LENGTH_ON_GRID
@@ -421,6 +431,12 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     "Gives each video on profile grids rounded corners, on your own profile and on Liked and Favorites too.",
                     Settings.ROUNDED_GRID_CORNERS
             ));
+            addPreference(new NumberInputPreference(context, "Corner size on profile grids",
+                    "How round the corners are, in dp. TikTok's own cards use about 8.",
+                    Settings.GRID_CORNER_RADIUS, "%1$s dp", "%1$s dp"));
+            addPreference(new NumberInputPreference(context, "Gap between videos on profile grids",
+                    "Adds space between the videos on profile grids, on top of TikTok's own thin line. Use 0 for TikTok's spacing.",
+                    Settings.GRID_GAP, "%1$s dp", "%1$s dp").zeroMeans("Default"));
             if (SettingsStatus.gridSortEnabled) {
                 addPreference(new ChoicePreference(context, "Sort loaded videos on profile grids",
                         Settings.PROFILE_GRID_SORT,
@@ -524,6 +540,12 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     "Show the country as a flag",
                     "Shows the country's flag in place of its two letters, by the creator's name and by a commenter's time.",
                     Settings.REGION_AS_FLAG
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Keep the letters after the flag",
+                    "Shows the country's two letters next to its flag, so a flag you don't recognize still tells you where it is.",
+                    Settings.REGION_FLAG_WITH_CODE
             ));
         }
         // TikTok Lite (#502) only adds the country after the date by the creator's name.

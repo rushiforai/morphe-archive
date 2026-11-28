@@ -3,20 +3,19 @@ package app.morphe.extension.kicktv.chattext;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import java.lang.reflect.Field;
+import java.util.List;
+
 import app.morphe.extension.kicktv.base.MorpheContext;
 
 /**
  * Persistent CHAT TEXT SIZE setting with exactly two options:
- * Native (stock KICK typography) and Twitch-like (larger text + wider gap).
+ * Native (stock KICK typography) and Twitch-like (larger text + wider gap +
+ * lighter message bodies with bold usernames).
  *
  * <p>KICK builds the chat message style ({@code vi4.m}) from 11 sp text with a
- * 16 sp line height. Twitch TV's chat uses larger glyphs and a much airier
- * message gap; the Twitch-like preset reproduces that look.</p>
- *
- * <p>The patched code calls {@link #fontSizeSp(int)} and
- * {@link #lineHeightSp(int)} instead of the Compose {@code sp()} helper. The
- * stock values are passed in, so the patch keeps working if the app changes
- * its typography: only the chat style values are replaced.</p>
+ * 16 sp line height. Twitch TV's chat uses larger glyphs, a much airier message
+ * gap, regular-weight messages and semi-bold usernames.</p>
  */
 public final class ChatTextPrefs {
 
@@ -27,15 +26,12 @@ public final class ChatTextPrefs {
     /** Vertical gap that KICK puts between chat message items (LazyColumn). */
     private static final float STOCK_MESSAGE_SPACING_DP = 2.0f;
 
-    /**
-     * Twitch-like gap between messages. The stock 2 dp gap is far too tight;
-     * 10 dp is the tuned value that reads like Twitch TV chat on a TV screen.
-     */
-    private static final float TWITCH_MESSAGE_SPACING_DP = 10.0f;
+    /** Twitch-like gap between messages, tuned for a TV screen. */
+    private static final float TWITCH_MESSAGE_SPACING_DP = 6.0f;
 
-    /** Two options only. Value 16 is the Twitch-like preset; 0 is Native. */
+    /** Two options only. Value 15 is the Twitch-like preset; 0 is Native. */
     public static final int SIZE_NATIVE = 0;
-    public static final int SIZE_TWITCH = 16;
+    public static final int SIZE_TWITCH = 15;
 
     private static final String PREFS_NAME = "morphe_kicktv";
     private static final String KEY_SIZE_SP = "chat_text_size_sp";
@@ -104,7 +100,7 @@ public final class ChatTextPrefs {
 
     /** Line height that goes with the selected option. */
     private static int lineHeightSpFor(int sizeSp) {
-        return sizeSp == SIZE_TWITCH ? 24 : STOCK_LINE_HEIGHT_SP;
+        return sizeSp == SIZE_TWITCH ? 20 : STOCK_LINE_HEIGHT_SP;
     }
 
     /**
@@ -128,22 +124,16 @@ public final class ChatTextPrefs {
         return packSp(stockSp);
     }
 
-    /**
-     * Replacement for the {@code 2.0f} argument of the chat message LazyColumn's
-     * {@code Arrangement.spacedBy(...)}. Native keeps KICK's stock 2 dp gap;
-     * Twitch-like uses the measured 20 dp gap.
-     */
+    /** Native keeps KICK's 2 dp gap; Twitch-like uses the tuned 6 dp gap. */
     public static float messageSpacingDp() {
         return getSizeSp() == SIZE_TWITCH ? TWITCH_MESSAGE_SPACING_DP : STOCK_MESSAGE_SPACING_DP;
     }
 
     /**
      * Replacement for the font-weight instance fed into the chat message
-     * TextStyle ({@code vi4.m}). KICK uses {@code y23.G} = 600 (semi-bold) for
-     * the whole message. Twitch chat uses a light 400 body with bold usernames,
-     * so Twitch-like selects {@code y23.E} = 400 here; usernames are styled
-     * separately in the app and keep their own bold weight. Native keeps the
-     * original instance untouched.
+     * TextStyle ({@code vi4.m}). Native keeps KICK's 600 (semi-bold); Twitch-like
+     * selects 400 so the message body reads lighter. Usernames are handled
+     * separately by {@link #boldUsernames(Object)}.
      */
     public static Object messageFontWeight(Object stock) {
         if (!isEnabled()) {
@@ -153,6 +143,58 @@ public final class ChatTextPrefs {
             return Class.forName("y23").getField("E").get(null);
         } catch (Throwable ignored) {
             return stock;
+        }
+    }
+
+    /**
+     * KICK renders a chat line as one {@code hn} CharSequence whose username is
+     * a {@code rb8} SpanStyle with {@code fontWeight = null}. With the base
+     * style lightened to 400 that makes the username light too. Set the span's
+     * weight to 600 (semi-bold) so usernames stay bold like Twitch chat.
+     *
+     * <p>Called from {@code hp1.I} before the line is drawn. Badge/emote spans
+     * are skipped by checking the covered text: only a real name segment is
+     * changed. Everything is wrapped in try/catch so a patched app never
+     * crashes because of a tweak.</p>
+     */
+    public static void boldUsernames(Object text) {
+        if (!isEnabled() || text == null) {
+            return;
+        }
+        try {
+            Object bold = Class.forName("y23").getField("G").get(null);
+            String body = (String) text.getClass().getField("B").get(text);
+            Object spansObject = text.getClass().getField("A").get(text);
+            if (!(spansObject instanceof List) || body == null) {
+                return;
+            }
+            for (Object span : (List<?>) spansObject) {
+                try {
+                    Object style = span.getClass().getField("a").get(span);
+                    if (!"rb8".equals(style.getClass().getName())) {
+                        continue;
+                    }
+                    int start = span.getClass().getField("b").getInt(span);
+                    int end = span.getClass().getField("c").getInt(span);
+                    if (start < 0 || end > body.length() || start >= end) {
+                        continue;
+                    }
+                    String segment = body.substring(start, end);
+                    if (segment.contains("[image]") || segment.contains("[emote]")
+                            || segment.trim().isEmpty()) {
+                        continue;
+                    }
+                    Field weight = style.getClass().getDeclaredField("c");
+                    weight.setAccessible(true);
+                    if (weight.get(style) == null) {
+                        weight.set(style, bold);
+                    }
+                } catch (Throwable ignored) {
+                    // Never crash chat because of one malformed span.
+                }
+            }
+        } catch (Throwable ignored) {
+            // Native and older builds simply keep the stock typography.
         }
     }
 

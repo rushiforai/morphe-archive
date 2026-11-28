@@ -1,10 +1,10 @@
 package semicoloncolonel.mobilestream.patches.wsj.misc
 
+import semicoloncolonel.mobilestream.patches.shared.misc.isOptionOn
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import semicoloncolonel.mobilestream.patches.shared.misc.disableAirshipInAppMessages
-import semicoloncolonel.mobilestream.patches.wsj.shared.Constants
 
 // WSJ phone 15.12.0 shows marketing pop-ups from two SDKs:
 //
@@ -25,14 +25,19 @@ internal object BrazeBeforeDisplayFingerprint : Fingerprint(
     },
 )
 
-@Suppress("unused")
-val hideMarketingPopupsPatch = bytecodePatch(
-    name = "Hide marketing pop-ups",
-    description = "Stops in-app marketing pop-ups, but not the paywall.",
-) {
-    compatibleWith(Constants.COMPATIBILITY)
+// The CandyBar is the app's own campaign sheet ("Welcome to the WSJ App", sale
+// offers) over the bottom of the feed. CandyBarManager.showCandyBar publishes it
+// to the UI state; returning first leaves the state empty, so nothing shows.
+internal object ShowCandyBarFingerprint : Fingerprint(
+    definingClass = "Lcom/dowjones/candybar/CandyBarManager;",
+    name = "access${'$'}showCandyBar",
+    returnType = "V",
+)
 
+// Part of hidePromptsAndPopupsPatch: runs only when its "marketingPopUps" option is on.
+internal val hideMarketingPopupsPatch = bytecodePatch {
     execute {
+        if (!isOptionOn(hidePromptsAndPopupsPatch, "marketingPopUps")) return@execute
         BrazeBeforeDisplayFingerprint.method.addInstructions(
             0,
             """
@@ -42,5 +47,7 @@ val hideMarketingPopupsPatch = bytecodePatch(
         )
 
         disableAirshipInAppMessages()
+
+        ShowCandyBarFingerprint.method.addInstructions(0, "return-void")
     }
 }

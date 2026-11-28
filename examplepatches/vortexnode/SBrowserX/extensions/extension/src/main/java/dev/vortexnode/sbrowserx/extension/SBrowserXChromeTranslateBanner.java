@@ -103,7 +103,7 @@ public final class SBrowserXChromeTranslateBanner {
                 });
 
                 TextView title = new TextView(activity);
-                title.setText(ru ? "Страница переведена" : "Page translated");
+                title.setText(SBrowserXStrings.getBannerTranslated());
                 title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
                 title.setTypeface(Typeface.DEFAULT_BOLD);
                 title.setTextColor(textPrimary);
@@ -142,7 +142,7 @@ public final class SBrowserXChromeTranslateBanner {
 
                 // Undo / Original button
                 TextView cancel = new TextView(activity);
-                cancel.setText(ru ? "Оригинал" : "Original");
+                cancel.setText(SBrowserXStrings.getBannerOriginal());
                 cancel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
                 cancel.setTypeface(Typeface.DEFAULT_BOLD);
                 cancel.setTextColor(ONEUI_BLUE);
@@ -179,7 +179,7 @@ public final class SBrowserXChromeTranslateBanner {
                 if (isCustomTab) {
                     flp.topMargin = dp(activity, 94);
                 } else {
-                    flp.bottomMargin = dp(activity, 152);
+                    flp.bottomMargin = dp(activity, 138);
                 }
 
                 pill.setAlpha(0f);
@@ -457,12 +457,14 @@ public final class SBrowserXChromeTranslateBanner {
                 : android.R.style.Theme_DeviceDefault_Light_Dialog_Alert;
         String[] labels = new String[] {
                 "Google Translate (Chrome NMT)",
-                "Microsoft Translator (Edge NMT)",
+                "Bing Translator (Web NMT)",
+                "Yandex Translate (Web NMT)",
                 "DeepL API (Free / Pro)",
-                "Gemini Flash (AI)"
+                "Gemini 3.5 Flash-Lite (AI ★)"
         };
-        String[] values = new String[] {"google", "microsoft", "deepl", "gemini"};
+        String[] values = new String[] {"google", "bing", "yandex", "deepl", "gemini"};
         String cur = SBrowserXPrefs.getTranslateEngine(activity);
+        if ("microsoft".equalsIgnoreCase(cur)) cur = "bing";
         int sel = 0;
         for (int i = 0; i < values.length; i++) {
             if (values[i].equalsIgnoreCase(cur)) sel = i;
@@ -507,14 +509,14 @@ public final class SBrowserXChromeTranslateBanner {
             return ru ? "авто" : "auto";
         }
         try {
-            String name = Locale.forLanguageTag(code.replace('_', '-')).getDisplayLanguage(Locale.getDefault());
-            if (name != null && !name.isEmpty()) return name.toLowerCase(Locale.getDefault());
+            String name = Locale.forLanguageTag(code.replace('_', '-')).getDisplayLanguage(SBrowserXStrings.getAppLocale());
+            if (name != null && !name.isEmpty()) return name.toLowerCase(SBrowserXStrings.getAppLocale());
         } catch (Throwable ignored) {}
         return code;
     }
 
     private static boolean isRu() {
-        String l = Locale.getDefault().getLanguage();
+        String l = SBrowserXStrings.getAppLang();
         return "ru".equals(l) || "uk".equals(l);
     }
 

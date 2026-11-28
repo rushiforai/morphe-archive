@@ -65,6 +65,15 @@ def inspect(bundle: Path, version: str, baseline: Path | None = None) -> dict:
             native = archive.read("nicoid/method-delta.dex")
             require(helpers.startswith(b"dex\n"), "Invalid helper DEX signature")
             require(native.startswith(b"dex\n"), "Invalid native DEX signature")
+            if version == "2.2.0":
+                # Reviewed notice-only package. The source/license/release gates are separate.
+                require(sha256(bundle.read_bytes()) ==
+                        "caa29ae2e567f9799b597b0eb144245421ebca374cb951ff1567ac06726a20f9",
+                        "Unreviewed v2.2.0 MPP; exact notice-review candidate required")
+                require(len(archive.namelist()) == len(set(archive.namelist())) == 51,
+                        "Unexpected v2.2.0 archive members")
+                require("META-INF/java-lame-3.98.4-LGPL-3.0.txt" in archive.namelist(),
+                        "Missing Java LAME license")
             if version == "2.1.9":
                 require(manifest.count(b"Version: 2.1.9\r\n") == 1, "Wrong stable manifest")
                 require(len(archive.namelist()) == len(set(archive.namelist())), "Duplicate MPP entry")

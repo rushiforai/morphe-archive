@@ -76,6 +76,11 @@ public final class GboardKeyboardToolsSettingsGroupFeature
     }
 
     @Override
+    public String getRootSectionKey() {
+        return GboardPatchesSettingsContract.ROOT_SECTION_KEYBOARD;
+    }
+
+    @Override
     public boolean isAvailable(Context context) {
         return delegate.isAvailable(context);
     }

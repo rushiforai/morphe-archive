@@ -10,8 +10,8 @@ import app.morphe.patcher.patch.resourcePatch
 @Suppress("unused")
 val addModsSettingsResourcesPatch = resourcePatch(
     name = "Mods settings resources",
-    description = "Adds English strings for the MightyMich section in WhatsApp Settings.",
-    default = true,
+    description = "Adds English strings for the planned MightyMich section in WhatsApp Settings.",
+    default = false,
 ) {
     compatibleWith(WhatsAppCompatibility.WHATSAPP)
 
@@ -54,9 +54,9 @@ val addModsSettingsResourcesPatch = resourcePatch(
 @Suppress("unused")
 val addModsSettingsEntryPatch = bytecodePatch(
     name = "Mods settings entry",
-    description = "Reserves a MightyMich row in Settings. Full dialog wiring needs the " +
-        "settings-list fingerprint for this WhatsApp build.",
-    default = true,
+    description = "Placeholder: adds the MightyMich strings but does not inject a Settings " +
+        "row yet. Disabled by default so it cannot be mistaken for a working UI patch.",
+    default = false,
 ) {
     compatibleWith(WhatsAppCompatibility.WHATSAPP)
     dependsOn(addModsSettingsResourcesPatch)

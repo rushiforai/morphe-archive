@@ -45,6 +45,12 @@ public class SharedKeyboardSurfaceTest {
   assertEquals("Suggesting changes…",SharedTextActions.progressLabel("suggest_instructions",null));
   assertEquals("Drafting your reply…",SharedTextActions.progressLabel("reply",null));
  }
+ @Test public void completedLocalEditsReturnToTyping(){
+  for(String operation:new String[]{"proofread","rephrase","translate","edit"}){
+   assertTrue(operation,SharedTextActions.returnsToTyping(operation));
+  }
+  assertFalse(SharedTextActions.returnsToTyping("reply"));
+ }
  @Test public void textInheritsActualNativeThemeRatherThanAFixedPalette(){TextView copy=SharedKeyboardSurface.styledText(message,"Local result");assertEquals(message.getTextColors(),copy.getTextColors());assertEquals(message.getTypeface(),copy.getTypeface());assertEquals(message.getTextSize(),copy.getTextSize(),0.01f);}
  @Test public void aThemeRebindUsesTheNewNativeTextStyle(){install(0xffab7812);LinearLayout body=SharedKeyboardSurface.body();SharedKeyboardSurface.label(body,"Local result");assertEquals(0xffab7812,((TextView)body.getChildAt(0)).getCurrentTextColor());}
  @Test public void extraSurfacePreservesBothNativeSwitcherChildrenAndRestoresVisibility(){LinearLayout body=SharedKeyboardSurface.body();SharedKeyboardSurface.label(body,"Local result");SharedKeyboardSurface.Panel panel=new SharedKeyboardSurface.Panel(body);assertTrue(panel.show());assertEquals(2,switcher.getChildCount());assertEquals(View.INVISIBLE,message.getVisibility());panel.dismiss();assertEquals(2,switcher.getChildCount());assertEquals(View.VISIBLE,message.getVisibility());assertEquals(2,nativeFrame.getChildCount());}

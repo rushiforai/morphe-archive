@@ -1089,3 +1089,17 @@ object LocalBackupRestoreConfirmedFingerprint : Fingerprint(
 	returnType = "V",
 	parameters = listOf(),
 )
+
+object LightIconFadePercentFingerprint : Fingerprint(
+	definingClass = "Lcom/shatteredpixel/shatteredpixeldungeon/actors/buffs/Light;",
+	name = "iconFadePercent",
+	returnType = "F",
+	parameters = listOf(),
+)
+
+object FlavourBuffDescFingerprint : Fingerprint(
+	definingClass = "Lcom/shatteredpixel/shatteredpixeldungeon/actors/buffs/FlavourBuff;",
+	name = "desc",
+	returnType = "Ljava/lang/String;",
+	parameters = listOf(),
+)

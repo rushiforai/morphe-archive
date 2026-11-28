@@ -28,6 +28,37 @@ public final class LokiSwitches {
     private LokiSwitches() {
     }
 
+    // region IMO
+
+    static final String IMO_VOICE = "imo_hide_voice";
+    static final String IMO_SCREENSHOTS = "imo_screenshots";
+    static final String IMO_SUGGESTIONS = "imo_hide_suggestions";
+    static final String IMO_STORY_CALL = "imo_story_call";
+    static final String IMO_SEND_APK = "imo_send_apk";
+    static final String IMO_BURN = "imo_burn";
+    static final String IMO_PREMIUM = "imo_hide_premium";
+
+    /** A patched IMO behaviour that is on until the user turns it off. Read when the behaviour is used. */
+    public static boolean imoOn(String key) {
+        return imo(key, true);
+    }
+
+    /** A patched IMO behaviour that is off until the user turns it on. */
+    public static boolean imoOff(String key) {
+        return imo(key, false);
+    }
+
+    public static boolean imo(String key, boolean byDefault) {
+        try {
+            Context context = LokiLog.application();
+            return context == null ? byDefault : LokiPrefs.store(context).getBoolean(key, byDefault);
+        } catch (Throwable error) {
+            return byDefault;
+        }
+    }
+
+    // endregion
+
     public static boolean get(Context context, String key) {
         return context != null && LokiPrefs.store(context).getBoolean(key, true);
     }

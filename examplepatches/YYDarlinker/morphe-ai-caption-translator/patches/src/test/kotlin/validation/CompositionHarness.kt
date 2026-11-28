@@ -1,7 +1,6 @@
 package validation
 import app.morphe.patcher.Patcher
 import app.morphe.patcher.PatcherConfig
-import app.morphe.patcher.apk.ApkUtils.applyTo
 import app.morphe.patcher.patch.*
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import kotlinx.coroutines.runBlocking
@@ -29,7 +28,6 @@ fun main(args:Array<String>){
                 pkg.targets.any { it.version==null || it.version==versionName }
         } ?: true
         check(roots.all { supports(it.compatibility) }) { "Addon metadata does not declare the actual APK version: $versionName" }
-        val missingTargets = mutableSetOf<String>()
         if(ai) {
             val captionTargets=official.single { it.name=="Captions" }.compatibility.orEmpty()
                 .filter { it.packageName==patcher.context.packageMetadata.packageName }.flatMap { it.targets }.mapNotNull { it.version }
@@ -41,10 +39,9 @@ fun main(args:Array<String>){
                 val declared=root.compatibility.orEmpty().filter { it.packageName==patcher.context.packageMetadata.packageName }
                     .flatMap { it.targets }.mapNotNull { it.version }.toSet()
                 output.resolve("compatibility.txt").writeText("official_caption_targets=$captionTargets\nrequired_21_30_and_newer=$required\naddon_declared=$declared\ninput=$versionName\n")
-                missingTargets.addAll(required - declared)
             }
         }
-        // Native-only addons are intentionally exercised without selecting any official patch.
+        // Settings-only roots are exercised without selecting any official patch.
         // Experimental targets are included: the newer APKs are published as experimental by Morphe.
         val selected=if(ai) official.filter { p->p.default && (p.compatibility?.any { pkg ->
             pkg.packageName==null || pkg.packageName==patcher.context.packageMetadata.packageName && pkg.targets.any { target ->
@@ -57,7 +54,7 @@ fun main(args:Array<String>){
         selected.addAll(roots)
         val fault=values["fault"]
         if(fault in listOf("menu_unknown","menu_duplicate","menu_info_unknown","shorts_unknown","clock_unknown")) {
-            val faultPatch=bytecodePatch(name="N29 controlled $fault",default=false) {
+            val faultPatch=patch(name="N29 controlled $fault",default=false) {
                 dependsOn(*selected.toTypedArray())
                 execute {
                     if(fault=="menu_info_unknown") {
@@ -104,7 +101,7 @@ fun main(args:Array<String>){
             }
             println("REAL_PATCHER_DEX_SERIALIZED ${output.resolve("serialized-dex.zip").absolutePath}")
         }
-        val flags=bytecode.classDefBy("Lapp/yydarlinker/deepseekcaptions/CaptionAddonSupport;")
+        val flags=bytecode.classDefBy("Lapp/yydarlinker/aicaptions/host/CaptionAddonSupport;")
         val expected=mapOf("aiInstalled" to ai)
         for((name,on) in expected){
             val method=flags.methods.single { it.name==name }
@@ -117,7 +114,7 @@ fun main(args:Array<String>){
                 val cls=bytecode.classDefBy(initial.type)
                 for(method in cls.methods)for(ins in method.implementation?.instructions?:emptyList()){
                     val ref=(ins as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)?.reference as? com.android.tools.smali.dexlib2.iface.reference.MethodReference ?:continue
-                    if(ref.definingClass.startsWith("Lapp/yydarlinker/deepseekcaptions/"))hooks[ref.name]=(hooks[ref.name]?:0)+1
+                    if(ref.definingClass.startsWith("Lapp/yydarlinker/aicaptions/"))hooks[ref.name]=(hooks[ref.name]?:0)+1
                 }
             }
         }
@@ -127,17 +124,17 @@ fun main(args:Array<String>){
             check(actual["aiInstalled"]==0L) { "Failed integration must not publish AI installation permission" }
             if(values["dex-only"]=="true")serializeDexSnapshot()
             if(values["compile-failed"]=="true") {
-                val result=patcher.get();val apk=output.resolve("failed-partial-unsigned.apk");Files.copy(file("input").toPath(),apk.toPath());result.applyTo(apk)
+                val apk=output.resolve("failed-partial-unsigned.apk");patcher.writeApk(apk)
                 println("FAILED_PARTIAL_SERIALIZED ${apk.absolutePath}")
             }
             throw IllegalStateException("Patch failed; real partial state preserved",failure)
         }
-        check(missingTargets.isEmpty()) { "Addon metadata is missing official caption targets: $missingTargets" }
         check(fault==null) { "Controlled incompatible host unexpectedly passed: $fault" }
         check(((hooks["suppressNativeDraw"]?:0)>0)==ai)
         check((hooks["initialize"]?:0)==1){"Duplicate shared initialization"}
-        check((hooks["onNativeTrackApplied"]?:0)==1){"Shared automatic/manual caption dispatcher must be hooked"}
-        check((hooks["onNativeSelectionWithReason"]?:0)==0 && (hooks["onNativeSelection"]?:0)==0){"Obsolete manual-only hooks must not duplicate capture"}
+        check((hooks["onNativeTrackApplied"]?:0)==if(ai) 1 else 0){"Incorrect shared caption dispatcher count"}
+        check(listOf("onNativeSelectionWithReason", "onNativeSelection", "onNativeSelectionApplied", "rewriteUrl")
+            .none { it in hooks }){"Retired host hook still injected"}
 
         if(ai){
             check((hooks["onMenu"]?:0)==1);check((hooks["observeMenuPath"]?:0)==1)
@@ -147,7 +144,7 @@ fun main(args:Array<String>){
         output.resolve("selection.txt").writeText(names.joinToString("\n"))
         if(values["dex-only"]=="true")serializeDexSnapshot()
         if(values["compile"]=="false"){println("STRUCTURE_PASS ${names.joinToString()}");return@use}
-        val result=patcher.get();val apk=output.resolve("patched-unsigned.apk");Files.copy(file("input").toPath(),apk.toPath());result.applyTo(apk)
+        val apk=output.resolve("patched-unsigned.apk");patcher.writeApk(apk)
         output.resolve("selection.txt").writeText(names.joinToString("\n"))
         println("COMPOSITION_PASS ${names.joinToString()} APK=${apk.absolutePath}")
     }

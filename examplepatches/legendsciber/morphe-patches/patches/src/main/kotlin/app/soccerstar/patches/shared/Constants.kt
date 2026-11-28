@@ -9,7 +9,7 @@ object Constants {
         packageName = "com.soccer.score.star",
         appIconColor = 0x2E7D32,
         targets = listOf(
-            AppTarget(version = "0.3.88")
+            AppTarget(version = "0.3.98")
         )
     )
 }

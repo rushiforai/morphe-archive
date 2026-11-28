@@ -13,6 +13,7 @@ internal const val COMPOSER = "Landroidx/compose/runtime/Composer;"
 internal const val FUNCTION0 = "Lkotlin/jvm/functions/Function0;"
 internal const val FUNCTION1 = "Lkotlin/jvm/functions/Function1;"
 internal const val STRING = "Ljava/lang/String;"
+internal const val OBJECT = "Ljava/lang/Object;"
 internal const val LAYOUT_PACKAGE = "Landroidx/compose/foundation/layout/"
 internal const val LOG_EVENT = "Lcom/x/thrift/clientapp/gen/LogEvent;"
 
@@ -110,6 +111,18 @@ internal object UserLabelToStringFingerprint : Fingerprint(
     strings = listOf("UserLabel(type="),
 )
 
+/** A label's link to a web page. */
+internal object ExternalUrlToStringFingerprint : Fingerprint(
+    name = "toString",
+    strings = listOf("ExternalUrl(url="),
+)
+
+/** A label's deep link. */
+internal object DeeplinkToStringFingerprint : Fingerprint(
+    name = "toString",
+    strings = listOf("Deeplink(url="),
+)
+
 internal object PostEntityListToStringFingerprint : Fingerprint(
     name = "toString",
     strings = listOf("PostEntityList(mentions="),
@@ -118,6 +131,46 @@ internal object PostEntityListToStringFingerprint : Fingerprint(
 internal object UrlEntityToStringFingerprint : Fingerprint(
     name = "toString",
     strings = listOf("UrlEntity(displayUrl="),
+)
+
+/** The code point range of a post's text that X shows, without reply mentions and media links. */
+internal object DisplayTextRangeToStringFingerprint : Fingerprint(
+    name = "toString",
+    strings = listOf("DisplayTextRange(startIdx="),
+)
+
+/** A photo of a post. */
+internal object MediaContentImageToStringFingerprint : Fingerprint(
+    name = "toString",
+    strings = listOf("MediaContentImage(mediaId="),
+)
+
+/** An entry of a post's action bar, with its count. */
+internal object InlineActionEntryToStringFingerprint : Fingerprint(
+    name = "toString",
+    strings = listOf("InlineActionEntry(actionType="),
+)
+
+/** The composer's arguments for quoting a post. */
+internal object QuoteAPostToStringFingerprint : Fingerprint(
+    name = "toString",
+    strings = listOf("QuoteAPost(quotedPostId="),
+)
+
+/** Code that reads X's reply extra from a share intent. */
+internal object ReplyExtraFingerprint : Fingerprint(
+    strings = listOf("replied_tweet_id"),
+)
+
+/**
+ * Candidates for the composer's handling of share intents (SEND and SEND_MULTIPLE). X 12.40 reads
+ * the reply extra in the handler itself, 12.41 in a helper it calls.
+ */
+internal object ComposerShareIntentFingerprint : Fingerprint(
+    name = "invoke",
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf("Ljava/lang/Object;"),
+    strings = listOf("android.intent.action.SEND_MULTIPLE"),
 )
 
 /** The client event reporter every LogEvent goes through. */

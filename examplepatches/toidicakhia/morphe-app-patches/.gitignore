@@ -101,6 +101,9 @@ fabric.properties
 **/build/
 !src/**/build/
 
+# Downloaded target APKs used by the Morphe patch plugin during builds
+/work/
+
 # Ignore Gradle GUI config
 gradle-app.setting
 
@@ -118,9 +121,6 @@ gradle-app.setting
 
 # Ignore vscode config
 .vscode/
-
-# Dependency directories
-node_modules/
 
 # Ignore IDEA files
 .idea/

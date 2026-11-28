@@ -1,0 +1,499 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.morphe.patches.instagram.misc.theme
+
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.ResourcePatchContext
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patches.instagram.misc.extension.enableStatus
+import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
+import app.morphe.patches.instagram.misc.extension.requireStatusMethod
+import app.morphe.patches.instagram.misc.settings.settingsPatch
+import app.morphe.patches.shared.compat.AppCompatibilities
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction31i
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction51l
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
+import org.w3c.dom.Document
+import org.w3c.dom.Element
+import java.io.File
+
+private const val PATCH = "Pure black dark mode"
+
+/**
+ * Instagram's black on its Prism redesign: the dark theme's background and status bar, and the light
+ * theme's text. Sheets and buttons in the dark theme use lighter grays of their own ([DARK_SHEETS]).
+ */
+internal const val PRISM_BLACK = 0xff0c1014L
+internal const val PURE_BLACK = 0xff000000L
+
+/**
+ * The theme attributes Instagram's styles point at [PRISM_BLACK_COLOR] for a background: the
+ * screen, the status bar, media, Reels' tab bar and two banners.
+ */
+internal val BLACK_BACKGROUNDS = setOf(
+    "igds_color_primary_background", "status_bar_background", "igds_color_media_background",
+    "igds_color_clips_tab_bar_background", "igds_color_clips_up_next_banner_background", "igds_color_cta_banner_background",
+)
+
+internal const val PRISM_BLACK_COLOR = "@color/igds_prism_black"
+
+/**
+ * The colors one decoded values/colors.xml gives Prism's black, #ff0c1014, as styles name them. 457
+ * folds igds_prism_black into camera_settings_background, a color of the same value, so its styles
+ * name that instead of [PRISM_BLACK_COLOR].
+ */
+internal fun prismBlackColors(colors: String): Set<String> =
+    Regex("""<color name="([^"]+)">#(?:ff)?0c1014</color>""", RegexOption.IGNORE_CASE).findAll(colors)
+        .mapTo(linkedSetOf()) { "@color/${it.groupValues[1]}" }
+
+/**
+ * A stock color that's #ff000000 already. Setting igds_prism_black itself would have the patcher
+ * re-encode the color table, and that breaks the color state lists Instagram shares between two
+ * entries (on 449 three of them named files the patched APK didn't have).
+ */
+internal const val PURE_BLACK_COLOR = "@color/bds_black"
+
+/** The dark theme's two palettes. The patch fails unless both change. */
+internal val DARK_PALETTES = listOf("IgdsPrismGrayOverridesDark", "IgdsPrismSemanticColorsExperimentDark")
+
+/**
+ * The Compose palettes Instagram's newer screens draw from, kept names. Prism's first one names
+ * [PRISM_BLACK] BLACK; its second, which the Direct inbox and Activity screens read, names it
+ * GRAY_1600. The patch fails unless both change.
+ */
+internal val COMPOSE_PALETTES = listOf(
+    "Lcom/instagram/compose/core/theme/BasePrismColors;",
+    "Lcom/instagram/compose/core/theme/BasePrismColorsV2;",
+)
+
+/**
+ * The theme attribute Instagram's bottom sheets take their surface from. The sheet's shapes
+ * (igds_bottom_sheet_background and its two Prism twins) fill with it, the sheet's host reads it
+ * again for the tint it lays over them, and the screens that paint themselves to match a sheet
+ * read it too. On 450 the dark theme sets it to #ff191c1f (#171).
+ */
+internal const val SHEET_BACKGROUND = "igds_color_elevated_background"
+
+/**
+ * The dark theme's styles that set [SHEET_BACKGROUND]: Prism's dark palette, the two overlays
+ * Instagram lays over it when its gray overrides are on, the last of which wins, and the base dark
+ * palette Prism's inherits from. An install Instagram doesn't give Prism (a second copy from Install
+ * next to Instagram showed it) reads the base one, bds_grey_9, #ff262626 (#835). The light theme's
+ * sheets are white already and have no style here. The patch fails unless all four change.
+ */
+internal val DARK_SHEETS = listOf(
+    "IgdsPrismSemanticColorsExperimentDark", "IgdsPrismGrayOverridesDark", "IgdsElevatedBackgroundFixDark",
+    "IgdsSemanticColorsDark",
+)
+
+/**
+ * The theme attribute the story viewer's root (reel_viewer_root) fills with, which shows in the
+ * strip above a story and behind its reply bar, and the color a story's picture shows while it
+ * loads. Prism sets it to igds_prism_gray_09, #ff25292e, in both themes (#279); 457 names that gray
+ * camera_settings_secondary_background, a color of the same value it folded it into.
+ */
+internal const val STORY_BACKGROUND = "igds_color_stories_loading_background"
+
+/**
+ * The dark theme's styles that set [STORY_BACKGROUND]: Prism's dark palette, its gray overrides,
+ * and the base dark palette an install without Prism reads, bds_grey_9 there (#835). The light
+ * theme's style keeps its gray. On 453 a test account's viewer draws [PRISM_BLACK] in those bands
+ * in both themes, without Pure black, and [PURE_BLACK] with it (#322). The patch fails unless all
+ * three change.
+ */
+internal val DARK_STORIES = listOf("IgdsPrismSemanticColorsExperimentDark", "IgdsPrismGrayOverridesDark", "IgdsSemanticColorsDark")
+
+/**
+ * The theme attribute the menu you get by holding a message or a chat in the inbox fills with
+ * (#543). On 454 the dark theme sets it to a 95% gray, #f225292e through the blur fallback overlay,
+ * which a reporter's screenshot shows as #23262b.
+ */
+internal const val MENU_BACKGROUND = "igds_context_menu_background_color"
+
+/**
+ * The dark theme's styles that set [MENU_BACKGROUND]: the base dark palette Prism's inherits from,
+ * and the blur fallback overlay Instagram lays over it. The light theme's menus stay white. The
+ * patch fails unless both change.
+ */
+internal val DARK_MENUS = listOf("IgdsPrismBGBlurFallbackFixDark", "IgdsSemanticColorsDark")
+
+/**
+ * The theme attributes Instagram's toasts and snackbars fill with, the bars that pop up at the bottom
+ * to say something was done (#816): the 95% gray most of them use (igds_prism_toast_95_alpha_background,
+ * #f2212328 on 456), its see-through 50% twin under a blur (igds_prism_toast_background), and the
+ * gray the older bar and a photo's tags share (ig_toast_background, #f225292e).
+ */
+internal val TOAST_BACKGROUNDS = listOf(
+    "igds_color_toast_95_alpha_background", "igds_color_toast_background", "igds_color_tag_or_toast_background",
+)
+
+/**
+ * The dark theme's styles that set [TOAST_BACKGROUNDS]: the base dark palette sets all three, and
+ * Prism's dark palette sets the older bar's again. The light theme's bars keep Instagram's dark gray.
+ * The patch fails unless each of the three changes.
+ */
+internal val DARK_TOASTS = listOf("IgdsSemanticColorsDark", "IgdsPrismSemanticColorsExperimentDark")
+
+/**
+ * The dark theme Instagram's newer comments screen wraps itself in (#538). It sets the screen's and
+ * the sheet's backgrounds to bds_grey_9_95_transparent, #f2262626, and a photo or GIF in a comment
+ * paints its rounded corners in that color, so on a sheet that's black they showed as gray squares
+ * round each picture. StoryCommentColorsDarkLegacy inherits both.
+ */
+internal const val COMMENT_COLORS = "StoryCommentColorsDark"
+
+/** The backgrounds [COMMENT_COLORS] sets to its gray. Its dividers keep theirs. The patch fails unless both change. */
+internal val COMMENT_BACKGROUNDS = listOf("igds_color_primary_background", SHEET_BACKGROUND)
+
+/**
+ * The selector a row of the Likes list paints itself with, over a sheet that's black already (#248).
+ * Its normal item fills with [ROW_BACKGROUND], #ff191c1f on 453, and its pressed item with another
+ * attribute, #ff25292e.
+ */
+internal const val ROW_DRAWABLE = "elevated_bg_simple_row_dark"
+
+/**
+ * The theme attribute [ROW_DRAWABLE] fills with. Only that file changes, since other drawables and
+ * Instagram's code read this attribute for pills and buttons that would vanish on a black screen.
+ */
+internal const val ROW_BACKGROUND = "igds_color_elevated_background_dark"
+
+/**
+ * HushGram's own attribute [ROW_DRAWABLE] fills with in place of [ROW_BACKGROUND], so a theme can give
+ * a Likes row a color of its own. Pure black sets it to [PURE_BLACK_COLOR] in every style that sets
+ * [ROW_BACKGROUND], so any theme that resolved that attribute resolves this one, and the dark
+ * background styles of Classic colors and Backgrounds in the accent color set it to their raised
+ * shade, the sheet's (#639). It ends in `_dark` so their light styles leave it alone, as they leave
+ * Instagram's.
+ */
+internal const val ROW_ATTRIBUTE = "hushgram_row_background_dark"
+
+/** Declares [ROW_ATTRIBUTE] in a decoded values/attrs.xml unless it's there, and answers whether it added it. */
+internal fun declareRowAttribute(attrs: Document): Boolean {
+    val list = attrs.documentElement.getElementsByTagName("attr")
+    if ((0 until list.length).any { (list.item(it) as Element).getAttribute("name") == ROW_ATTRIBUTE }) return false
+    attrs.documentElement.appendChild(attrs.createElement("attr").apply {
+        setAttribute("name", ROW_ATTRIBUTE)
+        setAttribute("format", "color")
+    })
+    return true
+}
+
+/**
+ * The color [INSTAGRAM_LAUNCH_THEME] gives Android 12's launch screen, the backdrop of its icon and
+ * the bars, #ff1a1a1a in the dark theme on 453 (#410). The splash Instagram draws itself after it
+ * already takes bds_black in the dark theme.
+ */
+internal const val SPLASH_BACKGROUND_COLOR = "@color/ig_splash_screen_background"
+
+/** Whether a decoded values folder is the dark theme's, like values-night or values-night-v31. */
+internal fun isNightValues(name: String) = "night" in name.split('-')
+
+/**
+ * Points each item of [INSTAGRAM_LAUNCH_THEME] that names [SPLASH_BACKGROUND_COLOR] at
+ * [PURE_BLACK_COLOR] in one decoded styles.xml, and answers how many it changed. Only night
+ * folders' files get here, so the light launch screen keeps its white. Before Android 12 the launch
+ * screen is a drawable of its own, which keeps its gray.
+ */
+internal fun blackenLaunchScreen(styles: Document): Int {
+    val list = styles.getElementsByTagName("style")
+    var changed = 0
+    for (style in (0 until list.length).map { list.item(it) as Element }) {
+        if (style.getAttribute("name") != INSTAGRAM_LAUNCH_THEME) continue
+        val items = style.getElementsByTagName("item")
+        (0 until items.length).map { items.item(it) as Element }.filter { it.textContent.trim() == SPLASH_BACKGROUND_COLOR }.forEach {
+            it.textContent = PURE_BLACK_COLOR
+            changed++
+        }
+    }
+    return changed
+}
+
+/**
+ * Points each of [BLACK_BACKGROUNDS] that a style in one decoded styles.xml sets to
+ * [PRISM_BLACK_COLOR], or another of [blacks] ([prismBlackColors]), at [PURE_BLACK_COLOR] instead,
+ * and answers the styles it changed.
+ */
+internal fun blackenStyles(styles: Document, blacks: Set<String> = setOf(PRISM_BLACK_COLOR)): List<String> {
+    val list = styles.getElementsByTagName("style")
+    val changed = mutableListOf<String>()
+    for (style in (0 until list.length).map { list.item(it) as Element }) {
+        val items = style.getElementsByTagName("item")
+        val black = (0 until items.length).map { items.item(it) as Element }.filter { item ->
+            item.getAttribute("name").substringAfter(':') in BLACK_BACKGROUNDS && item.textContent.trim() in blacks
+        }
+        black.forEach { it.textContent = PURE_BLACK_COLOR }
+        if (black.isNotEmpty()) changed += style.getAttribute("name")
+    }
+    return changed
+}
+
+/**
+ * Points [SHEET_BACKGROUND] at [PURE_BLACK_COLOR] in each of [DARK_SHEETS] that one decoded
+ * styles.xml holds, and answers the styles it changed. What sits on a sheet keeps its gray: the
+ * pressed row, the separators, the fields and the buttons are other attributes.
+ */
+internal fun blackenSheets(styles: Document): List<String> = blackenAttribute(styles, SHEET_BACKGROUND, DARK_SHEETS)
+
+/**
+ * Points [STORY_BACKGROUND] at [PURE_BLACK_COLOR] in each of [DARK_STORIES] that one decoded
+ * styles.xml holds, and answers the styles it changed. The story's own picture and stickers draw
+ * over it and keep their colors.
+ */
+internal fun blackenStories(styles: Document): List<String> = blackenAttribute(styles, STORY_BACKGROUND, DARK_STORIES)
+
+/**
+ * Points [MENU_BACKGROUND] at [PURE_BLACK_COLOR] in each of [DARK_MENUS] that one decoded
+ * styles.xml holds, and answers the styles it changed. The menu's rows, its pressed row and its
+ * text keep their colors.
+ */
+internal fun blackenMenus(styles: Document): List<String> = blackenAttribute(styles, MENU_BACKGROUND, DARK_MENUS)
+
+/**
+ * Points each of [TOAST_BACKGROUNDS] at [PURE_BLACK_COLOR] in each of [DARK_TOASTS] that one decoded
+ * styles.xml holds, and answers the attributes it changed. A bar's text, icon and button keep their
+ * colors.
+ */
+internal fun blackenToasts(styles: Document): List<String> =
+    TOAST_BACKGROUNDS.filter { blackenAttribute(styles, it, DARK_TOASTS).isNotEmpty() }
+
+/**
+ * Points each of [COMMENT_BACKGROUNDS] at [PURE_BLACK_COLOR] in [COMMENT_COLORS] if one decoded
+ * styles.xml holds it, and answers the attributes it changed. The comments' text, dividers and
+ * highlighted rows keep their colors.
+ */
+internal fun blackenComments(styles: Document): List<String> =
+    COMMENT_BACKGROUNDS.filter { blackenAttribute(styles, it, listOf(COMMENT_COLORS)).isNotEmpty() }
+
+private fun blackenAttribute(styles: Document, attribute: String, names: List<String>): List<String> {
+    val list = styles.getElementsByTagName("style")
+    val changed = mutableListOf<String>()
+    for (style in (0 until list.length).map { list.item(it) as Element }) {
+        if (style.getAttribute("name") !in names) continue
+        val items = style.getElementsByTagName("item")
+        val gray = (0 until items.length).map { items.item(it) as Element }.filter { item ->
+            item.getAttribute("name").substringAfter(':') == attribute && item.textContent.trim() != PURE_BLACK_COLOR
+        }
+        gray.forEach { it.textContent = PURE_BLACK_COLOR }
+        if (gray.isNotEmpty()) changed += style.getAttribute("name")
+    }
+    return changed
+}
+
+/**
+ * Points whatever in one decoded [ROW_DRAWABLE] fills with [ROW_BACKGROUND] at [ROW_ATTRIBUTE], and
+ * answers how many it changed. A pressed row keeps its gray, so a press still shows.
+ */
+internal fun routeRow(row: Document): Int {
+    val solids = row.getElementsByTagName("solid")
+    val gray = (0 until solids.length).map { solids.item(it) as Element }.filter { solid ->
+        solid.getAttribute("android:color").trim().removePrefix("?").removePrefix("attr/") == ROW_BACKGROUND
+    }
+    gray.forEach { it.setAttribute("android:color", "?attr/$ROW_ATTRIBUTE") }
+    return gray.size
+}
+
+/**
+ * Gives [ROW_ATTRIBUTE] [PURE_BLACK_COLOR] in each style of one decoded styles.xml that sets
+ * [ROW_BACKGROUND] and not [ROW_ATTRIBUTE], and answers the styles it changed. When the accent patch
+ * ran first, its dark styles set both and keep their shade.
+ */
+internal fun blackenRowStyles(styles: Document): List<String> {
+    val list = styles.getElementsByTagName("style")
+    val changed = mutableListOf<String>()
+    for (style in (0 until list.length).map { list.item(it) as Element }) {
+        val items = style.getElementsByTagName("item")
+        val names = (0 until items.length).map { (items.item(it) as Element).getAttribute("name").substringAfter(':') }
+        if (ROW_BACKGROUND !in names || ROW_ATTRIBUTE in names) continue
+        style.appendChild(styles.createElement("item").apply {
+            setAttribute("name", ROW_ATTRIBUTE)
+            textContent = PURE_BLACK_COLOR
+        })
+        changed += style.getAttribute("name")
+    }
+    return changed
+}
+
+/**
+ * Whether [instruction] loads [PRISM_BLACK]: as an int (a View color) or as a long (a Compose
+ * Color's argument). Neither fits a shorter form of either opcode.
+ */
+internal fun isPrismBlack(instruction: Instruction): Boolean = when (instruction.opcode) {
+    Opcode.CONST -> (instruction as WideLiteralInstruction).wideLiteral.toInt() == PRISM_BLACK.toInt()
+    Opcode.CONST_WIDE -> (instruction as WideLiteralInstruction).wideLiteral == PRISM_BLACK
+    else -> false
+}
+
+/**
+ * Loads [PURE_BLACK] where Instagram's Compose palettes load [PRISM_BLACK], with the same opcode
+ * into the same register, and answers the methods it changed. Other owners of the literal (tab
+ * tints, light theme text) stay.
+ */
+internal fun BytecodePatchContext.blackenLiterals(): List<String> {
+    val found = mutableListOf<Pair<String, Method>>()
+    COMPOSE_PALETTES.mapNotNull { classDefByOrNull(it) }.forEach { classDef ->
+        classDef.methods.forEach { method ->
+            if (method.implementation?.instructions?.any(::isPrismBlack) == true) found += classDef.type to method
+        }
+    }
+    val changed = mutableListOf<String>()
+    found.groupBy({ it.first }, { it.second }).forEach { (type, methods) ->
+        val mutable = mutableClassDefBy(type)
+        for (method in methods) {
+            val target = mutable.methods.single {
+                it.name == method.name && it.returnType == method.returnType &&
+                    it.parameterTypes.map(Any::toString) == method.parameterTypes.map(Any::toString)
+            }
+            target.implementation!!.instructions.toList().forEachIndexed { index, instruction ->
+                if (!isPrismBlack(instruction)) return@forEachIndexed
+                val register = (instruction as OneRegisterInstruction).registerA
+                target.replaceInstruction(
+                    index,
+                    if (instruction.opcode == Opcode.CONST) BuilderInstruction31i(Opcode.CONST, register, PURE_BLACK.toInt())
+                    else BuilderInstruction51l(Opcode.CONST_WIDE, register, PURE_BLACK),
+                )
+            }
+            changed += "$type->${method.name}"
+        }
+    }
+    return changed
+}
+
+/**
+ * Writes pure black into the decoded styles: the backgrounds [blackenStyles] owns, the sheets
+ * [blackenSheets] owns, the story viewer [blackenStories] owns, the held-message menu
+ * [blackenMenus] owns, the toasts [blackenToasts] owns, the comments theme [blackenComments] owns and the dark launch screen
+ * [blackenLaunchScreen] owns, and into the Likes row's own attribute [blackenRowStyles] owns, which
+ * the row [routeRow] owns fills with from then on. Only that row's file, values/attrs.xml, the styles
+ * files that name [PRISM_BLACK_COLOR] or [ROW_BACKGROUND] and the night ones naming
+ * [SPLASH_BACKGROUND_COLOR] are opened: document() writes its file back, and the
+ * patcher re-encodes every file written. The sheets' and stories' styles sit in the file the
+ * palettes are in.
+ */
+internal fun ResourcePatchContext.blackenThemes() {
+    // Patcher 2.0 decodes only the files a patch asks for.
+    decode("res/values*/colors.xml", "res/values*/styles.xml", "res/values/attrs.xml", "res/drawable*/$ROW_DRAWABLE.xml")
+    var rows = 0
+    get("res").listFiles { file -> file.isDirectory && File(file, "$ROW_DRAWABLE.xml").isFile }.orEmpty().forEach { directory ->
+        document("res/${directory.name}/$ROW_DRAWABLE.xml").use { rows += routeRow(it) }
+    }
+    if (rows == 0) throw PatchException("$PATCH: $ROW_DRAWABLE no longer fills with $ROW_BACKGROUND")
+    if (!get("res/values/attrs.xml").isFile) throw PatchException("$PATCH: there's no values/attrs.xml to declare $ROW_ATTRIBUTE in")
+    document("res/values/attrs.xml").use { declareRowAttribute(it) }
+    val values = get("res").listFiles { file -> file.isDirectory && file.name.startsWith("values") }.orEmpty()
+    val colors = File(get("res"), "values/colors.xml")
+    // 449 stores it as an RGB color, which decodes without the alpha.
+    if (!colors.isFile || !Regex("""<color name="bds_black">#(ff)?000000</color>""", RegexOption.IGNORE_CASE)
+            .containsMatchIn(colors.readText())
+    ) {
+        throw PatchException("$PATCH: $PURE_BLACK_COLOR is no longer #%08x".format(PURE_BLACK))
+    }
+    val blacks = setOf(PRISM_BLACK_COLOR) + prismBlackColors(colors.readText())
+    val backgrounds = mutableListOf<String>()
+    val sheets = mutableListOf<String>()
+    val stories = mutableListOf<String>()
+    val menus = mutableListOf<String>()
+    val toasts = mutableListOf<String>()
+    val comments = mutableListOf<String>()
+    val launchScreens = mutableListOf<String>()
+    val rowStyles = mutableListOf<String>()
+    values.forEach { directory ->
+        val file = File(directory, "styles.xml")
+        if (!file.isFile) return@forEach
+        val text = file.readText()
+        val palettes = blacks.any { it in text }
+        val launch = isNightValues(directory.name) && SPLASH_BACKGROUND_COLOR in text
+        val row = ROW_BACKGROUND in text
+        if (!palettes && !launch && !row) return@forEach
+        document("res/${directory.name}/styles.xml").use { styles ->
+            if (palettes) {
+                backgrounds += blackenStyles(styles, blacks)
+                sheets += blackenSheets(styles)
+                stories += blackenStories(styles)
+                menus += blackenMenus(styles)
+                toasts += blackenToasts(styles)
+                comments += blackenComments(styles)
+            }
+            if (row) rowStyles += blackenRowStyles(styles)
+            if (launch && blackenLaunchScreen(styles) > 0) launchScreens += directory.name
+        }
+    }
+    if (rowStyles.isEmpty()) throw PatchException("$PATCH: no style sets $ROW_BACKGROUND for $ROW_ATTRIBUTE to follow")
+    val missing = DARK_PALETTES - backgrounds.toSet()
+    if (missing.isNotEmpty()) {
+        throw PatchException("$PATCH: ${missing.joinToString()} no longer set a background to ${blacks.joinToString(" or ")}")
+    }
+    val gray = DARK_SHEETS - sheets.toSet()
+    if (gray.isNotEmpty()) throw PatchException("$PATCH: ${gray.joinToString()} no longer set $SHEET_BACKGROUND")
+    val grayStories = DARK_STORIES - stories.toSet()
+    if (grayStories.isNotEmpty()) throw PatchException("$PATCH: ${grayStories.joinToString()} no longer set $STORY_BACKGROUND")
+    val grayMenus = DARK_MENUS - menus.toSet()
+    if (grayMenus.isNotEmpty()) throw PatchException("$PATCH: ${grayMenus.joinToString()} no longer set $MENU_BACKGROUND")
+    val grayToasts = TOAST_BACKGROUNDS - toasts.toSet()
+    if (grayToasts.isNotEmpty()) throw PatchException("$PATCH: ${DARK_TOASTS.joinToString()} no longer set ${grayToasts.joinToString()}")
+    val grayComments = COMMENT_BACKGROUNDS - comments.toSet()
+    if (grayComments.isNotEmpty()) throw PatchException("$PATCH: $COMMENT_COLORS no longer sets ${grayComments.joinToString()}")
+    if (launchScreens.none { "v31" in it.split('-') }) {
+        throw PatchException("$PATCH: the dark $INSTAGRAM_LAUNCH_THEME for Android 12 no longer names $SPLASH_BACKGROUND_COLOR")
+    }
+}
+
+/**
+ * A resource patch, for the themes the View screens, the sheets, the story viewer, the status bar
+ * and the launch screen read. Only the colors and styles files and one row's drawable are decoded.
+ */
+private val pureBlackStylesPatch = resourcePatch {
+    execute {
+        blackenThemes()
+    }
+}
+
+/**
+ * Gives Instagram's dark mode a pure black background, its bottom sheets included. A patch-time
+ * choice with no switch: the color table can't follow one, so it's listed under Set when you patched.
+ */
+@Suppress("unused")
+val pureBlackPatch = bytecodePatch(
+    name = "Pure black dark mode",
+    description = "Makes Instagram's dark mode pure black instead of dark gray, on the menus that slide up from " +
+        "the bottom, the one you get by holding a message or a chat, the one the + in a chat opens, and the notes above your chats too. It looks deeper and can save battery on an " +
+        "OLED screen. Buttons keep their grays so they " +
+        "stay easy to see. Works as soon as you patch it in, with no switch.",
+    default = false,
+) {
+    category("Interface")
+    dependsOn(settingsPatch, instagramExtensionPatch, pureBlackStylesPatch)
+    compatibleWith(*AppCompatibilities.instagram())
+
+    execute {
+        requireStatusMethod("pureBlack")
+        val changed = blackenLiterals()
+        val missing = COMPOSE_PALETTES.filter { palette -> changed.none { it.startsWith("$palette->") } }
+        if (missing.isNotEmpty()) {
+            throw PatchException("$PATCH: ${missing.joinToString()} no longer load #%08x".format(PRISM_BLACK))
+        }
+        // The comments sheet's gray is its host's own background, not a theme color (#108).
+        blackenCommentsScreens(findCommentsScreens())
+        blackenCommentsSheet(findBottomSheetHooks())
+        // A story opened on Prism's black for a moment before the black (#360).
+        blackenStoryBackdrops(findStoryBackdrops())
+        // A new notification's row is the theme's own tint, not a palette's black (#374).
+        blackenNewRowTints(findNewRowTintReads())
+        // A note's bubble takes its gray from code, not from a theme: the inbox's notes row is
+        // Compose, and the older bubble view has a setter (#543).
+        blackenNoteCards()
+        blackenNoteBubbles()
+        // So is the Instagram Plus card over the menu from holding a chat, which is Compose (#543).
+        blackenPeekCards()
+        enableStatus("pureBlack")
+    }
+}

@@ -9,7 +9,7 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.58.0](https://github.com/legendsciber/morphe-patches/releases/tag/v1.58.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;35 patches total
+> **[v1.59.1](https://github.com/legendsciber/morphe-patches/releases/tag/v1.59.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;35 patches total
 <details open>
 <summary>📦 Age Of War 2&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -235,14 +235,14 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 
 **🎯 Supported versions:**
 
-| 0.3.88 |
+| 0.3.98 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Soccer Star Ad Removal](#soccer-star-ad-removal) | Disables ads completely: EnableAD always returns false, interstitials and banners are no-ops, Adjust purchase verification is skipped. |  |
-| [Soccer Star Instant Rewarded](#soccer-star-instant-rewarded) | Rewarded and interstitial ad flows always report loaded and grant the success callback immediately without playing an ad, including offline. |  |
-| [Soccer Star VIP Unlock](#soccer-star-vip-unlock) | Unlocks VIP subscription permanently: ownership keys always report active and unsubscribe can never clear the flag. |  |
+| [Soccer Star Instant Rewarded](#soccer-star-instant-rewarded) | Rewarded ads always count as loaded and WatchVideo grants the success callback immediately without playing an ad, including offline. |  |
+| [Soccer Star VIP Unlock](#soccer-star-vip-unlock) | Unlocks VIP permanently: EnableVIP always reports true, unsubscribe and subscription refresh can no longer clear the flag. |  |
 
 </details>
 

@@ -1,5 +1,6 @@
 package io.github.sabopura.morphe.patches.twitch.points
 
+import io.github.sabopura.morphe.patches.twitch.support.TWITCH_MOVED_NOTE
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.PatchException
@@ -33,7 +34,7 @@ internal fun isPointsRenderer(method: Method, state: String, enabled: ClassDef):
 @Suppress("unused")
 val autoClaimChannelPointsPatch = bytecodePatch(
     name = "Auto claim channel points",
-    description = "Claim available bonus chests automatically after Twitch's eligibility checks. Coalesces updates and bounds retries for each claim.",
+    description = TWITCH_MOVED_NOTE + "Claim available bonus chests automatically after Twitch's eligibility checks. Coalesces updates and bounds retries for each claim.",
     default = true,
 ) {
     compatibleWith(TWITCH_SUPPORTED)

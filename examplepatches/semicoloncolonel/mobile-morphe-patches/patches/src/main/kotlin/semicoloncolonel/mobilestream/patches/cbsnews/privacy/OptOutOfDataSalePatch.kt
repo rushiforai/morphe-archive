@@ -1,12 +1,12 @@
 package semicoloncolonel.mobilestream.patches.cbsnews.privacy
 
+import semicoloncolonel.mobilestream.patches.shared.misc.isOptionOn
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
 import semicoloncolonel.mobilestream.patches.cbsnews.misc.disableSignatureCheckPatch
-import semicoloncolonel.mobilestream.patches.cbsnews.shared.Constants
 import semicoloncolonel.mobilestream.patches.shared.misc.returnEarly
 
 // CBS News 5.20 keeps one consent value per partner in ConsentManager. They
@@ -59,17 +59,12 @@ internal object RestrictedProcessingFingerprint : Fingerprint(
     parameters = listOf(),
 )
 
-@Suppress("unused")
-val optOutOfDataSalePatch = bytecodePatch(
-    name = "Opt out of data sale & sharing",
-    description = "Starts the app opted out of the sale and sharing of your data.",
-) {
-    category("Privacy")
-    compatibleWith(Constants.COMPATIBILITY)
-
+// Part of blockAnalyticsPatch: runs only when its "dataSale" option is on.
+internal val optOutOfDataSalePatch = bytecodePatch {
     dependsOn(disableSignatureCheckPatch)
 
     execute {
+        if (!isOptionOn(blockAnalyticsPatch, "dataSale")) return@execute
         ConsentAnalyticsFingerprint.method.returnEarly("const/4 p1, 0x0")
         ConsentMarketingFingerprint.method.returnEarly("const/4 p1, 0x0")
 

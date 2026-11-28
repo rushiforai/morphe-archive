@@ -2,6 +2,7 @@ package semicoloncolonel.mobilestream.patches.primevideo.ads
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.bytecodePatch
 import semicoloncolonel.mobilestream.patches.primevideo.misc.renameSharedPermissionsPatch
 import semicoloncolonel.mobilestream.patches.primevideo.shared.Constants
@@ -25,6 +26,16 @@ import semicoloncolonel.mobilestream.patches.primevideo.shared.Constants
 // The playback request itself is left alone: VideoSpecification's
 // shouldShowAds flag also shapes what the server returns, and asking the
 // server for an ad-free stream is not this patch's job.
+//
+// From 3.0.481.1947 Amazon also serves server-inserted sessions (issue 89):
+// the ads are part of the video stream, played by the legacy player's
+// ServerInsertedAdEnabledPlaybackStateMachine. An empty plan there leaves the
+// ads in the stream and takes away the timeline map that converts stream time
+// to the title's own time, so the ads play as part of the title, seeking to
+// the start replays the pre-roll, and the subtitles drift by the ads' length.
+// For those sessions the patch keeps Amazon's plan and skips each break as it
+// starts (ServerInsertedAdSkipper): its clips are marked played and the player
+// seeks to the break's end, the same seek Amazon uses for a break already seen.
 internal object PrepareAdPlanGetAdPlanFingerprint : Fingerprint(
     returnType = "Lcom/amazon/avod/media/ads/AdPlan;",
     custom = { method, classDef ->
@@ -33,31 +44,54 @@ internal object PrepareAdPlanGetAdPlanFingerprint : Fingerprint(
     },
 )
 
+internal object ServerInsertedAdBreakEnterFingerprint : Fingerprint(
+    definingClass = "Lcom/amazon/avod/media/ads/internal/state/ServerInsertedAdBreakState;",
+    name = "enter",
+    returnType = "V",
+)
+
 internal object ShouldUseXpPlayerFingerprint : Fingerprint(
     definingClass = "Lcom/amazon/video/xp/configs/XPPlayerMigrationConfig;",
     name = "shouldUseXpPlayer",
     returnType = "Z",
 )
 
+private const val SKIPPER = "Lsemicoloncolonel/mobilestream/extension/primevideo/ads/ServerInsertedAdSkipper;"
+
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Plays every title with an empty ad plan, so no ad break is scheduled.",
+    description = "Removes ad breaks, including the ads Amazon builds into the video stream.",
 ) {
+    category("Ads")
     compatibleWith(Constants.COMPATIBILITY)
 
     // A re-signed Prime Video that keeps Amazon's permission names blocks
     // installing other Amazon apps, so every Prime Video patch renames them.
     dependsOn(renameSharedPermissionsPatch)
+    extendWith("extensions/extension.mpe")
 
     execute {
-        // getAdPlan has .locals 12.
-        PrepareAdPlanGetAdPlanFingerprint.method.addInstructions(
+        // getAdPlan has .locals 12, so v0 is free and p5, the session's
+        // AdEnabledPlaybackManager, is past v15 and needs the range form.
+        PrepareAdPlanGetAdPlanFingerprint.method.addInstructionsWithLabels(
             0,
             """
+                invoke-static/range { p5 .. p5 }, $SKIPPER->isServerInserted(Ljava/lang/Object;)Z
+                move-result v0
+                if-nez v0, :server_inserted
                 sget-object v0, Lcom/amazon/avod/media/ads/internal/EmptyAdPlan;->INSTANCE:Lcom/amazon/avod/media/ads/internal/EmptyAdPlan;
                 return-object v0
+                :server_inserted
+                nop
             """.trimIndent(),
+        )
+
+        // enter(Trigger): p0 is the break state, p1 its AdBreakTrigger. A
+        // build without the class has no server-inserted sessions either.
+        ServerInsertedAdBreakEnterFingerprint.methodOrNull?.addInstructions(
+            0,
+            "invoke-static/range { p0 .. p1 }, $SKIPPER->onAdBreakStart(Ljava/lang/Object;Ljava/lang/Object;)V",
         )
 
         // shouldUseXpPlayer is static with three parameters, so v0 is free.

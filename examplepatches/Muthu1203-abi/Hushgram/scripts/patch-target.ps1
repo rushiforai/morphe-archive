@@ -1,0 +1,255 @@
+<#
+.SYNOPSIS
+    Read the app target and the exact versions shared by every patch in a generated catalog, with
+    the version codes the catalog pins them to.
+
+.DESCRIPTION
+    Device patching, fixture verification, heap measurements and release validation all need
+    the package and version that the bundle supports. Keeping that fact in patches-list.json,
+    which is generated from AppCompatibilities.kt, prevents those callers from drifting apart.
+
+.NOTES
+    Taken from Hushfacebook's scripts/patch-target.ps1
+    (https://github.com/SysAdminDoc/Hushfacebook, commit c15d4f7930505824789684d35039d3c78c8b0903).
+    GPL-3.0-only. Modified for HushGram (Instagram), 2026.
+#>
+
+function Get-PatchTarget {
+    [CmdletBinding()]
+    param([Parameter(Mandatory = $true)][object]$PatchList)
+
+    $patches = @($PatchList.patches)
+    if ($patches.Count -eq 0) { throw 'patches-list.json contains no patches.' }
+
+    $targets = @{}
+    # The version codes the first patch to name each package pins its builds to, by version name.
+    $targetCodes = @{}
+    # The first patch to name each package, and the builds it declared. Every other patch has to
+    # declare the same ones: a build only some patches support is one the bundle can't fully patch,
+    # and a union of them would hand the release scripts that build as a declared target.
+    $declaredBy = @{}
+    foreach ($patch in $patches) {
+        if ($null -eq $patch) { throw 'patches-list.json contains a null patch.' }
+        $nameProperty = $patch.PSObject.Properties['name']
+        $patchName = if ($null -ne $nameProperty -and -not [string]::IsNullOrWhiteSpace([string]$nameProperty.Value)) {
+            [string]$nameProperty.Value
+        } else {
+            '<unnamed patch>'
+        }
+        $compatible = $patch.PSObject.Properties['compatiblePackages']
+        if ($null -eq $compatible -or $null -eq $compatible.Value) {
+            throw "$patchName has no compatible package in patches-list.json."
+        }
+        $packages = @($compatible.Value.PSObject.Properties)
+        if ($packages.Count -eq 0) {
+            throw "$patchName has no compatible package in patches-list.json."
+        }
+        foreach ($property in $packages) {
+            $versions = @($property.Value | ForEach-Object { [string]$_ } |
+                Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+            if ($versions.Count -eq 0) {
+                throw "$patchName has no exact compatible version for $($property.Name)."
+            }
+            # The version codes its compatibility block pins each of those builds to. APKMirror
+            # lists several arm64 builds of one Instagram version, each with its own dex, so the name
+            # alone doesn't say which of them the patches were proved on. A patch that pins none is
+            # read by the name, as before.
+            $codes = @{}
+            $compatibility = $patch.PSObject.Properties['compatibility']
+            foreach ($entry in @(if ($null -ne $compatibility) { $compatibility.Value })) {
+                if ($null -eq $entry -or [string]$entry.packageName -ne $property.Name) { continue }
+                foreach ($appTarget in @($entry.targets)) {
+                    if ($null -eq $appTarget -or $null -eq $appTarget.versionCodes) { continue }
+                    $version = [string]$appTarget.version
+                    # The arm64 build first: it's the one Manager downloads, the fixtures hold as a
+                    # bundle and the bug form names, so callers reading [0] get it whatever the
+                    # other ABIs' codes sort like (#346 declared armeabi-v7a 385914556 below it).
+                    $byAbi = @($appTarget.versionCodes.PSObject.Properties |
+                        Sort-Object { if ($_.Name -ceq 'ARM64_V8A') { 0 } else { 1 } }, Name)
+                    $pinned = @($byAbi | ForEach-Object { [string]$_.Value })
+                    $codes[$version] = @(@($codes[$version]) + $pinned | Where-Object { $_ } | Select-Object -Unique)
+                }
+            }
+            $declared = @(foreach ($version in @($versions | Sort-Object -Unique)) {
+                if ($codes.ContainsKey($version)) { "$version ($($codes[$version] -join ', '))" } else { $version }
+            }) -join ', '
+            if (-not $targets.ContainsKey($property.Name)) {
+                $targets[$property.Name] = $versions
+                $targetCodes[$property.Name] = $codes
+                $declaredBy[$property.Name] = @($patchName, $declared)
+            } elseif ($declaredBy[$property.Name][1] -ne $declared) {
+                throw ("Every patch has to declare the same $($property.Name) builds: " +
+                    "$($declaredBy[$property.Name][0]) declares $($declaredBy[$property.Name][1]), " +
+                    "but $patchName declares $declared.")
+            }
+        }
+    }
+
+    $packages = @($targets.Keys | Sort-Object)
+    if ($packages.Count -ne 1) {
+        throw "Expected one compatible package, found $($packages -join ', ')."
+    }
+    $packageName = $packages[0]
+    # Every version the catalog declares, newest first. Instagram moves a release a week, so the
+    # bundle may declare the build it was last proved on and the one before it; the newest is
+    # the one a device build and the README name. Compared part by part as numbers, every part:
+    # Meta's versions have five (450.0.0.50.77) and [version] takes four, so the fifth was
+    # dropped, and two builds apart only there sorted as equals in whatever order the shell left
+    # them, the older one first in both.
+    $declared = @($targets[$packageName] | Sort-Object -Unique)
+    if ($declared.Count -eq 0) {
+        throw "No compatible version for $packageName."
+    }
+    foreach ($version in $declared) {
+        if ($version -notmatch '^\d+(?:\.\d+)*$') {
+            throw "$packageName is declared at $version, which isn't a version of dotted numbers."
+        }
+    }
+    $width = ($declared | ForEach-Object { @($_ -split '\.').Count } | Measure-Object -Maximum).Maximum
+    # One sort key per part, a missing part below any number, so 580.0.0.51 comes after 580.0.0.51.0.
+    $keys = @(0..($width - 1) | ForEach-Object {
+        $part = $_
+        { $parts = @($_ -split '\.'); if ($part -lt $parts.Count) { [decimal]$parts[$part] } else { [decimal]-1 } }.GetNewClosure()
+    })
+    $versions = @($declared | Sort-Object -Descending -Property $keys)
+    # Every declared version has an entry, empty when the catalog pins it to no code.
+    $versionCodes = @{}
+    foreach ($version in $versions) {
+        $versionCodes[$version] = [string[]]@($targetCodes[$packageName][$version] | Where-Object { $_ })
+    }
+    return [pscustomobject]@{
+        PackageName = $packageName
+        PackageVersion = $versions[0]
+        PackageVersions = [string[]]$versions
+        PackageVersionCodes = $versionCodes
+    }
+}
+
+function Test-DeclaredBuild {
+    <#
+    .SYNOPSIS
+        Whether an APK is one of the builds a catalog declares.
+    .DESCRIPTION
+        Its version name has to be declared, and so does its version code wherever the catalog pins
+        codes to that name. A build of Instagram sharing a declared name under a code the catalog
+        doesn't pin was never proved, so only a declared build is patched without -f, and only a run of one proves
+        a release. Takes Get-PatchTarget's answer, or anything carrying its PackageVersions and
+        PackageVersionCodes.
+    #>
+    param(
+        [Parameter(Mandatory = $true)]$Target,
+        [string]$VersionName,
+        [string]$VersionCode
+    )
+
+    if (@($Target.PackageVersions) -cnotcontains $VersionName) { return $false }
+    $pinned = @($Target.PackageVersionCodes[$VersionName] | Where-Object { $_ })
+    return ($pinned.Count -eq 0 -or $pinned -ccontains $VersionCode)
+}
+
+function Find-DeclaredFixture {
+    <#
+    .SYNOPSIS
+        The top-level file of -Folder that is the fixture of one declared version, or $null.
+    .DESCRIPTION
+        Files are named instagram-<version>-<version code>, then optionally more, then .apk, .apks,
+        .apkm or .xapk. When the catalog pins the version to codes, only a file of a pinned code
+        counts, so a second build of the same version name (another arm64 build, a full bundle)
+        sitting beside the declared one is never taken for it, whatever it sorts like. A version
+        pinned to no code takes the first file of that version, by name.
+    #>
+    param(
+        [Parameter(Mandatory = $true)]$Target,
+        [Parameter(Mandatory = $true)][string]$Version,
+        [Parameter(Mandatory = $true)][string]$Folder
+    )
+    $pinned = @($Target.PackageVersionCodes[$Version] | Where-Object { $_ })
+    $prefix = "instagram-$Version-"
+    foreach ($file in @(Get-ChildItem -LiteralPath $Folder -File | Sort-Object Name)) {
+        if ($file.Name -notlike "$prefix*" -or $file.Extension -notin '.apk', '.apks', '.apkm', '.xapk') { continue }
+        $code = [regex]::Match($file.Name.Substring($prefix.Length), '^\d+').Value
+        if ($pinned.Count -eq 0 -or $pinned -ccontains $code) { return $file }
+    }
+    return $null
+}
+
+function Format-DeclaredBuilds {
+    # The declared builds the way a refusal names them: 580.0.0.51.74 (475019344), 577.0.0.50.72 (474426275).
+    param([Parameter(Mandatory = $true)]$Target)
+
+    $named = foreach ($version in @($Target.PackageVersions)) {
+        $pinned = @($Target.PackageVersionCodes[$version] | Where-Object { $_ })
+        if ($pinned.Count -gt 0) { "$version ($($pinned -join ' or '))" } else { $version }
+    }
+    return (@($named) -join ', ')
+}
+
+function Test-SelectedPatchTargets {
+    <# Checks actual selected bundle definitions and their dependencies, not a caller's catalog. #>
+    param([object[]]$Sources, [string]$PackageName, [string]$VersionName, [string]$VersionCode)
+
+    foreach ($source in $Sources) {
+        foreach ($patch in @($source.patches)) {
+            # A null compatibility is Morphe's universal dependency/patch declaration.
+            if ($null -eq $patch.compatibility) { continue }
+            $compatible = @($patch.compatibility | Where-Object { $null -eq $_.packageName -or $_.packageName -ceq $PackageName })
+            $label = if ($patch.name) { [string]$patch.name } else { [string]$patch.implementation }
+            $owner = "$($source.identity.name) $($source.identity.version) [$($source.identity.sha256)]"
+            if ($compatible.Count -eq 0) {
+                return [pscustomobject]@{ Valid = $false; Reason = "$owner / $label does not declare $PackageName." }
+            }
+            $targets = @($compatible | ForEach-Object { $_.targets })
+            # Morphe's unrestricted version is an AppTarget with a null version, not missing targets.
+            if ($targets.Count -eq 0) {
+                return [pscustomobject]@{ Valid = $false; Reason = (
+                    "$owner / $label has unknown declared targets. No APK mutation was started.") }
+            }
+            foreach ($target in $targets) {
+                $codes = @($target.versionCodes.PSObject.Properties | ForEach-Object { [string]$_.Value })
+                if (($null -eq $target.version -or $target.version -ceq $VersionName) -and
+                        ($codes.Count -eq 0 -or $codes -ccontains $VersionCode)) {
+                    $compatible = $null
+                    break
+                }
+            }
+            if ($null -eq $compatible) { continue }
+            $declared = foreach ($target in $targets) {
+                $codes = @($target.versionCodes.PSObject.Properties | ForEach-Object { [string]$_.Value })
+                if ($codes.Count) { "$($target.version) ($($codes -join ', '))" } else { [string]$target.version }
+            }
+            return [pscustomobject]@{ Valid = $false; Reason = (
+                "$owner / $label declares $PackageName $($declared -join ', '), " +
+                "not $VersionName ($VersionCode). No APK mutation was started.") }
+        }
+    }
+    return [pscustomobject]@{ Valid = $true; Reason = $null }
+}
+
+function Split-SecondAppPatches {
+    <#
+    .SYNOPSIS
+        The catalog's patch names in two lists: those that patch Instagram as Instagram, and those
+        that make a second app beside it (a package, data and sign-in of its own).
+    .DESCRIPTION
+        Every check that applies all patches as one Instagram (verify-all-patches.ps1, the release
+        receipt, patch-all-builds.ps1 and the receipt's validation) takes SameApp, since a second
+        app's package is no longer the catalog's and its manifest renames every authority.
+        verify-all-patches.ps1 applies SecondApp in a run of its own, and patch-for-device.ps1
+        adds it only with -Clone. Catalog order is kept in both.
+    #>
+    [CmdletBinding()]
+    param([Parameter(Mandatory = $true)][object]$PatchList)
+
+    $secondApp = @('Install next to Instagram')
+    $names = @(@($PatchList.patches) | ForEach-Object { [string]$_.name })
+    return [pscustomobject]@{
+        SameApp   = @($names | Where-Object { $secondApp -cnotcontains $_ })
+        SecondApp = @($names | Where-Object { $secondApp -ccontains $_ })
+    }
+}
+
+function Get-SameAppPatchNames {
+    [CmdletBinding()]
+    param([Parameter(Mandatory = $true)][object]$PatchList)
+    return @((Split-SecondAppPatches -PatchList $PatchList).SameApp)
+}

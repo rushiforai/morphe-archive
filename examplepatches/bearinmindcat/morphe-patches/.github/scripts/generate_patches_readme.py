@@ -47,7 +47,8 @@ VENDOR_GROUPS = [
     # Home screen apps from every vendor get one dropdown of their own, listed first,
     # instead of sitting in their vendor's.
     ("Launchers", "", (), ("com.sec.android.app.launcher", "com.hihonor.android.launcher", "com.android.launcher",
-                           "com.nothing.launcher", "net.oneplus.launcher", "com.sonymobile.launcher", "com.asus.launcher", "com.motorola.launcher3", "com.miui.home")),
+                           "com.nothing.launcher", "net.oneplus.launcher", "com.sonymobile.launcher", "com.asus.launcher", "com.motorola.launcher3", "com.miui.home",
+                           "com.google.android.apps.nexuslauncher")),
     ("Samsung Apps", "samsung ", ("com.samsung.", "com.sec."), ()),
     ("Xiaomi Apps", "xiaomi ", ("com.miui.", "com.xiaomi."), ("com.android.soundrecorder", "com.android.calendar")),
     ("Nothing Apps", "nothing ", ("com.nothing.",), ()),
@@ -439,6 +440,11 @@ APP_RENAMES = {
     "com.motorola.launcher3": (
         '<img src="docs/icons/moto-launcher.png" width="20" height="20" align="top"> Moto App Launcher',
         '<img src="docs/icons/moto-launcher.png" width="20" height="20" align="top"> Moto App Launcher',
+    ),
+    # Pixel Launcher (the Pixel home screen; root mount install only).
+    "com.google.android.apps.nexuslauncher": (
+        '<img src="docs/icons/pixel-launcher.png" width="20" height="20" align="top"> Pixel Launcher',
+        '<img src="docs/icons/pixel-launcher.png" width="20" height="20" align="top"> Pixel Launcher',
     ),
     # HyperOS launcher (Xiaomi's System launcher, com.miui.home): listed under Launchers, not Xiaomi Apps.
     "com.miui.home": (

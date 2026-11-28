@@ -1,5 +1,6 @@
 package app.onlynazril.extension.tiktok.ui;
 
+import app.onlynazril.extension.tiktok.internal.Debug;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
@@ -63,7 +64,7 @@ public final class Prompt {
             activity.runOnUiThread(
                     () -> display(activity, title, message, confirmLabel, onConfirm));
         } catch (Throwable t) {
-            Log.w(TAG, "prompt failed", t);
+            if (Debug.verbose()) Log.w(TAG, "prompt failed", t);
         }
     }
 
@@ -94,7 +95,7 @@ public final class Prompt {
             showing = true;
             dialog.show();
         } catch (Throwable t) {
-            Log.w(TAG, "prompt failed", t);
+            if (Debug.verbose()) Log.w(TAG, "prompt failed", t);
         }
     }
 

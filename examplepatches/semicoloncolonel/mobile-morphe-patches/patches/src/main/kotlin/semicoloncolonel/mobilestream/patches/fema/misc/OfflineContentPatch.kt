@@ -147,6 +147,7 @@ val offlineContentPatch = bytecodePatch(
     name = "Save content for offline use",
     description = "Keeps the Prepare guides, disaster declarations, and FAQ readable without a connection.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     dependsOn(offlineShortcutsPatch)

@@ -102,6 +102,24 @@ final class PatchBlurbs {
                 return "Shows the app name as IDM+.";
             case "Remove ads (TrackChecker)":
                 return "Removes ads from TrackChecker.";
+            case "Remove ads (IMO)":
+                return "Removes IMO's ads in chats, stories and after calls, and the pay-to-go-ad-free offer.";
+            case "Allow screenshots (IMO)":
+                return "Lets you take screenshots and record the screen everywhere in IMO, including protected chat media and profile photos.";
+            case "Allow story recording during calls (IMO)":
+                return "Lets you record and post a story while on a call.";
+            case "Allow sending apps (IMO)":
+                return "Shows the Apps option in the chat attachment menu.";
+            case "Disappearing messages (IMO)":
+                return "Turns on IMO's own disappearing-message option when you send.";
+            case "Hide Premium on Me page (IMO)":
+                return "Removes the paid Premium Member entry from the Me page.";
+            case "Hide emoji suggestions (IMO)":
+                return "Removes the row of emojis above the chat box, where one tap sends the emoji straight away.";
+            case "Hide voice rooms tab (IMO)":
+                return "Removes the voice rooms tab from IMO's top bar, leaving Chats and Contacts.";
+            case "Spoof signature (IMO)":
+                return "Makes IMO accept the patched app, so sign-in and notifications keep working.";
             case "Remove ads (ADM)":
                 return "Removes ADM's ads and banners, and the Disable Ads and Telegram bars.";
             case "Unlock Tasker":

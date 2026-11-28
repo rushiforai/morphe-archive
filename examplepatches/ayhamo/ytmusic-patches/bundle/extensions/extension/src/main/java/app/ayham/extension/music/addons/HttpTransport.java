@@ -31,14 +31,14 @@ public final class HttpTransport implements AddonClient.Transport {
     @Override
     public AddonClient.Response get(Protocol.Request r) throws IOException {
         long deadline = System.currentTimeMillis() + r.timeoutMs;
-        HttpURLConnection c = open(r);
         // the whole call, redirects included, ends at the deadline: connect and header reads each
-        // get their own timeout, so a watchdog drops the connection when the time is up
-        final HttpURLConnection conn = c;
-        java.util.concurrent.ScheduledFuture<?> watchdog = WATCHDOG.schedule(conn::disconnect, r.timeoutMs, java.util.concurrent.TimeUnit.MILLISECONDS);
+        // get their own timeout, so a watchdog drops the connection (whichever hop is on) when the time is up
+        java.util.concurrent.atomic.AtomicReference<HttpURLConnection> on = new java.util.concurrent.atomic.AtomicReference<>(open(r));
+        java.util.concurrent.ScheduledFuture<?> watchdog = WATCHDOG.schedule(() -> on.get().disconnect(), r.timeoutMs, java.util.concurrent.TimeUnit.MILLISECONDS);
+        HttpURLConnection c = on.get();
         try {
-            c.connect();
             c.setReadTimeout((int) Math.max(1, deadline - System.currentTimeMillis()));
+            c = follow(c, r, on::set);
             int status = c.getResponseCode();
             // a redirect onto this device is refused like the link itself (extension audit M8)
             if (!Protocol.redirectAllowed(r.url, c.getURL().toString())) throw new IOException("redirected off https or to this device");
@@ -71,22 +71,67 @@ public final class HttpTransport implements AddonClient.Transport {
             throw e;
         } finally {
             watchdog.cancel(false);
-            c.disconnect();
+            on.get().disconnect();
         }
     }
 
+    /** At most this many redirects are followed. */
+    static final int MAX_REDIRECTS = 5;
+
     /**
-     * A connection with the request's headers and timeouts, not yet connected. The audio file
-     * fetch uses it directly (Protocol.audio) and streams the body itself.
+     * The answer to [c] (from {@link #open}), its redirects followed one by one: each hop's link is
+     * checked before anything is sent to it (off https, or onto this device when the link wasn't:
+     * refused, extension audit M8). The request's headers and timeouts go along, as they did when
+     * HttpURLConnection followed them itself. [hop], when given, is told of each new connection.
+     */
+    public static HttpURLConnection follow(HttpURLConnection c, Protocol.Request r, java.util.function.Consumer<HttpURLConnection> hop) throws IOException {
+        String at = c.getURL().toString();
+        for (int hops = 0; ; hops++) {
+            int code;
+            try {
+                code = c.getResponseCode();
+            } catch (IOException e) {
+                c.disconnect();
+                throw e;
+            }
+            String loc = code == 301 || code == 302 || code == 303 || code == 307 || code == 308 ? c.getHeaderField("Location") : null;
+            if (loc == null) return c;
+            int connectMs = c.getConnectTimeout(), readMs = c.getReadTimeout();
+            c.disconnect();
+            if (hops >= MAX_REDIRECTS) throw new IOException("over " + MAX_REDIRECTS + " redirects");
+            String next = new URL(new URL(at), loc).toString();
+            if (!Protocol.redirectAllowed(r.url, next)) throw new IOException("redirected off https or to this device");
+            c = (HttpURLConnection) new URL(next).openConnection();
+            setUp(c, r);
+            c.setConnectTimeout(connectMs);
+            c.setReadTimeout(readMs);
+            if (hop != null) hop.accept(c);
+            at = next;
+        }
+    }
+
+    public static HttpURLConnection follow(HttpURLConnection c, Protocol.Request r) throws IOException {
+        return follow(c, r, null);
+    }
+
+    /**
+     * A connection with the request's headers and timeouts, not yet connected, that doesn't follow
+     * redirects: its user calls {@link #follow} for the answer. The audio file fetch uses it directly
+     * (Protocol.audio) and streams the body itself.
      */
     public static HttpURLConnection open(Protocol.Request r) throws IOException {
         HttpURLConnection c = (HttpURLConnection) new URL(r.url).openConnection();
-        c.setRequestMethod("GET");
-        c.setUseCaches(false);
-        c.setInstanceFollowRedirects(true);   // (never https to http: HttpURLConnection doesn't cross schemes)
+        setUp(c, r);
         c.setConnectTimeout(r.timeoutMs);
         c.setReadTimeout(r.timeoutMs);
-        for (Map.Entry<String, String> h : r.headers.entrySet()) c.setRequestProperty(h.getKey(), h.getValue());
         return c;
+    }
+
+    /** GET, no cache, the request's headers; redirects left to {@link #follow}, which checks each hop first. */
+    private static void setUp(HttpURLConnection c, Protocol.Request r) throws IOException {
+        c.setRequestMethod("GET");
+        c.setUseCaches(false);
+        c.setInstanceFollowRedirects(false);
+        for (Map.Entry<String, String> h : r.headers.entrySet()) c.setRequestProperty(h.getKey(), h.getValue());
     }
 }

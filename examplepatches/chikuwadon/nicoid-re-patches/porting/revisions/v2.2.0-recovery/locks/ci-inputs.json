@@ -1,0 +1,303 @@
+[
+  {
+    "path": "jvm/org.jetbrains.kotlin/kotlin-compiler-embeddable/2.4.21/3cd9c37c505fb9879e03ebeaf91d9c9500ab6eca/kotlin-compiler-embeddable-2.4.21.jar",
+    "sha256": "ef19419c765e7ac8404465fa026ca8fc4dbb8a822de0fc79aa53c8dce29f1d02",
+    "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-compiler-embeddable/2.4.21/kotlin-compiler-embeddable-2.4.21.jar"
+  },
+  {
+    "path": "jvm/org.jetbrains.kotlin/kotlin-script-runtime/2.4.21/abc7ff9f7e229cb6bdfadad81e93c871e6cdde41/kotlin-script-runtime-2.4.21.jar",
+    "sha256": "a658cf5902a1525a06c264a5e42b437e97a6679ddeef8ca641246f270cf6a013",
+    "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-script-runtime/2.4.21/kotlin-script-runtime-2.4.21.jar"
+  },
+  {
+    "path": "jvm/org.jetbrains.kotlin/kotlin-daemon-embeddable/2.4.21/5d9b0394b3ff65cd3dd33c6c31a2956b1d59885a/kotlin-daemon-embeddable-2.4.21.jar",
+    "sha256": "7b3ef24674e5bcffcadfc4e43202ea314194939ecbcdd90a4770b2f1b04e0d07",
+    "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-daemon-embeddable/2.4.21/kotlin-daemon-embeddable-2.4.21.jar"
+  },
+  {
+    "path": "jvm/org.jetbrains.kotlin/kotlin-stdlib/2.4.21/c343e135bd1e7dd94b7ed76b4159068d888d09db/kotlin-stdlib-2.4.21.jar",
+    "sha256": "bd8250210584cb659847dce9cda660f8e9906e5def7fbebcea93dc6dcb6a88a3",
+    "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.4.21/kotlin-stdlib-2.4.21.jar"
+  },
+  {
+    "path": "jvm/org.jetbrains.kotlin/kotlin-build-tools-api/2.4.21/f5fd68c20ba38519b91ab2411b004a1730453d6f/kotlin-build-tools-api-2.4.21.jar",
+    "sha256": "c5cd6a49bd072b529ae10809111c16a7aa0f92147e95d288354017fd65799461",
+    "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-build-tools-api/2.4.21/kotlin-build-tools-api-2.4.21.jar"
+  },
+  {
+    "path": "jvm/org.jetbrains.kotlin/kotlin-reflect/1.6.10/1cbe9c92c12a94eea200d23c2bbaedaf3daf5132/kotlin-reflect-1.6.10.jar",
+    "sha256": "3277ac102ae17aad10a55abec75ff5696c8d109790396434b496e75087854203",
+    "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-reflect/1.6.10/kotlin-reflect-1.6.10.jar"
+  },
+  {
+    "path": "jvm/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.8.0/ac1dc37a30a93150b704022f8d895ee1bd3a36b3/kotlinx-coroutines-core-jvm-1.8.0.jar",
+    "sha256": "9860906a1937490bf5f3b06d2f0e10ef451e65b95b269f22daf68a3d1f5065c5",
+    "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.8.0/kotlinx-coroutines-core-jvm-1.8.0.jar"
+  },
+  {
+    "path": "runtime/compileClasspath/app.morphe/morphe-patcher/2.5.0/morphe-patcher-2.5.0.jar",
+    "sha256": "832ecc403e3a9ab8f2b27f8d2a470edefa16ac1983b82e2cf0479b6ba6fde126",
+    "url": "https://maven.pkg.github.com/MorpheApp/registry/app/morphe/morphe-patcher/2.5.0/morphe-patcher-2.5.0.jar"
+  },
+  {
+    "path": "runtime/compileClasspath/com.github.MorpheApp.smali/smali-dexlib2/5eaff5a2c9/smali-dexlib2-5eaff5a2c9.jar",
+    "sha256": "eb884f1695c558c457b92700eba3f7cb241f61d3ff05dc61ba6f5235de5a86c8",
+    "url": "https://jitpack.io/com/github/MorpheApp/smali/smali-dexlib2/5eaff5a2c9/smali-dexlib2-5eaff5a2c9.jar"
+  },
+  {
+    "path": "runtime/compileClasspath/com.github.MorpheApp.smali/smali/5eaff5a2c9/smali-5eaff5a2c9.jar",
+    "sha256": "5158f6ab7f038a30aae6654c989c93cb2894cd4d95f962612e0da8a857e7c05e",
+    "url": "https://jitpack.io/com/github/MorpheApp/smali/smali/5eaff5a2c9/smali-5eaff5a2c9.jar"
+  },
+  {
+    "path": "runtime/compileClasspath/com.google.code.gson/gson/2.15.0/gson-2.15.0.jar",
+    "sha256": "96d3dd843dc2911de01cdabcd50064cb9e860353102a0a78c96fd833d396fc7d",
+    "url": "https://repo.maven.apache.org/maven2/com/google/code/gson/gson/2.15.0/gson-2.15.0.jar"
+  },
+  {
+    "path": "runtime/compileClasspath/com.google.errorprone/error_prone_annotations/2.50.0/error_prone_annotations-2.50.0.jar",
+    "sha256": "4667724877f1d37a689202da191e23efa7657c62eef93ccdac406eccfe5cdd0a",
+    "url": "https://repo.maven.apache.org/maven2/com/google/errorprone/error_prone_annotations/2.50.0/error_prone_annotations-2.50.0.jar"
+  },
+  {
+    "path": "runtime/compileClasspath/org.antlr/ST4/4.0.8/ST4-4.0.8.jar",
+    "sha256": "58caabc40c9f74b0b5993fd868e0f64a50c0759094e6a251aaafad98edfc7a3b",
+    "url": "https://repo.maven.apache.org/maven2/org/antlr/ST4/4.0.8/ST4-4.0.8.jar"
+  },
+  {
+    "path": "runtime/compileClasspath/org.antlr/antlr-runtime/3.5.2/antlr-runtime-3.5.2.jar",
+    "sha256": "ce3fc8ecb10f39e9a3cddcbb2ce350d272d9cd3d0b1e18e6fe73c3b9389c8734",
+    "url": "https://repo.maven.apache.org/maven2/org/antlr/antlr-runtime/3.5.2/antlr-runtime-3.5.2.jar"
+  },
+  {
+    "path": "runtime/compileClasspath/org.antlr/antlr/3.5.2/antlr-3.5.2.jar",
+    "sha256": "5ac36c2acfb0a0f3d37dafe20b5b570f2643e2d000c648d44503c2738be643df",
+    "url": "https://repo.maven.apache.org/maven2/org/antlr/antlr/3.5.2/antlr-3.5.2.jar"
+  },
+  {
+    "path": "runtime/compileClasspath/org.jetbrains.kotlin/kotlin-stdlib/2.4.21/kotlin-stdlib-2.4.21.jar",
+    "sha256": "bd8250210584cb659847dce9cda660f8e9906e5def7fbebcea93dc6dcb6a88a3",
+    "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.4.21/kotlin-stdlib-2.4.21.jar"
+  },
+  {
+    "path": "runtime/compileClasspath/org.jetbrains/annotations/13.0/annotations-13.0.jar",
+    "sha256": "ace2a10dc8e2d5fd34925ecac03e4988b2c0f851650c94b8cef49ba1bd111478",
+    "url": "https://repo.maven.apache.org/maven2/org/jetbrains/annotations/13.0/annotations-13.0.jar"
+  },
+  {
+    "path": "runtime/patchListGeneratorClasspath/com.google.code.gson/gson/2.15.0/gson-2.15.0.jar",
+    "sha256": "96d3dd843dc2911de01cdabcd50064cb9e860353102a0a78c96fd833d396fc7d",
+    "url": "https://repo.maven.apache.org/maven2/com/google/code/gson/gson/2.15.0/gson-2.15.0.jar"
+  },
+  {
+    "path": "runtime/patchListGeneratorClasspath/com.google.errorprone/error_prone_annotations/2.50.0/error_prone_annotations-2.50.0.jar",
+    "sha256": "4667724877f1d37a689202da191e23efa7657c62eef93ccdac406eccfe5cdd0a",
+    "url": "https://repo.maven.apache.org/maven2/com/google/errorprone/error_prone_annotations/2.50.0/error_prone_annotations-2.50.0.jar"
+  },
+  {
+    "path": "runtime/runtimeClasspath/antlr/antlr/2.7.7/antlr-2.7.7.jar",
+    "sha256": "88fbda4b912596b9f56e8e12e580cc954bacfb51776ecfddd3e18fc1cf56dc4c",
+    "url": "https://repo.maven.apache.org/maven2/antlr/antlr/2.7.7/antlr-2.7.7.jar"
+  },
+  {
+    "path": "runtime/runtimeClasspath/app.morphe/morphe-patcher/2.5.0/morphe-patcher-2.5.0.jar",
+    "sha256": "832ecc403e3a9ab8f2b27f8d2a470edefa16ac1983b82e2cf0479b6ba6fde126",
+    "url": "https://maven.pkg.github.com/MorpheApp/registry/app/morphe/morphe-patcher/2.5.0/morphe-patcher-2.5.0.jar"
+  },
+  {
+    "path": "runtime/runtimeClasspath/com.android.tools.build/apksig/9.1.1/apksig-9.1.1.jar",
+    "sha256": "562cd0a88890960d2ece48e116c61f12872222f1dcc306890799382bc019b201",
+    "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/apksig/9.1.1/apksig-9.1.1.jar"
+  },
+  {
+    "path": "runtime/runtimeClasspath/com.android.tools.build/apkzlib/9.1.1/apkzlib-9.1.1.jar",
+    "sha256": "dd9c4a5f8df807e6e23a11f61722e35335275e6dd92df10ecee4b42074a93f84",
+    "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/apkzlib/9.1.1/apkzlib-9.1.1.jar"
+  },
+  {
+    "path": "runtime/runtimeClasspath/com.github.MorpheApp.smali/smali-dexlib2/5eaff5a2c9/smali-dexlib2-5eaff5a2c9.jar",
+    "sha256": "eb884f1695c558c457b92700eba3f7cb241f61d3ff05dc61ba6f5235de5a86c8",
+    "url": "https://jitpack.io/com/github/MorpheApp/smali/smali-dexlib2/5eaff5a2c9/smali-dexlib2-5eaff5a2c9.jar"
+  },
+  {
+    "path": "runtime/runtimeClasspath/com.github.MorpheApp.smali/smali-util/5eaff5a2c9/smali-util-5eaff5a2c9.jar",
+    "sha256": "6c8546bb662c2471bdabf4ac1a6039234e251967953d47033959406a1d0b902f",
+    "url": "https://jitpack.io/com/github/MorpheApp/smali/smali-util/5eaff5a2c9/smali-util-5eaff5a2c9.jar"
+  },
+  {
+    "path": "runtime/runtimeClasspath/com.github.MorpheApp.smali/smali/5eaff5a2c9/smali-5eaff5a2c9.jar",
+    "sha256": "5158f6ab7f038a30aae6654c989c93cb2894cd4d95f962612e0da8a857e7c05e",
+    "url": "https://jitpack.io/com/github/MorpheApp/smali/smali/5eaff5a2c9/smali-5eaff5a2c9.jar"
+  },
+  {
+    "path": "runtime/runtimeClasspath/com.github.MorpheApp/ARSCLib/50418a07a8/ARSCLib-50418a07a8.jar",
+    "sha256": "05f920d5b51e3dcb0b7c4891eff3ff95a36e50d518f9195e80b992eb9c6c7295",
+    "url": "https://jitpack.io/com/github/MorpheApp/ARSCLib/50418a07a8/ARSCLib-50418a07a8.jar"
+  },
+  {
+    "path": "runtime/runtimeClasspath/com.google.code.findbugs/jsr305/3.0.2/jsr305-3.0.2.jar",
+    "sha256": "766ad2a0783f2687962c8ad74ceecc38a28b9f72a2d085ee438b7813e928d0c7",
+    "url": "https://repo.maven.apache.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar"
+  },
+  {
+    "path": "runtime/runtimeClasspath/com.google.errorprone/error_prone_annotations/2.52.0/error_prone_annotations-2.52.0.jar",
+    "sha256": "24822b246a2da324006fc5a1c940b1d2cf9cd716e530155c39fea695d5ab01c4",
+    "url": "https://repo.maven.apache.org/maven2/com/google/errorprone/error_prone_annotations/2.52.0/error_prone_annotations-2.52.0.jar"
+  },
+  {
+    "path": "runtime/runtimeClasspath/com.google.guava/failureaccess/1.0.3/failureaccess-1.0.3.jar",
+    "sha256": "cbfc3906b19b8f55dd7cfd6dfe0aa4532e834250d7f080bd8d211a3e246b59cb",
+    "url": "https://repo.maven.apache.org/maven2/com/google/guava/failureaccess/1.0.3/failureaccess-1.0.3.jar"
+  },
+  {
+    "path": "runtime/runtimeClasspath/com.google.guava/guava/33.8.0-jre/guava-33.8.0-jre.jar",
+    "sha256": "97b79ec3f2c0a6313a0c2df51ce1abdf8907e6531803467b81efcaaf99b35161",
+    "url": "https://repo.maven.apache.org/maven2/com/google/guava/guava/33.8.0-jre/guava-33.8.0-jre.jar"
+  },
+  {
+    "path": "runtime/runtimeClasspath/com.google.guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
+    "sha256": "b372a037d4230aa57fbeffdef30fd6123f9c0c2db85d0aced00c91b974f33f99",
+    "url": "https://repo.maven.apache.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar"
+  },
+  {
+    "path": "runtime/runtimeClasspath/com.google.j2objc/j2objc-annotations/3.1/j2objc-annotations-3.1.jar",
+    "sha256": "84d3a150518485f8140ea99b8a985656749629f6433c92b80c75b36aba3b099b",
+    "url": "https://repo.maven.apache.org/maven2/com/google/j2objc/j2objc-annotations/3.1/j2objc-annotations-3.1.jar"
+  },
+  {
+    "path": "runtime/runtimeClasspath/org.antlr/ST4/4.0.8/ST4-4.0.8.jar",
+    "sha256": "58caabc40c9f74b0b5993fd868e0f64a50c0759094e6a251aaafad98edfc7a3b",
+    "url": "https://repo.maven.apache.org/maven2/org/antlr/ST4/4.0.8/ST4-4.0.8.jar"
+  },
+  {
+    "path": "runtime/runtimeClasspath/org.antlr/antlr-runtime/3.5.2/antlr-runtime-3.5.2.jar",
+    "sha256": "ce3fc8ecb10f39e9a3cddcbb2ce350d272d9cd3d0b1e18e6fe73c3b9389c8734",
+    "url": "https://repo.maven.apache.org/maven2/org/antlr/antlr-runtime/3.5.2/antlr-runtime-3.5.2.jar"
+  },
+  {
+    "path": "runtime/runtimeClasspath/org.antlr/antlr/3.5.2/antlr-3.5.2.jar",
+    "sha256": "5ac36c2acfb0a0f3d37dafe20b5b570f2643e2d000c648d44503c2738be643df",
+    "url": "https://repo.maven.apache.org/maven2/org/antlr/antlr/3.5.2/antlr-3.5.2.jar"
+  },
+  {
+    "path": "runtime/runtimeClasspath/org.antlr/stringtemplate/3.2.1/stringtemplate-3.2.1.jar",
+    "sha256": "f66ce72e965e5301cb0f020e54d2ba6ad76feb91b3cbfc30dbbf00c06a6df6d7",
+    "url": "https://repo.maven.apache.org/maven2/org/antlr/stringtemplate/3.2.1/stringtemplate-3.2.1.jar"
+  },
+  {
+    "path": "runtime/runtimeClasspath/org.bouncycastle/bcpkix-jdk18on/1.87/bcpkix-jdk18on-1.87.jar",
+    "sha256": "a44be2660d72ed88673372b8cc2d53a25a5aaf27122fb803ed93f07147536aa1",
+    "url": "https://repo.maven.apache.org/maven2/org/bouncycastle/bcpkix-jdk18on/1.87/bcpkix-jdk18on-1.87.jar"
+  },
+  {
+    "path": "runtime/runtimeClasspath/org.bouncycastle/bcprov-jdk18on/1.87/bcprov-jdk18on-1.87.jar",
+    "sha256": "12d2d3dd82a9ec15e92ec7c7943ee64f6097c6dc12c07e984f1693b77565b9aa",
+    "url": "https://repo.maven.apache.org/maven2/org/bouncycastle/bcprov-jdk18on/1.87/bcprov-jdk18on-1.87.jar"
+  },
+  {
+    "path": "runtime/runtimeClasspath/org.bouncycastle/bcutil-jdk18on/1.87/bcutil-jdk18on-1.87.jar",
+    "sha256": "af46dd381553fdc466cd0c18f8bf2144c7dbcb7337eee3e16cab15e96613ddf0",
+    "url": "https://repo.maven.apache.org/maven2/org/bouncycastle/bcutil-jdk18on/1.87/bcutil-jdk18on-1.87.jar"
+  },
+  {
+    "path": "runtime/runtimeClasspath/org.jcommander/jcommander/1.85/jcommander-1.85.jar",
+    "sha256": "fa7552d2831a2b20778d86851d093edca68fbc0a77f792b6223110e4fae67a70",
+    "url": "https://repo.maven.apache.org/maven2/org/jcommander/jcommander/1.85/jcommander-1.85.jar"
+  },
+  {
+    "path": "runtime/runtimeClasspath/org.jetbrains.kotlin/kotlin-reflect/2.4.21/kotlin-reflect-2.4.21.jar",
+    "sha256": "7c9e8bda3cafa85b65692065acd22578b2843292b4e4baa8361bdc9175746e88",
+    "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-reflect/2.4.21/kotlin-reflect-2.4.21.jar"
+  },
+  {
+    "path": "runtime/runtimeClasspath/org.jetbrains.kotlin/kotlin-stdlib/2.4.21/kotlin-stdlib-2.4.21.jar",
+    "sha256": "bd8250210584cb659847dce9cda660f8e9906e5def7fbebcea93dc6dcb6a88a3",
+    "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.4.21/kotlin-stdlib-2.4.21.jar"
+  },
+  {
+    "path": "runtime/runtimeClasspath/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.10.2/kotlinx-coroutines-core-jvm-1.10.2.jar",
+    "sha256": "5ca175b38df331fd64155b35cd8cae1251fa9ee369709b36d42e0a288ccce3fd",
+    "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.10.2/kotlinx-coroutines-core-jvm-1.10.2.jar"
+  },
+  {
+    "path": "runtime/runtimeClasspath/org.jetbrains.kotlinx/kotlinx-serialization-core-jvm/1.13.0/kotlinx-serialization-core-jvm-1.13.0.jar",
+    "sha256": "db2eb98f585a408970ce726af9dfbaccbdfe5df498ccd9dba9918d208974302d",
+    "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.13.0/kotlinx-serialization-core-jvm-1.13.0.jar"
+  },
+  {
+    "path": "runtime/runtimeClasspath/org.jetbrains.kotlinx/kotlinx-serialization-json-jvm/1.13.0/kotlinx-serialization-json-jvm-1.13.0.jar",
+    "sha256": "389b0dd9b4b952db889c160a2478b1cbe54680804f5315756108389dbe9df251",
+    "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.13.0/kotlinx-serialization-json-jvm-1.13.0.jar"
+  },
+  {
+    "path": "runtime/runtimeClasspath/org.jetbrains/annotations/23.0.0/annotations-23.0.0.jar",
+    "sha256": "7b0f19724082cbfcbc66e5abea2b9bc92cf08a1ea11e191933ed43801eb3cd05",
+    "url": "https://repo.maven.apache.org/maven2/org/jetbrains/annotations/23.0.0/annotations-23.0.0.jar"
+  },
+  {
+    "path": "runtime/runtimeClasspath/org.jspecify/jspecify/1.0.1/jspecify-1.0.1.jar",
+    "sha256": "070d75f261fe4c5b8202508366715f7f2d4660f88c8ef7e6d3575e48c9683b66",
+    "url": "https://repo.maven.apache.org/maven2/org/jspecify/jspecify/1.0.1/jspecify-1.0.1.jar"
+  },
+  {
+    "path": "fixed/tools/assemble/baksmali.jar",
+    "url": "https://repo.maven.apache.org/maven2/org/smali/baksmali/2.5.2/baksmali-2.5.2.jar",
+    "sha256": "1ed236266d7dc4907aade0b19a34f77efac25342b63c8ace52e579039941b389"
+  },
+  {
+    "path": "fixed/tools/assemble/smali.jar",
+    "url": "https://repo.maven.apache.org/maven2/org/smali/smali/2.5.2/smali-2.5.2.jar",
+    "sha256": "136c5c4653d6531bd7b6f10f35f8691cb96432e727d30b4d5579826ee01e9419"
+  },
+  {
+    "path": "fixed/tools/assemble/util.jar",
+    "url": "https://repo.maven.apache.org/maven2/org/smali/util/2.5.2/util-2.5.2.jar",
+    "sha256": "4f580a9cff3ebb83cb3fd20bec88e37e4f183796ca652732992611620282daea"
+  },
+  {
+    "path": "fixed/tools/assemble/jcommander.jar",
+    "url": "https://repo.maven.apache.org/maven2/com/beust/jcommander/1.64/jcommander-1.64.jar",
+    "sha256": "156be736199c990321d9ff77090b199629cfc9865e2d6c13f7cd291bb1641817"
+  },
+  {
+    "path": "fixed/tools/assemble/antlr.jar",
+    "url": "https://repo.maven.apache.org/maven2/org/antlr/antlr/3.5.2/antlr-3.5.2.jar",
+    "sha256": "5ac36c2acfb0a0f3d37dafe20b5b570f2643e2d000c648d44503c2738be643df"
+  },
+  {
+    "path": "fixed/tools/assemble/antlr-runtime.jar",
+    "url": "https://repo.maven.apache.org/maven2/org/antlr/antlr-runtime/3.5.2/antlr-runtime-3.5.2.jar",
+    "sha256": "ce3fc8ecb10f39e9a3cddcbb2ce350d272d9cd3d0b1e18e6fe73c3b9389c8734"
+  },
+  {
+    "path": "fixed/tools/assemble/stringtemplate.jar",
+    "url": "https://repo.maven.apache.org/maven2/org/antlr/stringtemplate/3.2.1/stringtemplate-3.2.1.jar",
+    "sha256": "f66ce72e965e5301cb0f020e54d2ba6ad76feb91b3cbfc30dbbf00c06a6df6d7"
+  },
+  {
+    "path": "fixed/tools/dexlib2.jar",
+    "url": "https://repo.maven.apache.org/maven2/org/smali/dexlib2/2.5.2/dexlib2-2.5.2.jar",
+    "sha256": "5a5c8982d8bd7d6e3bb1a0713049e3c78b719ec32b20f6b619885cec30a0dd61"
+  },
+  {
+    "path": "fixed/libs/guava-new.jar",
+    "url": "https://repo.maven.apache.org/maven2/com/google/guava/guava/33.8.0-android/guava-33.8.0-android.jar",
+    "sha256": "c88b3bd93382316b00a387b629d2cc2620119e16c46554b07fa14e9aa07f990e"
+  },
+  {
+    "path": "fixed/libs/failureaccess-new.jar",
+    "url": "https://repo.maven.apache.org/maven2/com/google/guava/failureaccess/1.0.3/failureaccess-1.0.3.jar",
+    "sha256": "cbfc3906b19b8f55dd7cfd6dfe0aa4532e834250d7f080bd8d211a3e246b59cb"
+  },
+  {
+    "path": "fixed/libs/r8.jar",
+    "url": "https://dl.google.com/dl/android/maven2/com/android/tools/r8/9.5.29/r8-9.5.29.jar",
+    "sha256": "f8c762ff84640b10083b934a47278758a7665977e618fab0c927fff00521dea3"
+  },
+  {
+    "path": "fixed/libs/android.jar",
+    "sha256": "2507cf762abe2171a8cb3c289837fc71f2e66e598f396f1cc10bb7dc10020329",
+    "size_bytes": 44042952,
+    "provenance": "Existing recovered fixed build input; upstream URL not established"
+  }
+]

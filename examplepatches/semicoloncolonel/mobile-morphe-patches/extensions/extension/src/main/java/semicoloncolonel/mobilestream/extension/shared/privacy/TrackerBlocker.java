@@ -75,6 +75,10 @@ public final class TrackerBlocker {
             "litix.io", // Mux Data
             "nmrodam.com", // Nielsen SDK config
             "datadoghq.com", "datadoghq.eu", // Datadog session monitoring
+            // Session replay / digital-experience analytics. Consumer Reports
+            // 5.25.0 records sessions through FullStory; one host covers its
+            // ingest (rs.fullstory.com) and app.fullstory.com subdomains.
+            "fullstory.com",
             // AB Tasty Flagship hit tracking (Reuters). decision.flagship.io serves
             // the feature flags themselves and is left alone.
             "events.flagship.io",
@@ -198,6 +202,7 @@ public final class TrackerBlocker {
             // Slickdeals (6.36.0)
             "getblueshift.com", // Blueshift marketing
             "cwogzftn.usw.stape.io", // Slickdeals' server-side Tag Manager
+            "astat.nikkei.com", // Nikkei's Atlas analytics
             "l7ox5un97g.execute-api.us-west-2.amazonaws.com", // Slickdeals' impression collector
             "prod.cm.publishers.advertising.a2z.com", // Amazon ad metrics
             // Kanopy (6.32.0)

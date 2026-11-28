@@ -83,7 +83,8 @@ import com.android.tools.smali.dexlib2.AccessFlags
 //       explicit sub-preview-banner / subscriber-feature-header /
 //       recap-progress-entrypoint / yis-2026 / year-in-sport-2026 / runna-banner
 //       names) → new server types are covered automatically;
-//   (b) NEW chokepoint 2b: ww4.a(FragmentManager, SubscriptionsUpsellLocation)V
+//   (b) NEW chokepoint 2b: the subscription bottom-sheet target centralized in
+//       StravaTargets.upsellSheet (Lww4; on 486.9/486.11, Lh95; on 490.15)
 //       is the single method that shows EVERY subscription bottom-sheet upsell;
 //   (c) NEW 2c: dedicated upsell screens (YearInSportUpsellActivity,
 //       BestEffortsDataPeekUpsellActivity, DeviceConnectUpsellActivity) get a
@@ -163,6 +164,93 @@ private const val MODULE_GATE_SMALI = """
     const/4 v3, 0x1
     :morphe_p7
 
+    # ── Ad predicate (v5, 2026-11-17) ────────────────────────────────────────
+    # Sponsored/ad module types are a SEPARATE delivery class from upsells (they do
+    # not contain "upsell"), so the v4 predicate let them through. Measured type
+    # strings in 486.9: "sponsored-video-android" (SPONSORED_VIDEO_ANDROID enum entry,
+    # Lcu6 implements Lvrg), "ss-60d-promo-26*", "settings-samsung-watch-promo", plus
+    # DFP/native-ad slot code (Ldfp;). Tokens are chosen to avoid false positives on
+    # legit types ("load-instrumentation" etc.): never a bare "ad" substring.
+    const-string v2, "sponsored"
+    invoke-virtual {v1, v2}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v2
+    if-eqz v2, :morphe_p8
+    const/4 v3, 0x1
+    :morphe_p8
+    const-string v2, "promoted"
+    invoke-virtual {v1, v2}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v2
+    if-eqz v2, :morphe_p9
+    const/4 v3, 0x1
+    :morphe_p9
+    const-string v2, "advertisement"
+    invoke-virtual {v1, v2}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v2
+    if-eqz v2, :morphe_p10
+    const/4 v3, 0x1
+    :morphe_p10
+    const-string v2, "feed-ad"
+    invoke-virtual {v1, v2}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v2
+    if-eqz v2, :morphe_p11
+    const/4 v3, 0x1
+    :morphe_p11
+    const-string v2, "native-ad"
+    invoke-virtual {v1, v2}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v2
+    if-eqz v2, :morphe_p12
+    const/4 v3, 0x1
+    :morphe_p12
+    const-string v2, "dfp"
+    invoke-virtual {v1, v2}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v2
+    if-eqz v2, :morphe_p13
+    const/4 v3, 0x1
+    :morphe_p13
+    const-string v2, "promo"
+    invoke-virtual {v1, v2}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v2
+    if-eqz v2, :morphe_p14
+    const/4 v3, 0x1
+    :morphe_p14
+
+    # ── v6 (2026-11-18) — banners the user reported still showing ────────────
+    # "Your predictions are ready" = prediction-deepdive-android /
+    # sm-performance-predictions / *performance-predictions*; "See how far
+    # you've come" = year-in-sport recap family (year-in-sport, yis-*,
+    # mega-share-sheet-yis-android, recap-*). The v5 tokens missed the bare
+    # "year-in-sport", "yis" and "prediction" substrings.
+    const-string v2, "prediction"
+    invoke-virtual {v1, v2}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v2
+    if-eqz v2, :morphe_p15
+    const/4 v3, 0x1
+    :morphe_p15
+    const-string v2, "year-in-sport"
+    invoke-virtual {v1, v2}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v2
+    if-eqz v2, :morphe_p16
+    const/4 v3, 0x1
+    :morphe_p16
+    const-string v2, "yis"
+    invoke-virtual {v1, v2}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v2
+    if-eqz v2, :morphe_p17
+    const/4 v3, 0x1
+    :morphe_p17
+    const-string v2, "recap"
+    invoke-virtual {v1, v2}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v2
+    if-eqz v2, :morphe_p18
+    const/4 v3, 0x1
+    :morphe_p18
+    const-string v2, "mega-share"
+    invoke-virtual {v1, v2}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v2
+    if-eqz v2, :morphe_p19
+    const/4 v3, 0x1
+    :morphe_p19
+
     # Per-type user override: morphe.hide.<type> (default = predicate result).
     new-instance v4, Ljava/lang/StringBuilder;
     const-string v2, "morphe.hide."
@@ -195,9 +283,9 @@ private const val MAPS_GATE_SMALI = """
 """
 
 // v4: the subscription **bottom-sheet** upsells ("Unlock our best training tools"
-// half-sheets). Every one of them is shown by the single method
-//   ww4.a(FragmentManager, SubscriptionsUpsellLocation)V
-// which maps an upsell location to a BottomSheetUpsell enum and instantiates
+// half-sheets). Every one of them is shown by the single target centralized in
+// StravaTargets.upsellSheet (Lww4; on 486.9/486.11, Lh95; on 490.15), which maps
+// an upsell location to a BottomSheetUpsell enum and instantiates
 // BottomSheetUpsellDialogFragment. Returning early here removes the whole family
 // (one chokepoint instead of the 20+ call sites). .locals 4 → v0-v2 dead at entry.
 private const val UPSELL_SHEET_GATE = """
@@ -250,12 +338,12 @@ val removeDataPeekUpsellPatch = bytecodePatch(
 
     execute {
         // 1) Dispatcher gate.
-        mutableClassDefBy("Lhts;").methods.first {
-            it.name == "a" &&
-                it.returnType == "Lcom/strava/modularframework/data/Module;" &&
-                it.parameters.size == 1 &&
-                it.parameters[0].type == "Lcom/strava/modularframework/data/GenericLayoutModule;"
-        }.apply {
+        mutableStravaMethod(
+            resolveStravaMethod(
+                "Strava modular upsell dispatcher",
+                StravaTargets.dispatcher,
+            ),
+        ).apply {
             addInstructionsWithLabels(
                 0,
                 MODULE_GATE_SMALI.trimIndent(),
@@ -264,12 +352,12 @@ val removeDataPeekUpsellPatch = bytecodePatch(
         }
 
         // 2) Maps explore card.
-        mutableClassDefBy("Lrl60;").methods.first {
-            it.name == "d" &&
-                it.returnType == "V" &&
-                it.parameters.size == 5 &&
-                it.parameters[1].type == "Ljos;"
-        }.apply {
+        mutableStravaMethod(
+            resolveStravaMethod(
+                "Strava maps data-peek renderer",
+                StravaTargets.mapsRenderer,
+            ),
+        ).apply {
             addInstructionsWithLabels(
                 0,
                 MAPS_GATE_SMALI.trimIndent(),
@@ -318,20 +406,19 @@ val removeDataPeekUpsellPatch = bytecodePatch(
         println("Extra settings: converter-level gates wired (4 upsell converters)")
 
         // 2b) Subscription bottom-sheet upsells — ONE chokepoint (v4).
-        mutableClassDefBy("Lww4;").methods.first {
-            it.name == "a" && it.returnType == "V" &&
-                it.parameters.size == 2 &&
-                it.parameters[0].type == "Landroidx/fragment/app/FragmentManager;" &&
-                it.parameters[1].type ==
-                "Lcom/strava/subscriptions/data/models/SubscriptionsUpsellLocation;"
-        }.apply {
+        mutableStravaMethod(
+            resolveStravaMethod(
+                "Strava subscription upsell bottom sheet",
+                StravaTargets.upsellSheet,
+            ),
+        ).apply {
             addInstructionsWithLabels(
                 0,
                 UPSELL_SHEET_GATE.trimIndent(),
                 ExternalLabel("morphe_ret", getInstruction(0)),
             )
         }
-        println("Extra settings: subscription bottom-sheet upsell gate wired (ww4.a)")
+        println("Extra settings: subscription bottom-sheet upsell gate wired")
 
         // 2c) Dedicated upsell screens (v4).
         for (actClass in listOf(
@@ -443,26 +530,39 @@ val removeDataPeekUpsellPatch = bytecodePatch(
         println("Extra settings: celebration gates wired (2 activities + detail sheet)")
 
         // 3) Settings Subscriptions section.
-        val sectionRenderer = mutableClassDefBy("Lpr5;")
-            .methods
-            .first { it.name == "a" && it.returnType == "V" }
+        val sectionRenderer = mutableStravaMethod(
+            resolveStravaMethod(
+                "Strava Settings Subscriptions renderer",
+                StravaTargets.settingsRenderer,
+            ),
+        )
         sectionRenderer.apply {
             clearBody()
             addInstructions(0, "return-void")
         }
 
-        val b130 = mutableClassDefBy("Lb130;")
-            .methods
-            .first { it.name == "invoke" }
+        val settingsHeader = resolveStravaMethod(
+            "Strava Settings Subscriptions header",
+            StravaTargets.settingsHeader,
+        )
+        val settingsCaller = mutableStravaMethod(
+            resolveStravaMethod(
+                "Strava Settings Subscriptions caller",
+                StravaTargets.settingsCaller,
+            ),
+        )
         var headerKill = false
-        val b130impl = b130.implementation!!
-        b130impl.instructions.forEachIndexed { idx, instr ->
+        val settingsCallerImpl = settingsCaller.implementation!!
+        settingsCallerImpl.instructions.forEachIndexed { idx, instr ->
             val isHeaderCall =
                 instr is com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction &&
                     (instr.reference as? com.android.tools.smali.dexlib2.iface.reference.MethodReference)
-                        ?.let { it.definingClass == "Le130;" && it.name == "i" } == true
+                        ?.let {
+                            it.definingClass == settingsHeader.classDef.type &&
+                                it.name == settingsHeader.method.name
+                        } == true
             if (isHeaderCall) {
-                b130impl.replaceInstruction(
+                settingsCallerImpl.replaceInstruction(
                     idx,
                     BuilderInstruction10x(com.android.tools.smali.dexlib2.Opcode.NOP),
                 )
@@ -471,7 +571,8 @@ val removeDataPeekUpsellPatch = bytecodePatch(
         }
         if (!headerKill) {
             throw PatchException(
-                "Section header call (Le130;->i) not found in b130.invoke — re-audit.",
+                "Section header call (${settingsHeader.classDef.type}->${settingsHeader.method.name}) " +
+                    "not found in settings caller — re-audit.",
             )
         }
 
@@ -518,21 +619,29 @@ val removeDataPeekUpsellPatch = bytecodePatch(
         // ActivityCalendarRowData$e; kind=null → KotlinReflectionInternalError
         // at StackViewHolder.onBindView). Force pss.a reads to false so the
         // reflective dump never runs; the debug toggle becomes inert.
-        val dssCd = classDefByOrNull("Ldss;")
-            ?: throw PatchException("dss (ViewHolder base) not found — re-audit.")
-        val dss = mutableClassDefBy(dssCd)
-        val bindView = dss.methods.first {
-            it.name == "bindView" && it.parameters.size == 2
-        }
+        val loggerField = resolveStravaField(
+            "Strava module-data logger flag",
+            StravaTargets.loggerFieldClasses,
+            fieldName = "a",
+            fieldType = "Z",
+        )
+        val bindView = mutableStravaMethod(
+            resolveStravaMethod(
+                "Strava modular ViewHolder bindView",
+                StravaTargets.viewHolder,
+            ),
+        )
         val bImpl = bindView.implementation!!
-        var pssKill = false
+        var loggerFlagKill = false
         bImpl.instructions.forEachIndexed { idx, instr ->
-            if (!pssKill &&
+            if (!loggerFlagKill &&
                 instr.opcode == com.android.tools.smali.dexlib2.Opcode.SGET_BOOLEAN &&
                 (instr as com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)
                     .reference.let {
                         it is com.android.tools.smali.dexlib2.iface.reference.FieldReference &&
-                            it.definingClass == "Lpss;" && it.name == "a"
+                            it.definingClass == loggerField.classDef.type &&
+                            it.name == loggerField.field.name &&
+                            it.type == loggerField.field.type
                     }
             ) {
                 val dest = (instr as com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction).registerA
@@ -548,26 +657,30 @@ val removeDataPeekUpsellPatch = bytecodePatch(
                         )
                     },
                 )
-                pssKill = true
+                loggerFlagKill = true
             }
         }
-        if (!pssKill) {
-            throw PatchException("pss.a read not found in dss.bindView — re-audit.")
+        if (!loggerFlagKill) {
+            throw PatchException(
+                "Logger flag read (${loggerField.classDef.type}->${loggerField.field.name}) " +
+                    "not found in ViewHolder bindView — re-audit.",
+            )
         }
         println("Extra settings: module-data-logging crash guard wired")
 
         // 6) Performance Predictions home banner ("Your predictions are
         // ready / Start a free trial …"): NOT modular-UI — a native
-        // composable (fg60.c, Rive text "Performance Predictions") fed by
-        // RaceBannerRepository.getSuggestedRaces. Gate the renderer
-        // directly; default HIDE. fg60.c is .locals 29 — v0-v3 free at
-        // entry. Pref: morphe.hide.performance-predictions-banner.
-        val ppCd = classDefByOrNull("Lfg60;")
-            ?: throw PatchException("fg60 (predictions banner) not found — re-audit.")
-        mutableClassDefBy(ppCd).methods.first {
-            it.name == "c" && it.parameters.size == 3 &&
-                it.parameters[0].type == "Ljos;"
-        }.apply {
+        // composable (StravaTargets.predictionsRenderer: Lfg60; on
+        // 486.9/486.11, Lw080; on 490.15; Rive text "Performance Predictions")
+        // fed by RaceBannerRepository.getSuggestedRaces. Gate the renderer
+        // directly; default HIDE. Pref:
+        // morphe.hide.performance-predictions-banner.
+        mutableStravaMethod(
+            resolveStravaMethod(
+                "Strava performance-predictions renderer",
+                StravaTargets.predictionsRenderer,
+            ),
+        ).apply {
             addInstructionsWithLabels(
                 0,
                 """
@@ -592,42 +705,37 @@ val removeDataPeekUpsellPatch = bytecodePatch(
         // .getSuggestedRaces (.locals 0, 3-instruction delegate, no
         // try-blocks). When the hide-pref is set, park the coroutine on
         // COROUTINE_SUSPENDED and never resume: the flow never emits, so
-        // the feed never receives banner state. (fg60.c is the static
-        // preview card with baked text; THIS is the live server banner.)
+        // the feed never receives banner state. (The predictions renderer is
+        // the static preview card with baked text; THIS is the live server
+        // banner.)
         // Original body is left intact and reached via the :morphe_show
         // fall-through when the user re-enables the banner.
-        val repoCd = classDefByOrNull(
-            "Lcom/strava/performancepredictions/data/RaceBannerRepositoryImpl;",
-        ) ?: throw PatchException("RaceBannerRepositoryImpl not found - re-audit.")
-        mutableClassDefBy(repoCd).methods.first {
-            it.name == "getSuggestedRaces" && it.parameterTypes.size == 1
-        }.apply {
-            ensureRegisters(5)
-            addInstructionsWithLabels(
-                0,
-                """
-                    invoke-static {}, Landroid/app/ActivityThread;->currentApplication()Landroid/app/Application;
-                    move-result-object v0
-                    if-eqz v0, :morphe_show
-                    const-string v1, "com.strava_preferences"
-                    const/4 v2, 0x0
-                    invoke-virtual {v0, v1, v2}, Landroid/app/Application;->getSharedPreferences(Ljava/lang/String;I)Landroid/content/SharedPreferences;
-                    move-result-object v0
-                    const-string v1, "morphe.hide.performance-predictions-banner"
-                    const/4 v2, 0x1
-                    invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z
-                    move-result v0
-                    if-eqz v0, :morphe_show
-                    sget-object v0, Lcmb;->a:Lcmb;
-                    return-object v0
-                """.trimIndent(),
-                ExternalLabel("morphe_show", getInstruction(0)),
-            )
+        val raceTarget = resolveStravaMethod(
+            "Strava RaceBannerRepository",
+            StravaTargets.raceRepository,
+        )
+        val coroutineMarker = resolveStravaStaticSelfFieldWithLiteral(
+            "Strava coroutine marker",
+            StravaTargets.coroutineMarkerClasses,
+            literal = "COROUTINE_SUSPENDED",
+        )
+        val raceClass = mutableClassDefBy(raceTarget.classDef)
+        val raceRepository = raceClass.methods.first {
+            it.name == raceTarget.method.name &&
+                it.returnType == raceTarget.method.returnType &&
+                it.parameterTypes == raceTarget.method.parameterTypes
         }
+        val raceRepositoryClone = raceTarget.method.cloneRaceBannerWithGate(
+            markerClassType = coroutineMarker.classDef.type,
+            markerFieldName = coroutineMarker.field.name,
+            markerFieldType = coroutineMarker.field.type,
+        )
+        raceClass.methods.remove(raceRepository)
+        raceClass.methods.add(raceRepositoryClone)
         println("Extra settings: RaceBanner suspend gate wired (coroutine park)")
 
         println("Extra settings: performance-predictions banner gate wired")
 
-        println("Extra settings: module gates wired (hts.a + rl60.d), Settings Subscriptions section disabled")
+        println("Extra settings: module gates wired, Settings Subscriptions section disabled")
     }
 }

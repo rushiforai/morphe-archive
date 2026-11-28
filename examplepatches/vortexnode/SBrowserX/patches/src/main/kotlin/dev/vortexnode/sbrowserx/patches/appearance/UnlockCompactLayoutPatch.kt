@@ -2,6 +2,7 @@ package dev.vortexnode.sbrowserx.patches.appearance
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import dev.vortexnode.sbrowserx.patches.core.sbrowserXCorePatch
 import dev.vortexnode.sbrowserx.shared.Constants.COMPATIBILITY_SBROWSER
@@ -245,6 +246,11 @@ val unlockCompactLayoutPatch = bytecodePatch(
         ).addInstructions(
             0,
             """
+                invoke-static {p0}, Ldev/vortexnode/sbrowserx/extension/SBrowserXHooks;->shouldPreserveStartPageSystemBars(Landroid/view/Window;)Z
+                move-result v0
+                if-eqz v0, :sbrowserx_nav_continue
+                return-void
+                :sbrowserx_nav_continue
                 invoke-static {p0, p1}, Ldev/vortexnode/sbrowserx/extension/SBrowserXHooks;->adjustApi35NavBarColor(Landroid/view/Window;I)I
                 move-result p1
                 invoke-static {p2}, Ldev/vortexnode/sbrowserx/extension/SBrowserXHooks;->adjustApi35NavBarDarkIconFlag(Z)Z
@@ -254,16 +260,55 @@ val unlockCompactLayoutPatch = bytecodePatch(
 
         // 12. DeviceLayoutUtil.setStatusBarColorApi35(Window, I)V (.locals 0, static)
         // Eliminates Android 15/16 edge-to-edge white/grey top status bar stripe in Compact mode.
-        findMethodOrThrow(
+        val statusBarApi35Method = findMethodOrThrow(
             classType = DEVICE_LAYOUT_UTIL_CLASS,
             methodName = "setStatusBarColorApi35",
             parameterTypes = listOf("Landroid/view/Window;", "I"),
             returnType = "V",
-        ).addInstructions(
+        )
+        statusBarApi35Method.addInstructions(
             0,
             """
                 invoke-static {p0, p1}, Ldev/vortexnode/sbrowserx/extension/SBrowserXHooks;->adjustApi35StatusBarColor(Landroid/view/Window;I)I
                 move-result p1
+            """.trimIndent(),
+        )
+        val statusBarInsns = statusBarApi35Method.implementation?.instructions
+            ?: error("Missing instructions in setStatusBarColorApi35")
+        val setBgIdx = statusBarInsns.indexOfFirst { insn ->
+            insn.opcode.name == "invoke-virtual"
+        }
+        if (setBgIdx >= 0) {
+            statusBarApi35Method.replaceInstruction(
+                setBgIdx,
+                "invoke-static {p0, p1}, Ldev/vortexnode/sbrowserx/extension/SBrowserXHooks;->setStatusBarViewBgIfNotStartPage(Landroid/view/View;I)V",
+            )
+        }
+
+        // Prevent startBarColorAnimation from overwriting Start Page wallpaper/glass slices during reload
+        findMethodOrThrow(
+            classType = DEVICE_LAYOUT_UTIL_CLASS,
+            methodName = "startBarColorAnimation",
+            parameterTypes = listOf(
+                "Landroid/view/Window;",
+                "I",
+                "I",
+                "I",
+                "J",
+                "Landroid/view/animation/Interpolator;",
+                "Ljava/util/function/IntConsumer;",
+                "Ljava/lang/Runnable;",
+            ),
+            returnType = "V",
+        ).addInstructions(
+            0,
+            """
+                invoke-static {p0}, Ldev/vortexnode/sbrowserx/extension/SBrowserXHooks;->shouldPreserveStartPageSystemBars(Landroid/view/Window;)Z
+                move-result v0
+                if-eqz v0, :sbrowserx_anim_continue
+                return-void
+                :sbrowserx_anim_continue
+                nop
             """.trimIndent(),
         )
 

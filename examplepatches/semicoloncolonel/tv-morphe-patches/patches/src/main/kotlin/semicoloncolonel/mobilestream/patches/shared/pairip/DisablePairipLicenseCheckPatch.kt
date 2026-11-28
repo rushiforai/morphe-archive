@@ -15,6 +15,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import semicoloncolonel.mobilestream.patches.foxone.shared.Constants as FoxOne
+import semicoloncolonel.mobilestream.patches.roku.shared.Constants as Roku
 
 // Google's Pairip licensing (com.pairip.licensecheck) asks the Play Store
 // whether this install came from Play, and blocks the app when it did not.
@@ -42,7 +43,7 @@ val disablePairipLicenseCheckPatch = bytecodePatch(
     name = "Disable Pairip license check",
     description = "Lets the patched app start by skipping Google's Pairip license check.",
 ) {
-    compatibleWith(FoxOne.COMPATIBILITY)
+    compatibleWith(FoxOne.COMPATIBILITY, Roku.COMPATIBILITY)
 
     execute {
         // Some versions drop Pairip licensing (Moviebase 7.7.1 has no

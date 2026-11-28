@@ -45,6 +45,20 @@ internal val FACTORY_PARAMETERS = listOf(
 internal const val FACTORY_RETURN = "Landroid/graphics/Typeface;"
 
 /**
+ * The native factory: the one static nine-parameter method answering a `Typeface`.
+ *
+ * The class around it is obfuscated and renames with every build, but the shape is unique in the
+ * bundle on 47.7.1 through 47.9.1: every other `Typeface` factory takes fewer parameters, so the
+ * class's bundled-font strings are not needed to find it.
+ */
+internal val NativeFontFactoryFingerprint = Fingerprint(
+    returnType = FACTORY_RETURN,
+    isStatic = true,
+    parameters = FACTORY_PARAMETERS,
+    custom = { method, _ -> method.implementation != null },
+)
+
+/**
  * The Compose loader's first parameter: the Context. Its second is the
  * app's obfuscated font request, so only the Context can be matched by
  * name. On 47.0.3 the loader is `X.0lNf#LIZ(Context, X.0lNm)`, on
@@ -56,23 +70,21 @@ internal const val FACTORY_RETURN = "Landroid/graphics/Typeface;"
 internal const val COMPOSE_LOADER_CONTEXT = "Landroid/content/Context;"
 
 /**
- * The asset loader's shape: the AssetManager and the path, static, and
- * the body is what tells it apart - it creates the face with
- * `Typeface.createFromAsset`. On 47.0.3 it is `X.0VKh#t4`, on 47.1.4
- * `X.00kn#s4` (the name moves with the class), and every other
- * `(AssetManager, String) -> Typeface` method in the bundle is the
- * framework's or carries a different body. This is the one point Lynx
- * asks for a bundled face (its own `TypefaceCache` calls it), so it is
- * hooked with a path guard: the callers also read sticker and editor
- * asset fonts, which must keep the app's own resolution.
+ * The asset loader's shape: static, and the body is what tells it apart -
+ * it creates the face with `Typeface.createFromAsset`. The AssetManager
+ * used to be the first parameter and moved into a field on 47.8.3, so both
+ * signatures are matched. This is the one point Lynx asks for a bundled
+ * face (its own `TypefaceCache` calls it), so it is hooked with a path
+ * guard: the callers also read sticker and editor asset fonts, which must
+ * keep the app's own resolution.
  */
 internal const val ASSET_LOADER_ASSET_MANAGER = "Landroid/content/res/AssetManager;"
 internal const val ASSET_LOADER_PATH = "Ljava/lang/String;"
 
 /**
- * The asset loader itself, found through the call its body makes rather
- * than by scanning every method in the bundle. The class reads no font
- * path of its own - its callers pass one - so the string index cannot
+ * The asset loader through 47.7.x, found through the call its body makes
+ * rather than by scanning every method in the bundle. The class reads no
+ * font path of its own - its callers pass one - so the string index cannot
  * find it; the `Typeface.createFromAsset` reference is what does.
  *
  * On 47.7.1 it is `LX/00kC;->C4(AssetManager, String)`, on 47.7.2
@@ -84,6 +96,24 @@ internal val AssetFontLoaderFingerprint = Fingerprint(
     returnType = FACTORY_RETURN,
     isStatic = true,
     parameters = listOf(ASSET_LOADER_ASSET_MANAGER, ASSET_LOADER_PATH),
+    filters = listOf(
+        methodCall(
+            definingClass = FACTORY_RETURN,
+            name = "createFromAsset",
+        ),
+    ),
+)
+
+/**
+ * The asset loader from 47.8.3 on: the path alone, with the AssetManager
+ * read from a field. On 47.8.3 it is `LX/04Hk;->LJII(String)`, the one
+ * method with this shape that creates a face from an asset. The path is
+ * the first parameter here, where the older shape carries it second.
+ */
+internal val AssetFontLoaderPathFingerprint = Fingerprint(
+    returnType = FACTORY_RETURN,
+    isStatic = true,
+    parameters = listOf(ASSET_LOADER_PATH),
     filters = listOf(
         methodCall(
             definingClass = FACTORY_RETURN,

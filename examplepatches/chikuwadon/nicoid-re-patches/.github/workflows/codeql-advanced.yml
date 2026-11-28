@@ -2,7 +2,7 @@ name: CodeQL (Java/Kotlin, Python, JavaScript, Actions)
 
 on:
   push:
-    branches: [main, dev]
+    branches: [main, dev, release/v2.2.0-prep]
   pull_request:
     branches: [main, dev]
   schedule:
@@ -42,7 +42,9 @@ jobs:
       - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:
           distribution: temurin
-          java-version: '25'
+          java-version: |
+            21
+            25
           check-latest: true
       - name: Verify patched Java 25 runtime
         run: python3 .github/scripts/verify-java25-cspu.py
@@ -55,7 +57,25 @@ jobs:
           languages: java-kotlin
           build-mode: manual
       - name: Trace canonical Morphe build and helper compilation
-        run: ./gradlew clean :patches:buildAndroid :patches:generatePatchesList --no-daemon --no-build-cache --rerun-tasks
+        run: |
+          set -euo pipefail
+          if grep -Eq '^version[[:space:]]*=[[:space:]]*2[.]2[.]0[[:space:]]*$' gradle.properties; then
+            sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+            test -n "$sdk"
+            android="$sdk/platforms/android-37.2/android.jar"
+            if [[ ! -f "$android" ]]; then
+              sdkmanager --install 'platforms;android-37.2'
+            fi
+            test -f "$android"
+            test -x "${JAVA_HOME_21_X64:?Java 21 required}/bin/java"
+            python3 porting/revisions/v2.2.0-recovery/prepare-ci-inputs.py "$RUNNER_TEMP/v220-inputs" --android-jar "$android"
+            bash .github/scripts/prepare-v2.2.0-mpp.sh "$RUNNER_TEMP/v220-inputs" "$JAVA_HOME_21_X64"
+            python3 .github/scripts/verify-release-mpp.py record 2.2.0
+            python3 .github/scripts/verify-v2.2.0-prepared-release.py 2.2.0
+            # Smali payloads require separate bytecode security and reference audits.
+          else
+            ./gradlew clean :patches:buildAndroid :patches:generatePatchesList --no-daemon --no-build-cache --rerun-tasks
+          fi
       - name: Verify XXE and URL denial-of-service security regressions
         shell: bash
         run: |

@@ -70,29 +70,38 @@ public class PlayerOverlayTest {
     @Test
     public void thePillFollowsThePlayersOwnPillsWhenItFits() {
         // full screen: uptime+viewers at 147..538, the mute button at 2054
-        ControlsLayout.Pill spot = ControlsLayout.pill(147, 538, 538, 74, 11, 2054, 2400, 330, false);
+        ControlsLayout.Pill spot = ControlsLayout.pill(147, 538, 538, 74, 11, 2054, 2400, 126);
         assertTrue(spot.inRow);
         assertEquals(549, spot.left);
         assertEquals(538, spot.top);
         assertEquals("ends a gap before the next button", 2054 - 11 - 549, spot.maxWidth);
         // portrait: 11..405, mute at 850
-        spot = ControlsLayout.pill(11, 644, 405, 74, 11, 850, 1080, 330, false);
+        spot = ControlsLayout.pill(11, 644, 405, 74, 11, 850, 1080, 126);
         assertTrue(spot.inRow);
         assertEquals(416, spot.left);
         assertTrue(spot.left + 330 <= 850 - 11);
     }
 
     @Test
-    public void thePillGoesAboveWhenTheRowIsFullOrItTellsAProblem() {
-        ControlsLayout.Pill tooWide = ControlsLayout.pill(11, 644, 405, 74, 11, 850, 1080, 500, false);
-        assertFalse(tooWide.inRow);
-        assertEquals("starts where the player's pills start", 11, tooWide.left);
-        assertEquals("a gap above them", 644 - 11 - 74, tooWide.top);
-        assertEquals(1080 - 11 - 11, tooWide.maxWidth);
-        ControlsLayout.Pill problem = ControlsLayout.pill(11, 644, 405, 74, 11, 850, 1080, 300, true);
-        assertFalse("a problem gets the whole line", problem.inRow);
+    public void aProblemStaysInThePillsRowCutShort() {
+        // A long problem text: in the row all the same, as wide as the row allows (its words cut short there).
+        ControlsLayout.Pill problem = ControlsLayout.pill(11, 644, 405, 74, 11, 850, 1080, 126);
+        assertTrue("where the pill always is", problem.inRow);
+        assertEquals(416, problem.left);
+        assertEquals(644, problem.top);
+        assertEquals(850 - 11 - 416, problem.maxWidth);
+    }
+
+    @Test
+    public void thePillGoesAboveOnlyWhenTheRowHasNoRoomAtAll() {
+        // a narrow player: the next button right after the player's pills
+        ControlsLayout.Pill full = ControlsLayout.pill(11, 644, 405, 74, 11, 480, 1080, 126);
+        assertFalse(full.inRow);
+        assertEquals("starts where the player's pills start", 11, full.left);
+        assertEquals("a gap above them", 644 - 11 - 74, full.top);
+        assertEquals(1080 - 11 - 11, full.maxWidth);
         // nothing after the pills in their row: the controls' own edge bounds it
-        assertTrue(ControlsLayout.pill(11, 644, 405, 74, 11, 1080, 1080, 300, false).inRow);
+        assertTrue(ControlsLayout.pill(11, 644, 405, 74, 11, 1080, 1080, 126).inRow);
     }
 
     @Test
@@ -145,5 +154,16 @@ public class PlayerOverlayTest {
         assertFalse("viewers", ComposeControls.isUptime("2K"));
         assertFalse("a chat time", ComposeControls.isUptime("22:29 he took the door off"));
         assertFalse(ComposeControls.isUptime(null));
+    }
+
+    @Test
+    public void theLockHidesThePartsThatComeWithTheControls() {
+        assertTrue("the channel's panel in landscape", PlayerOverlay.isControlsPart("theatre-fullbleed-metadata-band"));
+        assertTrue(PlayerOverlay.isControlsPart("player-controls-scrim-backdrop"));
+        assertTrue(PlayerOverlay.isControlsPart("player-controls-scrim-bleed"));
+        assertTrue("the channel's name, title and buttons beside the video", PlayerOverlay.isControlsPart("channel-metadata-collapsible"));
+        assertFalse("the video", PlayerOverlay.isControlsPart("video-player"));
+        assertFalse("the chat beside it", PlayerOverlay.isControlsPart("theatre-chat"));
+        assertFalse(PlayerOverlay.isControlsPart(null));
     }
 }

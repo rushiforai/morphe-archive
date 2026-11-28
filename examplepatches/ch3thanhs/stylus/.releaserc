@@ -48,6 +48,7 @@
       "@semantic-release/exec",
       {
         "prepareCmd": "./gradlew generatePatchesList \
+          && test -s patches/build/libs/patches-${nextRelease.version}.mpp \
           && jq '.version=\"${nextRelease.version}\"' patches-list.json > patches-list.json.tmp && mv patches-list.json.tmp patches-list.json \
           && python3 .github/scripts/generate_patches_readme.py $GITHUB_REPOSITORY $GITHUB_REF_NAME patches-list.json README.md"
       }
@@ -58,9 +59,9 @@
         "assets": [
           "CHANGELOG.md",
           "gradle.properties",
-          "patches-bundle.json",
           "patches-list.json",
-          "README.md"
+          "README.md",
+          "PATCHES.md"
         ],
         "message": "chore: Release v${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
       }
@@ -74,6 +75,15 @@
           }
         ],
         "successComment": false
+      }
+    ],
+    [
+      "@semantic-release/exec",
+      {
+        "successCmd": "if ! git diff --quiet HEAD -- patches-bundle.json; then \
+          git commit --only -m \"chore: Publish v${nextRelease.version} in patches-bundle.json [skip ci]\" -- patches-bundle.json \
+          && git pull --rebase --autostash origin ${branch.name} \
+          && git push origin HEAD:${branch.name}; fi"
       }
     ],
     [

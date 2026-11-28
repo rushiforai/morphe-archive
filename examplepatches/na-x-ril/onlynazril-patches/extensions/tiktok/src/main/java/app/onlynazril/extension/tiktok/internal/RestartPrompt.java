@@ -1,5 +1,6 @@
 package app.onlynazril.extension.tiktok.internal;
 
+import app.onlynazril.extension.tiktok.internal.Debug;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -59,10 +60,11 @@ public final class RestartPrompt {
 
             handled = true;
             prefs.edit().putLong(KEY_INSTALL, installed).apply();
-            Debug.print("restart prompt: asked, install=" + installed);
+            Debug.mark("restart prompt asked");
+            Debug.print("restart prompt: asked, install=" + installed + Debug.by(4));
             Prompt.show(activity, INSTALL_TITLE, INSTALL_MESSAGE, () -> restart(activity));
         } catch (Throwable t) {
-            Log.w(TAG, "restart prompt failed", t);
+            if (Debug.verbose()) Log.w(TAG, "restart prompt failed", t);
         }
     }
 
@@ -76,7 +78,7 @@ public final class RestartPrompt {
             if (activity == null) return;
             Prompt.show(activity, CHANGE_TITLE, null, () -> restart(activity));
         } catch (Throwable t) {
-            Log.w(TAG, "restart prompt failed", t);
+            if (Debug.verbose()) Log.w(TAG, "restart prompt failed", t);
         }
     }
 
@@ -87,7 +89,7 @@ public final class RestartPrompt {
             if (activity == null) return;
             restart(activity);
         } catch (Throwable t) {
-            Log.w(TAG, "restart failed", t);
+            if (Debug.verbose()) Log.w(TAG, "restart failed", t);
         }
     }
 
@@ -111,7 +113,7 @@ public final class RestartPrompt {
                 .getLaunchIntentForPackage(appContext.getPackageName());
 
         if (launch == null || launch.getComponent() == null) {
-            Debug.print("restart: the launcher activity could not be resolved");
+            Debug.print("restart: the launcher activity could not be resolved" + Debug.by(4));
             close(activity);
             return;
         }
@@ -119,10 +121,10 @@ public final class RestartPrompt {
         try {
             Intent restartIntent = Intent.makeRestartActivityTask(launch.getComponent());
             activity.startActivity(restartIntent);
-            Debug.print("restart: a fresh task was started, ending this process now");
+            Debug.print("restart: a fresh task was started, ending this process now" + Debug.by(4));
             activity.finishAffinity();
         } catch (Throwable t) {
-            Debug.print("restart: the fresh task did not start (" + t + ")");
+            Debug.print("restart: the fresh task did not start (" + t + ")" + Debug.by(4));
             close(activity);
             return;
         }
@@ -136,7 +138,7 @@ public final class RestartPrompt {
             activity.finishAffinity();
         } catch (Throwable ignored) {
         }
-        Debug.print("restart: ending this process");
+        Debug.print("restart: ending this process" + Debug.by(4));
         Runtime.getRuntime().exit(0);
     }
 

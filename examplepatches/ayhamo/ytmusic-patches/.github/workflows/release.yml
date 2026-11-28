@@ -93,4 +93,7 @@ jobs:
           git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
           git add patches-bundle.json bundle/gradle.properties
           git commit -m "chore: release v$VERSION [skip ci]"
+          # a commit pushed to main while the tests and the build ran: put this one on top of it, so the
+          # release just published never stays without the patches-bundle.json that points at it
+          git pull --rebase origin "$GITHUB_REF_NAME"
           git push

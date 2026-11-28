@@ -9,6 +9,7 @@ import app.morphe.patcher.patch.resourcePatch
 import org.w3c.dom.Element
 
 private val defaultDarkModeManifestPatch = resourcePatch {
+    dependsOn(arm64TargetGuard)
     execute {
         document("AndroidManifest.xml").use { doc ->
             val manifest = doc.documentElement

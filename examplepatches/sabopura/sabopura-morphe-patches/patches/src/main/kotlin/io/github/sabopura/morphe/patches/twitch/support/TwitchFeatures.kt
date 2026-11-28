@@ -56,6 +56,9 @@ private fun BytecodePatchContext.stampPatchVersion() {
 }
 
 /** A patch the user can select. It marks [feature] as applied so its settings appear. */
+/** The head of every Twitch patch's description since 1.20.0: Twitch moved to ViolaTV, which runs on Android 12L and newer. */
+internal const val TWITCH_MOVED_NOTE = "On Android 12L or newer, use ViolaTV (sabopura/violatv-morphe-patches) instead. "
+
 internal fun twitchFeaturePatch(
     name: String,
     description: String,
@@ -64,7 +67,7 @@ internal fun twitchFeaturePatch(
     default: Boolean = true,
     compatibility: Compatibility = TWITCH_SUPPORTED,
     block: BytecodePatchBuilder.() -> Unit = {},
-) = bytecodePatch(name = name, description = description, default = default) {
+) = bytecodePatch(name = name, description = TWITCH_MOVED_NOTE + description, default = default) {
     compatibleWith(compatibility)
     dependsOn(*dependencies)
     extendWith(TWITCH_EXTENSION)

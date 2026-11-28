@@ -18,6 +18,7 @@ val hideStoriesPatch = bytecodePatch(
     description = "Removes the Storyteller stories and video clips from the feeds.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

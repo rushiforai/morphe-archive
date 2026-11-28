@@ -123,6 +123,7 @@ public final class Vi {
         p("Not allowed yet", "Chưa cấp quyền");
         p("Not allowed, or sharing is off in xADAS Pro", "Chưa cấp quyền, hoặc xADAS Pro đang tắt chia sẻ");
         p("Not installed", "Chưa cài");
+        p("Installed, but without the Data API (needs V14 or newer)", "Đã cài, nhưng chưa có Data API (cần V14 trở lên)");
         p("Could not check", "Không kiểm tra được");
         p("Style", "Kiểu");
         p("Position", "Vị trí");

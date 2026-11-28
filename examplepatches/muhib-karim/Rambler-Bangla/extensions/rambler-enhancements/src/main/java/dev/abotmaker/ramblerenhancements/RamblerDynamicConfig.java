@@ -23,6 +23,8 @@ public final class RamblerDynamicConfig {
     public static boolean FEATURE_RAMBLER_EXTRAS = false;
     public static boolean FEATURE_HIDDEN_FLAGS = false;
     public static boolean FEATURE_AT_MENTION_SUGGESTIONS = false;
+    public static boolean FEATURE_AMOLED_DARK_KEYBOARD = false;
+    public static boolean FEATURE_CLIPBOARD_REORDER = false;
 
     // Flag class (oki in Gboard 18.5.4)
     public static String FLAG_NAME_FIELD = "a";

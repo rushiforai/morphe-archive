@@ -181,7 +181,8 @@ public final class AddonDirect {
     public static boolean switchWaitsForPlay(String id) {
         synchronized (shadows) {
             for (Shadow s : shadows.values())
-                if (!s.done && s.p.id.equals(id) && !s.forMix && s.mode == Mode.LOCKING && !s.playing) return true;
+                // paused and ready: not a player still buffering, nor one about to start while YT plays
+                if (!s.done && s.p.id.equals(id) && !s.forMix && s.mode == Mode.LOCKING && !s.playing && !s.moving && s.ready()) return true;
         }
         return false;
     }

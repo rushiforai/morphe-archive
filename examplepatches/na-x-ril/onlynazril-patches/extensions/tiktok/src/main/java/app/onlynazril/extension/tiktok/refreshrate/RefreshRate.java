@@ -64,10 +64,11 @@ public final class RefreshRate {
             if (attributes.preferredRefreshRate != requested) {
                 attributes.preferredRefreshRate = requested;
                 window.setAttributes(attributes);
-                Debug.print("refresh rate: " + (fps > 0 ? fps + " fps" : "default"));
+                Debug.mark("refresh rate " + (fps > 0 ? fps : "default"));
+        Debug.print("refresh rate: " + (fps > 0 ? fps + " fps" : "default") + Debug.by(4));
             }
         } catch (Throwable t) {
-            Debug.print("refresh rate: " + t);
+            Debug.print("refresh rate: " + t + Debug.by(4));
         }
     }
 

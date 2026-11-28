@@ -237,8 +237,32 @@ private val AD_ID_PERMISSIONS = setOf(
     "android.permission.ACCESS_ADSERVICES_AD_ID",
 )
 
+/**
+ * Apps that have their own ad removal. The generic patch does nothing on them, however it was selected: it would
+ * strip advertising IDs and analytics that an app may need to sign in or to register the device, which its own patch
+ * has already weighed. tools/audit.py fails the build if an app gets an ads patch and is missing from this list.
+ */
+private val APPS_WITH_OWN_AD_REMOVAL = setOf(
+    "com.linkedin.android",
+    "com.Splitwise.SplitwiseMobile",
+    "com.truecaller",
+    "com.cv.docscanner",
+    "idm.internet.download.manager",
+    "com.dv.adm",
+    "com.metalsoft.trackchecker_mobile",
+    "com.imo.android.imoimhd",
+)
+
+private fun hasOwnAdRemoval() = OriginalApp.packageName in APPS_WITH_OWN_AD_REMOVAL
+
+private fun announceSkip() = java.util.logging.Logger.getLogger("Loki").info(
+    "Remove ads and trackers: skipped, ${OriginalApp.packageName} has its own ad removal",
+)
+
 private val manifestPart = resourcePatch {
+    dependsOn(recordOriginalAppPatch)
     execute {
+        if (hasOwnAdRemoval()) return@execute
         val manifest = get("AndroidManifest.xml")
         if (!manifest.exists()) return@execute
         val text = manifest.readText()
@@ -374,9 +398,11 @@ internal fun BytecodePatchContext.stopAdSdks() {
 @Suppress("unused")
 val removeAdsAndTrackersPatch = bytecodePatch(
     name = "Remove ads and trackers",
-    description = "Removes ads, analytics and crash reporting, and the advertising ID.",
+    description = "Removes ads, analytics and crash reporting, and the advertising ID. Does nothing on apps that " +
+        "have their own ad removal.",
     default = false,
 ) {
+    dependsOn(recordOriginalAppPatch)
     dependsOn(manifestPart)
     dependsOn(menuPatch)
 
@@ -397,6 +423,7 @@ val removeAdsAndTrackersPatch = bytecodePatch(
     Choices.advertisingId = { advertisingId ?: true }
 
     execute {
+        if (hasOwnAdRemoval()) return@execute announceSkip()
         if (ads ?: true) stopAdSdks()
         if (analytics ?: true) {
             crashlyticsCalls.forEach { fingerprint ->

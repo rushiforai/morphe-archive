@@ -1,0 +1,646 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.morphe.patches.instagram.download.story
+
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.instagram.download.INSTAGRAM_MEDIA
+import app.morphe.patches.instagram.download.MEDIA
+import app.morphe.patches.instagram.download.altTextBridge
+import app.morphe.patches.instagram.download.imageBridges
+import app.morphe.patches.instagram.download.mediaBridges
+import app.morphe.patches.instagram.download.storyMusicBridges
+import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.instagram.misc.extension.enableStatus
+import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
+import app.morphe.patches.instagram.media.surface.playerSurfacesPatch
+import app.morphe.patches.instagram.misc.extension.jumpTargets
+import app.morphe.patches.instagram.misc.extension.localRegisterCount
+import app.morphe.patches.instagram.misc.extension.originalName
+import app.morphe.patches.instagram.misc.extension.patchLog
+import app.morphe.patches.instagram.misc.extension.parameterRegister
+import app.morphe.patches.instagram.misc.extension.requireLocals
+import app.morphe.patches.instagram.misc.extension.requireStatusMethod
+import app.morphe.patches.instagram.misc.extension.requireThisIntact
+import app.morphe.patches.instagram.misc.extension.uniqueMethod
+import app.morphe.patches.instagram.misc.settings.settingsPatch
+import app.morphe.patches.instagram.stories.autoadvance.STORY_VIEWER
+import app.morphe.patches.instagram.stories.follow.BIND_FOLLOW
+import app.morphe.patches.instagram.stories.seen.BIND_BUTTON
+import app.morphe.patches.instagram.stories.seen.StoryHeaderBinderFingerprint
+import app.morphe.patches.instagram.stories.seen.USER_SESSION
+import app.morphe.patches.instagram.stories.seen.ViewHolderFingerprint
+import app.morphe.patches.instagram.stories.seen.itemViewField
+import app.morphe.patches.instagram.stories.zoom.ViewerPlayback
+import app.morphe.patches.instagram.stories.zoom.findViewerPlayback
+import app.morphe.patches.instagram.stories.zoom.viewerInvoke
+import app.morphe.util.extendsClass
+import app.morphe.patches.shared.compat.AppCompatibilities
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+
+private const val PATCH = "Download any story"
+
+private const val STORY_DOWNLOAD = "$EXTENSION_PACKAGE/download/StoryDownload;"
+internal const val LABELS = "$STORY_DOWNLOAD->labels([Ljava/lang/CharSequence;)[Ljava/lang/CharSequence;"
+internal const val SAVE_STORY = "$STORY_DOWNLOAD->save(Ljava/lang/CharSequence;Ljava/lang/Object;)Z"
+internal const val BUILDING = "$STORY_DOWNLOAD->building(Ljava/lang/Object;)V"
+internal const val MENU_CLOSED = "$STORY_DOWNLOAD->menuClosed(Ljava/lang/Object;)V"
+private const val DISMISS_LISTENER = "Landroid/content/DialogInterface\$OnDismissListener;"
+private const val STORY_DOWNLOAD_BUTTON = "$EXTENSION_PACKAGE/stories/StoryDownloadButton;"
+internal const val BIND_DOWNLOAD = "$STORY_DOWNLOAD_BUTTON->bind(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V"
+internal const val STORY_REEL_READER = "$EXTENSION_PACKAGE/stories/StoryReelReader;"
+internal const val STORY_LIST_HOLD = "$EXTENSION_PACKAGE/stories/StoryListHold;"
+internal const val LIST_VIEWER_SHOWN = "$STORY_LIST_HOLD->viewerShown(Ljava/lang/Object;)V"
+
+/** The reason the story viewer's pause is given while a list of the Download button is open. */
+internal const val LIST_HOLD_REASON = "hushgram_story_download_list"
+private const val VIEWER_RESUME = "onResume"
+private const val OBJECT = "Ljava/lang/Object;"
+private const val VIEW = "Landroid/view/View;"
+private const val JAVA_LIST = "Ljava/util/List;"
+internal const val LABEL_LIST = "$STORY_DOWNLOAD->labelList(Ljava/util/List;)V"
+
+/** The name Instagram's build keeps, in a static field, for the class that runs a story's menu. */
+internal const val HELPER_NAME = "ReelOptionsOverflowHelper"
+
+/** A story, which keeps its name. Instagram calls stories reels, and Reels clips. */
+internal const val REEL_ITEM = "Lcom/instagram/model/reels/ReelItem;"
+private const val LABEL_ARRAY = "[Ljava/lang/CharSequence;"
+private const val LABEL_LIST_TYPE = "Ljava/util/ArrayList;"
+private const val LABEL = "Ljava/lang/CharSequence;"
+private const val CLICK_LISTENER = "Landroid/content/DialogInterface\$OnClickListener;"
+private val CLICK_PARAMETERS = listOf("Landroid/content/DialogInterface;", "I")
+
+/**
+ * Download in the menu of anyone's story, saving through HushGram's own pipeline.
+ *
+ * A story's menu is built as a list of labels by one of a few static builders of the class that
+ * runs it, and a tap hands the tapped label, with that class, to one of a few static handlers that
+ * compare it with Instagram's own. Instagram offers a save only on your own stories. Each builder
+ * first tells the extension which menu it's building, from the parameter that holds it, since a
+ * builder can reuse that register before it returns. Its labels get Download added where it returns
+ * them (Download as video and Download as photo for a photo story with music), and each handler asks
+ * the extension first, which saves the story when the label is one of those. A handler that takes the
+ * menu's dismiss listener hands it on to what Instagram's row opens, which plays the story again
+ * when it's done, so after a yes the listener goes to the extension, which runs it (#610). Your own highlights'
+ * menus are built as a list, which gets the same rows added in place before it's returned (#339).
+ * A few older dialogs, shown for special story items,
+ * skip the handlers: their click listener looks the tapped label up in a builder's labels itself,
+ * so right after that lookup the listener asks the extension too.
+ *
+ * Everything is found before anything changes, so a build that differs stops the patch naming
+ * what it couldn't find, and nothing is half done.
+ */
+@Suppress("unused")
+val downloadStoryPatch = bytecodePatch(
+    name = "Download any story",
+    description = "Adds Download to the menu of anyone's story. Videos save at the quality you choose and photos " +
+        "at their largest size, and Download as photo saves a still from a video story. " +
+        "A Download button at the top of a story is a separate switch, off to start, and so is a Copy text button " +
+        "that opens Google Lens on the story. Another switch puts Copy text in the menu, copying the words Instagram " +
+        "read in the picture. Turn them on or off in HushGram settings > Stories.",
+    default = true,
+) {
+    category("Downloads")
+    dependsOn(settingsPatch)
+    compatibleWith(*AppCompatibilities.instagram())
+    dependsOn(instagramExtensionPatch, playerSurfacesPatch)
+
+    execute {
+        requireStatusMethod("storyDownload")
+        offerDownloadOnEveryStory(withButton = true)
+        enableStatus("storyDownload")
+    }
+}
+
+internal fun BytecodePatchContext.offerDownloadOnEveryStory(withButton: Boolean = false) {
+    val helpers = mutableListOf<ClassDef>()
+    val listeners = mutableListOf<Method>()
+    classDefForEach { classDef ->
+        if (classDef.originalName() == HELPER_NAME) helpers += classDef
+        if (CLICK_LISTENER in classDef.interfaces) {
+            listeners += classDef.methods.filter { method ->
+                method.name == "onClick" && method.returnType == "V" && method.parameterTypes.map(Any::toString) == CLICK_PARAMETERS &&
+                    method.implementation?.instructions?.any {
+                        (it.opcode == Opcode.INVOKE_STATIC || it.opcode == Opcode.INVOKE_STATIC_RANGE) && it.methodReference()?.returnType == LABEL_ARRAY
+                    } == true
+            }
+        }
+    }
+    val helper = helpers.singleOrNull() ?: throw PatchException(
+        "$PATCH: expected one class named $HELPER_NAME, found " + if (helpers.isEmpty()) "none" else helpers.joinToString { it.type },
+    )
+    val type = helper.type
+    val statics = helper.methods.filter { AccessFlags.STATIC.isSet(it.accessFlags) && it.implementation != null }
+    val builders = statics.filter { it.returnType == LABEL_ARRAY && type in it.parameterTypes.map(Any::toString) }
+    if (builders.isEmpty()) throw PatchException("$PATCH: $type builds no story menu from its labels")
+    val handlers = statics.filter { method ->
+        val parameters = method.parameterTypes.map(Any::toString)
+        method.returnType == "V" && parameters.lastOrNull() == LABEL && type in parameters
+    }
+    if (handlers.isEmpty()) throw PatchException("$PATCH: $type handles no tapped label")
+    // Your own highlights' menus are built as a list instead (#339), and their taps reach the same handlers.
+    val listBuilders = statics.filter { it.returnType == LABEL_LIST_TYPE && type in it.parameterTypes.map(Any::toString) }
+    val returns = (builders + listBuilders).associateWith { builder ->
+        builder.labelReturns().ifEmpty { throw PatchException("$PATCH: $type->${builder.name} never returns its labels") }
+    }
+
+    val story = instanceField(type, REEL_ITEM)
+    val media = builders.flatMap { builder ->
+        builder.implementation!!.instructions.mapNotNull { instruction ->
+            if (instruction.opcode != Opcode.IGET_OBJECT) return@mapNotNull null
+            val field = (instruction as ReferenceInstruction).reference as FieldReference
+            if (field.definingClass == REEL_ITEM && field.type == MEDIA) "$REEL_ITEM->${field.name}:$MEDIA" else null
+        }
+    }.distinct().singleOrNull() ?: throw PatchException("$PATCH: the story menu's builders don't read one Media of a story")
+    val storyMedia = mutableClassDefBy(INSTAGRAM_MEDIA).methods.singleOrNull {
+        it.name == "storyMedia" && AccessFlags.STATIC.isSet(it.accessFlags) &&
+            it.parameterTypes.map(Any::toString) == listOf("Ljava/lang/Object;")
+    } ?: throw PatchException("$PATCH: $INSTAGRAM_MEDIA has no static storyMedia(Object)")
+    val storyItemMedia = mutableClassDefBy(INSTAGRAM_MEDIA).methods.singleOrNull {
+        it.name == "storyItemMedia" && AccessFlags.STATIC.isSet(it.accessFlags) &&
+            it.parameterTypes.map(Any::toString) == listOf("Ljava/lang/Object;")
+    } ?: throw PatchException("$PATCH: $INSTAGRAM_MEDIA has no static storyItemMedia(Object)")
+    val button = if (withButton) findStoryButton(media) else null
+    val listHold = if (withButton) findStoryListHold() else null
+    val lookups = listeners.flatMap { it.labelLookups(type, builders) }
+    val handled = handlers.map { mutable(it) }
+    handled.forEach { it.requireLocals(PATCH, 2) }
+    val writeVideoBridges = mediaBridges(PATCH)
+    val writeImageBridges = imageBridges(PATCH)
+    val writeMusicBridges = storyMusicBridges(PATCH)
+    val writeAltTextBridge = findAltTextBridge()
+    // Each builder's menu, its parameter of the menu's class, read before the body can reuse it.
+    val menus = returns.keys.associateWith { builder ->
+        val parameters = builder.parameterTypes.map(Any::toString)
+        val words = parameters.sumOf { if (it == "J" || it == "D") 2 else 1 }
+        builder.implementation!!.registerCount - words +
+            parameters.take(parameters.indexOf(type)).sumOf { if (it == "J" || it == "D") 2 else 1 }
+    }
+
+    // Each return of a builder hands its labels through the extension first. The return is
+    // replaced rather than preceded, because a jump to the return lands on what replaces it and
+    // would skip anything put in front of it. Then the builder's first instruction tells the
+    // extension which menu the labels are for. A list gets the rows added in place.
+    returns.forEach { (builder, found) ->
+        val method = mutable(builder)
+        val list = builder.returnType == LABEL_LIST_TYPE
+        val hook = if (list) LABEL_LIST else LABELS
+        found.sortedDescending().forEach { index ->
+            val register = (method.getInstruction(index) as OneRegisterInstruction).registerA
+            method.replaceInstruction(
+                index,
+                if (register > 15) "invoke-static/range { v$register .. v$register }, $hook" else "invoke-static { v$register }, $hook",
+            )
+            method.addInstructions(
+                index + 1,
+                if (list) "return-object v$register" else """
+                    move-result-object v$register
+                    return-object v$register
+                """,
+            )
+        }
+        val menu = menus.getValue(builder)
+        method.addInstructions(
+            0,
+            if (menu > 15) "invoke-static/range { v$menu .. v$menu }, $BUILDING" else "invoke-static { v$menu }, $BUILDING",
+        )
+    }
+
+    handled.forEach { method ->
+        val parameters = method.parameterTypes.map(Any::toString)
+        val first = method.implementation!!.registerCount - parameters.sumOf { if (it == "J" || it == "D") 2 else 1 }
+        fun register(index: Int) = first + parameters.take(index).sumOf { if (it == "J" || it == "D") 2 else 1 }
+        val dismiss = parameters.indexOf(DISMISS_LISTENER)
+        // The sheet doesn't run the listener after a row tap, so without this the story stays paused.
+        val playOn = if (dismiss < 0) "" else """
+            move-object/from16 v0, v${register(dismiss)}
+            invoke-static { v0 }, $MENU_CLOSED
+        """
+        method.addInstructionsWithLabels(
+            0,
+            """
+                move-object/from16 v0, v${register(parameters.lastIndex)}
+                move-object/from16 v1, v${register(parameters.indexOf(type))}
+                invoke-static { v0, v1 }, $SAVE_STORY
+                move-result v0
+                if-eqz v0, :handle
+                $playOn
+                return-void
+            """,
+            ExternalLabel("handle", method.getInstruction(0)),
+        )
+    }
+
+    // Right after a listener's lookup, the label and the menu go to the extension, whose answer
+    // takes the array's register, which the listener sets anew next anyway. A yes ends the click;
+    // the dialog closes itself.
+    lookups.groupBy { it.method }.forEach { (listener, found) ->
+        val method = mutable(listener)
+        found.sortedByDescending { it.at }.forEach { lookup ->
+            method.addInstructionsWithLabels(
+                lookup.at + 1,
+                """
+                    invoke-static { v${lookup.label}, v${lookup.menu} }, $SAVE_STORY
+                    move-result v${lookup.spare}
+                    if-eqz v${lookup.spare}, :handle
+                    return-void
+                """,
+                ExternalLabel("handle", method.getInstruction(lookup.at + 1)),
+            )
+        }
+    }
+
+    // Answers an Object, so its ways out may meet at one return.
+    storyMedia.addInstructionsWithLabels(
+        0,
+        """
+            check-cast p0, $type
+            iget-object p0, p0, $story
+            if-eqz p0, :none
+            iget-object p0, p0, $media
+            :none
+            return-object p0
+        """,
+    )
+    // The same Media off the story item the loop check is asked about, so Loop this story (#610)
+    // reads the ID the menu's row toggled. Answers an Object too, so the null check may share the return.
+    storyItemMedia.addInstructionsWithLabels(
+        0,
+        """
+            if-eqz p0, :none
+            check-cast p0, $REEL_ITEM
+            iget-object p0, p0, $media
+            :none
+            return-object p0
+        """,
+    )
+    writeVideoBridges()
+    writeImageBridges()
+    writeMusicBridges()
+    writeAltTextBridge?.invoke()
+    if (button != null) hookStoryButton(button)
+    if (listHold != null) hookStoryListHold(listHold)
+}
+
+/**
+ * Where the story Download button's hook goes (#400): the story item binder's toolbar bind that
+ * Mark as seen hooks, the parameters holding the story and its view holder, the view holder base's
+ * item view field, and the two stubs of the extension's button class that read the story's Media
+ * and that item view. For a press and hold (#745) also the parameters holding the viewer's model of
+ * the reel on screen and the session, the model's method listing the reel's stories, and the stub
+ * that calls it.
+ */
+internal class StoryButtonTargets(
+    val binder: String,
+    val binderName: String,
+    val binderParameters: List<String>,
+    val item: Int,
+    val holder: Int,
+    val itemView: FieldReference,
+    val itemViewStub: MutableMethod,
+    val mediaStub: MutableMethod,
+    val media: String,
+    val reel: Int,
+    val session: Int,
+    val reelClass: String,
+    val reelItems: String,
+    val reelItemsStub: MutableMethod,
+)
+
+/**
+ * The method of [type] listing a reel's stories for a session, when [type] is the viewer's model of
+ * a reel: it holds a story, and has one public instance method taking the session and answering a list.
+ */
+private fun BytecodePatchContext.reelItemsOf(type: String): Method? {
+    if (!type.startsWith("L")) return null
+    val owner = classDefByOrNull(type) ?: return null
+    if (owner.fields.none { it.type == REEL_ITEM && !AccessFlags.STATIC.isSet(it.accessFlags) }) return null
+    return owner.methods.singleOrNull {
+        it.returnType == JAVA_LIST && AccessFlags.PUBLIC.isSet(it.accessFlags) && !AccessFlags.STATIC.isSet(it.accessFlags) &&
+            it.parameterTypes.map(Any::toString) == listOf(USER_SESSION)
+    }
+}
+
+/** Finds all of it, or stops the patch naming what is missing, before anything changes. */
+internal fun BytecodePatchContext.findStoryButton(media: String): StoryButtonTargets {
+    val binder = uniqueMethod(PATCH, "story item binder's toolbar bind", StoryHeaderBinderFingerprint)
+    val where = "${binder.definingClass}->${binder.name}"
+    if (!AccessFlags.STATIC.isSet(binder.accessFlags)) throw PatchException("$PATCH: $where isn't static, as the story item binder's toolbar bind is")
+    val parameters = binder.parameterTypes.map(Any::toString)
+    val holderInit = uniqueMethod(PATCH, "view holder constructor", ViewHolderFingerprint)
+    val base = holderInit.definingClass
+    val holders = parameters.indices.filter { parameters[it].startsWith("L") && extendsClass(parameters[it], base) }
+    val holder = holders.singleOrNull() ?: throw PatchException("$PATCH: expected $where to take one view holder, found ${holders.size}")
+    val items = parameters.indices.filter { parameters[it] == REEL_ITEM }
+    val item = items.singleOrNull() ?: throw PatchException("$PATCH: expected $where to take one story ($REEL_ITEM), found ${items.size}")
+    val sessions = parameters.indices.filter { parameters[it] == USER_SESSION }
+    val session = sessions.singleOrNull() ?: throw PatchException("$PATCH: expected $where to take one $USER_SESSION, found ${sessions.size}")
+    val reels = parameters.indices.filter { it != item && it != holder && it != session }
+        .mapNotNull { at -> reelItemsOf(parameters[at])?.let { at to it } }
+    val (reel, reelItems) = reels.singleOrNull()
+        ?: throw PatchException("$PATCH: expected $where to take one model of a reel's stories, found ${reels.size}")
+    val reelClass = parameters[reel]
+    if (!AccessFlags.PUBLIC.isSet(classDefByOrNull(reelClass)!!.accessFlags)) {
+        throw PatchException("$PATCH: $reelClass isn't public, so the extension can't reach it")
+    }
+    binder.requireLocals(PATCH, 4)
+    val itemView = itemViewField(holderInit, PATCH)
+    val baseClass = classDefByOrNull(base) ?: throw PatchException("$PATCH: $base isn't in this build")
+    if (!AccessFlags.PUBLIC.isSet(baseClass.accessFlags)) throw PatchException("$PATCH: $base isn't public, so the extension can't reach it")
+    val extension = classDefByOrNull(STORY_DOWNLOAD_BUTTON)?.let { mutableClassDefBy(STORY_DOWNLOAD_BUTTON) }
+        ?: throw PatchException("$PATCH: $STORY_DOWNLOAD_BUTTON isn't in the extension")
+    extension.methods.singleOrNull {
+        "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" == BIND_DOWNLOAD.substringAfter("->") &&
+            AccessFlags.STATIC.isSet(it.accessFlags) && AccessFlags.PUBLIC.isSet(it.accessFlags)
+    } ?: throw PatchException("$PATCH: $STORY_DOWNLOAD_BUTTON has no public static hook ${BIND_DOWNLOAD.substringAfter("->")}")
+    val viewStub = extension.methods.singleOrNull {
+        it.name == "itemView" && it.returnType == VIEW && AccessFlags.STATIC.isSet(it.accessFlags) &&
+            it.parameterTypes.map(Any::toString) == listOf(OBJECT)
+    } ?: throw PatchException("$PATCH: $STORY_DOWNLOAD_BUTTON has no static $VIEW itemView($OBJECT)")
+    val mediaStub = extension.methods.singleOrNull {
+        it.name == "media" && it.returnType == OBJECT && AccessFlags.STATIC.isSet(it.accessFlags) &&
+            it.parameterTypes.map(Any::toString) == listOf(OBJECT)
+    } ?: throw PatchException("$PATCH: $STORY_DOWNLOAD_BUTTON has no static $OBJECT media($OBJECT)")
+    val reader = classDefByOrNull(STORY_REEL_READER)?.let { mutableClassDefBy(STORY_REEL_READER) }
+        ?: throw PatchException("$PATCH: $STORY_REEL_READER isn't in the extension")
+    val itemsStub = reader.methods.singleOrNull {
+        it.name == "items" && it.returnType == JAVA_LIST && AccessFlags.STATIC.isSet(it.accessFlags) &&
+            it.parameterTypes.map(Any::toString) == listOf(OBJECT, OBJECT)
+    } ?: throw PatchException("$PATCH: $STORY_REEL_READER has no static $JAVA_LIST items($OBJECT$OBJECT)")
+    return StoryButtonTargets(
+        binder.definingClass, binder.name, parameters, item, holder, itemView, viewStub, mediaStub, media,
+        reel, session, reelClass, "$reelClass->${reelItems.name}($USER_SESSION)$JAVA_LIST", itemsStub,
+    )
+}
+
+/**
+ * Hands the story, its view holder, the viewer's model of the reel and the session to
+ * [BIND_DOWNLOAD] at the start of the toolbar bind, through four borrowed locals, and fills the
+ * stubs. Mark as seen and Hide Follow on stories hook the same
+ * method, and each holds its place at the start, so this goes right after theirs when they're
+ * already there; applied earlier, it's pushed back by them. None of the hooks branches, and the
+ * locals they borrow are free until Instagram's first instruction.
+ */
+internal fun BytecodePatchContext.hookStoryButton(found: StoryButtonTargets) {
+    val binder = mutableClassDefBy(found.binder).methods.single {
+        it.name == found.binderName && it.parameterTypes.map(Any::toString) == found.binderParameters
+    }
+    val where = "${binder.definingClass}->${binder.name}"
+    val code = binder.implementation?.instructions?.toList().orEmpty()
+    if (code.any { (it as? ReferenceInstruction)?.reference?.toString() == BIND_DOWNLOAD }) {
+        throw PatchException("$PATCH: $where already calls $BIND_DOWNLOAD")
+    }
+    var at = 0
+    if (code.size > 4 && code.take(3).all { it.opcode == Opcode.MOVE_OBJECT_FROM16 } &&
+        code[3].opcode == Opcode.INVOKE_STATIC && (code[3] as ReferenceInstruction).reference.toString() == BIND_BUTTON
+    ) at = 4
+    if (code.size > at + 2 && code[at].opcode == Opcode.MOVE_OBJECT_FROM16 && code[at + 1].opcode == Opcode.INVOKE_STATIC &&
+        (code[at + 1] as ReferenceInstruction).reference.toString() == BIND_FOLLOW
+    ) at += 2
+    if (at in binder.jumpTargets()) throw PatchException("$PATCH: a branch in $where lands on its first instruction, where the hook goes")
+    binder.addInstructionsWithLabels(
+        at,
+        """
+            move-object/from16 v0, ${binder.parameterRegister(found.item)}
+            move-object/from16 v1, ${binder.parameterRegister(found.holder)}
+            move-object/from16 v2, ${binder.parameterRegister(found.reel)}
+            move-object/from16 v3, ${binder.parameterRegister(found.session)}
+            invoke-static { v0, v1, v2, v3 }, $BIND_DOWNLOAD
+        """,
+    )
+    found.itemViewStub.addInstructionsWithLabels(
+        0,
+        """
+            check-cast p0, ${found.itemView.definingClass}
+            iget-object p0, p0, ${found.itemView}
+            return-object p0
+        """,
+    )
+    found.mediaStub.addInstructionsWithLabels(
+        0,
+        """
+            check-cast p0, $REEL_ITEM
+            iget-object p0, p0, ${found.media}
+            return-object p0
+        """,
+    )
+    found.reelItemsStub.addInstructionsWithLabels(
+        0,
+        """
+            check-cast p0, ${found.reelClass}
+            check-cast p1, $USER_SESSION
+            invoke-virtual { p0, p1 }, ${found.reelItems}
+            move-result-object p0
+            return-object p0
+        """,
+    )
+}
+
+/**
+ * What holds the story still under the Download button's lists (#745): the story viewer's own pause
+ * and resume, and the two stubs of the extension's reader class that call them.
+ */
+internal class StoryListHoldTargets(val playback: ViewerPlayback, val pauseStub: MutableMethod, val playStub: MutableMethod)
+
+/** Finds all of it, or stops the patch naming what is missing, before anything changes. */
+internal fun BytecodePatchContext.findStoryListHold(): StoryListHoldTargets {
+    val playback = findViewerPlayback(PATCH)
+    val viewer = classDefBy(STORY_VIEWER)
+    // The stubs sit in the extension's package, so what they call has to be public.
+    val closed = listOfNotNull(
+        STORY_VIEWER.takeUnless { AccessFlags.PUBLIC.isSet(viewer.accessFlags) },
+        "$STORY_VIEWER->${playback.pause.name}".takeUnless { AccessFlags.PUBLIC.isSet(playback.pause.accessFlags) },
+        "$STORY_VIEWER->${playback.resume.name}".takeUnless { AccessFlags.PUBLIC.isSet(playback.resume.accessFlags) },
+    )
+    if (closed.isNotEmpty()) throw PatchException("$PATCH: ${closed.joinToString()} isn't public, so the extension can't reach it")
+    viewer.listHoldSite()
+    val hold = classDefByOrNull(STORY_LIST_HOLD) ?: throw PatchException("$PATCH: $STORY_LIST_HOLD isn't in the extension")
+    val shownName = LIST_VIEWER_SHOWN.substringAfter("->").substringBefore("(")
+    if (hold.methods.none { it.isStaticOf(shownName, 1) && AccessFlags.PUBLIC.isSet(it.accessFlags) }) {
+        throw PatchException("$PATCH: $STORY_LIST_HOLD has no public static $shownName(Object)")
+    }
+    if (classDefByOrNull(STORY_REEL_READER) == null) throw PatchException("$PATCH: $STORY_REEL_READER isn't in the extension")
+    val reader = mutableClassDefBy(STORY_REEL_READER)
+    fun stub(name: String, parameters: Int) = reader.methods.singleOrNull { it.isStaticOf(name, parameters) }
+        ?: throw PatchException("$PATCH: $STORY_REEL_READER has no static $name taking $parameters objects")
+    return StoryListHoldTargets(playback, stub("pause", 2), stub("play", 3))
+}
+
+/** A static void method called [name] that takes [parameters] objects. */
+private fun Method.isStaticOf(name: String, parameters: Int) =
+    this.name == name && AccessFlags.STATIC.isSet(accessFlags) && returnType == "V" &&
+        parameterTypes.map(Any::toString) == List(parameters) { OBJECT }
+
+/**
+ * Fills the stubs with the viewer's pause and resume, and tells [LIST_VIEWER_SHOWN] each time the
+ * viewer comes back, right after onResume hands on to its superclass's. Start reels' sound hook
+ * needs the very start of onResume to itself, and the viewer's other hooks sit at this same spot.
+ */
+internal fun BytecodePatchContext.hookStoryListHold(found: StoryListHoldTargets) {
+    val viewer = mutableClassDefBy(STORY_VIEWER)
+    val at = viewer.listHoldSite()
+    found.pauseStub.addInstructions(
+        0,
+        """
+            check-cast p0, $STORY_VIEWER
+            const-string p1, "$LIST_HOLD_REASON"
+            ${found.playback.pause.viewerInvoke()} { p0, p1 }, ${found.playback.pause.viewerCall()}
+            return-void
+        """,
+    )
+    found.playStub.addInstructions(
+        0,
+        """
+            check-cast p0, $STORY_VIEWER
+            const-string p1, "resume"
+            const/4 p2, 0x1
+            ${found.playback.resume.viewerInvoke()} { p0, p1, p2 }, ${found.playback.resume.viewerCall()}
+            return-void
+        """,
+    )
+    viewer.methods.single { it.isViewerResume() }.addInstructions(at, "invoke-static/range { p0 .. p0 }, $LIST_VIEWER_SHOWN")
+}
+
+private fun Method.isViewerResume() = name == VIEWER_RESUME && returnType == "V" && parameterTypes.isEmpty() &&
+    !AccessFlags.STATIC.isSet(accessFlags) && implementation != null
+
+private fun Method.viewerCall() = "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
+
+/** The index right after the story viewer's onResume calls its superclass's, where the hook goes. */
+private fun ClassDef.listHoldSite(): Int {
+    val where = "$STORY_VIEWER->$VIEWER_RESUME"
+    val method = methods.singleOrNull { it.isViewerResume() } ?: throw PatchException("$PATCH: $STORY_VIEWER has no $VIEWER_RESUME() of its own")
+    val code = method.implementation?.instructions?.toList().orEmpty()
+    if (code.any { it.methodReference()?.definingClass == STORY_LIST_HOLD }) throw PatchException("$PATCH: $where already calls $STORY_LIST_HOLD")
+    val supers = code.indices.filter { index ->
+        val called = code[index].methodReference()
+        (code[index].opcode == Opcode.INVOKE_SUPER || code[index].opcode == Opcode.INVOKE_SUPER_RANGE) && called != null &&
+            called.name == VIEWER_RESUME && called.parameterTypes.isEmpty() && called.returnType == "V"
+    }
+    val call = supers.singleOrNull() ?: throw PatchException("$PATCH: expected $where to call its superclass's once, found ${supers.size}")
+    if ((code[call] as? FiveRegisterInstruction)?.registerC != method.localRegisterCount()) {
+        throw PatchException("$PATCH: $where calls its superclass's on something other than this")
+    }
+    val at = call + 1
+    if (at >= code.size) throw PatchException("$PATCH: $where ends at its call to its superclass's")
+    if (at in method.jumpTargets()) throw PatchException("$PATCH: something in $where jumps to just after its call to its superclass's")
+    method.requireThisIntact(PATCH, listOf(at))
+    return at
+}
+
+/**
+ * In a dialog's click listener, where the tapped label is looked up in a builder's labels: the
+ * `aget-object` at [at] leaves it in [label], [menu] holds the story menu's class, and [spare],
+ * the array's register, is set anew by the instruction after the lookup.
+ */
+internal class LabelLookup(val method: Method, val at: Int, val label: Int, val menu: Int, val spare: Int)
+
+/**
+ * The lookups in [this], a click listener, of the labels one of [builders], static methods of
+ * [type], answers. Each has to be the builder's call, its answer kept, then indexed straight away,
+ * and followed by an instruction that sets the array's register without reading it and that no
+ * jump lands on. Anything else stops the patch, since a Download label that no tap reaches would
+ * do nothing.
+ */
+internal fun Method.labelLookups(type: String, builders: List<Method>): List<LabelLookup> {
+    val code = implementation?.instructions?.toList().orEmpty()
+    val where = "$definingClass->$name"
+    val calls = code.indices.filter { index ->
+        val call = code[index].methodReference() ?: return@filter false
+        call.definingClass == type && builders.any { builder ->
+            builder.name == call.name && builder.parameterTypes.map(Any::toString) == call.parameterTypes.map(Any::toString)
+        }
+    }
+    if (calls.isEmpty()) return emptyList()
+    val address = IntArray(code.size + 1)
+    code.forEachIndexed { index, instruction -> address[index + 1] = address[index] + instruction.codeUnits }
+    val targets = code.indices.filter { code[it] is OffsetInstruction && code[it].opcode.name.let { name -> name.startsWith("if-") || name.startsWith("goto") } }
+        .map { address.indexOf(address[it] + (code[it] as OffsetInstruction).codeOffset) }
+    return calls.map { call ->
+        val kept = code.getOrNull(call + 1)
+        val lookup = code.getOrNull(call + 2)
+        val next = code.getOrNull(call + 3)
+        if (kept?.opcode != Opcode.MOVE_RESULT_OBJECT || lookup?.opcode != Opcode.AGET_OBJECT || next == null) {
+            throw PatchException("$PATCH: $where doesn't look the tapped label up right after building the labels at $call")
+        }
+        val array = (kept as OneRegisterInstruction).registerA
+        lookup as ThreeRegisterInstruction
+        val label = lookup.registerA
+        val parameters = code[call].methodReference()!!.parameterTypes.map(Any::toString)
+        // A long or a double ahead of the menu takes two registers.
+        val menu = code[call].argumentRegisters()[parameters.take(parameters.indexOf(type)).sumOf { if (it == "J" || it == "D") 2 else 1 }]
+        val setsArray = next is TwoRegisterInstruction && next.opcode.setsRegister() && next.registerA == array && next.registerB != array ||
+            next.opcode in setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST, Opcode.SGET_OBJECT) && (next as OneRegisterInstruction).registerA == array
+        if (lookup.registerB != array || label == array || menu == array || menu == label || label > 15 || menu > 15 || !setsArray) {
+            throw PatchException("$PATCH: in $where the lookup at ${call + 2} doesn't leave a register this patch can use")
+        }
+        // A jump onto the answer, the lookup or the instruction after it would reach the check
+        // with registers the builder's call never set, or skip it.
+        if ((call + 1..call + 3).any { it in targets }) {
+            throw PatchException("$PATCH: in $where a jump lands between the labels built at $call and the instruction after the lookup")
+        }
+        LabelLookup(this, call + 2, label, menu, array)
+    }
+}
+
+private fun Instruction.methodReference(): MethodReference? = (this as? ReferenceInstruction)?.reference as? MethodReference
+
+private fun Instruction.argumentRegisters(): List<Int> = when (this) {
+    is RegisterRangeInstruction -> List(registerCount) { startRegister + it }
+    is Instruction35c -> listOf(registerC, registerD, registerE, registerF, registerG).take(registerCount)
+    else -> emptyList()
+}
+
+/** The returns of [this] builder, each answering its labels. */
+internal fun Method.labelReturns(): List<Int> =
+    implementation?.instructions?.withIndex()?.filter { it.value.opcode == Opcode.RETURN_OBJECT }?.map { it.index }.orEmpty()
+
+/**
+ * Media's one getter of `accessibility_caption`, which Copy text in the story menu reads for the
+ * words Instagram found in a story (#789). Only that row needs it, so a build where it can't be told
+ * answers null, after the patch log says why, and the row sends every story to Google Lens.
+ */
+private fun BytecodePatchContext.findAltTextBridge(): (() -> Unit)? = try {
+    altTextBridge(PATCH)
+} catch (unknown: PatchException) {
+    patchLog.warning("${unknown.message}. $PATCH goes in with Copy text sending every story to Google Lens.")
+    null
+}
+
+/** The one instance field of [type] in [owner], the story menu's class, as a field reference. */
+private fun BytecodePatchContext.instanceField(owner: String, type: String): String {
+    val fields = classDefBy(owner).fields.filter { !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == type }
+    val field = fields.singleOrNull()
+        ?: throw PatchException("$PATCH: expected one $type field in $owner, the story menu's class, found ${fields.size}")
+    return "$owner->${field.name}:$type"
+}
+
+private fun BytecodePatchContext.mutable(method: Method): MutableMethod =
+    mutableClassDefBy(method.definingClass).methods.single {
+        it.name == method.name && it.returnType == method.returnType &&
+            it.parameterTypes.map(Any::toString) == method.parameterTypes.map(Any::toString)
+    }

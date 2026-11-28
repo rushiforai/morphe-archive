@@ -996,6 +996,12 @@ public final class Haiagaru {
         Context appContext = resolvedContext == null ? context : resolvedContext;
         applicationContext = appContext;
         SharedPreferences startupPreferences=preferences(appContext);
+        if(!startupPreferences.getBoolean("youtubeOembedCardsMigrationV1",false)){
+            SharedPreferences.Editor edit=startupPreferences.edit();
+            if("https://imgur.com/\nhttps://youtube.com/\nhttps://youtu.be/".equals(startupPreferences.getString(SiteCardExclusions.KEY,"")))
+                edit.putString(SiteCardExclusions.KEY,SiteCardExclusions.DEFAULT);
+            edit.putBoolean("youtubeOembedCardsMigrationV1",true).apply();
+        }
         // Apply once, including existing explicit OFF values. Later manual choices survive.
         if(!startupPreferences.getBoolean("chtoioDefaultOnMigrationV1",false))
             startupPreferences.edit().putBoolean("chtoio",true)
@@ -3806,9 +3812,9 @@ public final class Haiagaru {
         LinearLayout listImages=SettingsSection.add(lists,"スレ一覧画像表示","表示設定と登録画像の扱い",true);
         ThreadListThumbnailSettings.addSettings(listImages, activity);
         android.widget.Spinner registeredThumbs=new LiveSettings.Choice(activity);
-        registeredThumbs.setContentDescription("登録画像に一致したスレ一覧画像の扱い");
+        registeredThumbs.setContentDescription("Haiagaru NG画像をスレ一覧にも適用");
         TextView registeredThumbsLabel=new TextView(activity);
-        registeredThumbsLabel.setText("登録画像に一致したスレ一覧画像の扱い");
+        registeredThumbsLabel.setText("Haiagaru NG画像をスレ一覧にも適用（標準Image NGとは別）");
         listImages.addView(registeredThumbsLabel);
         registeredThumbs.setAdapter(new android.widget.ArrayAdapter<>(activity,android.R.layout.simple_spinner_dropdown_item,
                 new String[]{"そのまま表示","画像だけを非表示","スレを非表示","画像にモザイク"}));
@@ -4786,10 +4792,10 @@ public final class Haiagaru {
             thumbnailAppearance.addView(help);
         }
         Button imageNg = new Button(activity);
-        imageNg.setText("登録画像をあぼーんにする（判定レベル・一致枚数）");
+        imageNg.setText("Haiagaru NG画像追加（判定レベル・一致枚数）");
         imageNg.setOnClickListener(view -> activity.startActivity(new Intent(activity, RegisteredImageNgSettingsActivity.class)));
         safety.addView(imageNg, rowParams(activity));
-        Switch registeredImageNg = addSwitch(safety, activity, "登録画像をあぼーんにする",
+        Switch registeredImageNg = addSwitch(safety, activity, "Haiagaru NG画像の判定を有効にする",
                 RegisteredImageNg.prefs(activity).getBoolean(RegisteredImageNg.ENABLE, false));
         registeredImageNg.setOnCheckedChangeListener((button, checked) -> {
             RegisteredImageNg.prefs(activity).edit().putBoolean(RegisteredImageNg.ENABLE, checked).apply();

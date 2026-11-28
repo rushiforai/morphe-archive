@@ -52,6 +52,7 @@ val skipLaunchVideoPatch = bytecodePatch(
     name = "Skip launch video",
     description = "Opens the app without the AMC+ logo video.",
 ) {
+    category("Playback")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

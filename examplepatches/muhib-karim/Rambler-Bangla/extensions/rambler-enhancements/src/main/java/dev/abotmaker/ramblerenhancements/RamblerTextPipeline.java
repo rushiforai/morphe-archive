@@ -188,11 +188,32 @@ public final class RamblerTextPipeline {
             }
             String pkg = editorInfo == null ? null : editorInfo.packageName;
             RamblerFlagRuntime.onActivePackageChanged(ctx, pkg);
-            if (RamblerDynamicConfig.FEATURE_BANGLA_PHONETIC) {
-                GboardRamblerScriptFix.setActiveGboardLocale(extractActiveGboardLocale(agenticExtension));
-            }
+            syncActiveGboardKeyboard(agenticExtension);
         } catch (Throwable throwable) {
             logWarningSafely("onExtensionActivate hook failed", throwable);
+        }
+    }
+
+    /**
+     * Refreshes the active Gboard keyboard locale + layout descriptor ({@code বাংলা},
+     * {@code abc -> বাংলা}, or {@code English (US)}) and warms the lightweight Bengali lexicon
+     * asynchronously so voice commits incur 0 ms latency. Called on both extension activation
+     * and every Rambler+ mic tap ({@code captureSessionContext}).
+     */
+    static void syncActiveGboardKeyboard(Object agenticExtension) {
+        if (!RamblerDynamicConfig.FEATURE_BANGLA_PHONETIC
+                && !RamblerDynamicConfig.FEATURE_BANGLA_LITE_SCRIPT) {
+            return;
+        }
+        try {
+            String localeTag = extractActiveGboardLocale(agenticExtension);
+            String layoutDescriptor = extractActiveGboardLayoutDescriptor(agenticExtension);
+            if (localeTag != null || layoutDescriptor != null) {
+                GboardRamblerScriptFix.setActiveGboardKeyboard(localeTag, layoutDescriptor);
+            }
+            com.akshaykadam.pixelboard.extension.rambler.GboardRamblerBanglaLexicon.preload();
+            com.akshaykadam.pixelboard.extension.rambler.GboardRamblerLoanSpell.preload();
+        } catch (Throwable ignored) {
         }
     }
 
@@ -213,6 +234,113 @@ public final class RamblerTextPipeline {
             // Fall back to InputMethodSubtype detection.
         }
         return null;
+    }
+
+    /**
+     * Reads Gboard's active {@code InputMethodEntry} ({@code Lpev;} on {@code Lohq;->K}) to extract
+     * both the {@code ImeDef.stringId} (e.g. {@code ime_bengali_bangladesh} vs
+     * {@code ime_bengali_india_transliteration} vs {@code ime_bengali_latin}) and layout variant
+     * ({@code Lpev;->p()} / {@code q()}), so {@code বাংলা} and {@code abc -> বাংলা} are cleanly
+     * distinguished even when their base language tag is Bengali.
+     */
+    private static String extractActiveGboardLayoutDescriptor(Object agenticExtension) {
+        if (agenticExtension == null) {
+            return null;
+        }
+        try {
+            Object entry = findActiveInputMethodEntry(agenticExtension);
+            if (entry == null) {
+                return null;
+            }
+            StringBuilder sb = new StringBuilder();
+            // 1. ImeDef.c (stringId) via Lpev.g()
+            try {
+                Method gMethod = entry.getClass().getMethod("g");
+                Object imeDef = gMethod.invoke(entry);
+                if (imeDef != null) {
+                    try {
+                        Field cField = imeDef.getClass().getField("c");
+                        Object stringId = cField.get(imeDef);
+                        if (stringId instanceof String s && !s.trim().isEmpty()) {
+                            sb.append(s.trim());
+                        }
+                    } catch (Throwable ignored) {
+                    }
+                }
+            } catch (Throwable ignored) {
+            }
+            // 2. Variant string via Lpev.p() and Lpev.q()
+            for (String mName : new String[] { "p", "q" }) {
+                try {
+                    Method m = entry.getClass().getMethod(mName);
+                    if (m.getParameterTypes().length == 0 && m.getReturnType() == String.class) {
+                        Object val = m.invoke(entry);
+                        if (val instanceof String s && !s.trim().isEmpty()) {
+                            if (sb.length() > 0) {
+                                sb.append('|');
+                            }
+                            sb.append(s.trim());
+                        }
+                    }
+                } catch (Throwable ignored) {
+                }
+            }
+            return sb.length() == 0 ? null : sb.toString();
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    private static Object findActiveInputMethodEntry(Object agenticExtension) {
+        Class<?> cls = agenticExtension.getClass();
+        while (cls != null && cls != Object.class) {
+            try {
+                Field kField = cls.getDeclaredField("K");
+                kField.setAccessible(true);
+                Object val = kField.get(agenticExtension);
+                if (val != null && hasMethod(val.getClass(), "g") && hasMethod(val.getClass(), "p")) {
+                    return val;
+                }
+            } catch (Throwable ignored) {
+            }
+            for (Field field : cls.getDeclaredFields()) {
+                if (Modifier.isStatic(field.getModifiers())) {
+                    continue;
+                }
+                Class<?> ft = field.getType();
+                if (ft.isPrimitive() || ft == String.class) {
+                    continue;
+                }
+                try {
+                    field.setAccessible(true);
+                    Object val = field.get(agenticExtension);
+                    if (val != null && hasImeDefGetter(val.getClass())) {
+                        return val;
+                    }
+                } catch (Throwable ignored) {
+                }
+            }
+            cls = cls.getSuperclass();
+        }
+        return null;
+    }
+
+    private static boolean hasMethod(Class<?> cls, String name) {
+        try {
+            cls.getMethod(name);
+            return true;
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    private static boolean hasImeDefGetter(Class<?> cls) {
+        try {
+            Method g = cls.getMethod("g");
+            return g.getReturnType().getName().endsWith(".ImeDef");
+        } catch (Throwable ignored) {
+            return false;
+        }
     }
 
     /**

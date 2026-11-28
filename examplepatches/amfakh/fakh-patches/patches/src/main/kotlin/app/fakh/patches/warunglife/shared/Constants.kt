@@ -15,6 +15,6 @@ object Constants {
         packageName = "com.neopawstudio.warunglife",
         signatures = setOf("1b43a19a74aafa9326fe0e579844cceb23c3ae50cf1b058e8bc21e879a9cb15a"),
         apkFileType = ApkFileType.XAPK,
-        targets = listOf(AppTarget(version = "1.2", versionCode = 49)),
+        targets = listOf(AppTarget(version = "1.3", versionCode = 52)),
     )
 }

@@ -1,0 +1,89 @@
+name: GboardProiOS
+options:
+  bundleIdPrefix: com.smartworldarafath
+  deploymentTarget:
+    iOS: "16.0"
+  usesTabs: false
+  indentWidth: 4
+  tabWidth: 4
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    IPHONEOS_DEPLOYMENT_TARGET: "16.0"
+    TARGETED_DEVICE_FAMILY: "1,2"
+    MARKETING_VERSION: "2.2.0"
+    CURRENT_PROJECT_VERSION: "176071777"
+    ENABLE_TESTABILITY: YES
+
+targets:
+  GboardProApp:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources/Shared
+      - path: Sources/App
+    info:
+      path: Config/App-Info.plist
+    entitlements:
+      path: Config/App.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.smartworldarafath.gboardpro
+        PRODUCT_NAME: "Gboard Pro"
+        PRODUCT_MODULE_NAME: GboardProApp
+        GENERATE_INFOPLIST_FILE: NO
+    dependencies:
+      - target: GboardProKeyboard
+
+  GboardProKeyboard:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Sources/Shared
+      - path: Sources/KeyboardExtension
+    info:
+      path: Config/Keyboard-Info.plist
+    entitlements:
+      path: Config/Keyboard.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.smartworldarafath.gboardpro.keyboard
+        PRODUCT_NAME: "GboardProKeyboard"
+        PRODUCT_MODULE_NAME: GboardProKeyboard
+        GENERATE_INFOPLIST_FILE: NO
+        SKIP_INSTALL: YES
+
+  GboardProUnitTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Tests
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: GboardProApp
+
+  GboardProUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: UITests
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: GboardProApp
+
+schemes:
+  GboardProApp:
+    build:
+      targets:
+        GboardProApp: all
+        GboardProUnitTests: [test]
+        GboardProUITests: [test]
+    test:
+      targets:
+        - GboardProUnitTests
+        - GboardProUITests

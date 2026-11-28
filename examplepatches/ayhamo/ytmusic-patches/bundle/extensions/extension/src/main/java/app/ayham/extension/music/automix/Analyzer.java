@@ -551,10 +551,60 @@ final class Analyzer {
             return (firstFrame + frames) / (double) rate;
         }
 
+        /** The opening's part, then the end's, when this reads both (joined); else null. */
+        private Pcm first, then;
+
+        /**
+         * A song's opening and its end read as one, when the end starts inside or right at the
+         * opening's end (a song up to HEAD_SEC + TAIL_SEC long); null otherwise. A placed window
+         * may sit anywhere in a song (editor.md §6), not only where Automix puts it.
+         */
+        static Pcm joined(Pcm head, Pcm tail) {
+            if (head == null || tail == null || head.rate != tail.rate || tail.firstFrame < head.firstFrame
+                    || tail.firstFrame > head.firstFrame + head.frames) return null;
+            Pcm j = new Pcm(head.file);
+            j.rate = head.rate;
+            j.firstFrame = head.firstFrame;
+            j.frames = Math.max(head.firstFrame + head.frames, tail.firstFrame + tail.frames) - head.firstFrame;
+            j.first = head;
+            j.then = tail;
+            return j;
+        }
+
+        /**
+         * The part that covers song seconds [from, to): the two joined, else the first of [prefer, other]
+         * that holds it, else prefer (whose start or end then says why the mix can't be built).
+         */
+        static Pcm covering(Pcm prefer, Pcm other, Pcm head, Pcm tail, double from, double to) {
+            Pcm j = joined(head, tail);
+            if (j != null) return j;
+            for (Pcm p : new Pcm[]{prefer, other}) {
+                if (p != null && p.start() <= from + 0.01 && p.end() >= to - 0.01) return p;
+            }
+            return prefer;
+        }
+
         /** Song seconds [from, to) as planar float stereo at the PCM's rate (clipped to what is stored). */
         float[][] read(double from, double to) throws IOException {
             long a = Math.max(firstFrame, (long) Math.floor(from * rate));
             long b = Math.min(firstFrame + frames, (long) Math.ceil(to * rate));
+            return frames(a, b);
+        }
+
+        /** Frames [a, b) (inside what is stored), split at the end's first frame when joined. */
+        private float[][] frames(long a, long b) throws IOException {
+            if (first != null) {
+                long cut = then.firstFrame;
+                float[][] x = first.frames(Math.min(a, cut), Math.min(b, cut));
+                float[][] y = then.frames(Math.max(a, cut), Math.max(b, cut));
+                int nx = x[0].length, ny = y[0].length;
+                float[] l = java.util.Arrays.copyOf(x[0], nx + ny), r = java.util.Arrays.copyOf(x[1], nx + ny);
+                System.arraycopy(y[0], 0, l, nx, ny);
+                System.arraycopy(y[1], 0, r, nx, ny);
+                return new float[][]{l, r};
+            }
+            a = Math.max(firstFrame, a);
+            b = Math.min(firstFrame + frames, b);
             int n = (int) Math.max(0, b - a);
             float[] l = new float[n], r = new float[n];
             if (n == 0) return new float[][]{l, r};

@@ -99,6 +99,12 @@ class EvaluateTest(unittest.TestCase):
     def test_supported_report_passes(self):
         self.assertIsNone(self.check("Disney+", "26.20.0+rc2-2026.10.28", code="179321403"))
 
+    def test_version_written_with_a_prefix_passes(self):
+        # Issue 135 on mobile-morphe-patches: "v32.20.0.100" was read as unsupported.
+        for written in ("v26.20.0+rc2-2026.10.28", "V 26.20.0+rc2-2026.10.28",
+                        "version 26.20.0+rc2-2026.10.28", "`26.20.0+rc2-2026.10.28`"):
+            self.assertIsNone(self.check("Disney+", written, code="179321403"), written)
+
     def test_unsupported_version(self):
         problem = self.check("Disney+", "26.14.0+rc6-2026.07.30")
         self.assertEqual(problem["kind"], "version")
@@ -197,7 +203,8 @@ class CommentTest(unittest.TestCase):
         self.assertIn("closes after 7 days", t.incomplete_comment(gaps))
 
     def test_a_complete_bug_report_has_no_gaps(self):
-        values = {"App": "Disney+", "App version": "26.20.0+rc3-2026.11.02", "Phone or Android TV build": "Phone or tablet",
+        values = {"App": "Disney+", "App version": "26.20.0+rc3-2026.11.02",
+                  "Are you enrolled as a beta tester for this app?": "No", "Phone or Android TV build": "Phone or tablet",
                   "Where the APK came from": "Aurora Store", "Patches version": "1.0.20", "Patches release": "Main release",
                   "Morphe Manager version": "2.5.0", "Patches selected": "Defaults", "Device": "Samsung Galaxy S25 Ultra",
                   "Android version": "Android 17", "Ad blockers or DNS filters": "No ad blocker or DNS filter",
@@ -212,7 +219,8 @@ class CommentTest(unittest.TestCase):
 
     def test_version_form(self):
         labels = [label for label, _ in t.required_fields("0-version-or-build.yml")]
-        self.assertEqual(labels[:4], ["App", "App version", "App version code", "Where the APK came from"])
+        self.assertEqual(labels[:5], ["App", "App version", "Are you enrolled as a beta tester for this app?",
+                                      "App version code", "Where the APK came from"])
         self.assertIn("Morphe Manager's message", labels)
         self.assertNotIn("Anything else", labels)
         body = (form("Disney+", "26.20.0+rc3-2026.11.02", code="1793662190", build="Android TV or Google TV")

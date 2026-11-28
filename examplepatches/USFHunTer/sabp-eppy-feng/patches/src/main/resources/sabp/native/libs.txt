@@ -1,0 +1,2 @@
+libeppywhisper.so
+libeppywhisper_v82.so

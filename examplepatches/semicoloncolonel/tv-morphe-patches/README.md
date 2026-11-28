@@ -10,6 +10,14 @@
   <a href="https://morphe.software/add-source?github=semicoloncolonel/mobile-morphe-patches"><img alt="Add the phone patches to Morphe Manager" src="https://img.shields.io/badge/%2B_Add_the-phone_patches-4f46e5?style=flat-square"></a>
 </p>
 
+<!-- signer:start -->
+<p align="center">
+  <a href="docs/signing-key.md"><img alt="Signed by 4c2b a5d2 28d4 532f" src="docs/assets/signed-by.svg"></a>
+  <br>
+  <sub>Morphe Manager shows this signer on the source. If it shows a different one, check the <a href="docs/signing-key.md">signing key history</a> before you apply the patches.</sub>
+</p>
+<!-- signer:end -->
+
 This repository holds the source of the Android TV patches, their releases, the `patches-bundle.json` that Morphe Manager reads, and the issues for the Android TV apps.
 
 > **New source.** Starting version 1.2.0, the Android TV patches are built and released from this repository. The phone source, mobile-morphe-patches, includes the Android TV apps up to its 1.1.0 release. Hulu is in testing and is marked experimental.
@@ -26,7 +34,7 @@ The phone patches are a separate source, [mobile-morphe-patches](https://github.
 
 <!-- apps:start -->
 
-TV Morphe Patches supports 20 Android TV apps: Apple TV, Disney+, ESPN, Fox One, HBO Max, Hulu, JustWatch, MGM+, MLB, NBA, NewsNation, NFL, PBS, Peacock, Plex, Pluto TV, Prime Video, Starz, Tubi, and YouTube TV. [Supported apps](https://github.com/semicoloncolonel/tv-morphe-patches/blob/main/docs/apps.md) lists the patches and the tested versions for each.
+TV Morphe Patches supports 31 Android TV apps: ABC News, Apple TV, CBS News, CNBC, CNN, Disney+, ESPN, Fandango at Home, Fox Local, Fox News, Fox One, HBO Max, Hulu, JustWatch, MGM+, MLB, Movies Anywhere, MS NOW, NBA, NBC News, NewsNation, NFL, PBS, Peacock, Plex, Pluto TV, Prime Video, Starz, The Roku Channel, Tubi, and YouTube TV. [Supported apps](https://github.com/semicoloncolonel/tv-morphe-patches/blob/main/docs/apps.md) lists the patches and the tested versions for each.
 
 <!-- apps:end -->
 

@@ -25,15 +25,15 @@ off. More apps are planned.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.6.0](https://github.com/na-x-ril/onlynazril-patches/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
+> **[v1.7.0](https://github.com/na-x-ril/onlynazril-patches/releases/tag/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;16 patches total
 <details open>
-<summary>📦 TikTok&nbsp;&nbsp;•&nbsp;&nbsp;13 patches</summary>
+<summary>📦 TikTok&nbsp;&nbsp;•&nbsp;&nbsp;16 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 47.7.1 | 47.7.2 | 47.7.3 |
-| :---: | :---: | :---: |
+| 48.0.2 | 48.0.1 | 47.9.3 | 47.9.2 | 47.9.1 |
+| :---: | :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
@@ -42,13 +42,16 @@ off. More apps are planned.
 | [Copy comments without username](#copy-comments-without-username) | Leaves the username out of a copied comment: the clipboard gets the comment's own text. On by default; the switch is in Tweaks. |
 | [Custom font](#custom-font) | Answers every resolver TikTok gets one of its own faces from - the native factory, the Compose loader, the asset loader Lynx reads and the WebView interceptor hybrid pages are fed through - so an imported font file replaces TikTok's own text on every surface. The switch and the picker are in Tweaks; off by default, and inert until a font is imported. |
 | [Download](#download) | Opens the app's own download for every share sheet and saves the file without the watermark, taking the highest quality variant. Each part has a switch in Tweaks; the feature is off by default. |
+| [Feature flags](#feature-flags) | Override TikTok's AB flags from the Tweaks screen and list every flag the app reads. Off by default; a flag without an override keeps the app's own value. |
 | [Feed filter](#feed-filter) | Removes ads, promotional-music posts, survey cards, LIVE items, drama videos, and videos outside a view- or like-count range from the feed. Each part has a switch in Tweaks; ads are on by default, survey, LIVE and drama are off. |
-| [Handle, time & region](#handle-time-region) | Shows the @handle, the region and the post time on feed videos and comments, including a video shared into a chat. Each surface and each part has a switch in Tweaks. |
+| [Handle, time & region](#handle-time-region) | Shows the @handle, the region and the post time on feed videos and comments, including comment polls and a video shared into a chat. Each surface and each part has a switch in Tweaks. |
 | [Hide CAPTCHA popups](#hide-captcha-popups) | Skips the risk-control puzzle TikTok shows while browsing, and lets the app carry on. Account verification (login, SMS or two-factor) is never hidden. On by default; the switch is in Tweaks. |
+| [Hide feed search suggestion](#hide-feed-search-suggestion) | Adds a switch to hide the search suggestion bar TikTok adds under a video in the feed. On by default; turn it off to show it again. |
 | [Keep screen on](#keep-screen-on) | Keeps the display awake while TikTok is open, so a video does not dim the screen. Off returns the system screen timeout. On by default; the switch is in Tweaks. |
 | [Pause image search](#pause-image-search) | Adds a switch to disable the image-search entries TikTok shows while a video is paused, including the pause-panel row and the visual search pill. On by default; turn it off to show them again. |
 | [Profile background](#profile-background) | Answers the AB gate that carries the profile background, so a static image or a video can be set on accounts the rollout has not reached. The switch is in Tweaks; the feature is off by default. |
-| [Resume playback](#resume-playback) | Continues a video from where you stopped. The twelve most recently opened videos are kept until the app closes; the first and last seconds, set in Tweaks, are skipped. |
+| [Resume playback](#resume-playback) | Continues a video from the position TikTok stored. The first and last seconds, set in Tweaks, are skipped. |
+| [Speed up only](#speed-up-only) | Holding the like or comment button only speeds the video up. It no longer likes, opens the comment sheet, reposts or opens reactions; a tap still does. On by default; the switch is in Tweaks. |
 | [Tweaks screen](#tweaks-screen) | Hosts the Tweaks screen, where every other patch in this bundle is switched on or off: the @handle stamp and its surfaces, the region, the post time, the comment copy, the captcha, the feed filter, the download, the profile background and the custom font. Hold the Home tab in the bottom bar to open it. |
 
 </details>

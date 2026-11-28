@@ -103,12 +103,40 @@ def main():
     os.chmod(install_path, 0o755)
     print(f"📝 Wrote Morphe Desktop installer -> {install_path}")
 
+    # Write Morphe Manager settings export (bulk-import file for Android).
+    # Import via Morphe -> Settings -> System -> Morphe Settings -> Import -> Replace existing.
+    import time as _time
+    now_ms = int(_time.time() * 1000)
+    custom_bundles = []
+    for i, m in enumerate(bundle_meta):
+        repo = m["repo"]
+        source = m.get("source", "github")
+        if source == "gitlab":
+            src_url = f"https://gitlab.com/{repo}/-/raw/main/patches-bundle.json"
+        else:
+            src_url = f"https://raw.githubusercontent.com/{repo}/main/patches-bundle.json"
+        custom_bundles.append({
+            "name": m.get("name") or repo,
+            "source": src_url,
+            "autoUpdate": True,
+            "enabled": True,
+            "sortOrder": i + 1,
+            "createdAt": now_ms,
+            "updatedAt": now_ms,
+        })
+    settings_export = {"settings": {"customBundles": custom_bundles}}
+    settings_path = os.path.join(repo_root, "allmorphe_settings.json")
+    with open(settings_path, "w") as f:
+        json.dump(settings_export, f, indent=2)
+    print(f"📝 Wrote Morphe Manager settings export ({len(custom_bundles)} bundles) -> {settings_path}")
+
     # Also keep a copy inside allmorphe/ for backwards compat
-    for name in ("sources.txt", "bundles.json"):
+    for name in ("sources.txt", "bundles.json", "allmorphe_settings.json"):
         src = os.path.join(repo_root, name)
         dst = os.path.join(script_dir, name)
-        with open(src) as a, open(dst, "w") as b:
-            b.write(a.read())
+        if os.path.exists(src):
+            with open(src) as a, open(dst, "w") as b:
+                b.write(a.read())
     # Mirror official Morphe patches-bundle.json at repo root so that
     # 'github.com/Stabber14/allmorphe-patches' works as a Morphe source
     # without download errors (Morphe requires a valid patches-bundle.json + .mpp).

@@ -180,6 +180,10 @@ public final class GboardRamblerSegmentLock {
     }
 
     private static java.lang.String singleVowel(java.lang.String str) {
+        return singleVowel(str, false);
+    }
+
+    private static java.lang.String singleVowel(java.lang.String str, boolean afterHyphen) {
         if (str.equals("a")) {
             return "আ";
         }
@@ -187,7 +191,7 @@ public final class GboardRamblerSegmentLock {
             return "এ";
         }
         if (str.equals("i")) {
-            return "আই";
+            return afterHyphen ? "ই" : "আই";
         }
         if (str.equals("o")) {
             return "ও";
@@ -284,7 +288,8 @@ public final class GboardRamblerSegmentLock {
                     String lo = tok.toLowerCase(java.util.Locale.US);
                     String mapped = null;
                     if (tok.length() == 1) {
-                        mapped = singleVowel(lo);
+                        boolean afterHyphen = i > 0 && text.charAt(i - 1) == '-';
+                        mapped = singleVowel(lo, afterHyphen);
                     } else {
                         mapped = GboardRamblerTier1.get(lo);
                         if (mapped != null) {
@@ -309,7 +314,7 @@ public final class GboardRamblerSegmentLock {
         if (converted > 0) {
             GboardRamblerScriptFixSettings.incrementConverted();
         }
-        return out.toString();
+        return GboardRamblerBanglaNormalizer.normalize(out.toString(), false);
     }
 
     private static void markSpan(boolean[] prot, java.util.regex.Matcher m, int n) {

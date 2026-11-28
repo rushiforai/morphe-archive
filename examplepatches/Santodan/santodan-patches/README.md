@@ -14,7 +14,7 @@ https://github.com/Santodan/santodan-patches
 ## Patches
 
 <!-- PATCHES_START -->
-> **[v0.21.3](https://github.com/Santodan/santodan-patches/releases/tag/v0.21.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;41 patches total
+> **[v0.22.0](https://github.com/Santodan/santodan-patches/releases/tag/v0.22.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;42 patches total
 <details>
 <summary>📦 Car Scanner ELM OBD2&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -204,16 +204,17 @@ Metadata selection and the independent Continue Watching/library artwork switche
 </details>
 
 <details>
-<summary>📦 Peafowl Theme Maker for EMUI&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 Peafowl Theme Maker for EMUI&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| GMS_27.5.1 |
+| GMS_27.5.2 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
+| [Peafowl - Bypass Signature Verification (Experimental)](#peafowl-bypass-signature-verification-experimental) | Allow a resigned Peafowl build to launch by neutralizing its own signing-certificate check. Required because GMS_27.5.2 verifies its signature at startup. Experimental. |  |
 | [Peafowl - Unlock Theme Ownership (Experimental)](#peafowl-unlock-theme-ownership-experimental) | Use Peafowl's local free-theme path without the billing preflight. Experimental; server downloads are not guaranteed. |  |
 
 </details>

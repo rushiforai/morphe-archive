@@ -32,6 +32,12 @@
     ],
     "gradle-semantic-release-plugin",
     [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "./gradlew -q :patches:buildAndroid && python3 .github/scripts/check_release.py built --version ${nextRelease.version}"
+      }
+    ],
+    [
       "@semantic-release/git",
       {
         "assets": [

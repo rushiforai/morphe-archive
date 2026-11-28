@@ -29,6 +29,27 @@ private const val CONSTANT_LOOKBACK = 4
 /** How far past a switch target the call it makes is looked for. */
 private const val TARGET_LOOKAHEAD = 4
 
+/** How deep R8's split switch is followed before giving up. */
+private const val MAX_DISPATCH_DEPTH = 8
+
+/** The bodies a merged lambda group's entry points dispatch to for [number]. */
+internal fun groupBodies(
+    groupType: String,
+    number: Int,
+    classOf: (String) -> ClassDef?,
+): List<Method> {
+    val group = classOf(groupType) ?: return emptyList()
+    return group.methods.filter { it.dispatchesOnIndex() }.mapNotNull { entry ->
+        var at: Method = entry
+        repeat(MAX_DISPATCH_DEPTH) {
+            val next = at.dispatchTarget(group, number) ?: return@mapNotNull null
+            if (!next.dispatchesOnIndex()) return@mapNotNull next
+            at = next
+        }
+        null
+    }
+}
+
 /** Integer register copies R8 may place between a factory number and its call. */
 private val INTEGER_MOVES = setOf(Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16)
 

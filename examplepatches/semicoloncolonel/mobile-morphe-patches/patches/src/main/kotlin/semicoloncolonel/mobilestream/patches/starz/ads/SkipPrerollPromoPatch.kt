@@ -30,6 +30,7 @@ val skipPrerollPromoPatch = bytecodePatch(
     name = "Skip pre-roll promo",
     description = "Starts titles without the promo for other Starz shows that plays first.",
 ) {
+    category("Ads")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

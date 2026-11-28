@@ -1,3 +1,21 @@
+## [1.1.0](https://github.com/AWTMODS/AWT-Morphe/compare/v1.0.1...v1.1.0) (2026-11-27)
+
+### ✨ New Features
+
+* **regain:** add optional MicroG-RE support patch ([39ca594](https://github.com/AWTMODS/AWT-Morphe/commit/39ca5945e9c3cbad3fd478c4858ec5ec423876c2))
+* **regain:** add optional MicroG-RE support patch ([#2](https://github.com/AWTMODS/AWT-Morphe/issues/2)) ([c2b6b87](https://github.com/AWTMODS/AWT-Morphe/commit/c2b6b87ae72a2e96ab447bfd443214f34a0a321b))
+
+### 🐛 Bug Fixes
+
+* **regain:** force CredentialOption isSystemProviderRequired to false for MicroG-RE ([fd589da](https://github.com/AWTMODS/AWT-Morphe/commit/fd589dae51639812f81a9e00da6bda788eaae9d2))
+* **regain:** remap com.google account type to app.revanced for MicroG-RE ([ce31cc4](https://github.com/AWTMODS/AWT-Morphe/commit/ce31cc47f7b02a17828fa10585ab985839816e94))
+
+## [1.0.1](https://github.com/AWTMODS/AWT-Morphe/compare/v1.0.0...v1.0.1) (2026-11-27)
+
+### 🚀 Updated App Support
+
+* add Regain 76.2.2151 support ([20cc405](https://github.com/AWTMODS/AWT-Morphe/commit/20cc405a59621b4f46c1cf06323b9edb4770913e))
+
 ## 1.0.0 (2026-11-26)
 
 ### ✨ New Features

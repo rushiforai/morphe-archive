@@ -13,7 +13,7 @@ Or patch locally with a built `.mpp` file, see [Building locally](#-building-loc
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.3.1](https://github.com/way-lo/waylo-patches/releases/tag/v1.3.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
+> **[v1.3.4](https://github.com/way-lo/waylo-patches/releases/tag/v1.3.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
 <details open>
 <summary>📦 Google News&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -40,8 +40,8 @@ Or patch locally with a built `.mpp` file, see [Building locally](#-building-loc
 
 **🎯 Supported versions:**
 
-| 2026.14.1 | 2026.14 | 2026.7 |
-| :---: | :---: | :---: |
+| 2026.15 | 2026.14.1 | 2026.14 | 2026.7 |
+| :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -63,31 +63,49 @@ Or patch locally with a built `.mpp` file, see [Building locally](#-building-loc
 
 <!-- PATCHES_END -->
 
-## Podcast Addict: Playlist swipe to remove
+## Podcast Addict: swipe patches
 
-- Drag a row left or right: it follows your finger and fades. Release past about a third of the
-  screen width to remove the episode, or release earlier and it snaps back.
-- It uses the app's own "Remove from Playlist" code, the same as the long press menu.
-- Only clearly horizontal drags count, so vertical scrolling and drag-to-reorder with the handle on the
-  left still work.
-- **Swiping between the tabs (Audio / Video / Custom) no longer works on the Playlist screen.**
-  Tapping the tab titles still works. The tab pager would otherwise take every horizontal drag.
-- Playlist types for which the long press menu has no "Remove from Playlist" ignore the swipe too.
-- Developed and tested on Podcast Addict `2026.7` (build 21719). Later versions are marked
-  experimental because the patch only uses stable anchors (see below), but it has not been tried on them.
-- Works with a premium-unlocked modded APK as long as the code structure is the stock one.
+Three patches, each can be turned on or off on its own:
 
-### How it works
+| Patch | Screen | Swipe a row left or right to… |
+|-------|--------|-------------------------------|
+| Swipe to remove from playlist | Playlist | remove the episode from the playlist |
+| Swipe to add/remove on recent episodes | Recent episodes | add the episode to the playlist, or remove it if it is already there |
+| Swipe to add/remove on new episodes | New episodes | the same as Recent episodes |
 
-| Piece | Where | What it does |
-|-------|-------|--------------|
-| `PlaylistSwipeToRemove` | [extension](extensions/extension/src/main/java/app/waylo/extension/podcastaddict/PlaylistSwipeToRemove.java) | The swipe gesture: detection, row animation, removal call. Plain Java, merged into the app. |
-| `PlaylistRemoveHost` | [extension](extensions/extension/src/main/java/app/waylo/extension/podcastaddict/PlaylistRemoveHost.java) | Interface the patch adds to the Playlist's list remove-listener class. It marks which list is the Playlist and does the removal. |
-| Patch | [PlaylistSwipeToRemovePatch.kt](patches/src/main/kotlin/app/waylo/patches/podcastaddict/PlaylistSwipeToRemovePatch.kt) | Hooks `DragSortListView.onInterceptTouchEvent` / `onTouchEvent` / `setRemoveListener`, the Playlist adapter's `getView`, and adds `swipeRemoveAt(int)` to the remove-listener class. |
-| Fingerprints | [Fingerprints.kt](patches/src/main/kotlin/app/waylo/patches/podcastaddict/Fingerprints.kt) | Finds the obfuscated classes through names that are not obfuscated: the library class name, framework method names, and the strings `"PlayListAdapter"`, `"dequeueEpisode(PlaylistFragment, "` and `"playlistType"`. |
+- The row follows your finger and fades. Release past about a third of the screen width to run the
+  action, or release earlier and it snaps back. On Recent and New episodes the row slides back into
+  place, since the episode stays in that list.
+- The swipe uses the app's own long press menu actions ("Remove from Playlist" / "Add to Playlist"), so
+  the app decides what applies to the episode. Where the menu has no such action, the swipe does nothing.
+- Only clearly horizontal drags count, so vertical scrolling, pull to refresh and drag-to-reorder with
+  the handle still work.
+- **On the Playlist screen, swiping between the tabs no longer works on top of the rows.** Tapping the
+  tab titles still works.
+- Other filtered episode lists (Downloaded, Favorites, …) are not affected.
 
-If a later Podcast Addict version stops patching, the error names the fingerprint that no longer matches.
-Compare it with the app's decompiled code, the strings above are the usual first thing to look for.
+### Versions
+
+Tested on Podcast Addict `2026.7`, `2026.14`, `2026.14.1` and `2026.15`. Other versions are marked
+experimental. A premium-unlocked modded APK works as long as its code structure is the stock one.
+
+Podcast Addict changed how its lists are built in `2026.14.1`, so the patches have two code paths and
+pick the right one when patching:
+
+| Versions | Lists | How the swipe is wired in |
+|----------|-------|---------------------------|
+| up to `2026.14` | ListView (`DragSortListView` for the Playlist) | [PlaylistSwipeToRemove](extensions/extension/src/main/java/app/waylo/extension/podcastaddict/PlaylistSwipeToRemove.java) hooks the drag-sort list's touch handling. The episode lists use [EpisodeListSwipe](extensions/extension/src/main/java/app/waylo/extension/podcastaddict/EpisodeListSwipe.java). |
+| `2026.14.1` and later | RecyclerView (`SortableRecyclerView`, `EpisodeRecyclerView`) | [RecyclerSwipe](extensions/extension/src/main/java/app/waylo/extension/podcastaddict/RecyclerSwipe.java) gets `onInterceptTouchEvent` / `onTouchEvent` overrides added to the list classes. |
+
+[ContextMenuAction](extensions/extension/src/main/java/app/waylo/extension/podcastaddict/ContextMenuAction.java)
+runs the long press menu action, for the episode lists in all versions and for the Playlist from
+`2026.14.1`: the fragment builds its context menu into an invisible menu, and the matching item is
+selected through the activity, the way a tap on the menu does. On older versions the Playlist swipe
+calls the same remove method the menu uses directly.
+
+The patches find the code through names that are not obfuscated: the list class names, framework
+method names, and log strings such as `"PlayListFragment"` and `"Episode Grid Size default value was NOT
+set!! - "`. If a later version stops patching, the error names the lookup that failed.
 
 ## Google News
 

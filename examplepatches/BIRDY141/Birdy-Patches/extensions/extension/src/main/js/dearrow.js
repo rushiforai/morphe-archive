@@ -385,17 +385,18 @@
     }
 
     function syncDomThumbnails() {
-        if (!feature.enabled() || typeof document === "undefined" || !document.querySelectorAll) return;
+        if (!feature.enabled() || typeof document === "undefined" || document.hidden) return;
         var useThumbs = feature.settings.get("thumbnails") !== false;
         var showThumbIcon = feature.settings.get("show_thumb_icon") !== false;
         if (!useThumbs || !appliedThumbs.size) return;
 
-        var imgs = document.querySelectorAll("img[src*='/vi/'], img[data-birdy-da-vid]");
+        var imgs = document.getElementsByTagName ? document.getElementsByTagName("img") : [];
         for (var i = 0; i < imgs.length; i++) {
             var img = imgs[i];
             var vid = img.getAttribute("data-birdy-da-vid");
             if (!vid) {
                 var src = img.getAttribute("src") || "";
+                if (src.indexOf("/vi/") === -1) continue;
                 var m = /\/vi\/([A-Za-z0-9_-]{11})\//.exec(src);
                 if (!m) continue;
                 vid = m[1];
@@ -410,28 +411,31 @@
             if (showThumbIcon && img.parentElement) attachThumbBadge(img.parentElement);
         }
 
-        var bgEls = document.querySelectorAll("[style*='/vi/'], [data-birdy-da-bg-vid]");
-        for (var j = 0; j < bgEls.length; j++) {
-            var el = bgEls[j];
-            var bgVid = el.getAttribute("data-birdy-da-bg-vid");
-            if (!bgVid) {
-                var bg = (el.style && el.style.backgroundImage) || el.getAttribute("style") || "";
-                var bm = /\/vi\/([A-Za-z0-9_-]{11})\//.exec(bg);
-                if (!bm) continue;
-                bgVid = bm[1];
-            }
-            var bgDataUrl = appliedThumbs.get(bgVid);
-            if (!bgDataUrl) continue;
+        if (document.getElementsByTagName) {
+            var bgEls = document.getElementsByTagName("ytlr-thumbnail-details");
+            for (var j = 0; j < bgEls.length; j++) {
+                var el = bgEls[j];
+                var bgVid = el.getAttribute("data-birdy-da-bg-vid");
+                if (!bgVid) {
+                    var bg = (el.style && el.style.backgroundImage) || "";
+                    if (!bg || bg.indexOf("/vi/") === -1) continue;
+                    var bm = /\/vi\/([A-Za-z0-9_-]{11})\//.exec(bg);
+                    if (!bm) continue;
+                    bgVid = bm[1];
+                }
+                var bgDataUrl = appliedThumbs.get(bgVid);
+                if (!bgDataUrl) continue;
 
-            if (!el.getAttribute("data-birdy-da-bg-vid")) {
-                el.style.backgroundImage = 'url("' + bgDataUrl + '")';
-                el.setAttribute("data-birdy-da-bg-vid", bgVid);
+                if (!el.getAttribute("data-birdy-da-bg-vid")) {
+                    el.style.backgroundImage = 'url("' + bgDataUrl + '")';
+                    el.setAttribute("data-birdy-da-bg-vid", bgVid);
+                }
+                if (showThumbIcon) attachThumbBadge(el);
             }
-            if (showThumbIcon) attachThumbBadge(el);
         }
     }
 
     if (typeof setInterval === "function") {
-        setInterval(syncDomThumbnails, 800);
+        setInterval(syncDomThumbnails, 1500);
     }
 })();

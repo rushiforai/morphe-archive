@@ -4,6 +4,7 @@ import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.SupportedAbi
+import dev.jason.gboardpatches.patches.gboard.shared.GBOARD_18_8_TARGETS
 
 internal const val GBOARD_PACKAGE = "com.google.android.inputmethod.latin"
 
@@ -16,7 +17,12 @@ private fun gboardTargets(experimental: Boolean) = listOf(
         versionCodes = mapOf(SupportedAbi.ARM64_V8A to 176071766),
         isExperimental = experimental,
     ),
-)
+) + GBOARD_18_8_TARGETS.map { versionName ->
+    AppTarget(
+        version = versionName, minSdk = 26,
+        isExperimental = experimental,
+    )
+}
 
 private val gboardSignatures = setOf(
     // Google's rotated Gboard signer (Android 13+) and its original signer (Android 7-12).

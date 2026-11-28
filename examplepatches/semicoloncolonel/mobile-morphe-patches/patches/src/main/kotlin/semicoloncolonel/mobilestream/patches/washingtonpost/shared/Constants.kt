@@ -19,9 +19,9 @@ object Constants {
         )
     )
 
-    // Hide paywall sheet matches 7.19.0's obfuscated names, so it is offered
-    // only for that version.
-    val PAYWALL_SHEET_COMPATIBILITY = Compatibility(
+    // Hide paywall sheet and Skip age check errors match 7.19.0's obfuscated
+    // names, so they are offered only for that version.
+    val V7_19_COMPATIBILITY = Compatibility(
         name = "The Washington Post",
         packageName = "com.washingtonpost.android",
         description = "The Washington Post news app.",

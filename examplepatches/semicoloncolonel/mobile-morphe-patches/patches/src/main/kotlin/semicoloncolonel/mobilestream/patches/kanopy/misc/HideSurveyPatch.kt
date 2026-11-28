@@ -26,6 +26,7 @@ val hideSurveyPatch = bytecodePatch(
     name = "Hide survey",
     description = "Removes \"Take Our Survey\" from the More tab.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

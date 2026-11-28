@@ -48,7 +48,7 @@ through Shizuku-Next, KingInstaller and Android Auto's app list.
 ## App overview
 
 <!-- PATCHES_START SUMMARY -->
-**Patch bundle [v1.108.0](https://gitlab.com/johninnld/nl-morphe-patches/-/releases/v1.108.0)** · 90 apps · 440 patches
+**Patch bundle [v1.108.1](https://gitlab.com/johninnld/nl-morphe-patches/-/releases/v1.108.1)** · 90 apps · 440 patches
 
 ### Weather
 

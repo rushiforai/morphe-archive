@@ -4,11 +4,15 @@ import android.Manifest;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -128,6 +132,7 @@ public final class RamblerEnhancementsActivity extends Activity {
     public static final String SECTION_HISTORY = "history";
     public static final String SECTION_HISTORY_LIST = "history_list";
     public static final String SECTION_BACKUP = "backup";
+    public static final String SECTION_UPDATES = "updates";
 
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private LinearLayout contentContainer;
@@ -138,6 +143,24 @@ public final class RamblerEnhancementsActivity extends Activity {
     private volatile List<RamblerCustomInstructionRules.AppEntry> installedAppsCache;
     private volatile Map<String, String> packageLabelCache;
     private volatile boolean loadingInstalledApps;
+    private volatile RamblerAutoUpdater.ReleaseInfo availableUpdateInfo;
+    private volatile boolean checkingForUpdates;
+    private boolean autoUpdateCheckedThisSession;
+    private boolean isActivityResumed;
+    private boolean installReceiverRegistered;
+    private AlertDialog activeUpdateProgressDialog;
+    private java.io.File lastVerifiedApkFile;
+    private String lastVerifiedApkName;
+    private Intent pendingInstallConfirmIntent;
+
+    private final BroadcastReceiver installResultReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent != null && RamblerAutoUpdater.ACTION_INSTALL_RESULT.equals(intent.getAction())) {
+                mainHandler.post(() -> handleUpdateInstallIntent(intent));
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -166,13 +189,347 @@ public final class RamblerEnhancementsActivity extends Activity {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         setContentView(scroll);
+        registerInstallResultReceiver();
+        handleUpdateInstallIntent(launchIntent);
         refreshUi();
+        maybeRunAutoUpdateCheck();
+    }
+
+    private void registerInstallResultReceiver() {
+        if (installReceiverRegistered) {
+            return;
+        }
+        try {
+            IntentFilter filter = new IntentFilter(RamblerAutoUpdater.ACTION_INSTALL_RESULT);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(installResultReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+            } else {
+                registerReceiver(installResultReceiver, filter);
+            }
+            installReceiverRegistered = true;
+        } catch (Throwable err) {
+            Log.w(TAG, "Failed to register install result receiver", err);
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        if (intent != null && RamblerAutoUpdater.ACTION_INSTALL_RESULT.equals(intent.getAction())) {
+            handleUpdateInstallIntent(intent);
+            return;
+        }
+        String newSection = normalizeSection(
+                intent == null ? null : intent.getStringExtra(EXTRA_SECTION));
+        if ((newSection == null && activeSection != null)
+                || (newSection != null && !newSection.equals(activeSection))) {
+            activeSection = newSection;
+            setTitle(titleForSection(activeSection));
+            refreshUi();
+            if (SECTION_UPDATES.equals(activeSection)) {
+                autoUpdateCheckedThisSession = false;
+                maybeRunAutoUpdateCheck();
+            }
+        }
+    }
+
+    private void handleUpdateInstallIntent(Intent intent) {
+        if (intent == null || !RamblerAutoUpdater.ACTION_INSTALL_RESULT.equals(intent.getAction())) {
+            return;
+        }
+        dismissUpdateProgressDialog();
+        int status = intent.getIntExtra(
+                android.content.pm.PackageInstaller.EXTRA_STATUS,
+                android.content.pm.PackageInstaller.STATUS_FAILURE);
+        if (status == android.content.pm.PackageInstaller.STATUS_PENDING_USER_ACTION) {
+            Intent confirm = extractConfirmIntent(intent);
+            if (confirm != null) {
+                if (isActivityResumed && !isFinishing() && !isDestroyed()) {
+                    launchConfirmIntentNow(confirm);
+                } else {
+                    pendingInstallConfirmIntent = confirm;
+                    refreshUi();
+                }
+            } else {
+                showInstallFallbackDialog("Android did not provide an install confirmation prompt.");
+            }
+        } else if (status == android.content.pm.PackageInstaller.STATUS_SUCCESS) {
+            pendingInstallConfirmIntent = null;
+            showToast("Rambler Bangla updated successfully!");
+        } else if (status == android.content.pm.PackageInstaller.STATUS_FAILURE_ABORTED) {
+            showToast("Update installation cancelled.");
+        } else {
+            String msg = intent.getStringExtra(android.content.pm.PackageInstaller.EXTRA_STATUS_MESSAGE);
+            String detail = "Android PackageInstaller returned error " + status
+                    + (msg == null || msg.isEmpty() ? "." : ": " + msg);
+            showInstallFallbackDialog(detail);
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    private static Intent extractConfirmIntent(Intent intent) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            return intent.getParcelableExtra(Intent.EXTRA_INTENT, Intent.class);
+        }
+        return intent.getParcelableExtra(Intent.EXTRA_INTENT);
+    }
+
+    private void launchConfirmIntentNow(Intent confirm) {
+        pendingInstallConfirmIntent = null;
+        try {
+            // Launch directly from the live foreground Activity (exempt from Android 14-16 BAL)
+            startActivity(confirm);
+        } catch (Throwable firstErr) {
+            try {
+                confirm.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(confirm);
+            } catch (Throwable secondErr) {
+                pendingInstallConfirmIntent = confirm;
+                showInstallFallbackDialog("Could not open Android installer: " + secondErr.getMessage());
+            }
+        }
+    }
+
+    private void dismissUpdateProgressDialog() {
+        AlertDialog dlg = activeUpdateProgressDialog;
+        activeUpdateProgressDialog = null;
+        if (dlg != null) {
+            try {
+                dlg.dismiss();
+            } catch (Throwable ignored) {
+            }
+        }
+    }
+
+    private void showInstallFallbackDialog(String reason) {
+        if (isFinishing() || isDestroyed()) {
+            return;
+        }
+        AlertDialog.Builder b = new AlertDialog.Builder(this)
+                .setTitle("Installer needs manual step")
+                .setMessage(reason + "\n\nYou can save the SHA-256-verified APK directly to your Downloads folder and tap it to install.")
+                .setNegativeButton("Close", null);
+        if (pendingInstallConfirmIntent != null) {
+            final Intent retryIntent = pendingInstallConfirmIntent;
+            b.setNeutralButton("Retry Installer", (d, w) -> launchConfirmIntentNow(retryIntent));
+        }
+        if (lastVerifiedApkFile != null && lastVerifiedApkFile.isFile()) {
+            final java.io.File apk = lastVerifiedApkFile;
+            final String name = lastVerifiedApkName;
+            b.setPositiveButton("Save to Downloads", (d, w) -> runAsync(() -> {
+                try {
+                    String saved = RamblerAutoUpdater.saveApkToDownloads(this, apk, name);
+                    toastOnMain("Saved verified APK to " + saved + ". Tap it in Files to install.");
+                } catch (Throwable err) {
+                    toastOnMain("Could not save APK: " + err.getMessage());
+                }
+            }));
+        }
+        b.show();
+    }
+
+    private void maybeRunAutoUpdateCheck() {
+        if (autoUpdateCheckedThisSession
+                || (activeSection != null && !SECTION_UPDATES.equals(activeSection))) {
+            return;
+        }
+        autoUpdateCheckedThisSession = true;
+        RamblerAutoUpdater.checkForUpdateAsync(this, false, (latest, newer, err) -> {
+            if (isFinishing() || isDestroyed()) {
+                return;
+            }
+            if (latest != null && newer) {
+                availableUpdateInfo = latest;
+                refreshUi();
+            }
+        });
+    }
+
+    private void triggerManualUpdateCheck() {
+        if (checkingForUpdates) {
+            showToast("Already checking GitHub for updates...");
+            return;
+        }
+        checkingForUpdates = true;
+        refreshUi();
+        RamblerAutoUpdater.checkForUpdateAsync(this, true, (latest, newer, err) -> {
+            checkingForUpdates = false;
+            if (isFinishing() || isDestroyed()) {
+                return;
+            }
+            if (err != null) {
+                refreshUi();
+                showToast("Update check failed: " + err);
+                return;
+            }
+            if (latest != null && newer) {
+                availableUpdateInfo = latest;
+                refreshUi();
+                showUpdateAvailableDialog(latest);
+            } else {
+                availableUpdateInfo = null;
+                refreshUi();
+                showToast("You're on the latest version (v" + RamblerAutoUpdater.CURRENT_VERSION + ").");
+            }
+        });
+    }
+
+    private void showUpdateAvailableDialog(RamblerAutoUpdater.ReleaseInfo info) {
+        if (isFinishing() || isDestroyed() || info == null) {
+            return;
+        }
+        String sizeLabel = info.apkSizeBytes > 0L
+                ? String.format(Locale.US, "%.1f MB", info.apkSizeBytes / (1024.0 * 1024.0))
+                : "APK";
+        String msg = "Installed: v" + RamblerAutoUpdater.CURRENT_VERSION
+                + "\nLatest: " + info.tagName + " (" + sizeLabel + ", SHA-256 verified)\n\n"
+                + "Tip: After tapping Update (or 'Install without scanning'), Android typically takes 20–30 seconds to verify and install this ~89 MB keyboard package in the background. Please wait — it will finish automatically.\n\n"
+                + info.notesPreview;
+        AlertDialog.Builder b = new AlertDialog.Builder(this)
+                .setTitle("Update available: " + info.tagName)
+                .setMessage(msg)
+                .setNegativeButton("Later", null);
+        if (info.hasDirectApk()) {
+            b.setPositiveButton("Download & Update", (d, w) -> startInAppUpdateDownload(info));
+        } else if (!info.htmlUrl.isEmpty()) {
+            b.setPositiveButton("Open GitHub", (d, w) -> {
+                try {
+                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(info.htmlUrl)));
+                } catch (Throwable ignored) {
+                }
+            });
+        }
+        b.show();
+    }
+
+    private void startInAppUpdateDownload(RamblerAutoUpdater.ReleaseInfo info) {
+        if (!RamblerAutoUpdater.canRequestPackageInstalls(this)) {
+            new AlertDialog.Builder(this)
+                    .setTitle("Allow in-app updates")
+                    .setMessage("Android requires allowing 'Install unknown apps' once for Rambler Bangla so updates can install in 1 tap without leaving the app.")
+                    .setNegativeButton("Cancel", null)
+                    .setPositiveButton("Open permission", (d, w) -> {
+                        try {
+                            RamblerAutoUpdater.openUnknownAppSourcesSettings(this);
+                        } catch (Throwable err) {
+                            showToast("Could not open permission screen.");
+                        }
+                    })
+                    .show();
+            return;
+        }
+        TextView statusView = new TextView(this);
+        statusView.setPadding(dp(24), dp(16), dp(24), dp(8));
+        statusView.setText("Downloading " + info.tagName + " and verifying SHA-256...");
+        AlertDialog progressDialog = new AlertDialog.Builder(this)
+                .setTitle("Updating Rambler Bangla")
+                .setView(statusView)
+                .setCancelable(false)
+                .create();
+        dismissUpdateProgressDialog();
+        activeUpdateProgressDialog = progressDialog;
+        progressDialog.show();
+
+        RamblerAutoUpdater.downloadAndVerifyAsync(this, info, new RamblerAutoUpdater.DownloadCallback() {
+            @Override
+            public void onProgress(int percent, long downloadedBytes, long totalBytes) {
+                if (isFinishing() || isDestroyed()) {
+                    return;
+                }
+                double dlMb = downloadedBytes / (1024.0 * 1024.0);
+                double totMb = totalBytes / (1024.0 * 1024.0);
+                statusView.setText(String.format(
+                        Locale.US, "Downloading %s... %d%% (%.1f / %.1f MB)",
+                        info.tagName, percent, dlMb, totMb));
+            }
+
+            @Override
+            public void onReadyToInstall(java.io.File verifiedApk, String sha256Hex) {
+                if (isFinishing() || isDestroyed()) {
+                    return;
+                }
+                lastVerifiedApkFile = verifiedApk;
+                lastVerifiedApkName = info.apkName;
+                statusView.setText("SHA-256 verified!\nPreparing Android installer... 0%");
+                RamblerAutoUpdater.launchPackageInstallerAsync(
+                        RamblerEnhancementsActivity.this,
+                        verifiedApk,
+                        new RamblerAutoUpdater.InstallStageCallback() {
+                            @Override
+                            public void onStageProgress(int percent) {
+                                if (!isFinishing() && !isDestroyed()) {
+                                    statusView.setText("SHA-256 verified!\nPreparing Android installer... " + percent + "%");
+                                }
+                            }
+
+                            @Override
+                            public void onCommitted(int sessionId) {
+                                if (!isFinishing() && !isDestroyed()) {
+                                    statusView.setText("Opening Android Update confirmation...\n\nAfter tapping Update, please allow ~20–30 seconds for Android to finish updating the keyboard.");
+                                    // Safety watchdog: never leave user stuck on a spinner if an OEM delays/drops callback
+                                    mainHandler.postDelayed(() -> {
+                                        if (activeUpdateProgressDialog == progressDialog
+                                                && !isFinishing() && !isDestroyed()) {
+                                            dismissUpdateProgressDialog();
+                                            showInstallFallbackDialog(
+                                                    "Android did not open the update confirmation sheet within 10 seconds.");
+                                        }
+                                    }, 10_000L);
+                                }
+                            }
+
+                            @Override
+                            public void onStageError(String message) {
+                                dismissUpdateProgressDialog();
+                                showInstallFallbackDialog("Could not prepare Android installer: " + message);
+                            }
+                        });
+            }
+
+            @Override
+            public void onError(String message) {
+                if (isFinishing() || isDestroyed()) {
+                    return;
+                }
+                dismissUpdateProgressDialog();
+                showToast("Update failed: " + message);
+            }
+        });
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        isActivityResumed = true;
         refreshUi();
+        if (pendingInstallConfirmIntent != null) {
+            Intent confirm = pendingInstallConfirmIntent;
+            mainHandler.post(() -> {
+                if (isActivityResumed && !isFinishing() && !isDestroyed()) {
+                    launchConfirmIntentNow(confirm);
+                }
+            });
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        isActivityResumed = false;
+        super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        dismissUpdateProgressDialog();
+        if (installReceiverRegistered) {
+            installReceiverRegistered = false;
+            try {
+                unregisterReceiver(installResultReceiver);
+            } catch (Throwable ignored) {
+            }
+        }
+        super.onDestroy();
     }
 
     @Override
@@ -277,7 +634,8 @@ public final class RamblerEnhancementsActivity extends Activity {
                 || SECTION_DICTIONARY.equals(section)
                 || SECTION_HISTORY.equals(section)
                 || SECTION_HISTORY_LIST.equals(section)
-                || SECTION_BACKUP.equals(section)) {
+                || SECTION_BACKUP.equals(section)
+                || SECTION_UPDATES.equals(section)) {
             return section;
         }
         return null;
@@ -311,6 +669,9 @@ public final class RamblerEnhancementsActivity extends Activity {
         }
         if (SECTION_BACKUP.equals(normalized)) {
             return "Backup & restore";
+        }
+        if (SECTION_UPDATES.equals(normalized)) {
+            return "App updates";
         }
         return "Rambler Enhancements";
     }
@@ -358,6 +719,8 @@ public final class RamblerEnhancementsActivity extends Activity {
             buildHistoryListSection();
         } else if (SECTION_BACKUP.equals(activeSection)) {
             buildBackupSection();
+        } else if (SECTION_UPDATES.equals(activeSection)) {
+            buildUpdatesSection();
         } else {
             buildHubScreen();
         }
@@ -530,7 +893,8 @@ public final class RamblerEnhancementsActivity extends Activity {
         // In-app footer (upstream credits live in GitHub repository docs)
         RamblerWaveformDialogs.Palette pal = RamblerWaveformDialogs.palette(this);
         TextView creditView = new TextView(this);
-        creditView.setText("Rambler Bangla v31.2.0 — by muhib-karim (GPLv3)");
+        creditView.setText("Rambler Bangla v" + RamblerAutoUpdater.CURRENT_VERSION
+                + " — by muhib-karim (GPLv3)");
         creditView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
         creditView.setTextColor(pal.secondary);
         LinearLayout.LayoutParams creditParams = new LinearLayout.LayoutParams(
@@ -539,12 +903,70 @@ public final class RamblerEnhancementsActivity extends Activity {
         contentContainer.addView(creditView, creditParams);
     }
 
+    private void buildUpdatesSection() {
+        addSectionHeader("GitHub Releases auto-updater");
+        boolean autoUpdateOn = RamblerEnhancementsSettings.readAutoCheckUpdates(this);
+        addToggleRow(
+                "Auto-check for updates",
+                "Automatically checks muhib-karim/Rambler-Bangla on GitHub Releases (at most once every 12h when opening Settings). Downloads are SHA-256 verified before 1-tap install.",
+                autoUpdateOn,
+                checked -> {
+                    RamblerEnhancementsSettings.writeAutoCheckUpdates(this, checked);
+                    if (checked) {
+                        triggerManualUpdateCheck();
+                    } else {
+                        refreshUi();
+                    }
+                });
+        RamblerAutoUpdater.ReleaseInfo pendingUpdate = availableUpdateInfo;
+        String latestSeen = RamblerEnhancementsSettings.readLatestSeenTag(this);
+        String updateBadge;
+        String updateSummary;
+        if (checkingForUpdates) {
+            updateBadge = "Checking...";
+            updateSummary = "Checking GitHub Releases for a newer Rambler Bangla build...";
+        } else if (pendingUpdate != null && RamblerAutoUpdater.isNewerVersion(pendingUpdate.tagName, RamblerAutoUpdater.CURRENT_VERSION)) {
+            updateBadge = "Update " + pendingUpdate.tagName;
+            updateSummary = "New release ready (" + pendingUpdate.tagName + "). Tap to download, verify SHA-256, and update in-place.";
+        } else {
+            updateBadge = "v" + RamblerAutoUpdater.CURRENT_VERSION;
+            updateSummary = "Installed: v" + RamblerAutoUpdater.CURRENT_VERSION
+                    + (latestSeen != null && !latestSeen.isEmpty() ? " · Latest checked: " + latestSeen : "")
+                    + ". Tap to check GitHub Releases now.";
+        }
+        addRow(
+                "Check for updates now",
+                updateSummary,
+                updateBadge,
+                true,
+                () -> {
+                    if (pendingUpdate != null && RamblerAutoUpdater.isNewerVersion(pendingUpdate.tagName, RamblerAutoUpdater.CURRENT_VERSION)) {
+                        showUpdateAvailableDialog(pendingUpdate);
+                    } else {
+                        triggerManualUpdateCheck();
+                    }
+                });
+
+        RamblerWaveformDialogs.Palette pal = RamblerWaveformDialogs.palette(this);
+        TextView infoView = new TextView(this);
+        infoView.setText("Updates download exclusively from github.com/"
+                + RamblerAutoUpdater.REPO_SLUG
+                + " and verify SHA256SUMS.txt before handing off to Android's installer.\n\n"
+                + "Note: Because Rambler Bangla is an ~89 MB full keyboard package, Android typically takes 20–30 seconds after you tap Update (and 'Install without scanning' if prompted) to verify and complete the update in the background. Please wait — your keyboard will refresh automatically.");
+        infoView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        infoView.setTextColor(pal.secondary);
+        LinearLayout.LayoutParams infoParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        infoParams.topMargin = dp(10);
+        contentContainer.addView(infoView, infoParams);
+    }
+
     private void buildBanglaSection() {
         addSectionHeader("Bengali script & voice engine");
         boolean enabled = GboardRamblerScriptFixSettings.isEnabled(this);
         addToggleRow(
-                "Bangla script correction",
-                "Keep Bangla dictation in Bengali Unicode (bn-BD, bn-IN, bn-Beng), apply one-language-per-sentence multilingual routing and CMUdict loanword spellings, while preserving #hashtags, @handles, URLs, and emails.",
+                "Bangla script correction (3-keyboard modes)",
+                "বাংলা = 100% Bangla Unicode (with loanwords) · abc → বাংলা = Mixed Bangla + English inside the same sentence · English (US) = English / phonetic Latin only. Preserves #hashtags, @handles, URLs, and emails.",
                 enabled,
                 checked -> {
                     GboardRamblerScriptFixSettings.setEnabled(this, checked);
@@ -553,8 +975,8 @@ public final class RamblerEnhancementsActivity extends Activity {
 
         boolean pairOn = GboardRamblerLayoutPair.isToggleOn(this);
         addToggleRow(
-                "Treat EN + bn-Latn pair as multilingual",
-                "When Bangla (Latin) is enabled alongside English, run multilingual sentence detection on the English layout as well.",
+                "Also mix Bangla on English (US) keyboard",
+                "Off by default so English (US) stays 100% English / phonetic Latin even when you speak Bangla. Turn ON only if you want English (US) to also convert Bangla into Bengali script.",
                 pairOn,
                 checked -> {
                     GboardRamblerLayoutPair.setToggleOn(this, checked);
@@ -574,71 +996,17 @@ public final class RamblerEnhancementsActivity extends Activity {
                 });
 
         int converted = GboardRamblerScriptFixSettings.getConvertedCount(this);
-        String activeLayers = (RamblerDynamicConfig.FEATURE_BANGLA_LITE_SCRIPT
+        String activeLayers = "Active mode: " + GboardRamblerScriptFix.activeModeSummary() + "\n"
+                + (RamblerDynamicConfig.FEATURE_BANGLA_LITE_SCRIPT
                 ? "Lite prompt policy: ACTIVE\n" : "Lite prompt policy: not patched\n")
                 + (RamblerDynamicConfig.FEATURE_BANGLA_PHONETIC
-                ? "Phonetic + Loanword + SentenceLang engine: ACTIVE\n" : "Phonetic engine: not patched\n")
+                ? "3-Mode Phonetic + Mixed + Loanword engine: ACTIVE\n" : "Phonetic engine: not patched\n")
                 + "Converted voice commits: " + converted;
         addRow("Active Bangla layers", activeLayers, enabled ? "Active" : "Paused", false, null);
 
-        if (RamblerDynamicConfig.FEATURE_AT_MENTION_SUGGESTIONS) {
-            addSectionHeader("@Mention & email strip (SwiftKey-style)");
-            boolean atOn = RamblerAtMentionStore.isEnabled(this);
-            java.util.List<RamblerAtMentionStore.Entry> learnedEntries =
-                    RamblerAtMentionStore.readEntries(this);
-            int learnedCount = learnedEntries.size();
-            addToggleRow(
-                    "@Mention & email strip suggestions",
-                    "Shows YOUR learned @handles (@grok, @claude) on the suggestion strip when typing @, and learned email domains when typing name@. Learns automatically on space, Send/Enter, keyboard close, and voice dictation. Long-press any chip to forget. Always off in password/incognito fields.",
-                    atOn,
-                    checked -> {
-                        RamblerAtMentionStore.setEnabled(this, checked);
-                        RamblerFlagRuntime.refreshLiveFlags();
-                        refreshUi();
-                    });
-            addRow(
-                    "Add custom @mentions or domains",
-                    "Seed your favorite @handles or email domains right away (e.g. @grok @claude @gmail.com) so they appear immediately after @.",
-                    "Add",
-                    true,
-                    () -> showTextInputDialog(
-                            "Add @mentions",
-                            "@grok @claude @chatgpt @gmail.com",
-                            "",
-                            raw -> {
-                                int added = RamblerAtMentionStore.recordTokensFromText(this, raw);
-                                showToast(added > 0
-                                        ? ("Saved " + added + " @mention" + (added == 1 ? "" : "s"))
-                                        : "Include @ before each handle (e.g. @grok @claude)");
-                                refreshUi();
-                            }));
-            StringBuilder preview = new StringBuilder();
-            for (int i = 0; i < Math.min(learnedEntries.size(), 6); i++) {
-                if (i > 0) {
-                    preview.append(", ");
-                }
-                preview.append(learnedEntries.get(i).token);
-            }
-            if (learnedEntries.size() > 6) {
-                preview.append(", …");
-            }
-            addRow(
-                    "Learned @mentions & domains",
-                    learnedCount == 0
-                            ? "Nothing learned yet. Type any @handle (e.g. @grok) or tap Add above — standalone @ never shows fixed canned suggestions."
-                            : (preview + " — tap to clear all learned @mentions."),
-                    learnedCount + " saved",
-                    learnedCount > 0,
-                    () -> {
-                        RamblerAtMentionStore.clearAll(this);
-                        showToast("Cleared learned @mentions.");
-                        refreshUi();
-                    });
-        }
-
         if (RamblerDynamicConfig.FEATURE_HIDDEN_FLAGS || RamblerDynamicConfig.FEATURE_RAMBLER_EXTRAS) {
-            addSectionHeader("Rambler extras & hidden flags (live override)");
-            for (RamblerHiddenFlagOverrideRuntime.Entry entry : RamblerHiddenFlagOverrideRuntime.entries()) {
+            addSectionHeader("Rambler voice extras (live override)");
+            for (RamblerHiddenFlagOverrideRuntime.Entry entry : RamblerHiddenFlagOverrideRuntime.voiceEntries()) {
                 boolean on = RamblerHiddenFlagOverrideRuntime.isEnabled(
                         this, entry.flagName, entry.defaultEnabled);
                 final String flagName = entry.flagName;

@@ -26,6 +26,30 @@ public final class AccessCheck {
 
     /** What xADAS answers to a request: it is asking the user, or sharing is off in xADAS Pro. */
     public static final int PENDING = 4, SHARING_OFF = 5;
+    /** Waze Mod is installed, but this version has no Data API (it came with V14). */
+    public static final int NO_DATA_API = 6;
+
+    /** "package version" of the first Waze Mod installed that Maps can see, or null. */
+    public static String wazeInstalled(Context context) {
+        for (String pkg : WazeModClient.HOSTS) {
+            String found = installed(context, pkg);
+            if (found != null) return found;
+        }
+        return null;
+    }
+
+    /** "package version" of xADAS, or null when Maps cannot see it. */
+    public static String xadasInstalled(Context context) {
+        return installed(context, XadasClient.PACKAGE);
+    }
+
+    private static String installed(Context context, String pkg) {
+        try {
+            return pkg + " " + context.getPackageManager().getPackageInfo(pkg, 0).versionName;
+        } catch (android.content.pm.PackageManager.NameNotFoundException | RuntimeException e) {
+            return null;
+        }
+    }
 
     /**
      * Asks xADAS for access for Maps (it registers, and xADAS lists Maps in its Settings and asks the user in a
@@ -78,7 +102,7 @@ public final class AccessCheck {
             }
         }
         if (host == null) {
-            result.onResult(NOT_INSTALLED);
+            result.onResult(wazeInstalled(app) != null ? NO_DATA_API : NOT_INSTALLED);
             return;
         }
         ask(app, new Intent(WazeModClient.ACTION_BIND).setPackage(host), binder -> {

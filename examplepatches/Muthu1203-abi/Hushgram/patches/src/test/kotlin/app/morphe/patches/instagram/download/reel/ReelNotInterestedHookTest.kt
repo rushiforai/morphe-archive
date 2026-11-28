@@ -1,0 +1,355 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.morphe.patches.instagram.download.reel
+
+import app.morphe.ExtensionDex
+import app.morphe.Fixtures
+import app.morphe.PatchContexts
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patches.instagram.FixtureDex
+import app.morphe.patches.instagram.misc.extension.jumpTargets
+import app.morphe.patches.instagram.reels.cleanup.SAVE_BUTTON
+import app.morphe.patches.instagram.reels.cleanup.SAVE_COUNT
+import app.morphe.patches.instagram.reels.cleanup.UFI_ID
+import app.morphe.patches.instagram.reels.cleanup.loadsLiteral
+import app.morphe.patches.shared.compat.AppCompatibilities
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
+import java.io.File
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+/**
+ * The Not interested button beside a reel (#191) on every build of the declared version: the
+ * delegate that binds the viewer's items is found by its SEE_FEWER read, the column's state hands back
+ * the reel's state and the viewer's config, the icon's block goes in front of the Download one at both
+ * places Save is added, the delegate's constructor reports itself with the config, and the bridges
+ * run Instagram's own Not interested. The Block icon (#191) then goes in front of that block, and its
+ * bridge opens Instagram's own block sheet with the delegate's activity and session. The sound icon
+ * of Hide reels by sound (#191) goes in front of all three, and the Copy text icon (#303) in front of
+ * it.
+ */
+class ReelNotInterestedHookTest {
+    @Test
+    fun theHooksAndBridgesAreInTheExtension() {
+        val declared = ExtensionDex.classDef(NOT_INTERESTED_TYPE).methods
+            .filter { AccessFlags.STATIC.isSet(it.accessFlags) && AccessFlags.PUBLIC.isSet(it.accessFlags) }
+            .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }.toSet()
+        for (needed in listOf(
+            NOT_INTERESTED_ON.substringAfter("->"),
+            NOT_INTERESTED_LITHO.substringAfter("->"),
+            NOT_INTERESTED_LITHO_ABOVE_MORE.substringAfter("->"),
+            NOT_INTERESTED_REMEMBER.substringAfter("->"),
+            "notInterestedConfig(Ljava/lang/Object;)Ljava/lang/Object;",
+            "notInterestedState(Ljava/lang/Object;)Ljava/lang/Object;",
+            "notInterestedRun(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;",
+        )) assertTrue("$NOT_INTERESTED_TYPE has no public static $needed", needed in declared)
+        val blocks = ExtensionDex.classDef(BLOCK_TYPE).methods
+            .filter { AccessFlags.STATIC.isSet(it.accessFlags) && AccessFlags.PUBLIC.isSet(it.accessFlags) }
+            .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }.toSet()
+        for (needed in listOf(
+            BLOCK_ON.substringAfter("->"),
+            BLOCK_LITHO.substringAfter("->"),
+            BLOCK_LITHO_ABOVE_MORE.substringAfter("->"),
+            "blockRun(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;",
+        )) assertTrue("$BLOCK_TYPE has no public static $needed", needed in blocks)
+        val sounds = ExtensionDex.classDef(SOUND_TYPE).methods
+            .filter { AccessFlags.STATIC.isSet(it.accessFlags) && AccessFlags.PUBLIC.isSet(it.accessFlags) }
+            .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }.toSet()
+        for (needed in listOf(SOUND_ON, SOUND_LITHO, SOUND_LITHO_ABOVE_MORE).map { it.substringAfter("->") }) {
+            assertTrue("$SOUND_TYPE has no public static $needed", needed in sounds)
+        }
+        val list = ExtensionDex.classDef(HIDDEN_SOUNDS).methods
+            .filter { AccessFlags.STATIC.isSet(it.accessFlags) && AccessFlags.PUBLIC.isSet(it.accessFlags) }
+            .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }.toSet()
+        assertTrue("$HIDDEN_SOUNDS has no public static page", SOUND_PAGE_FILTER.substringAfter("->") in list)
+        val texts = ExtensionDex.classDef(TEXT_TYPE).methods
+            .filter { AccessFlags.STATIC.isSet(it.accessFlags) && AccessFlags.PUBLIC.isSet(it.accessFlags) }
+            .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }.toSet()
+        for (needed in listOf(TEXT_ON, TEXT_LITHO, TEXT_LITHO_ABOVE_MORE).map { it.substringAfter("->") }) {
+            assertTrue("$TEXT_TYPE has no public static $needed", needed in texts)
+        }
+        for ((type, hooks) in listOf(
+            SPEED_ICON_TYPE to listOf(SPEED_ICON_ON, SPEED_ICON_LITHO, SPEED_ICON_LITHO_ABOVE_MORE),
+            FULL_SCREEN_ICON_TYPE to listOf(FULL_SCREEN_ICON_ON, FULL_SCREEN_ICON_LITHO, FULL_SCREEN_ICON_LITHO_ABOVE_MORE),
+            MUTE_ICON_TYPE to listOf(MUTE_ICON_ON, MUTE_ICON_LITHO, MUTE_ICON_LITHO_ABOVE_MORE, MUTE_CLEAR_MODE),
+        )) {
+            val declared = ExtensionDex.classDef(type).methods
+                .filter { AccessFlags.STATIC.isSet(it.accessFlags) && AccessFlags.PUBLIC.isSet(it.accessFlags) }
+                .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }.toSet()
+            for (needed in hooks.map { it.substringAfter("->") }) assertTrue("$type has no public static $needed", needed in declared)
+        }
+    }
+
+    @Test
+    fun eachBuildGetsTheIconInFrontOfDownloadsAndTheDelegateReportsItself() {
+        val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
+        val bundles = versions.flatMap { version -> Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") } } +
+            Fixtures.otherBuilds()
+        assertTrue("two builds of the declared version", bundles.size >= 2)
+        for (bundle in bundles) check(bundle, if (bundle.extension == "apks") bundle.name else bundle.parentFile.name)
+    }
+
+    private fun check(bundle: File, name: String) {
+        // Every class of the build loading the column's id, a name the column's parts load or the
+        // Block helper's anchor, with the string pools they ask, and every class reading SEE_FEWER, so
+        // the hooks' one-of checks see the whole app.
+        val sliced = FixtureDex.classesLoadingAny(bundle, setOf(SAVE_BUTTON, SAVE_COUNT, SHARE_BUTTON, MORE_BUTTON, BLOCK_HELPER_ANCHOR)) { classDef ->
+            classDef.methods.any { it.loadsLiteral(UFI_ID) || it.readsSeeFewer() }
+        }
+        val classes = LinkedHashMap<String, ClassDef>()
+        sliced.forEach { classes[it.type] = it }
+        // What the hooks read around the column, its parts' components, the delegate and the helper:
+        // what their code names and what their methods answer, their fields, then a few steps out.
+        val columns = sliced.filter { classDef -> classDef.methods.any { it.parameterTypes.size == 1 && it.loadsLiteral(UFI_ID) } }
+        val components = columns.flatMap { column -> column.methods.mapNotNull { classes[it.returnType] } }
+        val delegates = sliced.filter { classDef ->
+            classDef.methods.any { it.name == "<init>" && VIEWER_CONFIG in it.parameterTypes.map(Any::toString) } &&
+                classDef.methods.any { it.readsSeeFewer() }
+        }
+        val helpers = sliced.filter { classDef -> classDef.methods.any { it.loads(BLOCK_HELPER_ANCHOR) } }
+        val seeds = columns + components + delegates + helpers
+        var wanted = seeds.flatMap { classDef -> classDef.methods.flatMap { codeTypes(it) + it.returnType } }.toSet() +
+            seeds.flatMap { it.fields.map { field -> field.type } }
+        repeat(4) {
+            val missing = wanted.filter { it.startsWith("L") && it !in classes }.toSet()
+            FixtureDex.classes(bundle, missing).forEach { (type, classDef) -> classes[type] = ImmutableClassDef.of(classDef) }
+            wanted = missing.mapNotNull { classes[it] }.flatMap { outward(it) }.toSet()
+        }
+        classes[REEL_BUTTON_TYPE] = ExtensionDex.classDef(REEL_BUTTON_TYPE)
+        classes[NOT_INTERESTED_TYPE] = ExtensionDex.classDef(NOT_INTERESTED_TYPE)
+        classes[BLOCK_TYPE] = ExtensionDex.classDef(BLOCK_TYPE)
+        classes[SOUND_TYPE] = ExtensionDex.classDef(SOUND_TYPE)
+        classes[HIDDEN_SOUNDS] = ExtensionDex.classDef(HIDDEN_SOUNDS)
+        classes[TEXT_TYPE] = ExtensionDex.classDef(TEXT_TYPE)
+        classes[SPEED_ICON_TYPE] = ExtensionDex.classDef(SPEED_ICON_TYPE)
+        classes[FULL_SCREEN_ICON_TYPE] = ExtensionDex.classDef(FULL_SCREEN_ICON_TYPE)
+        classes[MUTE_ICON_TYPE] = ExtensionDex.classDef(MUTE_ICON_TYPE)
+        val context = PatchContexts.of(classes.values.toList())
+
+        val site = context.findReelButtonSite()
+        val found = context.findNotInterestedSite(site)
+        assertEquals("$name: the delegate's own Not interested takes the column's reel item", site.itemType, found.itemType)
+        assertEquals("$name: the state interface is the column's", site.state.type, found.stateInterface)
+        assertEquals("$name: the delegate is where Not interested is", found.delegate, found.run.definingClass)
+        assertEquals("$name: and where the constructor is", found.delegate, found.constructor.definingClass)
+        assertTrue("$name: the getters are the state's own",
+            found.configGetter.definingClass == site.state.type && found.stateGetter.definingClass == site.state.type &&
+                found.configGetter.name != found.stateGetter.name)
+        assertEquals("$name: the config getter answers the viewer's config", VIEWER_CONFIG, found.configGetter.returnType)
+        assertEquals("$name: the state getter answers what Not interested takes", found.stateType, found.stateGetter.returnType)
+
+        val renderOf = {
+            context.mutableClassDefBy(site.column).methods.single {
+                it.name == site.render.name && it.parameterTypes.map(Any::toString) == site.render.parameterTypes.map(Any::toString)
+            }
+        }
+        val initOf = {
+            context.mutableClassDefBy(found.delegate).methods.single {
+                it.name == "<init>" && it.parameterTypes.map(Any::toString) == found.constructor.parameterTypes.map(Any::toString)
+            }
+        }
+        context.addReelDownloadButton(site)
+        val before = renderOf().instructions()
+        assertEquals("$name: alone, the sound icon's block goes in front of Download's",
+            before.indices.filter { before[it].names(REEL_BUTTON_ON) }, context.findSoundStarts(site).map { it.second })
+        val constructorBefore = initOf().instructions()
+        context.addNotInterestedButton(site, found)
+        val code = renderOf().instructions()
+        assertEquals("$name: fourteen instructions at each place", before.size + 28, code.size)
+        val asks = code.indices.filter { code[it].names(NOT_INTERESTED_ON) }
+        assertEquals("$name: on() at both places", 2, asks.size)
+        assertEquals("$name: lithoAboveMore() over More alone", 1, code.count { it.names(NOT_INTERESTED_LITHO_ABOVE_MORE) })
+        assertEquals("$name: litho() over Share", 1, code.count { it.names(NOT_INTERESTED_LITHO) })
+        asks.zip(site.sites.sortedBy { it.at }).forEach { (at, place) ->
+            assertTrue("$name: Download's block follows right after, to skip on its own", code[at + 14].names(REEL_BUTTON_ON))
+            val litho = if (place.aboveMore) NOT_INTERESTED_LITHO_ABOVE_MORE else NOT_INTERESTED_LITHO
+            val made = code[at + 8] as RegisterRangeInstruction
+            assertTrue("$name: $litho eight after on()", code[at + 8].names(litho))
+            assertEquals("$name: litho() takes the six borrowed registers", place.window to 6, made.startRegister to made.registerCount)
+            val add = code[at + 13] as RegisterRangeInstruction
+            assertTrue("$name: the icon is added by the column's own add", code[at + 13].names(site.add.toString()))
+            assertEquals(place.window to 2, add.startRegister to add.registerCount)
+        }
+
+        val init = initOf().instructions()
+        assertEquals("$name: three instructions in front of the constructor's return", constructorBefore.size + 3, init.size)
+        assertEquals("$name: the return stays last", Opcode.RETURN_VOID, init.last().opcode)
+        assertTrue("$name: the delegate reports itself", init[init.size - 2].names(NOT_INTERESTED_REMEMBER))
+        assertEquals("$name: the first move is the config parameter", Opcode.MOVE_OBJECT_FROM16, init[init.size - 4].opcode)
+        assertEquals("$name: the second is the delegate itself", Opcode.MOVE_OBJECT_FROM16, init[init.size - 3].opcode)
+
+        val bridges = context.mutableClassDefBy(NOT_INTERESTED_TYPE).methods.associateBy { it.name }
+        fun body(method: String) = bridges.getValue(method).instructions().map { (it as? ReferenceInstruction)?.reference?.toString() }
+        assertEquals("$name: the config bridge", listOf(site.column, site.state.toString(), found.configGetter.toString(), null, null), body("notInterestedConfig"))
+        assertEquals("$name: the state bridge", listOf(site.column, site.state.toString(), found.stateGetter.toString(), null, null), body("notInterestedState"))
+        assertEquals("$name: the run bridge",
+            listOf(found.delegate, found.itemType, found.stateType, found.run.toString(), null, null),
+            body("notInterestedRun"))
+
+        // The Block icon goes in front of Not interested's block and opens Instagram's own block sheet.
+        val block = context.findBlockSite(found)
+        assertEquals("$name: the delegate's activity", "Landroidx/fragment/app/FragmentActivity;", block.activity.type)
+        assertEquals("$name: the delegate's session", "Lcom/instagram/common/session/UserSession;", block.session.type)
+        assertEquals("$name: the helper's one instance", block.helper, block.instance.type)
+        val withoutHelper = PatchContexts.of(classes.values.filter { it.type != block.helper })
+        val refused = runCatching { withoutHelper.findBlockSite(found) }.exceptionOrNull()
+        assertTrue("$name: a build without the helper is refused before anything changes", refused is PatchException)
+
+        context.addBlockButton(site, found, block)
+        val blocked = renderOf().instructions()
+        assertEquals("$name: fourteen more at each place", code.size + 28, blocked.size)
+        val blockAsks = blocked.indices.filter { blocked[it].names(BLOCK_ON) }
+        assertEquals("$name: the Block on() at both places", 2, blockAsks.size)
+        blockAsks.zip(site.sites.sortedBy { it.at }).forEach { (at, place) ->
+            assertTrue("$name: Not interested's block follows right after", blocked[at + 14].names(NOT_INTERESTED_ON))
+            assertTrue("$name: and Download's after that", blocked[at + 28].names(REEL_BUTTON_ON))
+            val litho = if (place.aboveMore) BLOCK_LITHO_ABOVE_MORE else BLOCK_LITHO
+            assertTrue("$name: $litho eight after on()", blocked[at + 8].names(litho))
+            assertTrue("$name: the Block icon is added by the column's own add", blocked[at + 13].names(site.add.toString()))
+        }
+        val run = context.mutableClassDefBy(BLOCK_TYPE).methods.single { it.name == "blockRun" }.instructions()
+            .map { (it as? ReferenceInstruction)?.reference?.toString() }
+        assertEquals("$name: the block bridge",
+            listOf(
+                found.delegate, "Lcom/instagram/user/model/User;", block.instance.toString(), block.activity.toString(), null,
+                block.session.toString(), null, null, null, block.open.toString(), null, null,
+            ),
+            run)
+
+        // The sound icon (#191) goes in front of Block's block, the first at each place.
+        val starts = context.findSoundStarts(site)
+        assertEquals("$name: the sound icon starts where the Block icon does", blockAsks, starts.map { it.second })
+        context.addSoundIcons(site, starts)
+        val sounded = renderOf().instructions()
+        assertEquals("$name: fourteen more again at each place", blocked.size + 28, sounded.size)
+        val soundAsks = sounded.indices.filter { sounded[it].names(SOUND_ON) }
+        assertEquals("$name: the sound on() at both places", 2, soundAsks.size)
+        assertEquals("$name: its lithoAboveMore() over More alone", 1, sounded.count { it.names(SOUND_LITHO_ABOVE_MORE) })
+        soundAsks.zip(site.sites.sortedBy { it.at }).forEach { (at, place) ->
+            assertTrue("$name: Block's block follows right after", sounded[at + 14].names(BLOCK_ON))
+            assertTrue("$name: then Not interested's", sounded[at + 28].names(NOT_INTERESTED_ON))
+            assertTrue("$name: then Download's", sounded[at + 42].names(REEL_BUTTON_ON))
+            val litho = if (place.aboveMore) SOUND_LITHO_ABOVE_MORE else SOUND_LITHO
+            assertTrue("$name: $litho eight after on()", sounded[at + 8].names(litho))
+            assertTrue("$name: the sound icon is added by the column's own add", sounded[at + 13].names(site.add.toString()))
+        }
+
+        // The Copy text icon (#303) goes in front of the sound icon's block, now the first at each place.
+        val textStarts = context.findTextStarts(site)
+        assertEquals("$name: the text icon starts where the sound icon does", soundAsks, textStarts.map { it.second })
+        context.addTextIcons(site, textStarts)
+        val texted = renderOf().instructions()
+        assertEquals("$name: fourteen more again at each place", sounded.size + 28, texted.size)
+        val textAsks = texted.indices.filter { texted[it].names(TEXT_ON) }
+        assertEquals("$name: the text on() at both places", 2, textAsks.size)
+        assertEquals("$name: its lithoAboveMore() over More alone", 1, texted.count { it.names(TEXT_LITHO_ABOVE_MORE) })
+        textAsks.zip(site.sites.sortedBy { it.at }).forEach { (at, place) ->
+            assertTrue("$name: the sound icon's block follows right after", texted[at + 14].names(SOUND_ON))
+            assertTrue("$name: then Block's", texted[at + 28].names(BLOCK_ON))
+            assertTrue("$name: then Download's, after Not interested's", texted[at + 56].names(REEL_BUTTON_ON))
+            val litho = if (place.aboveMore) TEXT_LITHO_ABOVE_MORE else TEXT_LITHO
+            assertTrue("$name: $litho eight after on()", texted[at + 8].names(litho))
+            assertTrue("$name: the text icon is added by the column's own add", texted[at + 13].names(site.add.toString()))
+        }
+        val withoutText = PatchContexts.of(classes.values.filter { it.type != TEXT_TYPE })
+        val noText = runCatching { withoutText.findTextStarts(site) }.exceptionOrNull()
+        assertTrue("$name: an extension without the icon is refused before anything changes", noText is PatchException)
+
+        // The speed icon (#480) goes in front of the text icon's block, then Full screen in front of it.
+        val speedStarts = context.findPlayerIconStarts(site, SPEED_ICON_TYPE, "speed")
+        assertEquals("$name: the speed icon starts where the text icon does", textAsks, speedStarts.map { it.second })
+        context.addPlayerIcons(site, speedStarts, SPEED_ICON_ON, SPEED_ICON_LITHO, SPEED_ICON_LITHO_ABOVE_MORE)
+        val sped = renderOf().instructions()
+        assertEquals("$name: fourteen more for speed at each place", texted.size + 28, sped.size)
+        val speedAsks = sped.indices.filter { sped[it].names(SPEED_ICON_ON) }
+        assertEquals("$name: the speed on() at both places", 2, speedAsks.size)
+        assertEquals("$name: its lithoAboveMore() over More alone", 1, sped.count { it.names(SPEED_ICON_LITHO_ABOVE_MORE) })
+        speedAsks.zip(site.sites.sortedBy { it.at }).forEach { (at, place) ->
+            assertTrue("$name: the text icon's block follows right after", sped[at + 14].names(TEXT_ON))
+            val litho = if (place.aboveMore) SPEED_ICON_LITHO_ABOVE_MORE else SPEED_ICON_LITHO
+            assertTrue("$name: $litho eight after on()", sped[at + 8].names(litho))
+            assertTrue("$name: the speed icon is added by the column's own add", sped[at + 13].names(site.add.toString()))
+        }
+        val fullStarts = context.findPlayerIconStarts(site, FULL_SCREEN_ICON_TYPE, "Full screen")
+        assertEquals("$name: the Full screen icon starts where the speed icon does", speedAsks, fullStarts.map { it.second })
+        context.addPlayerIcons(site, fullStarts, FULL_SCREEN_ICON_ON, FULL_SCREEN_ICON_LITHO, FULL_SCREEN_ICON_LITHO_ABOVE_MORE)
+        val full = renderOf().instructions()
+        assertEquals("$name: fourteen more for Full screen at each place", sped.size + 28, full.size)
+        val fullAsks = full.indices.filter { full[it].names(FULL_SCREEN_ICON_ON) }
+        assertEquals("$name: the Full screen on() at both places", 2, fullAsks.size)
+        assertEquals("$name: its lithoAboveMore() over More alone", 1, full.count { it.names(FULL_SCREEN_ICON_LITHO_ABOVE_MORE) })
+        fullAsks.zip(site.sites.sortedBy { it.at }).forEach { (at, place) ->
+            assertTrue("$name: the speed icon's block follows right after", full[at + 14].names(SPEED_ICON_ON))
+            assertTrue("$name: then the text icon's", full[at + 28].names(TEXT_ON))
+            assertTrue("$name: then Download's, after sound, Block and Not interested", full[at + 84].names(REEL_BUTTON_ON))
+            val litho = if (place.aboveMore) FULL_SCREEN_ICON_LITHO_ABOVE_MORE else FULL_SCREEN_ICON_LITHO
+            assertTrue("$name: $litho eight after on()", full[at + 8].names(litho))
+            assertTrue("$name: the Full screen icon is added by the column's own add", full[at + 13].names(site.add.toString()))
+        }
+        // The speaker (#608) goes in front of Full screen. Full screen's block skips onto the speed
+        // icon's, so a speaker put there was jumped over whenever Full screen was off.
+        val muteStarts = context.findPlayerIconStarts(site, MUTE_ICON_TYPE, "mute")
+        assertEquals("$name: the speaker starts where the Full screen icon does", fullAsks, muteStarts.map { it.second })
+        context.addPlayerIcons(site, muteStarts, MUTE_ICON_ON, MUTE_ICON_LITHO, MUTE_ICON_LITHO_ABOVE_MORE)
+        val muted = renderOf().instructions()
+        assertEquals("$name: fourteen more for the speaker at each place", full.size + 28, muted.size)
+        val muteAsks = muted.indices.filter { muted[it].names(MUTE_ICON_ON) }
+        assertEquals("$name: the speaker's on() at both places", 2, muteAsks.size)
+        assertEquals("$name: its lithoAboveMore() over More alone", 1, muted.count { it.names(MUTE_ICON_LITHO_ABOVE_MORE) })
+        val jumps = renderOf().jumpTargets()
+        muteAsks.zip(site.sites.sortedBy { it.at }).forEach { (at, place) ->
+            assertTrue("$name: nothing jumps onto the speaker's block, so it's never skipped", at !in jumps)
+            assertTrue("$name: the Full screen icon's block follows right after", muted[at + 14].names(FULL_SCREEN_ICON_ON))
+            assertTrue("$name: then the speed icon's", muted[at + 28].names(SPEED_ICON_ON))
+            assertTrue("$name: then Download's, after text, sound, Block and Not interested", muted[at + 98].names(REEL_BUTTON_ON))
+            val litho = if (place.aboveMore) MUTE_ICON_LITHO_ABOVE_MORE else MUTE_ICON_LITHO
+            assertTrue("$name: $litho eight after on()", muted[at + 8].names(litho))
+            assertTrue("$name: the speaker is added by the column's own add", muted[at + 13].names(site.add.toString()))
+        }
+        for (type in listOf(SPEED_ICON_TYPE, FULL_SCREEN_ICON_TYPE, MUTE_ICON_TYPE)) {
+            val without = PatchContexts.of(classes.values.filter { it.type != type })
+            val refused = runCatching { without.findPlayerIconStarts(site, type, type) }.exceptionOrNull()
+            assertTrue("$name: an extension without $type is refused before anything changes", refused is PatchException)
+        }
+        val withoutList = PatchContexts.of(classes.values.filter { it.type != HIDDEN_SOUNDS })
+        val noList = runCatching { withoutList.findSoundStarts(site) }.exceptionOrNull()
+        assertTrue("$name: an extension without the list is refused before anything changes", noList is PatchException)
+    }
+
+    private fun Method.loads(string: String) = instructions().any {
+        ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == string
+    }
+
+    /** The types [method]'s code names: the classes of what it calls and reads, their types, and the types it checks or makes. */
+    private fun codeTypes(method: Method): List<String> = method.instructions().flatMap { instruction ->
+        when (val reference = (instruction as? ReferenceInstruction)?.reference) {
+            is MethodReference -> listOf(reference.definingClass, reference.returnType) + reference.parameterTypes.map(Any::toString)
+            is FieldReference -> listOf(reference.definingClass, reference.type)
+            is TypeReference -> listOf(reference.type)
+            else -> emptyList()
+        }
+    }
+
+    /** One step out from [classDef]: its superclass, interfaces, field types and what its getters answer. */
+    private fun outward(classDef: ClassDef): List<String> =
+        listOfNotNull(classDef.superclass) + classDef.interfaces + classDef.fields.map { it.type } +
+            classDef.methods.filter { it.parameterTypes.isEmpty() }.map { it.returnType }
+
+    private fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
+
+    private fun Instruction.names(reference: String) = (this as? ReferenceInstruction)?.reference?.toString() == reference
+}

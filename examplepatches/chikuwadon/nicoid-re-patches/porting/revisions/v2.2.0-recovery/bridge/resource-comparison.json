@@ -1,0 +1,256 @@
+[
+  {
+    "stage": "to110",
+    "before_count": 1191,
+    "after_count": 1191,
+    "summary": {
+      "replace": 57,
+      "unchanged": 1134
+    },
+    "changes": {
+      "res/drawable-v21/nend_ad_full_board_action_button.xml": {
+        "before": "a21cc7f8f5ff03b83a43353814318ece6014fca53f0d2dbac976012de5669d4b",
+        "after": "f1b947e2d5ebc1b720d35e3031583425f8ef29082b8dc2a75491c6606b503bc2"
+      },
+      "res/drawable-xhdpi/nend_ad_full_board_close.png": {
+        "before": "aa8419ad4e6b379309777fae225945daf335a6a1a122e1df8ae37e33c42cc30b",
+        "after": "9744e7994b207ae5420e57ea7247231222aa148b2b972f181cbea33e792db096"
+      },
+      "res/drawable-xhdpi/nend_ad_full_board_info.png": {
+        "before": "1a6ec79526492bccab42f374af6a43bac62eae1d5a48682e5ce748fde2d65841",
+        "after": "2a43a8e1d804391f29bcf1d28372416576ade9bb4e4df81c9e56b9a94ceaa51e"
+      },
+      "res/drawable-xhdpi/nend_ad_native_video_cta.9.png": {
+        "before": "40dea0fb245f9fd83ccb2324668e50817ec2cbbe2527cd2d2c21dea67a345cf7",
+        "after": "3cc389b0e565863dd98cc94593846c7f6487d3fa9557e0e665edaa22096010db"
+      },
+      "res/drawable-xhdpi/nend_ad_native_video_information.png": {
+        "before": "6ec1cfbcf459cc2c8ee28e4ecf6fdc9596f475703bbc4ce52ecfa8657a27a58e",
+        "after": "ba04f531df0c7a12124750d521add77c55b16a6432d653c5559c16680dbd9f50"
+      },
+      "res/drawable-xhdpi/nend_ad_native_video_replay.png": {
+        "before": "3b7e851bda533728f3385ea8f7dc8c9b2511f54e2fe4f6cb47de07102c51d81b",
+        "after": "6dde58a06b4fd390fd6d6f185b023fd05652c2ead2a8b1d57b3fd6bff24ecc98"
+      },
+      "res/drawable-xhdpi/nend_ad_native_video_replay_cta.png": {
+        "before": "17c1bca305e7821b7500b96b1ea00793a6f727ae182809da1d10f91e1ace03cb",
+        "after": "6dde58a06b4fd390fd6d6f185b023fd05652c2ead2a8b1d57b3fd6bff24ecc98"
+      },
+      "res/drawable-xhdpi/nend_ad_star_filled.png": {
+        "before": "81b633224ee19ac012a4e94ee20689b60ae80d037ae1b557c82199930683c109",
+        "after": "805d5875611b6849294386ec70abff2a865ba0dba0973b6789b2693948ecba59"
+      },
+      "res/drawable-xhdpi/nend_ad_star_half.png": {
+        "before": "3a7122286729654fd848aa41ae2fa80f4667daf57150a522eff66db50fb6174e",
+        "after": "805d5875611b6849294386ec70abff2a865ba0dba0973b6789b2693948ecba59"
+      },
+      "res/drawable-xhdpi/nend_ad_star_none.png": {
+        "before": "9ee603dce7323620bef400fa0a2ebfa425acf3e1c212794a3f3d1132711c1451",
+        "after": "805d5875611b6849294386ec70abff2a865ba0dba0973b6789b2693948ecba59"
+      },
+      "res/drawable-xhdpi/nend_ad_video_close.png": {
+        "before": "2a311953881d12fc1df13740ba0bd4ff99742cdc2f2b783dc8ef090c3625cf2e",
+        "after": "5b6179b52929808979fefd39d22bdc8102762e09eee36fad97b811a49557a1c6"
+      },
+      "res/drawable-xhdpi/nend_ad_video_cta.png": {
+        "before": "389847955798513a303dd39ecad3349ae438eaaf9d92c346d0cb5f11c126f7f1",
+        "after": "764e59f9df7b149cc24a439f634fa9e3021eec142716edd9f67345e7df196d40"
+      },
+      "res/drawable-xhdpi/nend_ad_video_mute_off.png": {
+        "before": "5654ac1696049ca47b87cca3499316959e30af6ef6054bc7ba251051eaf8b4bf",
+        "after": "5b6179b52929808979fefd39d22bdc8102762e09eee36fad97b811a49557a1c6"
+      },
+      "res/drawable-xhdpi/nend_ad_video_mute_on.png": {
+        "before": "a7654ef4e4173f36ad36dd5b2430f583725014123ed518b9718d22775e025f0f",
+        "after": "5b6179b52929808979fefd39d22bdc8102762e09eee36fad97b811a49557a1c6"
+      },
+      "res/drawable-xxhdpi/nend_ad_full_board_close.png": {
+        "before": "9f7f53702849ff052303887e198aa9a8e61d4d01721955729970e3e98650c7f3",
+        "after": "2287f5429b61ccaa1db17b08d4a4397915116c5390420f6ec59847957bd7429f"
+      },
+      "res/drawable-xxhdpi/nend_ad_full_board_info.png": {
+        "before": "8c763e3198ccc6cf200a0a42d65ffdcce16cd950b15d6b037e5e8941ac6836d9",
+        "after": "20cc8c4372c7a1e6a34ba712998beb3cdd7724d7747050428e8288953b4727e9"
+      },
+      "res/drawable-xxhdpi/nend_ad_native_video_cta.9.png": {
+        "before": "aa09d57b23298a7769a817d1ff0f2fb7d00df47ca0fdab6d825baea4d3a962cd",
+        "after": "7cd4918cd9cf8de4dd3169e9cb1bdb7b0a0b289b35a8df0e4cdf353ed3388dbd"
+      },
+      "res/drawable-xxhdpi/nend_ad_native_video_information.png": {
+        "before": "25443deb0d6efe2b6eb55bf5e74d03adc944ad5d3c8ea983f61dcba41c0fb2ae",
+        "after": "805d5875611b6849294386ec70abff2a865ba0dba0973b6789b2693948ecba59"
+      },
+      "res/drawable-xxhdpi/nend_ad_native_video_replay.png": {
+        "before": "17146af6d8fff5be7ff1258c4d14ee72cce918081503c71e6bf4e569d0a119c5",
+        "after": "cbb537a84238399d194fae87a1e374f0a7e5ae1553f18e6f91aad93c6332c6f0"
+      },
+      "res/drawable-xxhdpi/nend_ad_native_video_replay_cta.png": {
+        "before": "be1da7b043c1b08d0d475260b37dfe4a5f471e328bb71e845613327d81ac00c0",
+        "after": "cbb537a84238399d194fae87a1e374f0a7e5ae1553f18e6f91aad93c6332c6f0"
+      },
+      "res/drawable-xxhdpi/nend_ad_star_filled.png": {
+        "before": "719f0cb66016af70112728d9db7593d7c2cbe306ac0e5167ecfa12d5ec65d29f",
+        "after": "5b6179b52929808979fefd39d22bdc8102762e09eee36fad97b811a49557a1c6"
+      },
+      "res/drawable-xxhdpi/nend_ad_star_half.png": {
+        "before": "7a73b2797dff4a7ebaf63dc616f900783e4936838b6609b161497732637c8931",
+        "after": "5b6179b52929808979fefd39d22bdc8102762e09eee36fad97b811a49557a1c6"
+      },
+      "res/drawable-xxhdpi/nend_ad_star_none.png": {
+        "before": "5d7d88e883ea353ff31dc11c618f4709341c7ad6c665ce93690d3654453ff0f5",
+        "after": "5b6179b52929808979fefd39d22bdc8102762e09eee36fad97b811a49557a1c6"
+      },
+      "res/drawable-xxhdpi/nend_ad_video_close.png": {
+        "before": "0f9d275bc8c5bfb1ce2b331c3c7072962449ff23168d0026f3d72e787db018c0",
+        "after": "9366b167c317f571aa7ff7d33d64c7b5b32a1774ffe16ddef72297bd6e720c9c"
+      },
+      "res/drawable-xxhdpi/nend_ad_video_cta.png": {
+        "before": "a71efbdf9dc0f1e6b590720b8e6ff40fc559b874cf099666e09d8684a5f92c5a",
+        "after": "4006f0bd69e748d0de081dd80882ead0d80172df2b15e7a68d791ee9c4d3ed20"
+      },
+      "res/drawable-xxhdpi/nend_ad_video_mute_off.png": {
+        "before": "192f94ab65a1b0e3ef713478b38ab5babb6e621c482e3dc283f79dd84a1cbb4f",
+        "after": "9366b167c317f571aa7ff7d33d64c7b5b32a1774ffe16ddef72297bd6e720c9c"
+      },
+      "res/drawable-xxhdpi/nend_ad_video_mute_on.png": {
+        "before": "a41938783b58871f0777b6e7d3ea52c30ce624d68b100bfcc90581c98b4ad71b",
+        "after": "9366b167c317f571aa7ff7d33d64c7b5b32a1774ffe16ddef72297bd6e720c9c"
+      },
+      "res/drawable-xxxhdpi/nend_ad_full_board_close.png": {
+        "before": "0d6dcf681c0897c695a5a353c0a6c0454503fb5eb7c624563467733839534654",
+        "after": "3b2e6eac48076f216003be0d52e818fa4715a39f67284b6efda8ae35e6c80c3e"
+      },
+      "res/drawable-xxxhdpi/nend_ad_full_board_info.png": {
+        "before": "134390b783cd0e33a1d11a9679c1513f9f1bb12c6d6ba92e4ecb8f4d6909cf7b",
+        "after": "0e1ff0660c4e771b7f3afa7a765550020589a6e4b49e8ae9554892dd805c5d69"
+      },
+      "res/drawable-xxxhdpi/nend_ad_native_video_cta.9.png": {
+        "before": "7bbc8de92c21f6ff5bb9e366a5adcf11b83741b80b25b712500483ef1b4ba9af",
+        "after": "b375ee656d3211e2d22764d0fc81b6ec19839bb7e250414f3b841bdfc2537223"
+      },
+      "res/drawable-xxxhdpi/nend_ad_native_video_information.png": {
+        "before": "5b89e49bb708e1969962d319445905e38351d8cc3c0ae2ab9372de3de12c3ec8",
+        "after": "ee5f4ae0aae66a3d9ad8166933132bf2fad25da6220d8f02127f69546b5a4795"
+      },
+      "res/drawable-xxxhdpi/nend_ad_native_video_replay.png": {
+        "before": "b6c73e40d885f1a26722842a1f1e1da3eca2133bb766aff0d50cf0cc87188b19",
+        "after": "e39a70196db7baf5f9c530bfaedf427a5288d0efd9216b2244f35521e244a00d"
+      },
+      "res/drawable-xxxhdpi/nend_ad_native_video_replay_cta.png": {
+        "before": "cbec690e277883d532f2a4d60845a6e6f34c7cf341f6116063716e13cd0f9beb",
+        "after": "e39a70196db7baf5f9c530bfaedf427a5288d0efd9216b2244f35521e244a00d"
+      },
+      "res/drawable-xxxhdpi/nend_ad_star_filled.png": {
+        "before": "a7d906d340d661bcfeef06e792786076787f0018fb78107f077038e634f31648",
+        "after": "67f067d0981f1cc3a85d670d36a5fb6e5740e7e673baa0c5d210b99f32682603"
+      },
+      "res/drawable-xxxhdpi/nend_ad_star_half.png": {
+        "before": "00d2e6929e9e169a60ca8d5324b309793d7bbe8084540de4581ce04e3a1a5c44",
+        "after": "67f067d0981f1cc3a85d670d36a5fb6e5740e7e673baa0c5d210b99f32682603"
+      },
+      "res/drawable-xxxhdpi/nend_ad_star_none.png": {
+        "before": "64b8360cefb49c3503e3aad7dc887f3c87186b8283a100cb0e3449c1c8e946c8",
+        "after": "67f067d0981f1cc3a85d670d36a5fb6e5740e7e673baa0c5d210b99f32682603"
+      },
+      "res/drawable-xxxhdpi/nend_ad_video_close.png": {
+        "before": "2020e78be3579389bb9e7b9cc33ed305ff43f8cb1c1b25880afdf6e1493d230e",
+        "after": "585630c4766cdee9955f1a8ad332206e62c8e2a9d2ca33081147ac634d18eb18"
+      },
+      "res/drawable-xxxhdpi/nend_ad_video_cta.png": {
+        "before": "ef64727396130cedbae89b78295628b781f67f0767e8242f1e8af1c6b65e36b9",
+        "after": "e9a0389e4aa7d1157c06161a7ecf23f0343be7e313734ba2d728aa717e38681b"
+      },
+      "res/drawable-xxxhdpi/nend_ad_video_mute_off.png": {
+        "before": "1f780e35a6ad362cd4086eca184010c6d9e31b7690f24241b132b33f6fc3857a",
+        "after": "585630c4766cdee9955f1a8ad332206e62c8e2a9d2ca33081147ac634d18eb18"
+      },
+      "res/drawable-xxxhdpi/nend_ad_video_mute_on.png": {
+        "before": "a2419ca9971d6894cae06ae6be7e55c40add1afc0108f9f1d2783cb386d46e87",
+        "after": "585630c4766cdee9955f1a8ad332206e62c8e2a9d2ca33081147ac634d18eb18"
+      },
+      "res/drawable/nend_ad_full_board_action_button.xml": {
+        "before": "55c83dd5e7220707ac4ab4b8471ab6545313dad32ec26bc0b445f3cf689acd06",
+        "after": "f1b947e2d5ebc1b720d35e3031583425f8ef29082b8dc2a75491c6606b503bc2"
+      },
+      "res/drawable/nend_ad_video_mask.xml": {
+        "before": "c486fc5a2329242c14cc49563b934d2e65eb06fd35cafbb81a3adcc1f22ecfbc",
+        "after": "f1b947e2d5ebc1b720d35e3031583425f8ef29082b8dc2a75491c6606b503bc2"
+      },
+      "res/drawable/nend_ad_video_toggle_volume.xml": {
+        "before": "bcddd44f7fc9ea3040f414e3fd289d8a12ea79e50a3ab259645ac0480b89953c",
+        "after": "f1b947e2d5ebc1b720d35e3031583425f8ef29082b8dc2a75491c6606b503bc2"
+      },
+      "res/layout-land/activity_nend_ad_full_board.xml": {
+        "before": "06caec33ae1b45f84a57e9a7d6be3b66076736365c34c1928d57d670a81e5571",
+        "after": "763fcfcb85aa5908b5e9610998966d5d5289cfae0c63bd84f7ce38f7121bf1bb"
+      },
+      "res/layout-port/activity_nend_ad_full_board.xml": {
+        "before": "5b61b191779269a2472484438d435d90c9c59f1a00081a8db35e8e93af9afe6f",
+        "after": "763fcfcb85aa5908b5e9610998966d5d5289cfae0c63bd84f7ce38f7121bf1bb"
+      },
+      "res/layout-v17/activity_native_land_video_fullscreen_playing.xml": {
+        "before": "24302e2c2950c4e52b705ed55d24205524a1404394bf89613fb35340e87680ad",
+        "after": "763fcfcb85aa5908b5e9610998966d5d5289cfae0c63bd84f7ce38f7121bf1bb"
+      },
+      "res/layout-v17/activity_native_port_video_fullscreen_playing.xml": {
+        "before": "0c29b645fcc8689e12437a47ca481b47ee97b94dd76f429833850feeae1743ac",
+        "after": "763fcfcb85aa5908b5e9610998966d5d5289cfae0c63bd84f7ce38f7121bf1bb"
+      },
+      "res/layout/activity_native_land_video_fullscreen_playing.xml": {
+        "before": "d35940451de9f73ef9dcb6f6437d48e070aec7744d7d52eb532cd36bb4d80f6b",
+        "after": "763fcfcb85aa5908b5e9610998966d5d5289cfae0c63bd84f7ce38f7121bf1bb"
+      },
+      "res/layout/activity_native_port_video_fullscreen_playing.xml": {
+        "before": "fce14b6f85e654662261fe6d931397ace78a3ee8bae13fb908e110ae4fca769a",
+        "after": "763fcfcb85aa5908b5e9610998966d5d5289cfae0c63bd84f7ce38f7121bf1bb"
+      },
+      "res/layout/media_frame_actions.xml": {
+        "before": "3f2b2de4a19f3559a6b16069f3671302d7475bbd135b662871b084bd6980db25",
+        "after": "763fcfcb85aa5908b5e9610998966d5d5289cfae0c63bd84f7ce38f7121bf1bb"
+      },
+      "res/layout/media_replay_cta_land.xml": {
+        "before": "e5dbe7b0910ff72e5b7f8568fed82aca1c9535295c153f3452265a0d6c03f7b1",
+        "after": "763fcfcb85aa5908b5e9610998966d5d5289cfae0c63bd84f7ce38f7121bf1bb"
+      },
+      "res/layout/media_replay_cta_port.xml": {
+        "before": "33b2a9aa29ea1918dc1cbaa668423a890d17c8ae10566c552e00a1d443545279",
+        "after": "763fcfcb85aa5908b5e9610998966d5d5289cfae0c63bd84f7ce38f7121bf1bb"
+      },
+      "res/layout/video_list_item_ad.xml": {
+        "before": "85e832f2551715c82c2d5a503e7ec1600a48090b06a932b7be5360c481cf2c3f",
+        "after": "763fcfcb85aa5908b5e9610998966d5d5289cfae0c63bd84f7ce38f7121bf1bb"
+      },
+      "res/layout/video_list_item_ad_admob.xml": {
+        "before": "9616342b1f5ecd701682dcd6f29654caac1a69d4119e892ecd5c6508d20cc602",
+        "after": "763fcfcb85aa5908b5e9610998966d5d5289cfae0c63bd84f7ce38f7121bf1bb"
+      },
+      "res/layout/video_list_item_ad_pfx.xml": {
+        "before": "438da5ec1f25140e7f08c5903b08e5a1f8b1e4a718e12cd8f26dd7db6097bfda",
+        "after": "763fcfcb85aa5908b5e9610998966d5d5289cfae0c63bd84f7ce38f7121bf1bb"
+      },
+      "res/layout/view_native_media.xml": {
+        "before": "b8926e78272c1a38391a109b24be8b96e6ba60d02b67565e4f59758846b54434",
+        "after": "763fcfcb85aa5908b5e9610998966d5d5289cfae0c63bd84f7ce38f7121bf1bb"
+      },
+      "resources.arsc": {
+        "before": "272885ecefcdf7bf7623ee6cb1acd46c8d90e4ca42b6dad1a6ea19d56b4d7945",
+        "after": "929bd11b653b3cfef300bbe87256dc421b70fad77c0abcf0ce728524a4270fd2"
+      }
+    }
+  },
+  {
+    "stage": "toFinal",
+    "before_count": 1191,
+    "after_count": 1191,
+    "summary": {
+      "replace": 1,
+      "unchanged": 1190
+    },
+    "changes": {
+      "res/xml/network_security_config.xml": {
+        "before": "a632e4f0ba9350f876f2715e64baec7355b33e77fc563f7845de32020bb2f402",
+        "after": "5324375f6cfebe5ea1cab0bccc896164e76879c03b8b474ee1019d9c38b3f2f6"
+      }
+    }
+  }
+]

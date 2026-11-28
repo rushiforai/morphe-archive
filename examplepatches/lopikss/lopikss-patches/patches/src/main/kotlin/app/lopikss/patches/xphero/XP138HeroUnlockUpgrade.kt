@@ -14,6 +14,9 @@ private object XP138Heroes {
     const val HERO_STAR = "assets/bin/Data/02ce5273e9c794059afe2ada0670d172"
     const val HERO_STAR_27 = "assets/bin/Data/ad2670771b384455ebef2391d9ec5592"
 
+    const val HERO_STAR_272 = "assets/bin/Data/2ede4b2afa6744863b5c68a80eaa98a4"
+    private const val HERO_STAR_SHA_272 = "b35d09c60a891cd1cae20514e20b8bed401514508cdd4c2f8ccabacb62855e33"
+
     private const val HERO_DATA_SHA = "ff5d1c8e995e8169b643227d7e87a202910dc81c8e141d12ca0d8c0488018408"
     private const val HERO_DATA_SHA_27 = "98c3b1475724db40dce90f2c22bc08c9c2f46af95cb17d682c3b4ebfea6537d3"
     private const val HERO_STAR_SHA = "818570c2ec087bab93583352fbe6e6ff9dd859b5f06cd14b9d1995842467df87"
@@ -51,7 +54,7 @@ private object XP138Heroes {
 
     fun freeStarUpgrades(input: ByteArray): ByteArray {
         val sha = digest(input)
-        val v27 = sha == HERO_STAR_SHA_27
+        val v27 = sha == HERO_STAR_SHA_27 || sha == HERO_STAR_SHA_272
         require(v27 || sha == HERO_STAR_SHA) { "Unsupported XP Hero CostumeStarGradeOptionData" }
         val text = String(input, Charsets.ISO_8859_1)
         val price = Regex("""("Cost1_Amount":")([0-9]+)(")""")
@@ -104,7 +107,8 @@ val xp138FreeHeroStarUpgrades = rawResourcePatch(
     compatibleWith(XP_HERO)
     execute {
         val v27Star = get(XP138Heroes.HERO_STAR_27)
-        val starFile = if (v27Star.isFile) v27Star else get(XP138Heroes.HERO_STAR)
+        val star272 = get(XP138Heroes.HERO_STAR_272)
+        val starFile = if (star272.isFile) star272 else if (v27Star.isFile) v27Star else get(XP138Heroes.HERO_STAR)
         val native = get(XP135NativeEditor.ARM64)
         // Validate every source before modifying either file.
         val modifiedStars = XP138Heroes.freeStarUpgrades(starFile.readBytes())

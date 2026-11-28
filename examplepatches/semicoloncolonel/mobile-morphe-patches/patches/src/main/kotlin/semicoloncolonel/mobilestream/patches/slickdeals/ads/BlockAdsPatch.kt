@@ -37,6 +37,7 @@ val blockAdsPatch = bytecodePatch(
     name = "Block ads",
     description = "Removes ads, sponsored carousels, and promoted deals.",
 ) {
+    category("Ads")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

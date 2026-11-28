@@ -4,11 +4,14 @@
  */
 package app.czyeru.patches.tiktok.misc.absettings
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.czyeru.patches.tiktok.shared.callThroughLocals
+import app.czyeru.patches.tiktok.shared.objectIn
+import app.czyeru.patches.tiktok.shared.valueIn
 import app.czyeru.util.addInstructionsAtControlFlowLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -19,76 +22,101 @@ import java.util.WeakHashMap
 
 private const val STRING = "Ljava/lang/String;"
 
+internal data class MethodShape(
+    val returnType: String,
+    val parameters: List<String>,
+    val isStatic: Boolean = false,
+)
+
+internal fun Method.shape() = MethodShape(
+    returnType,
+    parameterTypes.map(CharSequence::toString),
+    AccessFlags.STATIC.isSet(accessFlags),
+)
+
 internal const val APP_AB_INT_METHOD = "LJFF"
 internal const val APP_AB_INT_KEY_REGISTER = "p3"
 internal val APP_AB_INT_PARAMETERS = listOf("I", "I", STRING, "Z")
 
-/**
- * The typed instance getters TikTok's app AB class carries, one per value type, plus the raw one.
- * No other class carries all seven, so together they name the class: `LX/09se;` on 47.2.41 and
- * `LX/02yS;` on 47.4.3. The getter names inside it (`LIZ`, `LJFF`, `LJIIJJI`...) are the same on
- * both builds.
- */
+internal val APP_AB_BOOLEAN = MethodShape("Z", listOf("I", STRING, "Z", "Z"))
+internal val APP_AB_DOUBLE = MethodShape("D", listOf("D", "I", STRING, "Z"))
+internal val APP_AB_FLOAT = MethodShape("F", listOf("I", STRING, "Z", "F"))
+internal val APP_AB_INT = MethodShape("I", APP_AB_INT_PARAMETERS)
+internal val APP_AB_LONG = MethodShape("J", listOf("I", "J", STRING, "Z"))
+internal val APP_AB_STRING = MethodShape(STRING, listOf("I", STRING, STRING, "Z"))
+internal val APP_AB_RAW = MethodShape("Ljava/lang/Object;", listOf(STRING, "Z"))
 private val APP_AB_SHAPES = setOf(
-    "Z" to listOf("I", STRING, "Z", "Z"),
-    "D" to listOf("D", "I", STRING, "Z"),
-    "F" to listOf("I", STRING, "Z", "F"),
-    "I" to APP_AB_INT_PARAMETERS,
-    "J" to listOf("I", "J", STRING, "Z"),
-    STRING to listOf("I", STRING, STRING, "Z"),
-    "Ljava/lang/Object;" to listOf(STRING, "Z"),
+    APP_AB_BOOLEAN, APP_AB_DOUBLE, APP_AB_FLOAT, APP_AB_INT, APP_AB_LONG, APP_AB_STRING, APP_AB_RAW,
 )
+private val APP_AB_TYPED_SHAPES = APP_AB_SHAPES - APP_AB_RAW
 
-private fun Method.instanceShape() =
-    if (AccessFlags.STATIC.isSet(accessFlags)) null
-    else returnType to parameterTypes.map(CharSequence::toString)
+private enum class AppAbRole { MAIN, TWIN }
 
-private val resolved = WeakHashMap<BytecodePatchContext, String>()
+private fun appAbRole(classDef: ClassDef): AppAbRole? {
+    if (classDef.methods.none { it.returnType == "D" && it.shape() == APP_AB_DOUBLE }) return null
+    val shapes = classDef.methods.mapTo(HashSet()) { it.shape() }
+    if (!APP_AB_TYPED_SHAPES.all { it in shapes }) return null
+    return if (APP_AB_RAW in shapes) AppAbRole.MAIN else AppAbRole.TWIN
+}
 
-/** The type of the app AB class in the build being patched, found by the getters it carries. */
-internal fun BytecodePatchContext.appAbClassType(): String = synchronized(resolved) {
+private class AppAbClasses(val main: String, val twins: List<String>)
+
+private val resolved = WeakHashMap<BytecodePatchContext, AppAbClasses>()
+
+private fun BytecodePatchContext.appAbClasses(): AppAbClasses = synchronized(resolved) {
     resolved.getOrPut(this) {
-        val carriers = mutableListOf<ClassDef>()
+        val main = mutableListOf<String>()
+        val twins = mutableListOf<String>()
         classDefForEach { classDef ->
-            if (classDef.methods.count() < APP_AB_SHAPES.size) return@classDefForEach
-            val shapes = classDef.methods.mapNotNullTo(HashSet()) { it.instanceShape() }
-            if (shapes.containsAll(APP_AB_SHAPES)) carriers += classDef
+            when (appAbRole(classDef)) {
+                AppAbRole.MAIN -> main += classDef.type
+                AppAbRole.TWIN -> twins += classDef.type
+                null -> Unit
+            }
         }
-        carriers.singleOrNull()?.type ?: throw PatchException(
-            "App AB boundary: expected one class carrying all seven AB getter shapes, found ${carriers.size}.",
-        )
+        if (main.size != 1) {
+            throw PatchException(
+                "App AB boundary: expected one class carrying all seven AB getter shapes, found ${main.size}.",
+            )
+        }
+        AppAbClasses(main.single(), twins)
     }
 }
 
+/** The type of the main app AB class (all seven getter shapes) in the build being patched. */
+internal fun BytecodePatchContext.appAbClassType(): String = appAbClasses().main
+
 internal fun BytecodePatchContext.appAbClass(): MutableClass = mutableClassDefBy(appAbClassType())
+
+/**
+ * Every class carrying the six typed getters: the main class first, then its twins (where 47.x+
+ * / 48.0.2 land nearly every gate read).
+ */
+internal fun BytecodePatchContext.appAbTypedClasses(): List<MutableClass> =
+    appAbClasses().let { listOf(it.main) + it.twins }.map { mutableClassDefBy(it) }
+
+internal fun MutableClass.methodsOfShape(shape: MethodShape, what: String): List<MutableMethod> {
+    val matches = methods.filter { it.shape() == shape }
+    if (matches.isEmpty()) {
+        throw PatchException("$what: expected a ${shape.returnType}${shape.parameters} on $type, found none.")
+    }
+    return matches
+}
+
+private fun MutableClass.methodOfShape(shape: MethodShape, what: String): MutableMethod {
+    val matches = methods.filter { it.shape() == shape }
+    if (matches.size != 1) {
+        throw PatchException("$what: expected one ${shape.returnType}${shape.parameters} on $type, found ${matches.size}.")
+    }
+    return matches.single()
+}
 
 internal fun BytecodePatchContext.hookAppAbIntBoundary(
     extensionDescriptor: String,
     extensionMethod: String,
-) {
-    appAbClass().methods.single {
-        it.name == APP_AB_INT_METHOD && it.instanceShape() == ("I" to APP_AB_INT_PARAMETERS)
-    }.apply {
-        implementation!!.instructions.withIndex()
-            .filter { it.value.opcode == Opcode.RETURN }
-            .map { it.index }
-            .asReversed()
-            .forEach { returnIndex ->
-                val register = getInstruction<OneRegisterInstruction>(returnIndex).registerA
-                addInstructions(
-                    returnIndex,
-                    """
-                        invoke-static {$APP_AB_INT_KEY_REGISTER, v$register}, $extensionDescriptor->$extensionMethod(Ljava/lang/String;I)I
-                        move-result v$register
-                    """,
-                )
-            }
-    }
-}
+) = hookAppAbBoundary(APP_AB_INT, APP_AB_INT_KEY_REGISTER, "I", "App AB int boundary", extensionDescriptor, extensionMethod)
 
-/** The boolean getter: `(int, String key, boolean, boolean)` returning boolean; key in p2. */
-private val APP_AB_BOOLEAN_PARAMETERS = listOf("I", STRING, "Z", "Z")
-private const val APP_AB_BOOLEAN_KEY_REGISTER = 2
+private const val APP_AB_BOOLEAN_KEY_REGISTER = "p2"
 
 /**
  * As [hookAppAbIntBoundary], for the app AB boolean getter: every value it returns first goes
@@ -97,31 +125,33 @@ private const val APP_AB_BOOLEAN_KEY_REGISTER = 2
 internal fun BytecodePatchContext.hookAppAbBooleanBoundary(
     extensionDescriptor: String,
     extensionMethod: String,
-) {
-    val getters = appAbClass().methods.filter { it.instanceShape() == ("Z" to APP_AB_BOOLEAN_PARAMETERS) }
-    if (getters.size != 1) {
-        throw PatchException("App AB boolean boundary: expected one boolean getter, found ${getters.size}.")
-    }
-    getters.single().apply {
-        val registerCount = implementation!!.registerCount
-        // p2 as a v-register: parameters sit at the top of the frame (this, int, key, ...).
-        val keyRegister = registerCount - 5 + APP_AB_BOOLEAN_KEY_REGISTER
+) = hookAppAbBoundary(APP_AB_BOOLEAN, APP_AB_BOOLEAN_KEY_REGISTER, "Z", "App AB boolean boundary", extensionDescriptor, extensionMethod)
+
+private fun BytecodePatchContext.hookAppAbBoundary(
+    shape: MethodShape,
+    keyRegister: String,
+    valueType: String,
+    what: String,
+    extensionDescriptor: String,
+    extensionMethod: String,
+) = appAbTypedClasses().forEach { holder ->
+    holder.methodOfShape(shape, what).apply {
         val returns = implementation!!.instructions.withIndex()
             .filter { it.value.opcode == Opcode.RETURN }
             .map { it.index }
-        if (returns.isEmpty()) throw PatchException("App AB boolean boundary: the getter has no return.")
+        check(returns.isNotEmpty()) {
+            "$what: $definingClass->$name has no $valueType return to hook for $extensionMethod."
+        }
         returns.asReversed().forEach { returnIndex ->
             val register = getInstruction<OneRegisterInstruction>(returnIndex).registerA
-            if (keyRegister > 15 || register > 15) {
-                throw PatchException("App AB boolean boundary: registers above v15 (key v$keyRegister, value v$register).")
-            }
-            addInstructionsAtControlFlowLabel(
-                returnIndex,
-                """
-                    invoke-static {v$keyRegister, v$register}, $extensionDescriptor->$extensionMethod(Ljava/lang/String;Z)Z
-                    move-result v$register
-                """,
+            val call = callThroughLocals(
+                what,
+                "invoke-static",
+                "$extensionDescriptor->$extensionMethod(Ljava/lang/String;$valueType)$valueType",
+                objectIn(keyRegister),
+                valueIn("v$register"),
             )
+            addInstructionsAtControlFlowLabel(returnIndex, "$call\nmove-result v$register")
         }
     }
 }

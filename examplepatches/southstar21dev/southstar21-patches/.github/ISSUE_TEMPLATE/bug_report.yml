@@ -1,48 +1,121 @@
-name: 🐞 Bug report
-description: Report a bug or an issue.
+name: Bug report
+description: Something in a patch doesn't work as it should, on a supported app version.
 title: "bug: "
-labels: ["Bug report"]
+labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
-        # southstar21's Patches bug report
+        **Before you start**
 
-        Before creating a new bug report, please keep the following in mind:
-
-        - **Do not submit a duplicate bug report**: Search for existing bug reports [here](https://github.com/southstar21dev/southstar21-patches/issues?q=label%3A%22Bug+report%22).
-        - **Review the contribution guidelines**: Make sure your bug report adheres to it. You can find the guidelines [here](https://github.com/southstar21dev/southstar21-patches).
-  - type: textarea
+        - Search [open and closed issues](https://github.com/southstar21dev/southstar21-patches/issues?q=is%3Aissue) first. Duplicates get closed.
+        - One bug per issue.
+        - Only the app versions listed in the [README](https://github.com/southstar21dev/southstar21-patches#patches) are supported. Update before reporting.
+  - type: dropdown
+    id: app
     attributes:
-      label: Bug description
-      description: |
-        - Describe your bug in detail
-        - Add steps to reproduce the bug if possible (Step 1. ... Step 2. ...)
-        - Add images and videos if possible
+      label: App
+      options:
+        - Instagram
+        - YouTube Music
+        - Spotify
+    validations:
+      required: true
+  - type: dropdown
+    id: patch
+    attributes:
+      label: Patch
+      description: Pick every patch involved, or "Not sure".
+      multiple: true
+      options:
+        - Liquid Glass navigation bar
+        - Conscious gate
+        - Disable Reels
+        - Hide ads
+        - View profile picture
+        - Hide navigation buttons
+        - Hide Ask Music button
+        - Disable dynamic player color
+        - Settings menu
+        - Not sure
+    validations:
+      required: true
+  - type: input
+    id: app-version
+    attributes:
+      label: App version
+      description: Settings, Apps, the app, App info.
+      placeholder: "456.1.0.56.78"
+    validations:
+      required: true
+  - type: input
+    id: patches-version
+    attributes:
+      label: Patches version
+      description: Shown in Morphe Manager under patch sources.
+      placeholder: "v1.5.0"
+    validations:
+      required: true
+  - type: input
+    id: phone
+    attributes:
+      label: Phone
+      placeholder: "Samsung Galaxy A17 5G"
+    validations:
+      required: true
+  - type: dropdown
+    id: android
+    attributes:
+      label: Android version
+      description: The glass looks different below Android 13.
+      options:
+        - Android 17
+        - Android 16
+        - Android 15
+        - Android 14
+        - Android 13
+        - Android 12
+        - Android 11 or older
     validations:
       required: true
   - type: textarea
+    id: what
     attributes:
-      label: Error logs
-      description: Exceptions can be captured by running `logcat | grep AndroidRuntime` in a shell.
+      label: What happened?
+      description: What you saw, and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the home feed
+        2. Tap the Reels tab
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: media
+    attributes:
+      label: Screen recording or screenshots
+      description: Required for anything visual. Drag files into the box. Hide your username and other people's content if you like.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Optional. For crashes, run `adb logcat -d > log.txt` right after it happens and attach the file.
       render: shell
-  - type: textarea
-    attributes:
-      label: Solution
-      description: If applicable, add a possible solution to the bug.
-  - type: textarea
-    attributes:
-      label: Additional context
-      description: Add additional context here.
   - type: checkboxes
-    id: acknowledgements
+    id: checks
     attributes:
-      label: Acknowledgements
-      description: Your bug report will be closed if you don't follow the checklist below.
+      label: Before submitting
       options:
-        - label: I have checked all open and closed bug reports and this is not a duplicate.
+        - label: I searched open and closed issues and this isn't a duplicate.
           required: true
-        - label: I have chosen an appropriate title.
+        - label: I'm on the app version the README lists, patched with the latest patches.
           required: true
-        - label: All requested information has been provided properly.
+        - label: This issue is about one bug only.
           required: true

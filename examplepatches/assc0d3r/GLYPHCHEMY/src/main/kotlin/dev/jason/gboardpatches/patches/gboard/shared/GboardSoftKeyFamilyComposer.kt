@@ -101,18 +101,27 @@ internal enum class GboardSoftKeyFamilyFeature(
 }
 
 internal fun interface GboardSoftKeyFamilyTransformation {
-    fun apply(ownerClass: MutableClass, selectedFeatures: Collection<GboardSoftKeyFamilyFeature>)
+    fun apply(
+        ownerClass: MutableClass,
+        selectedFeatures: Collection<GboardSoftKeyFamilyFeature>,
+        metadataTargets: GboardSoftKeyMetadataTargets,
+    )
 }
 
 internal val gboardSoftKeyFamilyTransformation = GboardSoftKeyFamilyTransformation {
         ownerClass,
         features,
+        metadataTargets,
     ->
     if (features.isEmpty()) return@GboardSoftKeyFamilyTransformation
     val selected = features.toSet()
     check(selected.size == features.size) { "Duplicate SoftKey-family feature intent" }
 
-    val plan = GboardSoftKeyFamilyTransformationPlan.preflight(ownerClass, selected)
+    val plan = GboardSoftKeyFamilyTransformationPlan.preflight(
+        ownerClass,
+        selected,
+        metadataTargets,
+    )
     plan.commit()
 }
 
@@ -127,9 +136,11 @@ private val gboardSoftKeyFamilyComposerPatch = bytecodePatch(
     finalize {
         val selected = GboardSoftKeyFamilyFeatureSelections.take(this)
         if (selected.isEmpty()) return@finalize
+        val metadataTargets = gboardSoftKeyMetadataTargets(this)
         gboardSoftKeyFamilyTransformation.apply(
             GboardVersionBindings.softKeyBind.ownerClass(this),
             selected,
+            metadataTargets,
         )
     }
 }
@@ -183,6 +194,7 @@ private data class GboardSoftKeyFamilyTransformationPlan(
         fun preflight(
             ownerClass: MutableClass,
             selected: Set<GboardSoftKeyFamilyFeature>,
+            metadataTargets: GboardSoftKeyMetadataTargets,
         ): GboardSoftKeyFamilyTransformationPlan {
             val target = ownerClass.resolveSoftKeyTargetForPreflight()
             target.requireSoftKeyTargetShape()
@@ -190,18 +202,18 @@ private data class GboardSoftKeyFamilyTransformationPlan(
             selected.verifyRuntimeAbis()
 
             if (ownerClass.hasAnySoftKeyFamilyState(target)) {
-                ownerClass.verifyExactSoftKeyFamilyState(selected)
+                ownerClass.verifyExactSoftKeyFamilyState(selected, metadataTargets)
                 return GboardSoftKeyFamilyTransformationPlan(ownerClass, null)
             }
 
             target.requireSupportedSoftKeyStock()
             val candidate = MutableClass(ownerClass)
             if (GboardSoftKeyFamilyFeature.ENGLISH_QWERTY in selected) {
-                candidate.installGboardEnglishQwertySoftKeyHelpers()
+                candidate.installGboardEnglishQwertySoftKeyHelpers(metadataTargets)
             }
             val candidateTarget = GboardVersionBindings.softKeyBind.resolve(candidate)
             candidateTarget.applySelectedSoftKeyFamily(selected)
-            candidate.verifyExactSoftKeyFamilyState(selected)
+            candidate.verifyExactSoftKeyFamilyState(selected, metadataTargets)
 
             val originalTarget = target
             val committed = ownerClass.methods.toMutableSet().apply {
@@ -380,6 +392,7 @@ private fun emitSoftKeyRuntimeCall(call: RuntimeCallId, registers: String): Stri
 
 private fun MutableClass.verifyExactSoftKeyFamilyState(
     selected: Set<GboardSoftKeyFamilyFeature>,
+    metadataTargets: GboardSoftKeyMetadataTargets,
 ) {
     val actualTarget = GboardVersionBindings.softKeyBind.resolve(this)
     val expectedEnglish = GboardSoftKeyFamilyFeature.ENGLISH_QWERTY in selected
@@ -400,7 +413,7 @@ private fun MutableClass.verifyExactSoftKeyFamilyState(
     normalizedTarget.requireSupportedSoftKeyStock()
 
     val expected = MutableClass(normalized)
-    if (expectedEnglish) expected.installGboardEnglishQwertySoftKeyHelpers()
+    if (expectedEnglish) expected.installGboardEnglishQwertySoftKeyHelpers(metadataTargets)
     val expectedTarget = GboardVersionBindings.softKeyBind.resolve(expected)
     expectedTarget.applySelectedSoftKeyFamily(selected)
     check(actualTarget.gboardStructuralFingerprint() == expectedTarget.gboardStructuralFingerprint()) {

@@ -9,82 +9,14 @@ A collection of font-related [Morphe](https://morphe.software) patches to improv
 ## 🩹 Patches list
 
 <!-- PATCHES_START -->
-> **[v1.12.0](https://github.com/ch3thanhs/stylus/releases/tag/v1.12.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;11 patches total
-<details open>
-<summary>📦 Bitwarden&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
-<br>
+> **[v1.12.1](https://github.com/ch3thanhs/stylus/releases/tag/v1.12.1)**&nbsp;&nbsp;&middot;&nbsp;&nbsp;`main`&nbsp;&nbsp;&middot;&nbsp;&nbsp;**11 patches** across **4 apps**&nbsp;&nbsp;&middot;&nbsp;&nbsp;[Full details](PATCHES.md)
 
-**Package name:** `com.x8bit.bitwarden`
-
-**🎯 Supported versions:**
-
-| 2026.11.1 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Custom font](#custom-font) | Replaces the bundled Inter UI font with your own font. | • Custom font<br>• Font feature settings |
-| [Custom monospace font](#custom-monospace-font) | Replaces the bundled Roboto Mono font with your own monospace font. | • Custom monospace font |
-| [Force system font](#force-system-font) | Uses the device's system font for UI text. Monospace text keeps its bundled font. |  |
-
-</details>
-
-<details open>
-<summary>📦 ChatGPT&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
-<br>
-
-**Package name:** `com.openai.chatgpt`
-
-**🎯 Supported versions:**
-
-| 1.2026.321 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Custom font](#custom-font) | Replaces ChatGPT's UI fonts with your own font. | • Custom font<br>• Font feature settings |
-| [Custom monospace font](#custom-monospace-font) | Replaces ChatGPT's monospace fonts with your own monospace font. | • Custom monospace font |
-
-</details>
-
-<details open>
-<summary>📦 GitHub&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
-<br>
-
-**Package name:** `com.github.android`
-
-**🎯 Supported versions:**
-
-| 1.284.0 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Custom font](#custom-font) | Replaces the bundled Inter and Mona Sans UI fonts with your own font. | • Custom font<br>• Font feature settings |
-| [Custom monospace font](#custom-monospace-font) | Replaces the bundled Roboto Mono code font with your own monospace font. | • Custom monospace font |
-| [Force system font](#force-system-font) | Uses the device's system font for UI text. |  |
-| [Force system font (including monospace)](#force-system-font-including-monospace) | Uses the device's system font for UI and monospace text. |  |
-
-</details>
-
-<details open>
-<summary>📦 Where is my Train&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
-<br>
-
-**Package name:** `com.whereismytrain.android`
-
-**🎯 Supported versions:**
-
-| 7.1.5.1012928357 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Custom font](#custom-font) | Replaces the bundled Google Sans, Nunito Sans, and Roboto UI fonts with your own font. | • Custom font<br>• Font feature settings |
-| [Force system font](#force-system-font) | Uses the device's system font for UI text. |  |
-
-</details>
-
+| # | App | Patches | Version | Package |
+|---|---|---|---|---|
+| 1 | <img src="https://publicmetadata.co.uk/com.x8bit.bitwarden" width="24" height="24" alt=""> [**Bitwarden**](PATCHES.md#bitwarden-comx8bitbitwarden) | 3 | `2026.11.1` | [`com.x8bit.bitwarden`](https://play.google.com/store/apps/details?id=com.x8bit.bitwarden) |
+| 2 | <img src="https://publicmetadata.co.uk/com.openai.chatgpt" width="24" height="24" alt=""> [**ChatGPT**](PATCHES.md#chatgpt-comopenaichatgpt) | 2 | `1.2026.321` | [`com.openai.chatgpt`](https://play.google.com/store/apps/details?id=com.openai.chatgpt) |
+| 3 | <img src="https://publicmetadata.co.uk/com.github.android" width="24" height="24" alt=""> [**GitHub**](PATCHES.md#github-comgithubandroid) | 4 | `1.285.0` | [`com.github.android`](https://play.google.com/store/apps/details?id=com.github.android) |
+| 4 | <img src="https://publicmetadata.co.uk/com.whereismytrain.android" width="24" height="24" alt=""> [**Where is my Train**](PATCHES.md#where-is-my-train-comwhereismytrainandroid) | 2 | `7.1.5.1012928357` | [`com.whereismytrain.android`](https://play.google.com/store/apps/details?id=com.whereismytrain.android) |
 <!-- PATCHES_END -->
 
 #### How to use these patches

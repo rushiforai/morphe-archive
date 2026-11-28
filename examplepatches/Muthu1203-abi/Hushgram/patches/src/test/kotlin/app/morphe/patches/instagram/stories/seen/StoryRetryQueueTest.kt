@@ -1,0 +1,730 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.morphe.patches.instagram.stories.seen
+
+import app.morphe.Fixtures
+import app.morphe.PatchContexts
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patches.instagram.misc.extension.localRegisterCount
+import app.morphe.patches.instagram.misc.extension.parameterRegisterNumber
+import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.namedRegisters
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.AnnotationVisibility
+import com.android.tools.smali.dexlib2.MethodHandleType
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.Opcodes
+import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
+import com.android.tools.smali.dexlib2.dexbacked.DexBackedMethod
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodHandleReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableAnnotation
+import com.android.tools.smali.dexlib2.immutable.ImmutableAnnotationElement
+import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
+import com.android.tools.smali.dexlib2.immutable.ImmutableField
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21t
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21c
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction45cc
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableCallSiteReference
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableFieldReference
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodHandleReference
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodProtoReference
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
+import com.android.tools.smali.dexlib2.immutable.value.ImmutableArrayEncodedValue
+import com.android.tools.smali.dexlib2.immutable.value.ImmutableMethodEncodedValue
+import com.android.tools.smali.dexlib2.immutable.value.ImmutableMethodHandleEncodedValue
+import com.android.tools.smali.dexlib2.writer.io.MemoryDataStore
+import com.android.tools.smali.dexlib2.writer.pool.DexPool
+import java.nio.ByteBuffer
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class StoryRetryQueueTest {
+    private val fixtures = StorySeenHookTest()
+
+    @Test fun cancellationSkipsClaimAndContinuesTheOwnedSnapshotWithoutChangingEitherMap() = verify(fixtures.standIns())
+
+    @Test fun cancellationInAnOutlinedStepSkipsClaimAndReturnsToTheLoop() {
+        val classes = fixtures.standIns(splitQueue = true)
+        val queue = PatchContexts.of(classes).findStorySeen().queue!!
+        assertEquals("A0Q", queue.run)
+        assertEquals(listOf("Ljava/lang/String;", "Ljava/lang/Object;"), queue.parameters)
+        assertEquals("A0I", queue.sweep)
+        verify(classes)
+    }
+
+    @Test fun anOutlinedStepWithASecondCallerRefusesUntouched() {
+        val classes = fixtures.standIns(splitQueue = true)
+        val found = PatchContexts.of(classes).findStorySeen()
+        val owner = classes.single { it.type == found.queue!!.owner }
+        val loop = owner.sweep(found.queue!!)
+        val second = ImmutableMethod(loop.definingClass, "anotherLoop", loop.parameters, loop.returnType, loop.accessFlags, null, null, loop.implementation)
+        refused(replace(classes, owner, methods = owner.methods.toList() + second), "expected one call of the request step, found 2")
+    }
+
+    @Test fun aSiblingStoreHandingTheStepAnItemWithoutSuperRefusesUntouched() = refused(
+        fixtures.standIns(splitQueue = true, siblingHandBack = "invoke-virtual"), "expected one call of the request step, found 2")
+
+    @Test fun theStoryStoreHandingTheStepAnItemBySuperRefusesUntouched() {
+        val classes = fixtures.standIns(splitQueue = true)
+        val found = PatchContexts.of(classes).findStorySeen()
+        val store = classes.single { it.type == found.store }
+        val step = owner(classes, found).hooked(found.queue!!)
+        val handBack = storyQueueMethod(store.type, "handBack", step.parameterTypes.map(Any::toString), "V", 3, """
+            invoke-super { p0, p1, p2 }, $step
+            return-void
+        """)
+        refused(replace(classes, store, methods = store.methods.toList() + handBack), "expected one call of the request step, found 2")
+    }
+
+    @Test fun anOutlinedStepTheStoreOverridesRefusesUntouched() {
+        val classes = fixtures.standIns(splitQueue = true)
+        val found = PatchContexts.of(classes).findStorySeen()
+        val store = classes.single { it.type == found.store }
+        val step = owner(classes, found).hooked(found.queue!!)
+        val shadow = storyQueueMethod(store.type, step.name, step.parameterTypes.map(Any::toString), "V", 3, "return-void")
+        refused(replace(classes, store, methods = store.methods.toList() + shadow), "story store overrides the loop's request step")
+    }
+
+    @Test fun anOutlinedStepOutsideASynchronizedLoopRefusesUntouched() {
+        val classes = fixtures.standIns(splitQueue = true)
+        val found = PatchContexts.of(classes).findStorySeen()
+        val owner = owner(classes, found)
+        val loop = owner.sweep(found.queue!!)
+        val open = ImmutableMethod(loop.definingClass, loop.name, loop.parameters, loop.returnType,
+            loop.accessFlags and AccessFlags.DECLARED_SYNCHRONIZED.value.inv(), null, null, loop.implementation)
+        refused(replace(classes, owner, methods = owner.methods.map { if (it == loop) open else it }), "request step isn't called by its owner's synchronized loop")
+    }
+
+    @Test fun aStockNullRequestStaysOnTheOriginalNativePath() {
+        val classes = fixtures.standIns()
+        val found = PatchContexts.of(classes).findStorySeen()
+        verify(classes)
+        val context = PatchContexts.of(classes)
+        context.holdBackStoryViews()
+        // Fault injection after discovery models a native request becoming null at run time.
+        val bridge = context.mutableClassDefBy(found.store).methods.single { it.name == found.retry!!.name }
+        val last = bridge.code().lastIndex
+        val register = bridge.code().last().namedRegisters().single()
+        bridge.replaceInstruction(last, "const/16 v$register, 0x0")
+        bridge.addInstructionsWithLabels(last + 1, "return-object v$register")
+        assertEquals(Opcode.CONST_16, bridge.code()[last].opcode)
+        assertEquals(Opcode.RETURN_OBJECT, bridge.code().last().opcode)
+        val queue = found.queue!!
+        val loop = context.mutableClassDefBy(queue.owner).hooked(queue).code()
+        val native = (queue.beforeClaim + 7 until loop.size).first { loop[it].opcode == Opcode.INVOKE_VIRTUAL }
+        assertEquals("the stock builder receives the selected batch", queue.batch, loop[native].namedRegisters()[1])
+        assertEquals(Opcode.MOVE_RESULT_OBJECT, loop[native + 1].opcode)
+        assertEquals("stock null results go through the original callback and scheduler", Opcode.INVOKE_VIRTUAL, loop[native + 2].opcode)
+        assertTrue("no cancellation decision reads the native request result", loop.drop(native).none { it.reference() == TO_RETRY })
+    }
+
+    @Test fun anotherPendingStoreCanReturnNullWithoutStorySelection() {
+        val classes = fixtures.standIns()
+        val found = PatchContexts.of(classes).findStorySeen()
+        val bridge = classes.single { it.type == found.store }.methods.single { it.name == found.retry!!.name }
+        val other = "Lfixture/OtherPendingStore;"
+        val nullBuilder = storyQueueMethod(other, bridge.name, listOf("Ljava/lang/Object;"), bridge.returnType, 3, """
+            const/4 v0, 0x0
+            return-object v0
+        """)
+        val unrelated = ImmutableClassDef(other, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value,
+            found.queue!!.owner, null, null, null, null, listOf(nullBuilder))
+        verify(classes + unrelated)
+        val context = PatchContexts.of(classes + unrelated)
+        context.holdBackStoryViews()
+        val queue = found.queue
+        val loop = context.mutableClassDefBy(queue.owner).hooked(queue).code()
+        assertEquals("only the story store is tested", found.store, loop[queue.beforeClaim].reference())
+        assertEquals("another store goes directly to its original native claim", queue.beforeClaim + 6,
+            target(loop, queue.beforeClaim + 1))
+        val kept = context.classDefByOrNull(other)!!.methods.single()
+        assertEquals(nullBuilder.code().map { it.opcode to it.reference() }, kept.code().map { it.opcode to it.reference() })
+    }
+
+    @Test fun declaredNativeBuildPreservesTheQueueDiskCleanupAndOtherStores() {
+        val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
+        val checked = mutableSetOf<String>()
+        for (version in versions) for (bundle in Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") }) {
+            verify(fixtures.fixtureClasses(bundle))
+            checked += version
+        }
+        assertEquals(versions, checked)
+    }
+
+    @Test
+    fun eachOtherNativeBuildPreservesTheQueueDiskCleanupAndOtherStoresToo() {
+        for (base in Fixtures.otherBuilds()) verify(fixtures.fixtureClasses(base))
+    }
+
+    @Test fun sharedOrMutableInFlightMapRefusesUntouched() {
+        val classes = fixtures.standIns()
+        val found = PatchContexts.of(classes).findStorySeen()
+        val owner = classes.single { it.type == found.queue!!.owner }
+        val fields = owner.fields.map { field -> if (field.type == "Ljava/util/Map;")
+            ImmutableField(field.definingClass, field.name, field.type, field.accessFlags and AccessFlags.FINAL.value.inv(), null, null, null)
+            else field }
+        refused(replace(classes, owner, fields = fields), "ownership field isn't final")
+        val constructor = owner.methods.single { it.name == "<init>" }
+        refused(changed(classes, constructor, 5, "new-instance v0, Ljava/util/LinkedHashMap;"), "doesn't create its own native map")
+    }
+
+    @Test fun liveMapIterationRefusesUntouched() {
+        val classes = fixtures.standIns()
+        val found = PatchContexts.of(classes).findStorySeen()
+        val method = classes.single { it.type == found.queue!!.owner }.methods.single { it.name == "A05" }
+        refused(changed(classes, method, 5, "new-instance v0, Ljava/util/HashMap;"), "iteration isn't over an owned key snapshot")
+    }
+
+    @Test fun wrongClaimValueRefusesUntouched() {
+        val classes = fixtures.standIns()
+        val found = PatchContexts.of(classes).findStorySeen()
+        val method = classes.single { it.type == found.queue!!.owner }.methods.single { it.name == "A0G" }
+        refused(changed(classes, method, 15, "invoke-interface { v2, p1, v0 }, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"), "ownership registers")
+    }
+
+    @Test fun foreignLookupRefusesUntouched() {
+        val classes = fixtures.standIns()
+        val found = PatchContexts.of(classes).findStorySeen()
+        val owner = found.queue!!.owner
+        val method = classes.single { it.type == owner }.methods.single { it.name == "A04" }
+        refused(changed(classes, method, 6, "iget-object v1, p0, $owner->pending:Ljava/util/LinkedHashMap;"), "lookup uses another store's maps")
+    }
+
+    @Test fun claimBranchOperandsAndSuccessOrFailureLiteralsRefuseUntouchedOnNative() {
+        for (classes in proofInputs()) claimBranchOperandsAndSuccessOrFailureLiteralsRefuseUntouchedOnNativeCheck(classes)
+    }
+
+    @Test fun claimBranchOperandsAndSuccessOrFailureLiteralsRefuseUntouchedOnNativeOnEachOtherBuildToo() {
+        forOtherInputs(::claimBranchOperandsAndSuccessOrFailureLiteralsRefuseUntouchedOnNativeCheck)
+    }
+
+    @Test fun concreteBridgeAndAbstractBuilderCallersRefuseUntouchedOnNative() {
+        for (classes in proofInputs()) concreteBridgeAndAbstractBuilderCallersRefuseUntouchedOnNativeCheck(classes)
+    }
+
+    @Test fun concreteBridgeAndAbstractBuilderCallersRefuseUntouchedOnNativeOnEachOtherBuildToo() {
+        forOtherInputs(::concreteBridgeAndAbstractBuilderCallersRefuseUntouchedOnNativeCheck)
+    }
+
+    @Test fun overwrittenMonitorAndAliasedClaimMapsRefuseUntouchedOnNative() {
+        for (classes in proofInputs()) overwrittenMonitorAndAliasedClaimMapsRefuseUntouchedOnNativeCheck(classes)
+    }
+
+    @Test fun overwrittenMonitorAndAliasedClaimMapsRefuseUntouchedOnNativeOnEachOtherBuildToo() {
+        forOtherInputs(::overwrittenMonitorAndAliasedClaimMapsRefuseUntouchedOnNativeCheck)
+    }
+
+    @Test fun methodHandlesAndCallSiteArgumentsCannotBypassAnyBridgeOnNative() {
+        for (classes in proofInputs()) methodHandlesAndCallSiteArgumentsCannotBypassAnyBridgeOnNativeCheck(classes)
+    }
+
+    @Test fun methodHandlesAndCallSiteArgumentsCannotBypassAnyBridgeOnNativeOnEachOtherBuildToo() {
+        forOtherInputs(::methodHandlesAndCallSiteArgumentsCannotBypassAnyBridgeOnNativeCheck)
+    }
+
+    @Test fun loopResultsCannotOverwriteTheLiveBatchOrIteratorOnNative() {
+        for (classes in proofInputs()) loopResultsCannotOverwriteTheLiveBatchOrIteratorOnNativeCheck(classes)
+    }
+
+    @Test fun loopResultsCannotOverwriteTheLiveBatchOrIteratorOnNativeOnEachOtherBuildToo() {
+        forOtherInputs(::loopResultsCannotOverwriteTheLiveBatchOrIteratorOnNativeCheck)
+    }
+
+    @Test fun anInterfaceCannotAddDispatchToTheFinalStoryBridgeOnNative() {
+        for (classes in proofInputs()) anInterfaceCannotAddDispatchToTheFinalStoryBridgeOnNativeCheck(classes)
+    }
+
+    @Test fun anInterfaceCannotAddDispatchToTheFinalStoryBridgeOnNativeOnEachOtherBuildToo() {
+        forOtherInputs(::anInterfaceCannotAddDispatchToTheFinalStoryBridgeOnNativeCheck)
+    }
+
+    @Test fun encodedStaticHandlesCannotBypassAnyBridgeOnNative() {
+        for (classes in proofInputs()) encodedStaticHandlesCannotBypassAnyBridgeOnNativeCheck(classes)
+    }
+
+    @Test fun encodedStaticHandlesCannotBypassAnyBridgeOnNativeOnEachOtherBuildToo() {
+        forOtherInputs(::encodedStaticHandlesCannotBypassAnyBridgeOnNativeCheck)
+    }
+
+    @Test fun encodedParameterAnnotationsInTheAppsDexCannotBypassAnyBridgeOnNative() {
+        for (classes in proofInputs()) encodedParameterAnnotationsInTheAppsDexCannotBypassAnyBridgeOnNativeCheck(classes)
+    }
+
+    @Test fun encodedParameterAnnotationsInTheAppsDexCannotBypassAnyBridgeOnNativeOnEachOtherBuildToo() {
+        forOtherInputs(::encodedParameterAnnotationsInTheAppsDexCannotBypassAnyBridgeOnNativeCheck)
+    }
+
+    /**
+     * The proof reads code only where the patcher's index, the extension or a dex's call sites and
+     * method handles say a call can be (#173). Here every class is read back from a written dex, as
+     * the app's are, so none is read just for being made by hand.
+     */
+    @Test fun callersInClassesReadFromADexStillRefuse() {
+        val classes = fixtures.standIns()
+        verify(dexBacked(classes))
+        concreteBridgeAndAbstractBuilderCallersRefuseUntouchedOnNativeCheck(classes, ::dexBacked)
+        methodHandlesAndCallSiteArgumentsCannotBypassAnyBridgeOnNativeCheck(classes, ::dexBacked)
+        val route = assertThrows(PatchException::class.java) {
+            PatchContexts.of(dexBacked(fixtures.standIns(otherRoute = true))).holdBackStoryViews()
+        }
+        assertTrue(route.message, "builds the seen request at instruction 4 from a batch that doesn't go through" in route.message!!)
+    }
+
+    @Test fun missingMonitorHandlerRefusesUntouched() {
+        val classes = fixtures.standIns()
+        val found = PatchContexts.of(classes).findStorySeen()
+        val owner = classes.single { it.type == found.queue!!.owner }
+        val method = owner.sweep(found.queue!!)
+        val bad = ImmutableMethod(method.definingClass, method.name, method.parameters, method.returnType, method.accessFlags, null, null,
+            ImmutableMethodImplementation(method.implementation!!.registerCount, method.code(), emptyList(), null))
+        refused(replace(classes, owner, methods = owner.methods.map { if (it == method) bad else it }), "catch-all lock cleanup")
+    }
+
+    @Test fun anotherRequestBuilderCallerRefusesUntouched() {
+        val classes = fixtures.standIns()
+        val found = PatchContexts.of(classes).findStorySeen()
+        val owner = classes.single { it.type == found.queue!!.owner }
+        val run = owner.hooked(found.queue!!)
+        val second = ImmutableMethod(run.definingClass, "anotherLoop", run.parameters, run.returnType, run.accessFlags, null, null, run.implementation)
+        refused(replace(classes, owner, methods = owner.methods.toList() + second), "expected one request-builder call")
+    }
+
+    @Test fun missingDiskCleanupRefusesUntouched() {
+        val classes = fixtures.standIns()
+        val found = PatchContexts.of(classes).findStorySeen()
+        val reader = classes.single { it.type == found.store }.methods.single { it.name == "A0L" }
+        refused(changed(classes, reader, 10, "nop"), "disk reader no longer reaches its native cleanup")
+    }
+
+    @Test fun diskCleanupCalleeReceiverAndKeyMustMatchTheNativeRead() {
+        for (classes in proofInputs()) diskCleanupCalleeReceiverAndKeyMustMatchTheNativeReadCheck(classes)
+    }
+
+    @Test fun diskCleanupCalleeReceiverAndKeyMustMatchTheNativeReadOnEachOtherBuildToo() {
+        forOtherInputs(::diskCleanupCalleeReceiverAndKeyMustMatchTheNativeReadCheck)
+    }
+
+    @Test fun bridgeWithWorkAfterItsBuildRefusesUntouched() {
+        val classes = fixtures.standIns()
+        val found = PatchContexts.of(classes).findStorySeen()
+        val retry = found.retry!!
+        val method = classes.single { it.type == found.store }.methods.single { it.name == retry.name }
+        refused(changed(classes, method, retry.build + 2, "invoke-static { }, Lfixture/Checks;->cleanup()V"), "bridge has cleanup or other work")
+    }
+
+    @Test fun nativeDiskHelpersRefuseChangedKeyCaptureTaskIdentityAndCleanupUntouched() {
+        for (classes in proofInputs()) nativeDiskHelpersRefuseChangedKeyCaptureTaskIdentityAndCleanupUntouchedCheck(classes)
+    }
+
+    @Test fun nativeDiskHelpersRefuseChangedKeyCaptureTaskIdentityAndCleanupUntouchedOnEachOtherBuildToo() {
+        forOtherInputs(::nativeDiskHelpersRefuseChangedKeyCaptureTaskIdentityAndCleanupUntouchedCheck)
+    }
+
+    private fun verify(classes: List<ClassDef>) {
+        val found = PatchContexts.of(classes).findStorySeen()
+        val queue = found.queue!!
+        val original = classes.single { it.type == queue.owner }.hooked(queue)
+        val context = PatchContexts.of(classes)
+        context.holdBackStoryViews()
+        val patched = context.mutableClassDefBy(queue.owner).hooked(queue)
+        val code = patched.code()
+        val at = queue.beforeClaim
+        assertEquals(listOf(Opcode.INSTANCE_OF, Opcode.IF_EQZ, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT_OBJECT,
+            Opcode.IF_NEZ, Opcode.GOTO), code.subList(at, at + 6).map { it.opcode })
+        assertEquals(listOf(queue.scratch, original.localRegisterCount()), code[at].namedRegisters())
+        assertEquals("only the final story store can take the cancellation path", found.store, code[at].reference())
+        assertEquals(TO_RETRY, code[at + 2].reference())
+        assertEquals(listOf(original.localRegisterCount(), queue.batch), code[at + 2].namedRegisters())
+        assertEquals(listOf(queue.batch), code[at + 3].namedRegisters())
+        assertEquals(listOf(queue.batch), code[at + 4].namedRegisters())
+        assertEquals(at + 6, target(code, at + 1))
+        assertEquals(at + 6, target(code, at + 4))
+        // Through 455 a held story takes the loop's backedge; in 456's step it returns to the loop.
+        assertEquals(if (queue.loop < at) queue.loop else queue.loop + 6, target(code, at + 5))
+        assertEquals("selection precedes the native claim", original.code()[at].reference(), code[at + 6].reference())
+        val build = (at + 1 until original.code().size).first { original.code()[it].opcode == Opcode.INVOKE_VIRTUAL }
+        assertEquals("the selected local reaches the native request builder", listOf(original.localRegisterCount(), queue.batch), code[build + 6].namedRegisters())
+        preserved(original, patched, at, 6)
+
+        assertTrue("cancellation allocates no batch, callback, lambda or request", code.subList(at, at + 6)
+            .none { it.opcode in setOf(Opcode.NEW_INSTANCE, Opcode.NEW_ARRAY, Opcode.FILLED_NEW_ARRAY, Opcode.FILLED_NEW_ARRAY_RANGE) })
+        assertEquals("after a null selection there is only the native snapshot-loop backedge", listOf(Opcode.GOTO), code.subList(at + 5, at + 6).map { it.opcode })
+        for (type in classes) for (method in type.methods) {
+            if (type.type == queue.owner && method.name == queue.run && method.parameterTypes.map(Any::toString) == queue.parameters || type.type == found.store && method.name == found.send ||
+                type.type == found.binder && method.name == found.binderName || type.type.startsWith("Lapp/hushgram/extension/")) continue
+            val after = context.classDefByOrNull(type.type)!!.methods.single { it.name == method.name && it.parameterTypes == method.parameterTypes && it.returnType == method.returnType }
+            assertEquals("${type.type}->${method.name} changed", method.code().map { it.opcode to it.reference() }, after.code().map { it.opcode to it.reference() })
+        }
+    }
+
+    private fun preserved(before: Method, after: Method, at: Int, added: Int) {
+        val old = before.code()
+        val new = after.code()
+        fun mapped(index: Int) = if (index < at) index else index + added
+        assertEquals(old.size + added, new.size)
+        for (i in old.indices) {
+            val changed = mapped(i)
+            assertEquals("opcode $i changed", old[i].opcode, new[changed].opcode)
+            assertEquals("reference $i changed", old[i].reference(), new[changed].reference())
+            assertEquals("registers $i changed", old[i].namedRegisters(), new[changed].namedRegisters())
+            assertEquals("literal $i changed", (old[i] as? NarrowLiteralInstruction)?.narrowLiteral, (new[changed] as? NarrowLiteralInstruction)?.narrowLiteral)
+            if (old[i] is OffsetInstruction) assertEquals("native branch $i changed", mapped(target(old, i)), target(new, changed))
+        }
+        val oldAddresses = addresses(old)
+        val newAddresses = addresses(new)
+        fun moved(address: Int) = newAddresses[mapped(oldAddresses.indexOf(address))]
+        val blocks = after.implementation!!.tryBlocks.toList()
+        assertEquals(before.implementation!!.tryBlocks.size, blocks.size)
+        for ((i, block) in before.implementation!!.tryBlocks.withIndex()) {
+            assertEquals(moved(block.startCodeAddress), blocks[i].startCodeAddress)
+            assertEquals(moved(block.startCodeAddress + block.codeUnitCount), blocks[i].startCodeAddress + blocks[i].codeUnitCount)
+            assertEquals(block.exceptionHandlers.map { it.exceptionType to moved(it.handlerCodeAddress) },
+                blocks[i].exceptionHandlers.map { it.exceptionType to it.handlerCodeAddress })
+        }
+    }
+
+    private fun refused(classes: List<ClassDef>, reason: String) {
+        val context = PatchContexts.of(classes)
+        val error = assertThrows(PatchException::class.java) { context.holdBackStoryViews() }
+        assertTrue(error.message, error.message!!.startsWith("$PATCH: story retry queue") && reason in error.message!!)
+        for (type in classes) for (method in type.methods) {
+            val after = context.classDefByOrNull(type.type)!!.methods.single { it.name == method.name && it.parameterTypes == method.parameterTypes && it.returnType == method.returnType }
+            assertEquals("${type.type}->${method.name} was mutated before refusal", method.proof(), after.proof())
+        }
+    }
+
+    private fun changed(classes: List<ClassDef>, method: Method, at: Int, body: String): List<ClassDef> {
+        return changedAll(classes, method, at to body)
+    }
+
+    private fun changedAll(classes: List<ClassDef>, method: Method, vararg changes: Pair<Int, String>): List<ClassDef> {
+        val mutable = MutableMethod(ImmutableMethod.of(method))
+        for ((at, body) in changes) mutable.replaceInstruction(at, body)
+        val owner = classes.single { it.type == method.definingClass }
+        return replace(classes, owner, methods = owner.methods.map { if (it == method) ImmutableMethod.of(mutable) else it })
+    }
+
+    private fun changed(classes: List<ClassDef>, method: Method, at: Int, instruction: Instruction): List<ClassDef> {
+        val replacement = ImmutableMethod(method.definingClass, method.name, method.parameters, method.returnType, method.accessFlags, null, null,
+            ImmutableMethodImplementation(method.implementation!!.registerCount, method.code().mapIndexed { index, old -> if (index == at) instruction else old },
+                method.implementation!!.tryBlocks, null))
+        val owner = classes.single { it.type == method.definingClass }
+        return replace(classes, owner, methods = owner.methods.map { if (it == method) replacement else it })
+    }
+
+    private fun inserted(classes: List<ClassDef>, method: Method, at: Int, body: String): List<ClassDef> {
+        val mutable = MutableMethod(ImmutableMethod.of(method))
+        mutable.addInstructionsWithLabels(at, body)
+        // Mutate an executed path. Native labels otherwise stay on the old instruction and skip
+        // an inserted overwrite, which would be an inert counterexample on the declared build.
+        val code = mutable.code().toMutableList()
+        val added = code.size - method.code().size
+        val addresses = addresses(code)
+        for ((index, instruction) in method.code().withIndex()) {
+            if (instruction !is OffsetInstruction || target(method.code(), index) != at) continue
+            val now = if (index < at) index else index + added
+            code[now] = ImmutableInstruction21t(instruction.opcode, instruction.namedRegisters().single(), addresses[at] - addresses[now])
+        }
+        val replacement = ImmutableMethod(method.definingClass, method.name, method.parameters, method.returnType, method.accessFlags, null, null,
+            ImmutableMethodImplementation(method.implementation!!.registerCount, code, mutable.implementation!!.tryBlocks, null))
+        val owner = classes.single { it.type == method.definingClass }
+        return replace(classes, owner, methods = owner.methods.map { if (it == method) replacement else it })
+    }
+
+    private fun claimBranchOperandsAndSuccessOrFailureLiteralsRefuseUntouchedOnNativeCheck(classes: List<ClassDef>) {
+        val found = PatchContexts.of(classes).findStorySeen()
+        val owner = classes.single { it.type == found.queue!!.owner }
+        val queue = found.queue!!
+        val claimKey = owner.hooked(queue).code()[queue.beforeClaim].reference()
+        val claim = owner.methods.single { it.toString() == claimKey }
+        val lookupKey = owner.sweep(queue).code()[queue.sweepAt(15)].reference()
+        val lookup = owner.methods.single { it.toString() == lookupKey }
+        refused(changed(classes, claim, 7, ImmutableInstruction21t(Opcode.IF_NEZ, claim.parameterRegisterNumber(0),
+            (claim.code()[7] as OffsetInstruction).codeOffset)), "ownership registers at 7")
+        refused(changed(classes, lookup, 5, ImmutableInstruction21t(Opcode.IF_NEZ, lookup.parameterRegisterNumber(0),
+            (lookup.code()[5] as OffsetInstruction).codeOffset)), "ownership registers at 5")
+        refused(changed(classes, claim, 17, "const/4 v${claim.code()[17].namedRegisters().single()}, 0x0"), "native literal at 17")
+        refused(changed(classes, claim, 0, "const/4 v${claim.code()[0].namedRegisters().single()}, 0x1"), "native literal at 0")
+    }
+
+    private fun concreteBridgeAndAbstractBuilderCallersRefuseUntouchedOnNativeCheck(
+        classes: List<ClassDef>,
+        written: (List<ClassDef>) -> List<ClassDef> = { it },
+    ) {
+        val found = PatchContexts.of(classes).findStorySeen()
+        val bridge = classes.single { it.type == found.store }.methods.single { it.name == found.retry!!.name }
+        for (owner in listOf(found.store, found.queue!!.owner, "Ljava/lang/Object;"))
+            for (type in listOf("Lfixture/OutsideQueue;", "Lapp/hushgram/extension/instagram/stories/OutsideQueue;")) {
+            val caller = storyQueueMethod(type, "build", listOf(found.store, "Ljava/lang/Object;"), bridge.returnType, 4, """
+                invoke-virtual { p1, p2 }, $owner->${bridge.name}(Ljava/lang/Object;)${bridge.returnType}
+                move-result-object v0
+                return-object v0
+            """)
+            val extra = ImmutableClassDef(type, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null, null, listOf(caller))
+            refused(written(classes + extra), if (owner == found.queue.owner) "expected one request-builder call" else "concrete story builder has a caller")
+        }
+    }
+
+    private fun overwrittenMonitorAndAliasedClaimMapsRefuseUntouchedOnNativeCheck(classes: List<ClassDef>) {
+        val found = PatchContexts.of(classes).findStorySeen()
+        val owner = classes.single { it.type == found.queue!!.owner }
+        val queue = found.queue!!
+        val snapshot = owner.methods.single { it.toString() == owner.sweep(queue).code()[queue.sweepAt(3)].reference() }
+        val lock = snapshot.code()[0].namedRegisters().first()
+        val collection = snapshot.code()[4].namedRegisters().single()
+        refused(changedAll(classes, snapshot,
+            5 to "new-instance v$lock, Ljava/util/ArrayList;",
+            6 to "invoke-direct { v$lock, v$collection }, Ljava/util/ArrayList;-><init>(Ljava/util/Collection;)V",
+            8 to "return-object v$lock"), "overwrites its monitor")
+        val claim = owner.methods.single { it.toString() == owner.hooked(queue).code()[queue.beforeClaim].reference() }
+        val pending = claim.code()[4].namedRegisters().first()
+        val flight = claim.code()[10].reference()
+        val key = claim.parameterRegisterNumber(0)
+        val removed = claim.code()[12].namedRegisters().single()
+        refused(changedAll(classes, claim,
+            10 to "iget-object v$pending, p0, $flight",
+            15 to "invoke-interface { v$pending, v$key, v$removed }, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"),
+            "claim aliases its live ownership registers")
+    }
+
+    private fun methodHandlesAndCallSiteArgumentsCannotBypassAnyBridgeOnNativeCheck(
+        classes: List<ClassDef>,
+        written: (List<ClassDef>) -> List<ClassDef> = { it },
+    ) {
+        val found = PatchContexts.of(classes).findStorySeen()
+        val bridge = classes.single { it.type == found.store }.methods.single { it.name == found.retry!!.name }
+        for (owner in listOf(found.store, found.queue!!.owner, "Ljava/lang/Object;")) {
+            val handle = ImmutableMethodHandleReference(MethodHandleType.INVOKE_INSTANCE,
+                ImmutableMethodReference(owner, bridge.name, bridge.parameterTypes, bridge.returnType))
+            val bootstrap = ImmutableMethodHandleReference(MethodHandleType.INVOKE_STATIC,
+                ImmutableMethodReference("Lfixture/Bootstrap;", "capture", emptyList(), "Ljava/lang/invoke/CallSite;"))
+            val callSite = ImmutableCallSiteReference("queue", bootstrap as MethodHandleReference, "build", ImmutableMethodProtoReference(emptyList(), "V"),
+                listOf(ImmutableArrayEncodedValue(listOf(ImmutableMethodHandleEncodedValue(handle)))))
+            for (instruction in listOf(
+                ImmutableInstruction21c(Opcode.CONST_METHOD_HANDLE, 0, handle),
+                ImmutableInstruction35c(Opcode.INVOKE_CUSTOM, 0, 0, 0, 0, 0, 0, callSite),
+            )) for (type in listOf("Lfixture/IndirectQueueCaller;", "Lapp/hushgram/extension/instagram/stories/IndirectQueueCaller;")) {
+                val caller = storyQueueMethod(type, "capture", emptyList(), "V", 1, "const/4 v0, 0x0\nreturn-void", static = true)
+                val extra = ImmutableClassDef(type, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null, null, listOf(caller))
+                refused(written(changed(classes + extra, caller, 0, instruction)), "indirect story builder reference")
+            }
+        }
+    }
+
+    private fun loopResultsCannotOverwriteTheLiveBatchOrIteratorOnNativeCheck(classes: List<ClassDef>) {
+        val found = PatchContexts.of(classes).findStorySeen()
+        val queue = found.queue!!
+        val owner = owner(classes, found)
+        val sweep = owner.sweep(queue)
+        for ((run, result, register) in listOf(
+            Triple(owner.hooked(queue), queue.beforeClaim + 1, queue.batch),
+            Triple(sweep, queue.sweepAt(9), sweep.code()[queue.sweepAt(6)].namedRegisters().single()),
+        )) {
+            val branch = result + 1
+            val alias = changed(classes, run, result, ImmutableInstruction11x(Opcode.MOVE_RESULT, register))
+            val aliasedRun = alias.single { it.type == run.definingClass }.methods.single { it.name == run.name && it.parameterTypes.map(Any::toString) == run.parameterTypes.map(Any::toString) }
+            refused(changed(alias, aliasedRun, branch, ImmutableInstruction21t(Opcode.IF_EQZ, register,
+                (run.code()[branch] as OffsetInstruction).codeOffset)), "loop aliases its live ownership registers")
+        }
+    }
+
+    private fun anInterfaceCannotAddDispatchToTheFinalStoryBridgeOnNativeCheck(classes: List<ClassDef>) {
+        val found = PatchContexts.of(classes).findStorySeen()
+        val store = classes.single { it.type == found.store }
+        val bridge = store.methods.single { it.name == found.retry!!.name }
+        val contract = "Lfixture/StoryBuilder;"
+        val declaration = ImmutableMethod(contract, bridge.name, bridge.parameters, bridge.returnType,
+            AccessFlags.PUBLIC.value or AccessFlags.ABSTRACT.value, null, null, null)
+        val interfaceType = ImmutableClassDef(contract,
+            AccessFlags.PUBLIC.value or AccessFlags.INTERFACE.value or AccessFlags.ABSTRACT.value,
+            "Ljava/lang/Object;", null, null, null, null, listOf(declaration))
+        val changedStore = ImmutableClassDef(store.type, store.accessFlags, store.superclass,
+            listOf(contract), null, null, store.fields, store.methods)
+        val callerType = "Lfixture/InterfaceQueueCaller;"
+        val caller = storyQueueMethod(callerType, "build", listOf(contract, "Ljava/lang/Object;"), bridge.returnType, 4, """
+            invoke-interface { p1, p2 }, $contract->${bridge.name}(Ljava/lang/Object;)${bridge.returnType}
+            move-result-object v0
+            return-object v0
+        """)
+        val extra = ImmutableClassDef(callerType, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null, null, listOf(caller))
+        refused(classes.map { if (it.type == store.type) changedStore else it } + interfaceType + extra, "store isn't final without interfaces")
+    }
+
+    private fun encodedStaticHandlesCannotBypassAnyBridgeOnNativeCheck(classes: List<ClassDef>) {
+        val found = PatchContexts.of(classes).findStorySeen()
+        val bridge = classes.single { it.type == found.store }.methods.single { it.name == found.retry!!.name }
+        for (owner in listOf(found.store, found.queue!!.owner, "Ljava/lang/Object;")) {
+            val type = "Lfixture/EncodedQueueCaller;"
+            val handle = ImmutableMethodHandleReference(MethodHandleType.INVOKE_INSTANCE,
+                ImmutableMethodReference(owner, bridge.name, bridge.parameterTypes, bridge.returnType))
+            val field = ImmutableField(type, "build", "Ljava/lang/invoke/MethodHandle;",
+                AccessFlags.PUBLIC.value or AccessFlags.STATIC.value or AccessFlags.FINAL.value,
+                ImmutableMethodHandleEncodedValue(handle), null, null)
+            val caller = storyQueueMethod(type, "call", listOf(found.store, "Ljava/lang/Object;"), bridge.returnType, 3,
+                "const/4 v0, 0x0\nconst/4 v0, 0x0\nmove-result-object v0\nreturn-object v0", static = true)
+            val extra = ImmutableClassDef(type, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null, listOf(field), listOf(caller))
+            val withField = changed(classes + extra, caller, 0,
+                ImmutableInstruction21c(Opcode.SGET_OBJECT, 0, ImmutableFieldReference(type, field.name, field.type)))
+            val fieldCaller = withField.single { it.type == type }.methods.single()
+            val code = changed(withField, fieldCaller, 1, ImmutableInstruction45cc(Opcode.INVOKE_POLYMORPHIC, 3, 0, 1, 2, 0, 0,
+                    ImmutableMethodReference("Ljava/lang/invoke/MethodHandle;", "invokeExact", listOf("[Ljava/lang/Object;"), "Ljava/lang/Object;"),
+                    ImmutableMethodProtoReference(listOf(owner, "Ljava/lang/Object;"), bridge.returnType)))
+            refused(code, "encoded story builder reference")
+        }
+    }
+
+    /**
+     * The declaration walk reads a method from the app's dex for its parameters' annotations alone,
+     * without decoding each parameter's type and name (#173). The mark sits on the second of two
+     * parameters, so a pairing off by one finds nothing.
+     */
+    private fun encodedParameterAnnotationsInTheAppsDexCannotBypassAnyBridgeOnNativeCheck(classes: List<ClassDef>) {
+        val found = PatchContexts.of(classes).findStorySeen()
+        val bridge = classes.single { it.type == found.store }.methods.single { it.name == found.retry!!.name }
+        for (owner in listOf(found.store, found.queue!!.owner, "Ljava/lang/Object;")) {
+            val type = "Lfixture/AnnotatedQueueCaller;"
+            val mark = ImmutableAnnotation(AnnotationVisibility.RUNTIME, "Lfixture/QueueMark;", setOf(ImmutableAnnotationElement("value",
+                ImmutableMethodEncodedValue(ImmutableMethodReference(owner, bridge.name, bridge.parameterTypes, bridge.returnType)))))
+            val method = ImmutableMethod(type, "mark", listOf(ImmutableMethodParameter("I", null, null),
+                ImmutableMethodParameter("Ljava/lang/Object;", setOf(mark), null)), "V",
+                AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null,
+                ImmutableMethodImplementation(2, listOf(ImmutableInstruction10x(Opcode.RETURN_VOID)), null, null))
+            val extra = dexBacked(listOf(ImmutableClassDef(type, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null, null,
+                listOf(method)))).single()
+            assertTrue(extra.methods.single() is DexBackedMethod)
+            refused(classes + extra, "encoded story builder reference")
+        }
+    }
+
+    private fun diskCleanupCalleeReceiverAndKeyMustMatchTheNativeReadCheck(classes: List<ClassDef>) {
+        val found = PatchContexts.of(classes).findStorySeen()
+        val reader = classes.single { it.type == found.store }.methods.single { method ->
+            method.code().any { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == "PendingReelSeenStateStore.deserializeFromDisk" }
+        }
+        val code = reader.code()
+        val loop = code.indexOfFirst { it.reference() == "${found.queue!!.owner}->${found.queue.sweep}()V" }
+        val remove = loop + 3
+        val registers = code[remove].namedRegisters()
+        // Obfuscated names differ per build, so take the cleanup call and the key helper from the reader itself.
+        val cleanup = code[remove].reference()!!
+        val keyHelper = code[loop + 1].reference()!!
+        val key = code[loop + 2].namedRegisters().single()
+        refused(changed(classes, reader, remove, "invoke-virtual { v${registers[0]}, v${registers[1]} }, ${cleanup.substringBefore("->")}->preserve(Ljava/lang/String;)V"), "native cleanup")
+        refused(changed(classes, reader, remove, "invoke-virtual { v$key, v${registers[1]} }, $cleanup"), "native receiver")
+        refused(changed(classes, reader, remove, "invoke-virtual { v${registers[0]}, v${registers[0]} }, $cleanup"), "native cleanup")
+        refused(changed(classes, reader, loop + 1, "invoke-direct { v${registers[0]} }, $keyHelper"), "store's own account")
+        val load = code.indexOfFirst { val ref = it.reference()
+            ref != null && ref.startsWith(cleanup.substringBefore("->")) && ref.endsWith("(Ljava/lang/String;Z)Ljava/lang/Object;") }
+        refused(changed(classes, reader, load - 1, "const/4 v${code[load - 1].namedRegisters().single()}, 0x0"), "consumes the copy it read")
+        refused(changed(classes, reader, load - 3, "invoke-direct { v${registers[0]} }, $keyHelper"), "consumes the copy it read")
+        refused(inserted(classes, reader, loop, "const/4 v${registers[0]}, 0x0"), "changed receiver, prefix or account dataflow")
+    }
+
+    private fun nativeDiskHelpersRefuseChangedKeyCaptureTaskIdentityAndCleanupUntouchedCheck(classes: List<ClassDef>) {
+        val found = PatchContexts.of(classes).findStorySeen()
+        val reader = classes.single { it.type == found.store }.methods.single { method ->
+            method.code().any { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == "PendingReelSeenStateStore.deserializeFromDisk" }
+        }
+        val at = reader.code().indexOfFirst { it.reference() == "${found.queue!!.owner}->${found.queue.sweep}()V" }
+        val key = classes.flatMap { it.methods }.single { it.toString() == reader.code()[at + 1].reference() }
+        val builder = key.code()[4].namedRegisters().single()
+        val prefix = key.code()[3].namedRegisters().single()
+        refused(changed(classes, key, 6, "invoke-virtual { v$builder, v$prefix }, ${key.code()[6].reference()}"), "ownership registers at 6")
+        refused(changed(classes, key, 9, "return-object v$prefix"), "ownership registers at 9")
+        refused(changed(classes, key, 0, "invoke-virtual { p0 }, ${key.code()[0].reference()!!.substringBefore("->")}->other()$USER_SESSION"), "native account")
+
+        val cleanup = classes.flatMap { it.methods }.single { it.toString() == reader.code()[at + 3].reference() }
+        val task = classes.single { it.type == cleanup.code()[3].reference() }
+        val constructor = task.methods.single { it.name == "<init>" }
+        val run = task.methods.single { it.name == "run" && it.parameterTypes.isEmpty() }
+        val noCatch = ImmutableMethod(run.definingClass, run.name, run.parameters, run.returnType, run.accessFlags, null, null,
+            ImmutableMethodImplementation(run.implementation!!.registerCount, run.code(), emptyList(), null))
+        refused(replace(classes, task, methods = task.methods.map { if (it == run) noCatch else it }), "task control flow")
+        refused(changed(classes, constructor, 1, "const/16 v${constructor.code()[1].namedRegisters().single()}, 0x1fe"), "native literal at 1")
+        refused(changed(classes, constructor, 5, "iput-object p1, p0, ${constructor.code()[5].reference()}"), "ownership registers at 5")
+        refused(changed(classes, run, 4, "const/4 v${run.code()[4].namedRegisters().single()}, 0x1"), "native literal at 4")
+        val backend = run.code()[5].reference()!!.substringBefore("->")
+        val erase = run.code()[5].namedRegisters().joinToString(", ") { "v$it" }
+        refused(changed(classes, run, 5, "invoke-interface { $erase }, $backend->preserve(Ljava/lang/String;Ljava/util/Map;)V"), "native null-map operation")
+        refused(changed(classes, run, 1, "invoke-static { v${run.code()[3].namedRegisters().first()} }, ${run.code()[1].reference()}"), "ownership registers at 1")
+        val executor = cleanup.code()[2].namedRegisters().first()
+        val created = cleanup.code()[3].namedRegisters().single()
+        refused(changedAll(classes, cleanup,
+            2 to "iget-object v$created, p0, ${cleanup.code()[2].reference()}",
+            5 to "invoke-virtual { v$created, v$created }, ${cleanup.code()[5].reference()}"), "aliases its captured task and executor")
+        val submit = cleanup.code()[5].reference()!!.substringBefore("->")
+        val parent = task.superclass
+        refused(changed(classes, cleanup, 5, "invoke-virtual { v$executor, v$created }, $submit->preserve($parent)V"), "native task submission")
+    }
+
+    private fun forOtherInputs(check: (List<ClassDef>) -> Unit) {
+        for (base in Fixtures.otherBuilds()) {
+            try {
+                check(fixtures.keptFixtureClasses(base))
+            } catch (failure: Throwable) {
+                throw AssertionError("${base.parentFile.name}: ${failure.message}", failure)
+            }
+        }
+    }
+
+    private fun proofInputs(): List<List<ClassDef>> {
+        val declared = Fixtures.files { it.name == "instagram-457.0.0.55.73-386314341.apks" }
+        assertTrue("the authoritative declared 457 build (386314341) is required", declared.isNotEmpty())
+        return declared.map { fixtures.keptFixtureClasses(it) } + listOf(fixtures.standIns(), fixtures.standIns(splitQueue = true))
+    }
+
+    /** [classes] written to a dex and read back, the way the patcher gets the app's classes. */
+    private fun dexBacked(classes: List<ClassDef>): List<ClassDef> {
+        val pool = DexPool(Opcodes.forApi(28))
+        classes.forEach(pool::internClass)
+        val dex = MemoryDataStore()
+        pool.writeTo(dex)
+        return DexBackedDexFile(Opcodes.forApi(28), ByteBuffer.wrap(dex.data)).classes.toList()
+    }
+    private fun replace(classes: List<ClassDef>, owner: ClassDef, fields: Iterable<com.android.tools.smali.dexlib2.iface.Field> = owner.fields,
+        methods: Iterable<Method> = owner.methods): List<ClassDef> = classes.map { if (it.type != owner.type) it else
+        ImmutableClassDef(owner.type, owner.accessFlags, owner.superclass, owner.interfaces, null, null, fields, methods) }
+    private fun Method.code(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
+
+    private fun owner(classes: List<ClassDef>, found: StorySeenTargets) = classes.single { it.type == found.queue!!.owner }
+
+    /** The method the hook goes in: the loop through 455, 456's outlined step. */
+    private fun ClassDef.hooked(queue: StoryRetryQueue) = methods.single {
+        it.name == queue.run && it.parameterTypes.map(Any::toString) == queue.parameters
+    }
+
+    /** The synchronized loop the disk reader runs, the hooked method itself through 455. */
+    private fun ClassDef.sweep(queue: StoryRetryQueue) = methods.single { it.name == queue.sweep && it.parameterTypes.isEmpty() }
+
+    /** [index] of the whole loop through 455, one earlier in 456's loop, which locks its receiver without a copy. */
+    private fun StoryRetryQueue.sweepAt(index: Int) = if (parameters.isEmpty()) index else index - 1
+    private fun Method.proof() = code().map { listOf(it.opcode, it.reference(), it.namedRegisters(),
+        (it as? NarrowLiteralInstruction)?.narrowLiteral, (it as? OffsetInstruction)?.codeOffset) }
+    private fun Instruction.reference(): String? = (this as? ReferenceInstruction)?.reference?.toString()
+    private fun addresses(code: List<Instruction>) = code.runningFold(0) { at, instruction -> at + instruction.codeUnits }
+    private fun target(code: List<Instruction>, at: Int): Int {
+        val addresses = addresses(code)
+        return addresses.indexOf(addresses[at] + (code[at] as OffsetInstruction).codeOffset)
+    }
+}

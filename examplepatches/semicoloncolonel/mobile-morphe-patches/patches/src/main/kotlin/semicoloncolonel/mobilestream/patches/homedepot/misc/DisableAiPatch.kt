@@ -50,6 +50,7 @@ val disableAiPatch = bytecodePatch(
     description = "Turns off Magic Apron, The Home Depot's AI project assistant.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

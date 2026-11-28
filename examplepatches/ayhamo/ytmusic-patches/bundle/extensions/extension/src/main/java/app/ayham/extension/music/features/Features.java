@@ -26,12 +26,12 @@ import java.util.Properties;
  * screen shows. A developer override file can be written with adb:
  * {@code <external files dir>/spike.properties}, read fresh on each use.
  * <pre>
- * fadeMs=8000            item 2: override Morphe's crossfade length (and so its trigger point)
  * seekMs=30000           item 3: seek the incoming crossfade player here
  * speed=1.06             item 3: incoming player speed for 8 s, then back to 1.0
- * map.VIDEOID=SONGID     item 8: play SONGID's streams for VIDEOID
- * hide=1                 item 7: hide the player's action bar (chips row)
+ * directSpike=1          phase 4: the Direct-mode spike
+ * batchB=1               the native check (batchBVideo=VIDEOID: on that song)
  * </pre>
+ * Any settings switch can be overridden there too ({@code stats=0}, {@code canvasVideo=0}, ...).
  */
 @SuppressWarnings("unused")
 public final class Features {
@@ -86,12 +86,12 @@ public final class Features {
         return cachedProps;
     }
 
-    /** The feature switches in Morphe's settings ("Fork settings"), all on by default. */
+    /** The feature switches in Morphe's settings ("Fork settings"), all on by default but the equalizer. */
     static final String[] SWITCHES = {"ui", "fullArt", "artistArt", "canvas", "canvasSpotify", "lyricLine", "stats", "native", "eq"};
 
     /**
-     * The features' configuration: the settings switches (Morphe's settings screen, "Ayham
-     * features", on unless switched off), then {@code spike.properties} in the external files dir
+     * The features' configuration: the settings switches (Morphe's settings screen, "Fork
+     * settings", on unless switched off, the equalizer off unless switched on), then {@code spike.properties} in the external files dir
      * if present, a developer override for tests.
      */
     private static Properties readProps() {

@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Name: nicoid Re Patches
+Description: nicoid Re 6.49 modernization patches
+Version: 2.2.0
+Timestamp: 1795499743411
+Source: https://github.com/chikuwadon/nicoid-re-patches
+Author: chikuwadon
+Contact: na
+Website: na
+License: GPLv3
+Patcher-Version: 2.5.0
+

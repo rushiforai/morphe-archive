@@ -1,0 +1,1190 @@
+/*
+ * Copyright 2026 Hushfacebook contributors
+ * https://github.com/SysAdminDoc/Hushfacebook
+ *
+ * Modified for HushGram (Instagram), 2026.
+ */
+package app.hushgram.extension.instagram.settings;
+
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.res.ColorStateList;
+import android.content.res.Configuration;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.ColorFilter;
+import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.PixelFormat;
+import android.graphics.Rect;
+import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.InsetDrawable;
+import android.graphics.drawable.LayerDrawable;
+import android.graphics.drawable.RippleDrawable;
+import android.os.Build;
+import android.preference.Preference;
+import android.preference.PreferenceCategory;
+import android.preference.PreferenceGroup;
+import android.preference.PreferenceScreen;
+import android.preference.TwoStatePreference;
+import android.util.TypedValue;
+import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.Switch;
+import android.widget.TextView;
+
+import androidx.annotation.Nullable;
+
+import java.util.Collections;
+import java.util.Set;
+import java.util.WeakHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import app.hushgram.extension.shared.Utils;
+import app.hushgram.extension.shared.settings.preference.ImmediateAction;
+
+/** Shared black and charcoal surfaces, in Instagram's own blues, for HushGram's settings and runtime controls. */
+public final class ScreenColors {
+    public final boolean light;
+    /**
+     * Instagram's own settings look (#797): rows flat on the page with no cards, plain section
+     * names and Instagram's pill switch.
+     */
+    public final boolean flat;
+    /** The page, behind the title bar and every row. */
+    public final int background;
+    /** A dialog's surface. */
+    public final int dialog;
+    /** Row and dialog titles, the title bar and its back arrow. */
+    public final int title;
+    /** Row summaries and a dialog's message. */
+    public final int summary;
+    /**
+     * A dialog field's placeholder. Quieter than {@link #summary}, so an example in an empty field
+     * doesn't read as a value already saved, and still 4.5:1 on every surface.
+     */
+    public final int hint;
+    /** Section titles. */
+    public final int heading;
+    /** A switch that's on, and the buttons of a dialog. */
+    public final int accent;
+    /** A switch that's off. */
+    public final int switchOff;
+    /** Grouped preference rows and their edge. */
+    public final int card;
+    public final int outline;
+    /** Tonal surface used by secondary controls. */
+    public final int iconSurface;
+    /** Text on the filled primary dialog action. */
+    public final int onAccent;
+    /** Calm validation feedback on the charcoal dialog surface. */
+    public final int error;
+
+    /** The colours the screen on show was built with, or null for the black page. */
+    @Nullable
+    static volatile ScreenColors shown;
+    public static final ScreenColors DEFAULT = new ScreenColors(SettingsStatus.pureBlack());
+    /** Black cards and dialogs, for the black look (#455). */
+    static final ScreenColors BLACK = new ScreenColors(true);
+    /** The white page, cards and dialogs, for the light look while the settings show (#762). */
+    static final ScreenColors LIGHT = new ScreenColors(false, true);
+    /** Instagram's own settings look on its light screens, while the settings show (#797). */
+    static final ScreenColors INSTAGRAM_LIGHT = instagram(false);
+    /** Instagram's own settings look on its dark screens, while the settings show (#797). */
+    static final ScreenColors INSTAGRAM_DARK = instagram(true);
+    /** How many settings screens are up. The light look keeps to them. */
+    private static final AtomicInteger SETTINGS_SCREENS = new AtomicInteger();
+    /** Whether the Instagram screen the settings last opened over was dark, or null before they first opened. */
+    @Nullable
+    private static volatile Boolean instagramNight;
+
+    /**
+     * The colours to paint with now: the screen's own, or the white ones while Light settings page
+     * is on and the settings show, or the black ones while Black settings page is on, or
+     * {@link #DEFAULT}. Read each time, so a flip of the switch shows on the next bind.
+     */
+    public static ScreenColors current() {
+        ScreenColors colors = shown;
+        if (colors != null) return colors;
+        if (!Utils.settingsReady()) return DEFAULT;
+        if (SETTINGS_SCREENS.get() > 0) return settingsPage();
+        return Settings.SETTINGS_BLACK_LOOK.savedValue() ? BLACK : DEFAULT;
+    }
+
+    /** The colours the settings screen shows in, whether or not it's up yet: the shortcut's cover takes them. */
+    static ScreenColors settingsPage() {
+        if (!Utils.settingsReady()) return DEFAULT;
+        if (Settings.SETTINGS_INSTAGRAM_LOOK.savedValue()) return instagram();
+        if (Settings.SETTINGS_LIGHT_LOOK.savedValue()) return LIGHT;
+        return Settings.SETTINGS_BLACK_LOOK.savedValue() ? BLACK : DEFAULT;
+    }
+
+    /**
+     * Instagram settings page's colours: dark when the Instagram screen the settings opened over
+     * was, else light. Before they first open, the app's own night mode decides.
+     */
+    static ScreenColors instagram() {
+        Boolean night = instagramNight;
+        if (night == null) {
+            Context app = Utils.getContext();
+            night = app != null && night(app);
+        }
+        return night ? INSTAGRAM_DARK : INSTAGRAM_LIGHT;
+    }
+
+    /**
+     * Instagram's own colours for something put on one of its screens shown in [context], dark or
+     * light as that screen is, such as the Search viewers bar in a story's viewer list (#833).
+     */
+    static ScreenColors instagramFor(Context context) {
+        return night(context) ? INSTAGRAM_DARK : INSTAGRAM_LIGHT;
+    }
+
+    /**
+     * From the settings screen and the shortcut's cover, with the Instagram screen they show over,
+     * so Instagram settings page goes dark or light as Instagram is (#797). Instagram's own Dark
+     * mode setting reaches its screens, not always the app's context.
+     */
+    static void followNight(@Nullable Context context) {
+        if (context != null) instagramNight = night(context);
+    }
+
+    private static boolean night(Context context) {
+        return (context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
+                == Configuration.UI_MODE_NIGHT_YES;
+    }
+
+    /** No screen seen yet. For tests. */
+    static void forgetNightForTests() {
+        instagramNight = null;
+    }
+
+    /**
+     * From the settings screen's onCreate, before it builds anything, and its onStart after a stop:
+     * the light look shows from here on. A dialog over one of Instagram's own screens, a story's
+     * mention list or a lock, keeps the dark colours it was made in.
+     */
+    static void settingsOpened() {
+        SETTINGS_SCREENS.incrementAndGet();
+    }
+
+    /** From the settings screen's onStop or onDestroy, once for each settingsOpened. */
+    static void settingsClosed() {
+        SETTINGS_SCREENS.updateAndGet(open -> Math.max(0, open - 1));
+    }
+
+    /** No settings screen is up. For tests. */
+    static void settingsClosedForTests() {
+        SETTINGS_SCREENS.set(0);
+    }
+
+    /**
+     * [pureBlack]: the build has Pure black dark mode, so the cards and dialogs go black like
+     * Instagram's own sheets do, and their outlines keep them apart (#374).
+     */
+    ScreenColors(boolean pureBlack) {
+        this(pureBlack, false);
+    }
+
+    /**
+     * [light]: Instagram's own light screen, white with near-black text and its blues darkened to
+     * read on it. Every colour clears the same bars the dark ones do, on the page, the cards and
+     * the dialogs alike.
+     */
+    ScreenColors(boolean pureBlack, boolean light) {
+        this.light = light;
+        flat = false;
+        if (light) {
+            background = Color.WHITE;
+            dialog = Color.WHITE;
+            // 19:1 on the page, 17:1 on the card.
+            title = 0xFF0C1014;
+            summary = 0xFF5C5C5C;
+            // Quieter than the summary, so lighter here, and still 4.8:1 on the card.
+            hint = 0xFF6B6B6B;
+            // Instagram's indigo, darkened to 7:1 on white for the section titles and icons.
+            heading = 0xFF3346D3;
+            accent = 0xFF4A5DF9;
+            // 3.6:1 on the card, with the near-black thumb at 4.7:1 on it.
+            switchOff = 0xFF7A7F85;
+            card = 0xFFF2F3F5;
+            outline = 0xFFDBDBDB;
+            iconSurface = 0xFFE6E8EB;
+            onAccent = Color.WHITE;
+            // Material 3's error at tone 40, 5.8:1 on the card.
+            error = 0xFFBA1A1A;
+            return;
+        }
+        background = Color.BLACK;
+        dialog = pureBlack ? Color.BLACK : 0xFF18161D;
+        title = 0xFFF8F5F8;
+        summary = 0xFFAAA5AF;
+        hint = 0xFF8C8792;
+        // Instagram's own blues (AccentColor.role): its link on a dark screen, 7:1 on the charcoal,
+        // and its Prism indigo button fill, which white text reads on at 5:1.
+        heading = 0xFF85A1FF;
+        accent = 0xFF4A5DF9;
+        // At least 3:1 against either charcoal surface, with a white thumb above 5:1.
+        switchOff = 0xFF696370;
+        card = pureBlack ? Color.BLACK : 0xFF151419;
+        outline = 0xFF2D2832;
+        iconSurface = 0xFF211D27;
+        onAccent = Color.WHITE;
+        error = 0xFFFFB4AB;
+    }
+
+    /** Every colour given, for Instagram's own look. */
+    private ScreenColors(boolean light, int background, int dialog, int title, int summary, int hint, int heading,
+            int accent, int switchOff, int card, int outline, int iconSurface, int onAccent, int error) {
+        this.light = light;
+        this.flat = true;
+        this.background = background;
+        this.dialog = dialog;
+        this.title = title;
+        this.summary = summary;
+        this.hint = hint;
+        this.heading = heading;
+        this.accent = accent;
+        this.switchOff = switchOff;
+        this.card = card;
+        this.outline = outline;
+        this.iconSurface = iconSurface;
+        this.onAccent = onAccent;
+        this.error = error;
+    }
+
+    /**
+     * Instagram's own settings colours, from its Prism palette (#797): its page, text, greys and
+     * links, and its switch, near-black on white and near-white on dark. The rows sit on the page,
+     * so the card is the page. Where Instagram's grey fell under the bars the other looks clear,
+     * its accessible grey or the next shade stands in.
+     */
+    private static ScreenColors instagram(boolean night) {
+        if (night) {
+            return new ScreenColors(false, 0xFF0C1014, 0xFF191C1F, 0xFFF8F9F9, 0xFFA2AAB4, 0xFF8E95A0,
+                    0xFF8593FF, 0xFFF8F9F9, 0xFF6F7680, 0xFF0C1014, 0xFF2B3036, 0xFF25292E, 0xFF0C1014, 0xFFFFB4AB);
+        }
+        return new ScreenColors(true, Color.WHITE, Color.WHITE, 0xFF0C1014, 0xFF6A717A, 0xFF6F7680,
+                0xFF3849DA, 0xFF0C1014, 0xFF838993, Color.WHITE, 0xFFDBDFE4, 0xFFF3F5F7, Color.WHITE, 0xFFBA1A1A);
+    }
+
+    /** A switch's white thumb remains distinct from either track. Instagram's is white when off. */
+    int offThumb() {
+        if (flat) return Color.WHITE;
+        return light ? title : onAccent;
+    }
+
+    /**
+     * [color], at Material's 38% on a disabled row. A plain colour replaced the theme's own
+     * disabled state, so a row that ignored taps, such as Import while an export runs, looked
+     * the same as one that would take them.
+     */
+    static ColorStateList dimmedWhenDisabled(int color) {
+        int dimmed = (color & 0x00FFFFFF) | 0x61000000;
+        return new ColorStateList(new int[][]{{-android.R.attr.state_enabled}, {}}, new int[]{dimmed, color});
+    }
+
+    /**
+     * [color] for a disabled row's summary, at 75%. The summary is where a greyed-out row says
+     * what to turn on first, and at 38% it read at about 2:1 on the card. The title and switch
+     * keep the 38% that shows the row is off.
+     */
+    static ColorStateList readableWhenDisabled(int color) {
+        int dimmed = (color & 0x00FFFFFF) | 0xC0000000;
+        return new ColorStateList(new int[][]{{-android.R.attr.state_enabled}, {}}, new int[]{dimmed, color});
+    }
+
+    /**
+     * A row's summary, readable when the row is off. On white, the grey summary at 75% fell to
+     * about 3.7:1, so the light look dims its near-black title colour to 60% instead, about 5:1
+     * on the card (#762).
+     */
+    ColorStateList disabledSummary() {
+        if (!light) return readableWhenDisabled(summary);
+        int dimmed = (title & 0x00FFFFFF) | 0x99000000;
+        return new ColorStateList(new int[][]{{-android.R.attr.state_enabled}, {}}, new int[]{dimmed, summary});
+    }
+
+    /** Native list navigation uses selected/activated as well as focused. Keep each visible. */
+    ColorStateList interactionOutline(int normal) {
+        return interactionOutline(normal, heading);
+    }
+
+    private ColorStateList interactionOutline(int normal, int focused) {
+        return new ColorStateList(new int[][]{
+                {-android.R.attr.state_enabled}, {android.R.attr.state_focused},
+                {android.R.attr.state_hovered}, {android.R.attr.state_selected},
+                {android.R.attr.state_activated}, {android.R.attr.state_checked}, {}},
+                new int[]{(normal & 0x00FFFFFF) | (Math.round(Color.alpha(normal) * 0.38f) << 24),
+                        focused, focused, focused, focused, focused, normal});
+    }
+
+    static ColorStateList interactionRipple(int color) {
+        return new ColorStateList(new int[][]{{-android.R.attr.state_enabled}, {}},
+                new int[]{Color.TRANSPARENT, (color & 0x00FFFFFF) | 0x33000000});
+    }
+
+    ColorStateList choiceFill(int normal) {
+        return new ColorStateList(new int[][]{{android.R.attr.state_checked}, {}},
+                new int[]{(accent & 0x00FFFFFF) | 0x22000000, normal});
+    }
+
+    /** The lighter blue passes text contrast on charcoal, unlike the filled action's accent. */
+    int secondaryActionText() {
+        return heading;
+    }
+
+    /** The colours for a screen shown in this context. HushGram has one page, black, so always null. */
+    @Nullable
+    static ScreenColors forScreen(Context context) {
+        return null;
+    }
+
+    /** The framework theme rows and dialogs are built with, so what this class doesn't paint still reads. */
+    int theme() {
+        return light ? android.R.style.Theme_Material_Light_NoActionBar : android.R.style.Theme_Material_NoActionBar;
+    }
+
+    /**
+     * {@link #theme()} of {@link #forScreen}, or of the colours on show: the light Material theme
+     * under the light look, so what this class doesn't paint reads on white too.
+     */
+    static int themeFor(Context context) {
+        ScreenColors colors = forScreen(context);
+        return (colors == null ? current() : colors).theme();
+    }
+
+    /**
+     * Dark status and navigation bar icons over the white page, light ones over the black. The
+     * settings draw edge to edge, under both bars. Only once the window has its decor view, which
+     * setContentView makes: before that, the insets controller throws, and making the decor here would
+     * come before the dialog's own window features. A window without one is left for a later call.
+     */
+    @SuppressWarnings("deprecation")
+    void paintBars(@Nullable Window window) {
+        View decor = window == null ? null : window.peekDecorView();
+        if (decor == null) return;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            android.view.WindowInsetsController bars = window.getInsetsController();
+            if (bars == null) return;
+            int both = android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                    | android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS;
+            bars.setSystemBarsAppearance(light ? both : 0, both);
+            return;
+        }
+        int both = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+        int now = decor.getSystemUiVisibility();
+        decor.setSystemUiVisibility(light ? now | both : now & ~both);
+    }
+
+    /** A row's title and summary, its switch if it has one, and its chevron if a tap opens something. */
+    void paintRow(View row, Preference preference) {
+        boolean overview = preference.getParent() instanceof PreferenceScreen;
+        TextView title = row.findViewById(android.R.id.title);
+        if (title != null) {
+            title.setTextColor(dimmedWhenDisabled(this.title));
+            title.setTextSize(TypedValue.COMPLEX_UNIT_SP,
+                    "hushgram_status".equals(preference.getKey()) ? 14 : overview ? 15 : 16);
+            // Instagram's rows name themselves in its regular weight.
+            title.setTypeface(Typeface.create(flat ? "sans-serif" : "sans-serif-medium", Typeface.NORMAL));
+            if (title.getParent() instanceof View) {
+                View text = (View) title.getParent();
+                text.setPadding(0, 0, 0, 0);
+                text.setMinimumHeight(0);
+            }
+        }
+        TextView summary = row.findViewById(android.R.id.summary);
+        if (summary != null) {
+            summary.setTextColor(disabledSummary());
+            summary.setTextSize(TypedValue.COMPLEX_UNIT_SP, overview ? 12 : 13);
+            summary.setLineSpacing(0, 1);
+        }
+        View widget = row.findViewById(android.R.id.switch_widget);
+        if (widget instanceof Switch) {
+            int[][] states = {{-android.R.attr.state_enabled, android.R.attr.state_checked},
+                    {-android.R.attr.state_enabled}, {android.R.attr.state_checked}, {}};
+            Switch toggle = (Switch) widget;
+            toggle.setThumbDrawable(flat ? instagramThumb(row) : squareThumb(row));
+            toggle.setTrackDrawable(flat ? instagramTrack(row) : squareTrack(row));
+            toggle.setSwitchMinWidth(dp(row, flat ? INSTAGRAM_TRACK_WIDTH_DP : 40));
+            toggle.setSplitTrack(false);
+            toggle.setThumbTintList(new ColorStateList(states, new int[]{half(onAccent), half(offThumb()), onAccent, offThumb()}));
+            toggle.setTrackTintList(new ColorStateList(states, new int[]{half(accent), half(switchOff), accent, switchOff}));
+        }
+        paintChevron(row, preference);
+        ImageView icon = row.findViewById(android.R.id.icon);
+        // Decoration: the row's title already says what it is, so a screen reader skips the icon.
+        if (icon != null) icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        if (icon != null && preference.getIcon() != null) {
+            ViewGroup.LayoutParams imageSize = icon.getLayoutParams();
+            imageSize.width = dp(row, 24);
+            imageSize.height = dp(row, 24);
+            icon.setLayoutParams(imageSize);
+            icon.setPadding(0, 0, 0, 0);
+            icon.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+            // Instagram's settings draw their icons in the text's colour.
+            icon.setImageTintList(dimmedWhenDisabled(flat ? this.title : heading));
+            icon.setBackground(null);
+            if (icon.getParent() instanceof ViewGroup) {
+                ViewGroup frame = (ViewGroup) icon.getParent();
+                frame.setPaddingRelative(0, 0, dp(row, 14), 0);
+                ViewGroup.LayoutParams size = frame.getLayoutParams();
+                size.width = dp(row, 38);
+                frame.setLayoutParams(size);
+            }
+        }
+        paintSurface(row, preference, opensCard(preference), closesCard(preference));
+    }
+
+    /** Instagram's switch (prism_switch_background_active and prism_switch_handle): a 52 by 32 pill. */
+    static final int INSTAGRAM_TRACK_WIDTH_DP = 52;
+    static final int INSTAGRAM_TRACK_HEIGHT_DP = 32;
+    /** Its round handle, 24 across, 4 in from the pill's edge. */
+    static final int INSTAGRAM_HANDLE_DP = 24;
+    /**
+     * The handle's side padding. Switch slides a thumb its width less this padding, so the handle
+     * counts as 20 wide: two of them and the track's padding fill the 52 pill, and it travels 20.
+     */
+    private static final int INSTAGRAM_HANDLE_SIDE_DP = 2;
+
+    private static Drawable squareThumb(View row) {
+        GradientDrawable thumb = new GradientDrawable();
+        thumb.setShape(GradientDrawable.RECTANGLE);
+        thumb.setCornerRadius(dp(row, 4));
+        thumb.setSize(dp(row, 20), dp(row, 20));
+        thumb.setColor(Color.WHITE);
+        return thumb;
+    }
+
+    private static Drawable squareTrack(View row) {
+        GradientDrawable track = new GradientDrawable();
+        track.setCornerRadius(dp(row, 6));
+        track.setSize(dp(row, 40), dp(row, 24));
+        track.setColor(Color.WHITE);
+        return track;
+    }
+
+    /**
+     * The round handle, kept at its own size in the middle of the pill's height so the pill shows
+     * around it. An InsetDrawable reported its inset as optical insets, and Switch trims its track
+     * by those, so the pill came out as tall as the handle with the handle over its end (#797). A
+     * layer of a set size reports none. The tint list reaches the handle through the layer.
+     */
+    private static Drawable instagramThumb(View row) {
+        GradientDrawable handle = new GradientDrawable();
+        handle.setShape(GradientDrawable.OVAL);
+        handle.setColor(Color.WHITE);
+        LayerDrawable thumb = new LayerDrawable(new Drawable[]{handle});
+        int size = dp(row, INSTAGRAM_HANDLE_DP);
+        thumb.setLayerSize(0, size, size);
+        thumb.setLayerGravity(0, Gravity.CENTER);
+        int side = dp(row, INSTAGRAM_HANDLE_SIDE_DP);
+        thumb.setPadding(side, 0, side, 0);
+        return thumb;
+    }
+
+    /** The pill, with side padding that makes the handle stop 4 short of either end. */
+    private static Drawable instagramTrack(View row) {
+        GradientDrawable pill = new GradientDrawable();
+        pill.setCornerRadius(dp(row, INSTAGRAM_TRACK_HEIGHT_DP / 2));
+        int width = dp(row, INSTAGRAM_TRACK_WIDTH_DP);
+        pill.setSize(width, dp(row, INSTAGRAM_TRACK_HEIGHT_DP));
+        pill.setColor(Color.WHITE);
+        LayerDrawable track = new LayerDrawable(new Drawable[]{pill});
+        // From the rounded pixel sizes, so two slid handles and this never come to more than the pill.
+        int slid = dp(row, INSTAGRAM_HANDLE_DP) - 2 * dp(row, INSTAGRAM_HANDLE_SIDE_DP);
+        int side = (width - 2 * slid) / 2;
+        track.setPadding(side, 0, side, 0);
+        return track;
+    }
+
+    /**
+     * Whether [preference] is the top row of the card it sits in. A section's rows share one card.
+     * On the page itself, the rows that open each category's page share one too, and Report a
+     * problem and Support HushGram join the About row they follow; every other row there is a card
+     * of its own.
+     */
+    static boolean opensCard(Preference preference) {
+        PreferenceGroup parent = preference.getParent();
+        if (parent == null) return true;
+        int at = indexIn(parent, preference);
+        if (at <= 0) return true;
+        return !(parent instanceof PreferenceCategory) && !sharesCard(parent.getPreference(at - 1), preference);
+    }
+
+    /** Whether [preference] is the bottom row of its card. */
+    static boolean closesCard(Preference preference) {
+        PreferenceGroup parent = preference.getParent();
+        if (parent == null) return true;
+        int at = indexIn(parent, preference);
+        if (at < 0 || at == parent.getPreferenceCount() - 1) return true;
+        return !(parent instanceof PreferenceCategory) && !sharesCard(preference, parent.getPreference(at + 1));
+    }
+
+    /**
+     * Two neighbours on the page itself that draw as one card: both open a page, or one of the two
+     * last rows (Report a problem, Support HushGram) follows a page's row or the other one.
+     */
+    private static boolean sharesCard(Preference above, Preference below) {
+        // A category open in place shows its rows under its own, so the next one starts a card.
+        if (above instanceof HushgramPreferenceFragment.Heading && ((HushgramPreferenceFragment.Heading) above).expanded) return false;
+        return (opensPage(above) && (opensPage(below) || closesPage(below))) || (closesPage(above) && closesPage(below));
+    }
+
+    /** Report a problem and Support HushGram, which end the page. */
+    private static boolean closesPage(Preference preference) {
+        String key = preference.getKey();
+        return HushgramPreferenceFragment.REPORT_ROW_KEY.equals(key) || HushgramPreferenceFragment.SUPPORT_ROW_KEY.equals(key);
+    }
+
+    private static boolean opensPage(Preference preference) {
+        String key = preference.getKey();
+        return key != null && key.startsWith(HushgramPreferenceFragment.CATEGORY_ROW_KEY);
+    }
+
+    /** Where [preference] stands among the rows [group] shows, which it keeps in their order. */
+    private static int indexIn(PreferenceGroup group, Preference preference) {
+        for (int i = 0; i < group.getPreferenceCount(); i++) if (group.getPreference(i) == preference) return i;
+        return -1;
+    }
+
+    /** A card's outer corners, and the small ones where two of its rows meet (#650). */
+    static final int CARD_RADIUS_DP = 20;
+    static final int JOIN_RADIUS_DP = 4;
+
+    /**
+     * Group boundaries follow the visible rows, including a filtered search result. A card's rows
+     * sit a hair apart with small corners where they meet and round ones at its top and bottom, on
+     * the main page as on a category's (#650). The card's height is the row's: its text wraps at any
+     * font size and the row grows to fit.
+     */
+    
+void paintSurface(View row, Preference preference, boolean first, boolean last) {
+    boolean overview = preference.getParent() instanceof PreferenceScreen;
+
+    // Preserve Instagram's original flat appearance.
+    if (flat) {
+        paintFlat(row, preference, overview);
+        return;
+    }
+
+    int side = dp(row, 18);
+    int above = first ? 6 : 1;
+    int below = last ? 6 : 1;
+
+    // Liquid Glass design for dark HushGram settings.
+    if (!light) {
+        Drawable glass = LiquidGlassSurfaces.card(
+                row.getContext(),
+                false,
+                heading
+        );
+
+        Drawable inset = new InsetDrawable(
+                glass,
+                side,
+                dp(row, above),
+                side,
+                dp(row, below)
+        );
+
+        row.setBackground(inset);
+
+        int horizontal = overview ? 32 : 30;
+        int vertical = overview ? 6 : 10;
+
+        row.setPaddingRelative(
+                dp(row, horizontal),
+                dp(row, vertical + above),
+                dp(row, horizontal),
+                dp(row, vertical + below)
+        );
+
+        row.setMinimumHeight(
+                dp(row,
+                        "hushgram_view_toggle".equals(preference.getKey())
+                        || "hushgram_grid_toggle".equals(preference.getKey())
+                        ? 48
+                        : "hushgram_status".equals(preference.getKey())
+                        ? 56
+                        : overview ? 56 : 64
+                )
+        );
+
+        return;
+    }
+
+    // Preserve the original Light Theme.
+    float top = dp(row, first ? CARD_RADIUS_DP : JOIN_RADIUS_DP);
+    float bottom = dp(row, last ? CARD_RADIUS_DP : JOIN_RADIUS_DP);
+
+    GradientDrawable surface = new GradientDrawable();
+    surface.setColor(card);
+
+    surface.setStroke(
+            dp(row, 1),
+            preference.isSelectable()
+                    ? interactionOutline(outline)
+                    : ColorStateList.valueOf(outline)
+    );
+
+    surface.setCornerRadii(
+            new float[] {
+                    top, top,
+                    top, top,
+                    bottom, bottom,
+                    bottom, bottom
+            }
+    );
+
+    Drawable inset = new InsetDrawable(
+            surface,
+            side,
+            dp(row, above),
+            side,
+            dp(row, below)
+    );
+
+    row.setBackground(
+            preference.isSelectable()
+                    ? new RippleDrawable(
+                            interactionRipple(heading),
+                            inset,
+                            null
+                    ).mutate()
+                    : inset
+    );
+
+    int horizontal = overview ? 32 : 30;
+    int vertical = overview ? 6 : 10;
+
+    row.setPaddingRelative(
+            dp(row, horizontal),
+            dp(row, vertical + above),
+            dp(row, horizontal),
+            dp(row, vertical + below)
+    );
+
+    row.setMinimumHeight(
+            dp(row,
+                    "hushgram_view_toggle".equals(preference.getKey())
+                    || "hushgram_grid_toggle".equals(preference.getKey())
+                    ? 48
+                    : "hushgram_status".equals(preference.getKey())
+                    ? 56
+                    : overview ? 56 : 64
+            )
+    );
+}
+
+    /** Instagram's rows reach from edge to edge, with its 16 at each side. */
+    static final int FLAT_SIDE_DP = 16;
+
+    /**
+     * A row the way Instagram's settings draw one (#797): on the page itself, edge to edge, no card
+     * and no edge. The surface is still an inset under the ripple, so a keyboard's focus draws its
+     * outline round the row the same way, and nothing else.
+     */
+    private void paintFlat(View row, Preference preference, boolean overview) {
+        GradientDrawable surface = new GradientDrawable();
+        surface.setColor(card);
+        surface.setStroke(dp(row, 2), interactionOutline(Color.TRANSPARENT));
+        Drawable inset = new InsetDrawable(surface, 0);
+        row.setBackground(preference.isSelectable()
+                ? new RippleDrawable(interactionRipple(title), inset, null).mutate() : inset);
+        int vertical = overview ? 10 : 12;
+        row.setPaddingRelative(dp(row, FLAT_SIDE_DP), dp(row, vertical), dp(row, FLAT_SIDE_DP), dp(row, vertical));
+        row.setMinimumHeight(dp(row, "hushgram_view_toggle".equals(preference.getKey())
+                || "hushgram_grid_toggle".equals(preference.getKey()) ? 48 : 56));
+    }
+
+    /** A group's name over its first category: quiet, in sentence case, outside any card (#642). */
+    void paintGroupLabel(View row) {
+        TextView title = row.findViewById(android.R.id.title);
+        if (title != null) {
+            title.setTextColor(summary);
+            title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+            title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+            title.setLetterSpacing(0.02f);
+            title.setAllCaps(false);
+        }
+        row.setBackground(null);
+        int side = flat ? FLAT_SIDE_DP : 30;
+        row.setPaddingRelative(dp(row, side), dp(row, 18), dp(row, side), dp(row, 4));
+        row.setMinimumHeight(0);
+    }
+
+    /** A section title. Under Instagram's look, its plain grey name in sentence case, as Instagram's settings name theirs. */
+    void paintHeading(View row) {
+        TextView title = row.findViewById(android.R.id.title);
+        if (flat) {
+            if (title != null) {
+                title.setTextColor(summary);
+                title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+                title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+                title.setLetterSpacing(0);
+                title.setAllCaps(false);
+            }
+            row.setPaddingRelative(dp(row, FLAT_SIDE_DP), dp(row, 20), dp(row, FLAT_SIDE_DP), dp(row, 8));
+            return;
+        }
+        if (title != null) {
+            title.setTextColor(heading);
+            title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+            title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+            title.setLetterSpacing(0.055f);
+            title.setAllCaps(true);
+        }
+        row.setPaddingRelative(dp(row, 22), dp(row, 20), dp(row, 22), dp(row, 8));
+    }
+
+    /** Marks the chevron a row was given, so a recycled row's can be found and taken off. */
+    static final String CHEVRON = "hushgram_chevron";
+
+    /**
+     * Whether a tap on [preference] opens something: a dialog, a file picker, the browser. A
+     * switch says what a tap does with its switch, and a row that acts the moment it's tapped
+     * goes without a chevron, as the shared ImmediateAction asks, so the chevron keeps one meaning.
+     */
+    static boolean opensSomething(Preference preference) {
+        return preference.isSelectable() && !(preference instanceof TwoStatePreference)
+                && !(preference instanceof ImmediateAction && ((ImmediateAction) preference).actsOnTap());
+    }
+
+    /**
+     * The chevron at the end of every row a tap opens something from. Only its title's colour set
+     * such a row apart before, which is how "Licenses" and "Version" looked alike (WCAG 1.4.1). It
+     * sits in the row's widget frame, where a switch row keeps its switch. Rows are recycled, and
+     * one Row class draws plain lines too, so a row that shouldn't have one has it taken off.
+     */
+    private void paintChevron(View row, Preference preference) {
+        View found = row.findViewById(android.R.id.widget_frame);
+        if (!(found instanceof ViewGroup)) return;
+        ViewGroup frame = (ViewGroup) found;
+        View chevron = frame.findViewWithTag(CHEVRON);
+        if (!opensSomething(preference)) {
+            if (chevron != null) {
+                frame.removeView(chevron);
+                // Preference hides an empty frame only when it builds the row, which a recycled row
+                // skips, and an empty frame still takes its padding's width from the text.
+                if (frame.getChildCount() == 0) frame.setVisibility(View.GONE);
+            }
+            return;
+        }
+        ImageView image;
+        if (chevron instanceof ImageView) {
+            image = (ImageView) chevron;
+        } else {
+            image = new ImageView(row.getContext());
+            image.setTag(CHEVRON);
+            // The row already tells a screen reader it's a button; the shape adds nothing to hear.
+            image.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+            frame.addView(image, new LinearLayout.LayoutParams(dp(row, 16), dp(row, 24)));
+        }
+        Drawable drawn = image.getDrawable();
+        int direction = preference instanceof HushgramPreferenceFragment.Heading
+                ? ((HushgramPreferenceFragment.Heading) preference).expanded ? -1 : 1 : 0;
+        if (!(drawn instanceof Chevron) || ((Chevron) drawn).color != summary
+                || ((Chevron) drawn).direction != direction) {
+            image.setImageDrawable(new Chevron(summary, dp(row, 2), direction));
+        }
+        image.setEnabled(preference.isEnabled());
+        frame.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * A chevron drawn in code, since Instagram's APK gives the patch no resource for one. It points the way
+     * the row reads, so it mirrors in a right-to-left layout, and it dims with its row.
+     */
+    static final class Chevron extends Drawable {
+        /** The colour it's drawn in on a row that can be tapped now. */
+        final int color;
+        /** Zero follows reading direction; positive opens down, negative collapses up. */
+        final int direction;
+        private final ColorStateList colors;
+        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Path path = new Path();
+
+        Chevron(int color, float stroke) {
+            this(color, stroke, 0);
+        }
+
+        Chevron(int color, float stroke, int direction) {
+            this.color = color;
+            this.direction = direction;
+            colors = dimmedWhenDisabled(color);
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(stroke);
+            paint.setStrokeCap(Paint.Cap.ROUND);
+            paint.setStrokeJoin(Paint.Join.ROUND);
+            paint.setColor(color);
+        }
+
+        /**
+         * One arm's end, the tip and the other arm's end, as x and y pairs. The tip is at the end
+         * the row reads towards: the right, or the left in a right-to-left layout. Material's own
+         * chevron is 4.6 dp wide and 9.2 dp tall in a 24 dp icon, and this keeps that shape.
+         */
+        float[] points() {
+            Rect bounds = getBounds();
+            float half = bounds.height() * 0.19f;
+            float reach = getLayoutDirection() == View.LAYOUT_DIRECTION_RTL ? -half / 2 : half / 2;
+            float x = bounds.exactCenterX();
+            float y = bounds.exactCenterY();
+            if (direction != 0) {
+                float tip = half / 2 * direction;
+                return new float[]{x - half, y - tip, x, y + tip, x + half, y - tip};
+            }
+            return new float[]{x - reach, y - half, x + reach, y, x - reach, y + half};
+        }
+
+        /** The colour it draws in now, which follows its row's state. */
+        int currentColor() {
+            return paint.getColor();
+        }
+
+        @Override
+        public void draw(Canvas canvas) {
+            float[] at = points();
+            path.rewind();
+            path.moveTo(at[0], at[1]);
+            path.lineTo(at[2], at[3]);
+            path.lineTo(at[4], at[5]);
+            canvas.drawPath(path, paint);
+        }
+
+        @Override
+        public boolean isAutoMirrored() {
+            return true;
+        }
+
+        @Override
+        public boolean onLayoutDirectionChanged(int layoutDirection) {
+            invalidateSelf();
+            return true;
+        }
+
+        @Override
+        public boolean isStateful() {
+            return true;
+        }
+
+        @Override
+        protected boolean onStateChange(int[] state) {
+            int now = colors.getColorForState(state, color);
+            if (now == paint.getColor()) return false;
+            paint.setColor(now);
+            invalidateSelf();
+            return true;
+        }
+
+        @Override
+        public void setAlpha(int alpha) {
+            paint.setAlpha(alpha);
+            invalidateSelf();
+        }
+
+        @Override
+        public void setColorFilter(@Nullable ColorFilter filter) {
+            paint.setColorFilter(filter);
+            invalidateSelf();
+        }
+
+        @Override
+        public int getOpacity() {
+            return PixelFormat.TRANSLUCENT;
+        }
+    }
+
+    /** Recovery is a choice, not another pair of settings rows. */
+    private void paintRecoveryAction(View row, boolean primary) {
+        TextView title = row.findViewById(android.R.id.title);
+        if (title != null) {
+            title.setTextColor(dimmedWhenDisabled(primary ? onAccent : secondaryActionText()));
+            title.setTypeface(Typeface.DEFAULT_BOLD);
+            title.setGravity(android.view.Gravity.CENTER);
+            // Centred by gravity, which a start alignment from showAllText would override.
+            title.setTextAlignment(View.TEXT_ALIGNMENT_GRAVITY);
+            ViewGroup.LayoutParams size = title.getLayoutParams();
+            size.width = ViewGroup.LayoutParams.MATCH_PARENT;
+            title.setLayoutParams(size);
+        }
+        GradientDrawable surface = new GradientDrawable();
+        surface.setColor(primary ? dimmedWhenDisabled(accent) : ColorStateList.valueOf(Color.TRANSPARENT));
+        surface.setCornerRadius(dp(row, 12));
+        surface.setStroke(dp(row, 2), interactionOutline(primary ? accent : outline,
+                primary ? onAccent : heading));
+        row.setBackground(new RippleDrawable(interactionRipple(primary ? onAccent : heading),
+                new InsetDrawable(surface, dp(row, 18), dp(row, 4), dp(row, 18), dp(row, 4)), null).mutate());
+        row.setMinimumHeight(dp(row, 56));
+        row.setPadding(dp(row, 32), dp(row, 8), dp(row, 32), dp(row, 8));
+    }
+
+    static void recoveryMessage(View row) {
+        ScreenColors palette = forScreen(row.getContext());
+        if (palette == null) palette = current();
+        HushgramPreferenceFragment.showAllText(row);
+        TextView title = row.findViewById(android.R.id.title);
+        TextView summary = row.findViewById(android.R.id.summary);
+        // Centred across the row: text wrapped to its own width has nothing to centre in.
+        if (title != null) {
+            fillWidth(title);
+            title.setGravity(android.view.Gravity.CENTER);
+            // Centred by gravity, which a start alignment from showAllText would override.
+            title.setTextAlignment(View.TEXT_ALIGNMENT_GRAVITY);
+            title.setTextSize(22);
+            ShimmerTitle.wear(title);
+            title.setTypeface(Typeface.create("sans-serif-medium", 0));
+            Drawable icon = SettingsIcons.icon(row.getContext(), SettingsIcons.ABOUT, palette.heading);
+            icon.setBounds(0, 0, dp(row, 56), dp(row, 56));
+            title.setCompoundDrawablesRelative(null, icon, null, null);
+            title.setCompoundDrawablePadding(dp(row, 24));
+        }
+        if (summary != null) {
+            fillWidth(summary);
+            summary.setGravity(android.view.Gravity.CENTER);
+            summary.setTextAlignment(View.TEXT_ALIGNMENT_GRAVITY);
+            summary.setTextColor(palette.summary);
+            summary.setTextSize(16);
+            summary.setPadding(0, dp(row, 12), 0, 0);
+        }
+        row.setPadding(dp(row, 32), dp(row, 100), dp(row, 32), dp(row, 56));
+    }
+
+    private static void fillWidth(View text) {
+        ViewGroup.LayoutParams size = text.getLayoutParams();
+        if (size == null) return;
+        size.width = ViewGroup.LayoutParams.MATCH_PARENT;
+        text.setLayoutParams(size);
+    }
+
+    /** A dialog on show: its surface, title, message, real list choices, buttons and text field. */
+    void paint(@Nullable AlertDialog dialog) {
+        if (dialog == null) return;
+        Window window = dialog.getWindow();
+        if (window != null) {
+            GradientDrawable panel = new GradientDrawable();
+            panel.setColor(this.dialog);
+            panel.setCornerRadius(dp(window.getDecorView(), 12));
+            panel.setStroke(dp(window.getDecorView(), 1), outline);
+            window.setBackgroundDrawable(panel);
+            int width = Math.min(dialog.getContext().getResources().getDisplayMetrics().widthPixels
+                    - dp(window.getDecorView(), 32), dp(window.getDecorView(), 560));
+            window.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+        @SuppressWarnings("DiscouragedApi")
+        int titleId = dialog.getContext().getResources().getIdentifier("alertTitle", "id", "android");
+        TextView title = titleId == 0 ? null : dialog.findViewById(titleId);
+        if (title != null) {
+            // In the gradient, as every HushGram title is.
+            ShimmerTitle.wear(title);
+            title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
+            title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+            title.setSingleLine(false);
+            title.setMaxLines(Integer.MAX_VALUE);
+        }
+        // AlertDialog's own message, and the one a preference's dialog layout brings, which is the
+        // one on show there: AlertDialog's own sits GONE above it, and findViewById finds that first.
+        if (window != null) paintMessages(window.getDecorView());
+        android.widget.ListView choices = dialog.getListView();
+        if (choices != null && choices.getAdapter() != null && !(choices.getAdapter() instanceof DialogChoices)) {
+            DialogChoices.swap(choices, new DialogChoices(choices.getAdapter(), this));
+            choices.setDivider(null);
+        }
+        for (int which : new int[]{AlertDialog.BUTTON_POSITIVE, AlertDialog.BUTTON_NEGATIVE, AlertDialog.BUTTON_NEUTRAL}) {
+            Button button = dialog.getButton(which);
+            if (button == null) continue;
+            paintAction(button, which == AlertDialog.BUTTON_POSITIVE);
+            // Keep the framework's 48dp touch area clear of the dialog's edges.
+            ((RippleDrawable) button.getBackground()).setLayerInsetRelative(
+                    0, dp(button, 4), dp(button, 6), dp(button, 4), dp(button, 6));
+        }
+        View field = dialog.findViewById(android.R.id.edit);
+        if (field instanceof EditText) paintField((EditText) field);
+        if (window != null) startTextAtTheStart(window.getDecorView());
+        if (window != null) followFont(window.getDecorView());
+    }
+
+    /** Dialog windows already following the picked font, so a repaint doesn't watch one twice. */
+    private static final Set<View> FONT_WATCHED = Collections.synchronizedSet(
+            Collections.newSetFromMap(new WeakHashMap<>()));
+
+    /**
+     * With the font patch in the build, a dialog's text follows the font picked for Instagram's,
+     * as the settings page's does (#166). The "i" descriptions, pickers and prompts are windows of
+     * their own, which the page's watcher never sees.
+     */
+    private static void followFont(View decor) {
+        if (!PatchFamily.FONT.inBuild() || !FONT_WATCHED.add(decor)) return;
+        decor.getViewTreeObserver().addOnPreDrawListener(new SettingsDialog.FontDraw(decor));
+    }
+
+    /**
+     * Text set to start at its start edge starts at the layout's: on the right in a right-to-left
+     * layout, under the title, where HushGram's English otherwise sits flush left. Centred text and
+     * buttons keep their gravity, a field keeps the direction of what's typed, and a list's rows
+     * are its adapter's.
+     */
+    public static void startTextAtTheStart(View view) {
+        if (view instanceof android.widget.AdapterView) return;
+        if (view instanceof TextView && !(view instanceof EditText)) {
+            TextView text = (TextView) view;
+            if ((text.getGravity() & android.view.Gravity.RELATIVE_HORIZONTAL_GRAVITY_MASK) == android.view.Gravity.START
+                    && text.getTextAlignment() == View.TEXT_ALIGNMENT_GRAVITY) {
+                text.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
+            }
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int index = 0; index < group.getChildCount(); index++) startTextAtTheStart(group.getChildAt(index));
+        }
+    }
+
+    /**
+     * A dialog's text field. The framework theme draws its underline, cursor and selection in
+     * the framework's teal, so they take the accent the buttons have.
+     */
+    void paintField(EditText field) {
+        field.setHintTextColor(dimmedWhenDisabled(hint));
+        GradientDrawable outline = new GradientDrawable();
+        outline.setColor(dialog);
+        outline.setCornerRadius(dp(field, 12));
+        outline.setStroke(dp(field, 2), interactionOutline(switchOff));
+        field.setBackgroundTintList(null);
+        field.setBackground(outline);
+        field.setPaddingRelative(dp(field, 12), dp(field, 10), dp(field, 12), dp(field, 10));
+        field.setTextColor(dimmedWhenDisabled(title));
+        field.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+        field.setMinHeight(dp(field, 48));
+        field.setHighlightColor(half(accent));
+        // Android 9 has no setters for the cursor and handles, so they keep the framework's colour.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return;
+        Drawable cursor = field.getTextCursorDrawable();
+        if (cursor != null) {
+            cursor = cursor.mutate();
+            cursor.setTint(accent);
+            field.setTextCursorDrawable(cursor);
+        }
+        Drawable handle = field.getTextSelectHandle();
+        if (handle != null) {
+            handle = handle.mutate();
+            handle.setTint(accent);
+            field.setTextSelectHandle(handle);
+        }
+        Drawable left = field.getTextSelectHandleLeft();
+        if (left != null) {
+            left = left.mutate();
+            left.setTint(accent);
+            field.setTextSelectHandleLeft(left);
+        }
+        Drawable right = field.getTextSelectHandleRight();
+        if (right != null) {
+            right = right.mutate();
+            right.setTint(accent);
+            field.setTextSelectHandleRight(right);
+        }
+    }
+
+    private void paintMessages(View view) {
+        if (view instanceof TextView && view.getId() == android.R.id.message) {
+            TextView message = (TextView) view;
+            message.setTextColor(dimmedWhenDisabled(summary));
+            message.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+            message.setLineSpacing(dp(view, 2), 1);
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int index = 0; index < group.getChildCount(); index++) paintMessages(group.getChildAt(index));
+        }
+    }
+
+    /** Paints a row with the colours on show, if there are any. */
+    static void row(View row, Preference preference) {
+        ScreenColors used = current();
+        used.paintRow(row, preference);
+        NewRowDots.paint(row, preference, used.accent);
+    }
+
+    /** Paints a section title with the colours on show, if there are any. */
+    static void heading(View row) {
+        current().paintHeading(row);
+    }
+
+    /** Paints both recovery actions even if the ordinary settings page failed to initialize. */
+    static void recoveryAction(View row, boolean primary) {
+        ScreenColors colors = forScreen(row.getContext());
+        (colors == null ? current() : colors).paintRecoveryAction(row, primary);
+    }
+
+    /** Paints a dialog with the colours on show, if there are any. */
+    public static void dialog(@Nullable AlertDialog dialog) {
+        current().paint(dialog);
+    }
+
+    /** Styles a runtime dialog's own input without changing its validation or input type. */
+    public static void styleField(EditText field) {
+        current().paintField(field);
+    }
+
+    /** Styles an existing action without replacing its content, listeners or accessibility delegate. */
+    public static void styleAction(TextView action, boolean primary) {
+        current().paintAction(action, primary);
+    }
+
+    private void paintAction(TextView action, boolean primary) {
+        GradientDrawable surface = new GradientDrawable();
+        surface.setColor(dimmedWhenDisabled(primary ? accent : card));
+        surface.setCornerRadius(dp(action, 12));
+        surface.setStroke(dp(action, 2), interactionOutline(primary ? accent : outline,
+                primary ? onAccent : heading));
+        action.setBackgroundTintList(null);
+        // View's tint pass mutates the background after setting its state. Mutate first so
+        // that pass cannot replace enabled children with fresh, empty-state copies.
+        action.setBackground(new RippleDrawable(
+                interactionRipple(primary ? onAccent : heading), surface, null).mutate());
+        action.setTextColor(dimmedWhenDisabled(primary ? onAccent : secondaryActionText()));
+        action.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        action.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+        action.setAllCaps(false);
+        action.setSingleLine(false);
+        action.setMaxLines(Integer.MAX_VALUE);
+        action.setEllipsize(null);
+        action.setHorizontallyScrolling(false);
+        action.setGravity(android.view.Gravity.CENTER);
+        action.setTextAlignment(View.TEXT_ALIGNMENT_GRAVITY);
+        action.setMinHeight(dp(action, 48));
+        action.setMinimumHeight(dp(action, 48));
+        action.setMinWidth(dp(action, 64));
+        action.setMinimumWidth(dp(action, 64));
+        action.setPaddingRelative(dp(action, 16), dp(action, 12), dp(action, 16), dp(action, 12));
+    }
+
+    /** Compact actions retain the shared interaction states without becoming filled buttons. */
+    public static void styleIconAction(View action) {
+        ScreenColors colors = current();
+        GradientDrawable surface = new GradientDrawable();
+        surface.setColor(Color.TRANSPARENT);
+        surface.setCornerRadius(dp(action, 8));
+        surface.setStroke(dp(action, 2), colors.interactionOutline(Color.TRANSPARENT));
+        action.setBackgroundTintList(null);
+        action.setBackground(new RippleDrawable(interactionRipple(colors.heading), surface, null).mutate());
+    }
+
+    private static int dp(View view, int value) {
+        return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value,
+                view.getResources().getDisplayMetrics()));
+    }
+
+    /** A switch's track: the thumb's colour at half strength, as Material's own switch draws it. */
+    public static int half(int color) {
+        return (color & 0x00FFFFFF) | 0x80000000;
+    }
+}

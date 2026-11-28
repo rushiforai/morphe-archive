@@ -1,0 +1,205 @@
+﻿[
+    {
+        "path":  "okhttp-4.0.0.jar",
+        "url":  "https://repo.maven.apache.org/maven2/com/squareup/okhttp3/okhttp/4.0.0/okhttp-4.0.0.jar",
+        "sha256":  "6b6cc577ede22e6d46db6732dfd2dcd6f4e2f8767f3722bce8d6394a2b1d84b0",
+        "bytes":  682908,
+        "upstreamSha256Verified":  false
+    },
+    {
+        "path":  "okhttp-4.0.0.pom",
+        "url":  "https://repo.maven.apache.org/maven2/com/squareup/okhttp3/okhttp/4.0.0/okhttp-4.0.0.pom",
+        "sha256":  "d7882123615c43615d95da37f35bbc1071f5f195c7a93327484eea5176cabde5",
+        "bytes":  2916,
+        "upstreamSha256Verified":  false
+    },
+    {
+        "path":  "okhttp-4.0.0-sources.jar",
+        "url":  "https://repo.maven.apache.org/maven2/com/squareup/okhttp3/okhttp/4.0.0/okhttp-4.0.0-sources.jar",
+        "sha256":  "60d9bee570c6af469863bf35abe7ff34ae939aa26e15600159d29ba64039789c",
+        "bytes":  319081,
+        "upstreamSha256Verified":  false
+    },
+    {
+        "path":  "okio-2.2.2.jar",
+        "url":  "https://repo.maven.apache.org/maven2/com/squareup/okio/okio/2.2.2/okio-2.2.2.jar",
+        "sha256":  "e58c97406a6bb1138893750299ac63c6aa04b38b6b49eae1bfcad1a63ef9ba1b",
+        "bytes":  182279,
+        "upstreamSha256Verified":  false
+    },
+    {
+        "path":  "okio-2.2.2.pom",
+        "url":  "https://repo.maven.apache.org/maven2/com/squareup/okio/okio/2.2.2/okio-2.2.2.pom",
+        "sha256":  "fd621988f7f6957025735dc6dd090b00a20f3a3bb8d77ca79036077f629b140b",
+        "bytes":  1994,
+        "upstreamSha256Verified":  false
+    },
+    {
+        "path":  "okio-2.2.2-sources.jar",
+        "url":  "https://repo.maven.apache.org/maven2/com/squareup/okio/okio/2.2.2/okio-2.2.2-sources.jar",
+        "sha256":  "ecf3a2b274a5c5d6f808b80c39feb6d52011c3885200070471232de64bfbcf2c",
+        "bytes":  77271,
+        "upstreamSha256Verified":  false
+    },
+    {
+        "path":  "kotlin-stdlib-1.3.40.jar",
+        "url":  "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/1.3.40/kotlin-stdlib-1.3.40.jar",
+        "sha256":  "f76f9812a703ba5085af8f51769e60e8ecd5e99b55b2ced097cf2343e972ad7b",
+        "bytes":  1290549,
+        "upstreamSha256Verified":  false
+    },
+    {
+        "path":  "kotlin-stdlib-1.3.40.pom",
+        "url":  "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/1.3.40/kotlin-stdlib-1.3.40.pom",
+        "sha256":  "d71a01a080b544befbaef3ad549817f46e9858c4255d32a5393f30435cdbf3dc",
+        "bytes":  1762,
+        "upstreamSha256Verified":  false
+    },
+    {
+        "path":  "okhttp-4.12.1.jar",
+        "url":  "https://repo.maven.apache.org/maven2/com/squareup/okhttp3/okhttp/4.12.1/okhttp-4.12.1.jar",
+        "sha256":  "86706f20171c58167b4acca46a66a4039d6b7927543b5ed944b7311c3cb52de0",
+        "bytes":  791976,
+        "upstreamSha256Verified":  true
+    },
+    {
+        "path":  "okhttp-4.12.1.pom",
+        "url":  "https://repo.maven.apache.org/maven2/com/squareup/okhttp3/okhttp/4.12.1/okhttp-4.12.1.pom",
+        "sha256":  "d38ed8f1a69f36dd0338a0565c2c26474ee100c9f83d8d9e01af4df77847c339",
+        "bytes":  1816,
+        "upstreamSha256Verified":  true
+    },
+    {
+        "path":  "okhttp-4.12.1-sources.jar",
+        "url":  "https://repo.maven.apache.org/maven2/com/squareup/okhttp3/okhttp/4.12.1/okhttp-4.12.1-sources.jar",
+        "sha256":  "a8e32d0e60d5bcd63a8689beb1e8201d0b47b9663d5d65415e7e3a0258426437",
+        "bytes":  369554,
+        "upstreamSha256Verified":  true
+    },
+    {
+        "path":  "okhttp-android-5.5.1.aar",
+        "url":  "https://repo.maven.apache.org/maven2/com/squareup/okhttp3/okhttp-android/5.5.1/okhttp-android-5.5.1.aar",
+        "sha256":  "ce00fd7751cf7e4f28ba73a0287b3cc0c62b8b83f038e428592eeef189513ee1",
+        "bytes":  949648,
+        "upstreamSha256Verified":  false
+    },
+    {
+        "path":  "okhttp-android-5.5.1.pom",
+        "url":  "https://repo.maven.apache.org/maven2/com/squareup/okhttp3/okhttp-android/5.5.1/okhttp-android-5.5.1.pom",
+        "sha256":  "d9aa6a615a54146f08ce0e298b382e79ebe310161992040b07ed52ed29de8c3b",
+        "bytes":  2270,
+        "upstreamSha256Verified":  false
+    },
+    {
+        "path":  "okhttp-android-5.5.1-sources.jar",
+        "url":  "https://repo.maven.apache.org/maven2/com/squareup/okhttp3/okhttp-android/5.5.1/okhttp-android-5.5.1-sources.jar",
+        "sha256":  "8d811457934e2f1aeeecae77d124abdd3aed9ca31829fc5d15cc70b1abd13c10",
+        "bytes":  440937,
+        "upstreamSha256Verified":  false
+    },
+    {
+        "path":  "okhttp-jvm-5.5.1.jar",
+        "url":  "https://repo.maven.apache.org/maven2/com/squareup/okhttp3/okhttp-jvm/5.5.1/okhttp-jvm-5.5.1.jar",
+        "sha256":  "4039527bd1f2e40b66e20b0e52c689cf56074b938ea02678141495f5160f1047",
+        "bytes":  963622,
+        "upstreamSha256Verified":  false
+    },
+    {
+        "path":  "okhttp-jvm-5.5.1.pom",
+        "url":  "https://repo.maven.apache.org/maven2/com/squareup/okhttp3/okhttp-jvm/5.5.1/okhttp-jvm-5.5.1.pom",
+        "sha256":  "146234d3d3554709dc77e99d25dcd74c6e1dc00d9a33aa55010090b566a7bfd2",
+        "bytes":  1866,
+        "upstreamSha256Verified":  false
+    },
+    {
+        "path":  "okhttp-jvm-5.5.1-sources.jar",
+        "url":  "https://repo.maven.apache.org/maven2/com/squareup/okhttp3/okhttp-jvm/5.5.1/okhttp-jvm-5.5.1-sources.jar",
+        "sha256":  "74c09259e1312b5bec280b62cfc7956927c02e157c89fd56ce3c4c5406f9179b",
+        "bytes":  424330,
+        "upstreamSha256Verified":  false
+    },
+    {
+        "path":  "okio-jvm-3.18.1.jar",
+        "url":  "https://repo.maven.apache.org/maven2/com/squareup/okio/okio-jvm/3.18.1/okio-jvm-3.18.1.jar",
+        "sha256":  "b97b640557a650d15411f2be29aef558c4e422a83653cb18ba494311dbed18be",
+        "bytes":  392463,
+        "upstreamSha256Verified":  false
+    },
+    {
+        "path":  "okio-jvm-3.18.1.pom",
+        "url":  "https://repo.maven.apache.org/maven2/com/squareup/okio/okio-jvm/3.18.1/okio-jvm-3.18.1.pom",
+        "sha256":  "6457712bf7dfdfa0d1b25a303600288c34a1ff8613d55c24c8c99bcc63301dd0",
+        "bytes":  1715,
+        "upstreamSha256Verified":  false
+    },
+    {
+        "path":  "okio-jvm-3.18.1-sources.jar",
+        "url":  "https://repo.maven.apache.org/maven2/com/squareup/okio/okio-jvm/3.18.1/okio-jvm-3.18.1-sources.jar",
+        "sha256":  "967a2e30e8504e48c2de60acfc96d091d2fd44671def26875896a37a1624a0f4",
+        "bytes":  192914,
+        "upstreamSha256Verified":  false
+    },
+    {
+        "path":  "okio-jvm-3.18.2.jar",
+        "url":  "https://repo.maven.apache.org/maven2/com/squareup/okio/okio-jvm/3.18.2/okio-jvm-3.18.2.jar",
+        "sha256":  "681fed549d1d2c63710f42c9eab433d642c71af778babd67035c50f8c425aaff",
+        "bytes":  392462,
+        "upstreamSha256Verified":  false
+    },
+    {
+        "path":  "okio-jvm-3.18.2.pom",
+        "url":  "https://repo.maven.apache.org/maven2/com/squareup/okio/okio-jvm/3.18.2/okio-jvm-3.18.2.pom",
+        "sha256":  "94ef678c6c26f04c380a902951174f216bbae4d3f1bfc421e1830f9aac556d28",
+        "bytes":  1715,
+        "upstreamSha256Verified":  false
+    },
+    {
+        "path":  "okio-jvm-3.18.2-sources.jar",
+        "url":  "https://repo.maven.apache.org/maven2/com/squareup/okio/okio-jvm/3.18.2/okio-jvm-3.18.2-sources.jar",
+        "sha256":  "967a2e30e8504e48c2de60acfc96d091d2fd44671def26875896a37a1624a0f4",
+        "bytes":  192914,
+        "upstreamSha256Verified":  false
+    },
+    {
+        "path":  "kotlin-stdlib-2.1.21.jar",
+        "url":  "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.1.21/kotlin-stdlib-2.1.21.jar",
+        "sha256":  "263bdc679e1f62012db7b091796279b6d71cf36f4797a98ff1ace05835f201c8",
+        "bytes":  1724058,
+        "upstreamSha256Verified":  false
+    },
+    {
+        "path":  "kotlin-stdlib-2.1.21.pom",
+        "url":  "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.1.21/kotlin-stdlib-2.1.21.pom",
+        "sha256":  "c5524086ca3e49a67986df8fdccd66037baf5f3c5a358b76f9dd609bee7bb638",
+        "bytes":  2322,
+        "upstreamSha256Verified":  false
+    },
+    {
+        "path":  "annotation-jvm-1.10.0.jar",
+        "url":  "https://dl.google.com/dl/android/maven2/androidx/annotation/annotation-jvm/1.10.0/annotation-jvm-1.10.0.jar",
+        "sha256":  "ddd072ddbb553178e205517ce777b2f05aa9e412982d9ecb4eedc74f1212f697",
+        "bytes":  62171,
+        "upstreamSha256Verified":  false
+    },
+    {
+        "path":  "annotation-jvm-1.10.0.pom",
+        "url":  "https://dl.google.com/dl/android/maven2/androidx/annotation/annotation-jvm/1.10.0/annotation-jvm-1.10.0.pom",
+        "sha256":  "5eece0903b4810aa1da85414dc4c2746046d878a543aa12dd4f1fe74171f7506",
+        "bytes":  2103,
+        "upstreamSha256Verified":  false
+    },
+    {
+        "path":  "startup-runtime-1.2.0.aar",
+        "url":  "https://dl.google.com/dl/android/maven2/androidx/startup/startup-runtime/1.2.0/startup-runtime-1.2.0.aar",
+        "sha256":  "f51d361d17b30b09cfb9e2aebf301d113f99437cbf462a066092795fb60eddd2",
+        "bytes":  24073,
+        "upstreamSha256Verified":  false
+    },
+    {
+        "path":  "startup-runtime-1.2.0.pom",
+        "url":  "https://dl.google.com/dl/android/maven2/androidx/startup/startup-runtime/1.2.0/startup-runtime-1.2.0.pom",
+        "sha256":  "69594163d8bb148df97a9fbb5aa8a92486bb8961db5f73871b8a84122616593b",
+        "bytes":  2020,
+        "upstreamSha256Verified":  false
+    }
+]

@@ -249,6 +249,7 @@ index 0 of `<init>`; `inject` at index 0 of the page callbacks.
 | Chat panel background (1.2.7) | `La79.d`: two `sget-wide ..., Lng4;->f:J` reads (split + overlay branch); overlay anchored by `sget-object ..., La57;->H:Lnh3;` |
 | Default chat mode (1.2.7) | `Lwc9`: `fieldAccess("Lhw0;", "B", "Lhw0;")` in `<init>(Lbo1;Lvu7;Lyu7;)V` and `a(Log1;)Ljava/lang/Object;`; `hw0.B` = OVERLAY_HALF (default), `hw0.D` = SIDE_PANEL |
 | TextStyle | `Lvi4;` → `<clinit>` writing field `m`; sizes via `Ldh7;` → `m(I)J`; font weight is `Ly23;->G:Ly23;` (600) in the `Lfv8;-><init>` call right before the `m` write, redirected to `y23.E` (400) for Twitch-like |
+| Username weight | `Lhp1;` → `I(Lhn;Lei5;Ljava/util/Map;JLfv8;ILkotlin/jvm/functions/Function1;Lp73;I)V` renders a whole chat line; the username is an `rb8` SpanStyle in `hn.A` with null weight, set to `y23.G` by `boldUsernames(Object)` |
 | Mature dialog | `Lsz6;` → `i(...)` |
 | Splash start route | `Ldn0;` → `invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;` filtered by `const-string "home"` + `Lxs5;->b(String, Function1)` (last frame of the "VideoSplashScreen" effect) |
 

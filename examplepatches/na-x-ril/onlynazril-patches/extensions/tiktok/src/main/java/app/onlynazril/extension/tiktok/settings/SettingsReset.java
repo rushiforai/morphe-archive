@@ -21,6 +21,10 @@ public final class SettingsReset {
 
     public static void reset(Context ctx) {
         if (ctx == null) return;
+        // The imported fonts are files, not prefs, and the prompt promises they go too.
+        CustomFontSettings.reset(ctx);
+        SpeedOnlySettings.invalidate();
+
         SharedPreferences prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         boolean asked = prefs.contains(KEY_INSTALL);
         long installed = prefs.getLong(KEY_INSTALL, 0L);
@@ -28,6 +32,6 @@ public final class SettingsReset {
         // commit, not apply: a restart follows this call and must not race the write.
         prefs.edit().clear().commit();
         if (asked) prefs.edit().putLong(KEY_INSTALL, installed).commit();
-        Debug.print("settings: reset to defaults");
+        Debug.print("settings: reset to defaults" + Debug.by(4));
     }
 }

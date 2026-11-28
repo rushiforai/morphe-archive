@@ -13,6 +13,7 @@ import app.morphe.patcher.patch.Compatibility
  */
 internal val OPENBOT_VERSIONS = listOf(
     "1.4.13",
+    "1.4.14",
 )
 
 internal val OPENBOT_COMPATIBILITY = Compatibility(

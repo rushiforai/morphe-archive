@@ -1,0 +1,196 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.hushgram.extension.instagram.reels;
+
+import androidx.annotation.Nullable;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
+import app.hushgram.extension.instagram.settings.FamilyNames;
+import app.hushgram.extension.instagram.settings.Settings;
+import app.hushgram.extension.shared.Logger;
+import app.hushgram.extension.shared.Utils;
+import app.hushgram.extension.shared.diagnostics.HookStatus;
+import app.hushgram.extension.shared.settings.HushgramPause;
+
+/**
+ * The Tab order choice: the order the tab bar shows its tabs in.
+ *
+ * <p>The choice is kept as the tab enum's names, comma separated, first tab first. The tab list hook
+ * ({@link ReelsTab#tabs}) hands its list here after the hide switches have had it, and gets back a
+ * copy with the named tabs first, in the order chosen, then the rest in Instagram's order. The tab
+ * bar's buttons and the swipe between tabs are both built from that one list, and Instagram looks a
+ * tab up in it by name, so the two stay in step. A tab the choice names that isn't on the bar is
+ * skipped. Nothing changes which tab Instagram opens on: Home's place in the list doesn't make it
+ * the start tab, the Start tab choice does. Instagram opens its tab pager on the pager's first tab
+ * unless a server flag says to open it on the tab asked for, and most accounts have that flag off,
+ * so while the bar is reordered {@link ReelsTab#startAtTab} answers it yes.
+ *
+ * <p>An empty choice, HushGram paused, the settings not read yet, or a list holding anything but
+ * tabs, and the list goes through as it came. The list Instagram built is never changed.
+ */
+public final class TabOrder {
+    /**
+     * The tabs the choice can order, by their names in Instagram's tab enum, in a stable default order.
+     * NEWS is Activity, on the bar only with Show the Activity tab (#156).
+     */
+    public static final List<String> TABS = Collections.unmodifiableList(
+            Arrays.asList("FEED", "SEARCH", "CLIPS", "DIRECT", "NEWS", "CREATION", "PROFILE"));
+
+    /** What a reordered bar is counted under. */
+    static final String APPLIED = "Tab order applied";
+
+    /** The names of the tabs on the bar in Instagram's order, after the hide switches, as last built. Null before. */
+    @Nullable
+    private static volatile List<String> instagramOrder;
+
+    /** Whether the list was last handed back in another order than Instagram's. */
+    private static volatile boolean reordered;
+
+    private TabOrder() {
+    }
+
+    /**
+     * [tabs] in the saved order, as a copy, or [tabs] itself when there's no order to apply or it
+     * leaves the list as it was. Never throws.
+     */
+    static List<?> apply(List<?> tabs) {
+        try {
+            reordered = false;
+            // Paused, the bar is Instagram's own, with no hide or show switch applied, so it isn't kept:
+            // the settings list then goes by the saved switches, as it does before any bar is built.
+            boolean paused = HushgramPause.isPaused();
+            if (!paused) remember(tabs);
+            if (!Utils.settingsReady() || paused) return tabs;
+            List<?> shown = ordered(tabs, parse(Settings.TAB_ORDER.get()));
+            reordered = shown != tabs;
+            if (shown != tabs) {
+                HookStatus.counted(FamilyNames.REELS_TAB, APPLIED);
+                Logger.printDebug(() -> "Reels tab: put the bar in the order " + Settings.TAB_ORDER.get());
+            }
+            return shown;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REELS_TAB, "tab order", failure);
+            return tabs;
+        }
+    }
+
+    /**
+     * Whether an order is saved, so the pager may open straight on the first tab Instagram asks for,
+     * with no switch after it. Never throws.
+     */
+    static boolean saved() {
+        try {
+            return Utils.settingsReady() && !HushgramPause.isPaused() && !parse(Settings.TAB_ORDER.get()).isEmpty();
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REELS_TAB, "tab order", failure);
+            return false;
+        }
+    }
+
+    /**
+     * A copy of [tabs] with the tabs [order] names first, in that order, then the others in the order
+     * they came, or [tabs] itself when that is the order they're in already, [order] is empty, or the
+     * list holds something that isn't a tab.
+     */
+    static List<?> ordered(List<?> tabs, List<String> order) {
+        if (order.isEmpty() || tabs.isEmpty()) return tabs;
+        for (Object tab : tabs) {
+            if (!(tab instanceof Enum)) return tabs;
+        }
+        List<Object> shown = new ArrayList<>(tabs.size());
+        for (String name : order) {
+            for (Object tab : tabs) {
+                if (((Enum<?>) tab).name().equals(name) && !shown.contains(tab)) shown.add(tab);
+            }
+        }
+        for (Object tab : tabs) {
+            if (!shown.contains(tab)) shown.add(tab);
+        }
+        return shown.equals(tabs) ? tabs : shown;
+    }
+
+    /** The tab names in [saved], in order, without blanks, repeats or names the choice doesn't know. */
+    public static List<String> parse(@Nullable String saved) {
+        if (saved == null || saved.trim().isEmpty()) return Collections.emptyList();
+        Set<String> names = new LinkedHashSet<>();
+        for (String part : saved.split(",")) {
+            String name = part.trim();
+            if (TABS.contains(name)) names.add(name);
+        }
+        return new ArrayList<>(names);
+    }
+
+    /** Whether the bar was last built in another order than Instagram's. */
+    static boolean reordered() {
+        return reordered;
+    }
+
+    /** [names] as the saved choice. */
+    public static String join(List<String> names) {
+        return String.join(",", names);
+    }
+
+    /**
+     * The tabs for the settings list, in the order the bar shows them with [saved] applied: the tabs
+     * on the bar as Instagram last built it, or every tab the choice knows before it has. Activity is
+     * left out of that fallback unless Show the Activity tab is on, since only that switch puts it there.
+     */
+    public static List<String> choices(@Nullable String saved) {
+        List<String> built = instagramOrder;
+        List<String> base = new ArrayList<>();
+        if (built != null) {
+            for (String name : built) {
+                if (TABS.contains(name)) base.add(name);
+            }
+        }
+        if (base.isEmpty()) {
+            // Read as saved, so a paused process lists the user's tabs, not Instagram's.
+            boolean activity = Utils.settingsReady() && Settings.SHOW_ACTIVITY_TAB.savedValue();
+            for (String name : TABS) {
+                if (activity || !ReelsTab.ACTIVITY.equals(name)) base.add(name);
+            }
+        }
+        List<String> chosen = new ArrayList<>();
+        for (String name : parse(saved)) {
+            if (base.contains(name)) chosen.add(name);
+        }
+        for (String name : base) {
+            if (!chosen.contains(name)) chosen.add(name);
+        }
+        return chosen;
+    }
+
+    /** The names of the tabs on the bar in Instagram's order, after the hide switches, as last built, or null before. */
+    @Nullable
+    public static List<String> lastBuilt() {
+        List<String> built = instagramOrder;
+        return built == null ? null : Collections.unmodifiableList(built);
+    }
+
+    private static void remember(List<?> tabs) {
+        List<String> names = new ArrayList<>(tabs.size());
+        for (Object tab : tabs) {
+            if (tab instanceof Enum) names.add(((Enum<?>) tab).name());
+        }
+        instagramOrder = names;
+    }
+
+    /** Stands in for a bar Instagram built with [names], for the settings page's tests. */
+    public static void builtForTests(List<String> names) {
+        instagramOrder = new ArrayList<>(names);
+    }
+
+    /** Forgets the bar as last built, for tests, the settings page's included. */
+    public static void forgetForTests() {
+        instagramOrder = null;
+        reordered = false;
+    }
+}

@@ -2,7 +2,7 @@
 
 Phase 3 builds one engine part by part, keeping the better version of each part.
 This lists every place the code branches on the version (`version === 2` in
-`src/automix/automix.js`, `m.v2` in `src/crossfade.js`), as of commit 11c69dd.
+`src/automix/automix.js`, `m.v2` in `src/automix/crossfade.js`), as of commit 11c69dd.
 
 "Original" (version 1) is BitChord web's automix, the one the plan calls "Web".
 "Advanced" (version 2, "Advanced AutoDJ") adds ideas from the BitChord phone app.

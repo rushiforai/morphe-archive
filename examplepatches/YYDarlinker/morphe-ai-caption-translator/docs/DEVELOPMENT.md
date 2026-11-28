@@ -1,91 +1,39 @@
 # Development and verification
 
-Start from a Git checkout with the source, tests, locks and distributed [`tools/workspace/`](../tools/workspace/) entry. Read [current state](PROJECT-STATE.md) before changing a pending candidate. Windows frontends enforce this maintainer's E: workspace policy; configured Linux CI uses `python3 tools/verify_current.py`.
+Use a Git checkout with JDK 21, Python 3.12, Android SDK platforms 35 and 36, and build-tools 36.0.0. The Gradle wrapper and version catalog pin the build, including Morphe Gradle plugin 2.1.2 and Patcher 2.6.0.
 
-## Process inputs
+## Windows setup
 
-Initialization never imports credentials, edits global environment variables or discovers another checkout. Explicit invalid inputs fail. Shared installed tools/artifacts may be outside E:, but writable Gradle/Android homes and project temp stay on E:.
+Set the following variables in the current shell to use existing tools or override the checkout-relative defaults.
 
-| Variable | Default relative to repository | Requirement |
-| --- | --- | --- |
-| JAVA_HOME | work/toolchain/jdk-21 | JDK 21, java.exe and javac.exe |
-| MORPHE_TASK_PYTHON | work/toolchain/python/python.exe | Python 3.12 |
-| ANDROID_HOME | work/toolchain/android-sdk | APIs 35/36, build-tools 36.0.0, accepted SDK licence |
-| ANDROID_SDK_ROOT | selected ANDROID_HOME | If supplied, it must agree |
-| MORPHE_ROBOLECTRIC_DIR | work/toolchain/robolectric | Three instrumented SDK JARs below |
-| GRADLE_USER_HOME | work/gradle-home | Writable on E:; caller must understand existing private configuration |
-| MORPHE_MAVEN_LOCAL | work/maven-local | Explicit artifact repository; supplied path must exist |
-| ANDROID_USER_HOME | work/android-user-home | Writable on E:, including local debug-build signing material |
+| Variable | Default |
+| --- | --- |
+| `JAVA_HOME` | `work/toolchain/jdk-21` |
+| `ANDROID_HOME` | `work/toolchain/android-sdk` |
+| `MORPHE_TASK_PYTHON` | `work/toolchain/python/python.exe` |
+| `MORPHE_ROBOLECTRIC_DIR` | `work/toolchain/robolectric` |
+| `MORPHE_MAVEN_LOCAL` | `work/maven-local` |
+| `GRADLE_USER_HOME` | `work/gradle-home` |
+| `ANDROID_USER_HOME` | `work/android-user-home` |
 
-TEMP/TMP and Python bytecode go under `work/`. The Windows init script gives each Test task its own `work/test-temp/<project>/run-<uuid>/`; successful tasks remove only their own extracted Robolectric native runtime after the worker exits. Other temporary files and failed-task directories remain. Toolchain/Gradle/Maven dependencies are not cleaned or installed by initialization.
+If set, `ANDROID_SDK_ROOT` must match `ANDROID_HOME`. The Windows launchers expect the checkout and writable homes on drive E. The Robolectric directory needs these `android-all-instrumented-<version>.jar` files for APIs 28, 33 and 35 respectively.
 
-For the existing maintainer installation, open a fresh PowerShell process at this repository:
+- `9-robolectric-4913185-2-i7`
+- `13-robolectric-9030017-i7`
+- `15-robolectric-12650502-i7`
+
+Use authorized package-read credentials via `GITHUB_ACTOR` and `GITHUB_TOKEN`, or private Gradle properties `gpr.user` and `gpr.key`. Cached offline runs accept nonempty placeholders and need the plugin marker, Morphe plugin, patcher and transitive artifacts already resolved. The launchers accept process proxy settings without embedded credentials.
+
+## Run checks
 
 ```powershell
-$repo = (Get-Location).Path
-$env:JAVA_HOME = Join-Path $repo 'work/toolchain/jdk-21'
-$env:ANDROID_HOME = Join-Path $repo 'work/toolchain/android-sdk'
-$env:ANDROID_SDK_ROOT = $env:ANDROID_HOME
-$env:MORPHE_TASK_PYTHON = Join-Path $repo 'work/toolchain/python/python.exe'
-$env:MORPHE_ROBOLECTRIC_DIR = Join-Path $repo 'work/toolchain/robolectric'
-$env:GRADLE_USER_HOME = Join-Path $repo 'work/gradle-home'
-# Explicit opt-in artifact input for this installation; replace for your machine.
-$env:MORPHE_MAVEN_LOCAL = Join-Path $env:USERPROFILE '.m2/repository'
-# Noncredentials, only for already cached --offline runs:
-$env:GITHUB_ACTOR = 'offline-cache-only'
-$env:GITHUB_TOKEN = 'offline-cache-only'
-.\tools\workspace\dev.cmd :translation-core:testDebugUnitTest --tests '*RepairAdmissionTest' --offline
-```
-
-Morphe 2.0.0 eagerly reads both package user/token settings even offline. Nonempty placeholders grant no registry access. Online resolution needs your own authorized package-read settings (`GITHUB_ACTOR`/`GITHUB_TOKEN` or private gpr.user/gpr.key); never put secrets in source, arguments or reports. A selected Gradle home may already contain private settings/init scripts; inspect it before reuse. Initialization never reads `gh auth token` or copies account configuration.
-
-## Pinned tools and dependencies
-
-| Input | Repository contract / provisioning |
-| --- | --- |
-| Gradle | Wrapper 9.6.1; ZIP SHA-256 9c0f7faeeb306cb14e4279a3e084ca6b596894089a0638e68a07c945a32c9e14 in gradle/wrapper/gradle-wrapper.properties. Use the wrapper |
-| Java/Python | Supply JDK 21 and Python 3.12. [Temurin](https://adoptium.net/temurin/releases/), [Python](https://www.python.org/downloads/). Observing a local executable version is not proof of its installer provenance |
-| Android | [sdkmanager](https://developer.android.com/tools/sdkmanager): platforms;android-35, platforms;android-36, build-tools;36.0.0, platform-tools; review/accept licences yourself |
-| Morphe plugin/Patcher | app.morphe.patches plugin 2.0.0 and app.morphe:morphe-patcher:2.0.0; settings/version catalog are authoritative |
-| Robolectric | 4.14.1, pinned by the Android test builds; runtime artifacts below |
-| Other JVM dependencies | Build scripts, version catalog, resolved POM/module metadata. Repositories include Google Maven, Maven Central, Gradle Plugin Portal, Morphe registry and JitPack |
-| Node/npm | Release tooling only, governed by package.json/package-lock.json and workflows. Not needed for ordinary application tests; `npm ci` recreates node_modules |
-
-Provision these exact `org.robolectric:android-all-instrumented` artifacts into MORPHE_ROBOLECTRIC_DIR:
-
-| API | Version / filename suffix |
-| --- | --- |
-| 28 | 9-robolectric-4913185-2-i7 |
-| 33 | 13-robolectric-9030017-i7 |
-| 35 | 15-robolectric-12650502-i7 |
-
-Each filename is `android-all-instrumented-<version>.jar`. This stops Robolectric runtime downloading; it does not populate Gradle's separate dependency graph. The retired implicit Maven-copy helper is not needed.
-
-`mavenLocal()` is evaluated early. The Windows init sets maven.repo.local before settings to the explicit input. For an offline environment provision the plugin marker app.morphe.patches:app.morphe.patches.gradle.plugin:2.0.0, app.morphe:morphe-patches-gradle-plugin:2.0.0, app.morphe:morphe-patcher:2.0.0 and resolved dependencies. Alternatively resolve from the [Morphe registry](https://maven.pkg.github.com/MorpheApp/registry) with authorized credentials. Existing local Maven publications are disclosed artifact inputs, not a verified source rebuild of the plugin.
-
-HTTP_PROXY/HTTPS_PROXY are process inputs applied as JVM proxy properties without rewriting cache settings. Embedded credentials are rejected; fixture HTTP remains direct. No real model API variables are imported.
-
-## Commands and outputs
-
-```powershell
-# Localization and both unit suites, normal incremental development:
 .\tools\workspace\dev.cmd --offline
-# Explicit build task:
 .\tools\workspace\dev.cmd :patches:buildAndroid --offline
-# One final candidate; identity comes from gradle.properties; use a fresh run ID:
-.\tools\workspace\verify-full.cmd -RunId my-change-01 -Offline -RerunTests
+.\tools\workspace\verify-full.cmd -RunId local-check-01 -Offline -RerunTests
 ```
 
-The frontends launch Windows PowerShell without a profile. Missing tools/package settings fail before Gradle. Offline requires pre-resolved inputs; omit offline only for authorized online resolution. Use `Enter-Dev.ps1` plus `--init-script tools/workspace/workspace.init.gradle` for ad-hoc Gradle. `tools/Verify.ps1` and `tools/Enter-Workspace.ps1` remain small supported aliases; ignored `.devenv/` aliases are not prerequisites.
+Omit `--offline` or `-Offline` when resolving dependencies online. The daily command defaults to localization and both JVM unit suites. On configured Linux CI, use `python3 tools/verify_current.py` for full validation.
 
-Full verification runs source/provenance/localization/tool contracts, both suites, UI fixture assembly, MPP build, exact MPP/MPE identity, compiled/package boundaries and credential scanning. It recreates the two Java test destinations, disables their compiled-test cache reuse and requires reset receipts; stale deleted test classes cannot count. Missing/zero/all-skipped/failed tests or changed inputs fail. No real model, publication, composition or installation occurs.
+Full verification checks localization, tool and release contracts, source boundaries, fresh unit-test compilation, and packaged code and credential boundaries. It freezes the MPP/MPE under `build/verification/<run-id>/` and writes reports to `validation/runs/<run-id>/`. Ordinary builds place the MPP in `patches/build/libs/`. Run `buildAndroid` after JVM and resource tasks because later JVM packaging can replace the patch JAR.
 
-The token-cost golden test accepts `-Pgolden.write=<absolute-review-file>` to write a proposal, then deliberately fails. Review changes against the contract before replacing the fixture; regeneration is not a passing check. Ordinary UI tests keep their assertions and drawing checks without writing historical screenshot/JSON ledgers.
-
-Both canonical frontends disable live translation. Optional `src/liveTest` probes require separate authorization, a complete provider configuration and positive `live.maxRequests`, `live.maxTokens` and `live.elapsedSeconds` budgets. A zero-provider/zero-call run cannot establish streaming success. Live probes are not part of the default application-test count.
-
-Candidate assets: `build/maintenance/M1a/<run-id>/`. Evidence: `validation/runs/<run-id>/`. M1a and ordinary `build/n39/gradle` are inherited output contracts, not extra active versions. Extension intermediates stay in `extensions/extension/build/` for R8. Save same-run reports/receipts/required compiled evidence before subsequent builds.
-
-Composition with official Patches 2.3.0 / 2.3.0-dev.9 requires Patcher 2.4.0; the pinned 2.0.0 runtime cannot load their `PatchDefinition` API. Supply `-Pcomposition.patcherJar=<absolute-path>` to an official distribution containing Patcher 2.4.0, such as [Morphe Desktop 2.2.0](https://github.com/MorpheApp/morphe-desktop/releases/tag/v2.2.0) (`morphe-desktop-2.2.0-all.jar`, SHA-256 `5ca0320ee05481df1ae3afd2f003bba3ff994d11d1f66ae48811ced71355e4fe`). Both composition tasks use that selected JAR; the build checks its embedded Patcher version. The production plugin/Patcher dependency remains pinned to 2.0.0 for the retained bundle ABI. Use a separate composition build root when switching runtimes, and keep the exact frozen addon MPP as input; see [compatibility](COMPATIBILITY.md).
-
-A source ZIP has no Git metadata; use a real checkout for canonical source identity. Private caches, original APKs, diagnostic history, archived reports and `.devenv/` are not required source inputs. Local cached Windows builds and historical Linux CI do not certify arbitrary empty-cache provisioning, registry authentication or every installer. [Maintenance](MAINTAINING.md) describes verification strength and stopping rules.
+Live provider probes are opt-in and are outside the default test suites. For final APK composition and artifact reuse, see [compatibility](COMPATIBILITY.md).

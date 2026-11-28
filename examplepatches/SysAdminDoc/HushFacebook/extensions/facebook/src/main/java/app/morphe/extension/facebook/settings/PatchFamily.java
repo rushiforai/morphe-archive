@@ -106,7 +106,8 @@ public enum PatchFamily {
             Settings.HIDE_SPONSORED_STORIES),
     SUGGESTED_STORIES(FamilyNames.SUGGESTED_STORIES, "suggestedStories", null,
             Settings.HIDE_SUGGESTED_STORIES, Settings.HIDE_CONTACT_IMPORT_CARD, Settings.HIDE_STORY_PROMPTS,
-            Settings.HIDE_CREATE_STORY, Settings.HIDE_PAGE_STORIES, Settings.HIDE_SEEN_STORIES, Settings.SEEN_STORIES_LAST,
+            Settings.HIDE_CREATE_STORY, Settings.HIDE_PAGE_STORIES, Settings.HIDE_PEOPLE_STORIES,
+            Settings.HIDE_SEEN_STORIES, Settings.SEEN_STORIES_LAST,
             Settings.SHOW_ONLY_WATCHED_STORIES, Settings.HIDE_PASSED_STORIES),
     STORY_AUTO_ADVANCE(FamilyNames.STORY_AUTO_ADVANCE, "storyAutoAdvance", null,
             Settings.BLOCK_STORY_AUTO_ADVANCE, Settings.LOOP_STORIES),
@@ -146,7 +147,7 @@ public enum PatchFamily {
             Settings.POST_SAVE_BUTTON, Settings.POST_DOWNLOAD_BUTTON, Settings.HIDE_POST_LIKE_BUTTON,
             Settings.HIDE_POST_COMMENT_BUTTON, Settings.HIDE_POST_REPOST_BUTTON, Settings.HIDE_POST_SHARE_BUTTON,
             Settings.HIDE_POST_SEND_BUTTON, Settings.HIDE_POST_STARS_BUTTON, Settings.HIDE_POST_SAVE_BUTTON,
-            Settings.IGNORE_POST_ROW_TAPS),
+            Settings.HIDE_POST_SEND_MESSAGE, Settings.IGNORE_POST_ROW_TAPS),
     SPONSORED_MARKETPLACE(FamilyNames.SPONSORED_MARKETPLACE, "sponsoredMarketplace", null,
             Settings.HIDE_SPONSORED_MARKETPLACE_LISTINGS, Settings.MARKETPLACE_ADVANCED_SEARCH,
             Settings.MARKETPLACE_FILTERS_BUTTON, Settings.MARKETPLACE_LISTING_DATE),
@@ -269,6 +270,8 @@ public enum PatchFamily {
             Settings.TURN_OFF_SCREEN_TRANSITIONS),
     // No switch: the typed text is the choice, and Pause makes it read blank, Facebook's wordmark.
     HEADER_TEXT(FamilyNames.HEADER_TEXT, "headerText", Settings.HEADER_TEXT),
+    // No switch: a pause leaves the home screen icon as it was picked, like the one Morphe drew.
+    APP_ICON(FamilyNames.APP_ICON, "appIcon", FamilyNames.APP_ICON),
     EXTERNAL_BROWSER(FamilyNames.EXTERNAL_BROWSER, "externalBrowser", null,
             Settings.OPEN_LINKS_EXTERNALLY, Settings.HOLD_LINK_HISTORY),
     SANITIZE_SHARING_LINKS(FamilyNames.SANITIZE_SHARING_LINKS, "sanitizeSharingLinks", null,

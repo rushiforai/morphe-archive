@@ -1,8 +1,11 @@
 package app.southstar21.extension.instagram.liquidglass;
 
+import android.content.res.ColorStateList;
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.ColorDrawable;
@@ -15,6 +18,8 @@ import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.WindowInsets;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
@@ -56,6 +61,12 @@ final class HeaderBlurController {
     private final int[] buttonContainerIds;
     private final int[] buttonIds;
     private final int searchFieldId;
+    /** The stories tray Instagram drops in under the feed's header over a scrolled feed. */
+    private final int storiesTrayId;
+    /** The feed header's "For you" title and its chevron. */
+    private final int titleTextId, titleChevronId;
+    /** The stories row at the top of the feed. */
+    private final int storiesRowId;
     /** Keyed by the header view; null values mark headers that can't be handled. */
     private final WeakHashMap<View, Header> headers = new WeakHashMap<>();
     private final ArrayList<View> found = new ArrayList<>();
@@ -90,6 +101,14 @@ final class HeaderBlurController {
         long buttonsFoundAt;
         /** Scroll speed tracking: a list item and where it was last frame. */
         float reveal;
+        /** The header row's fill while the stories tray hangs below it (see trayColor). */
+        final ColorDrawable solid = new ColorDrawable();
+        /** The white we give the title and its chevron. */
+        final ColorStateList titleWhite = ColorStateList.valueOf(Color.WHITE);
+        final PorterDuffColorFilter chevronWhite = new PorterDuffColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN);
+        /** Instagram's own title colors, for the top of the feed. */
+        ColorStateList titleOwn;
+        android.graphics.ColorFilter chevronOwn;
 
         Header(View header, View wrapper, FrameLayout page, EdgeBlurView blur, int dividerId, float density) {
             this.header = header;
@@ -200,6 +219,10 @@ final class HeaderBlurController {
         buttonIds = new int[]{id(res, "explore_action_bar_secondary_button_stub"),
                 id(res, "explore_action_bar_right_button_stub")};
         searchFieldId = id(res, "action_bar_search_hints_text_layout");
+        storiesTrayId = id(res, "overlay_stories_tray_container");
+        titleTextId = id(res, "title_text");
+        titleChevronId = id(res, "title_chevron");
+        storiesRowId = id(res, "reels_tray_container");
     }
 
     private static int id(Resources res, String name) {
@@ -305,9 +328,17 @@ final class HeaderBlurController {
             h.page.addView(h.blur, h.page.indexOfChild(wrapper));
         }
 
-        // Instagram paints the header white/black; keep it see-through so the blur shows.
+        // Instagram paints the header white/black; keep it see-through so the blur shows. Not
+        // while its stories tray hangs below the header, though: the tray is a solid panel, and
+        // a see-through header above it showed the feed scrolled behind it as a smeared band.
+        int tray = trayColor(h, dark);
         clearBackground(wrapper);
-        if (h.header != wrapper) clearBackground(h.header);
+        if (tray != 0) {
+            h.solid.setColor(tray);
+            if (h.header.getBackground() != h.solid) setBackgroundKeepingPadding(h.header, h.solid);
+        } else if (h.header != wrapper) {
+            clearBackground(h.header);
+        }
 
         // Instagram shows a hairline under the header once content scrolls under it. iOS has none.
         if (h.divider != null && h.divider.getAlpha() != 0f) h.divider.setAlpha(0f);
@@ -315,6 +346,7 @@ final class HeaderBlurController {
 
         int inset = statusBarInset(h.page);
         View scroller = scroller(h);
+        enforceTitle(h, scroller, tray != 0);
         if (h.shift != null && h.shift.apply(inset)) relaidOut = true;
         if (scroller != null && inset > 0) {
             // The list's padding now covers the status bar: let content show there.
@@ -343,7 +375,7 @@ final class HeaderBlurController {
         // Like iOS, there's no edge effect at the top of the list: nothing is under the header
         // yet, and the tail would soften the stories. It comes in over the first stretch of
         // scrolling, following the finger.
-        float strength = scrolledFraction(scroller, h.blur.extraTop);
+        float strength = tray != 0 ? 1f : scrolledFraction(scroller, h.blur.extraTop);
         if (h.blur.getAlpha() != strength) h.blur.setAlpha(strength);
 
         boolean shown = h.page.isShown() && wrapper.getHeight() > 0 && onScreen(h.page) && strength > 0f;
@@ -351,6 +383,8 @@ final class HeaderBlurController {
         if (h.blur.getVisibility() != visibility) h.blur.setVisibility(visibility);
         if (!shown) return;
         h.blur.setDark(dark);
+        h.blur.setSolid(tray);
+        if (tray != 0) return;
         h.blur.setBackgroundColorBehind(colorBehind(h.page, dark));
         h.snapshotRegion.set(0, -inset, h.page.getWidth(), -inset + height);
         h.snapshots.update(h.snapshotRegion);
@@ -703,6 +737,74 @@ final class HeaderBlurController {
             h.clip.set(0, top, v.getWidth(), v.getHeight());
             v.setClipBounds(h.clip);
         }
+    }
+
+    /**
+     * The header row sits over the feed itself, where Instagram's dark "For you" all but
+     * disappeared over dark photos: it's white (with a soft shadow) once posts scroll under it.
+     * At the very top, over the stories row, and while the stories tray hangs below the header,
+     * the background is plain, so it keeps Instagram's own color there.
+     */
+    private void enforceTitle(Header h, View scroller, boolean trayShown) {
+        if (h.header == h.wrapper) return;
+        boolean white = LiquidGlassNavBarPatch.WHITE_HEADER_TITLE.get()
+                && !trayShown && !storiesUnderHeader(h, scroller);
+        View title = titleTextId != 0 ? h.header.findViewById(titleTextId) : null;
+        if (title instanceof TextView) {
+            TextView text = (TextView) title;
+            if (text.getTextColors() != h.titleWhite) h.titleOwn = text.getTextColors();
+            if (white && text.getTextColors() != h.titleWhite) {
+                text.setTextColor(h.titleWhite);
+                text.setShadowLayer(4f * density, 0f, 0.5f * density, 0x59000000);
+            } else if (!white && text.getTextColors() == h.titleWhite && h.titleOwn != null) {
+                text.setTextColor(h.titleOwn);
+                text.setShadowLayer(0f, 0f, 0f, 0);
+            }
+        }
+        View view = titleChevronId != 0 ? h.header.findViewById(titleChevronId) : null;
+        if (view instanceof ImageView) {
+            ImageView chevron = (ImageView) view;
+            if (chevron.getColorFilter() != h.chevronWhite) h.chevronOwn = chevron.getColorFilter();
+            if (white && chevron.getColorFilter() != h.chevronWhite) {
+                chevron.setColorFilter(h.chevronWhite);
+            } else if (!white && chevron.getColorFilter() == h.chevronWhite) {
+                chevron.setColorFilter(h.chevronOwn);
+            }
+        }
+    }
+
+    /** The feed is at its top: nothing above it, or its stories row still reaches under the header. */
+    private boolean storiesUnderHeader(Header h, View scroller) {
+        if (scroller == null || !scroller.canScrollVertically(-1)) return true;
+        View row = storiesRowId != 0 ? scroller.findViewById(storiesRowId) : null;
+        if (row == null || !row.isShown() || row.getHeight() == 0) return false;
+        row.getLocationInWindow(location);
+        int rowBottom = location[1] + row.getHeight();
+        h.header.getLocationInWindow(location);
+        return rowBottom > location[1] + h.header.getHeight();
+    }
+
+    /**
+     * The color of the stories tray when it's showing below the header (it slides out from
+     * behind it), else 0. The header and the status bar above then take its color, as they
+     * have in Instagram.
+     */
+    private int trayColor(Header h, boolean dark) {
+        if (storiesTrayId == 0 || h.header == h.wrapper) return 0;
+        View tray = h.wrapper.findViewById(storiesTrayId);
+        if (tray == null || !tray.isShown() || tray.getHeight() == 0 || tray.getAlpha() == 0f) return 0;
+        tray.getLocationInWindow(location);
+        int trayBottom = location[1] + tray.getHeight();
+        h.header.getLocationInWindow(location);
+        if (trayBottom <= location[1] + h.header.getHeight() + Math.round(density)) return 0;
+        for (View v = tray; v != h.wrapper && v != null; v = v.getParent() instanceof View ? (View) v.getParent() : null) {
+            if (v.getBackground() instanceof ColorDrawable) {
+                int color = ((ColorDrawable) v.getBackground()).getColor();
+                if (Color.alpha(color) == 0xFF) return color;
+            }
+        }
+        int behind = colorBehind(h.page, dark);
+        return behind != 0 ? behind : dark ? Color.BLACK : Color.WHITE;
     }
 
     /**

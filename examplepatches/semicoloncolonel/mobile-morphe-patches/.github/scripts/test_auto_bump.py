@@ -99,5 +99,25 @@ class QualifiesTest(unittest.TestCase):
         self.assertIsNone(auto_bump.qualifies(record, {"p": {"version": "2.0", "result": "opened"}}))
 
 
+class HeldVersionTest(unittest.TestCase):
+    def test_version_labeled_not_patchable_is_not_bumped(self):
+        import json
+        with tempfile.TemporaryDirectory() as tmp:
+            repo, report = Path(tmp, "repo"), Path(tmp, "report")
+            path = repo / "patches/src/main/kotlin/app/shared/Constants.kt"
+            path.parent.mkdir(parents=True)
+            path.write_text(SINGLE_LINE)
+            report.mkdir()
+            (report / "app-updates.json").write_text(json.dumps([{
+                "status": "update", "cert": "matches", "patched_apk": "x.apk", "name": "Walgreens",
+                "package": "com.usablenet.mobile.walgreen", "pinned": "118.0", "latest": "118.1",
+                "version_code": 1181}]))
+            (report / "launch.json").write_text(json.dumps(
+                {"com.usablenet.mobile.walgreen": {"version": "118.1", "result": "crashed"}}))
+            auto_bump.bump(report, repo, held={"App update: Walgreens 118.1"})
+            self.assertEqual(json.loads((report / "bumped.json").read_text()), [])
+            self.assertEqual(path.read_text(), SINGLE_LINE)
+
+
 if __name__ == "__main__":
     unittest.main()

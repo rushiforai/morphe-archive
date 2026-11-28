@@ -6,6 +6,7 @@ import app.morphe.patcher.patch.classDefByOrNull
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
@@ -27,10 +28,8 @@ internal object ResourcesCompatGetFontFingerprint : Fingerprint(
 /**
  * Compose's AndroidParagraphIntrinsics constructor.
  *
- * Its TextPaint is the single paint used to measure and draw all Compose text.
- * The constructor is matched by shape because R8 renames the bundled Compose
- * classes: it takes a String text, two lists (annotations and placeholders),
- * and a boolean soft-wrap flag.
+ * Match the stable parameters and the TextPaint field initialized by the
+ * constructor. Other app constructors can share the same parameter shape.
  */
 internal object ComposeParagraphIntrinsicsFingerprint : Fingerprint(
     returnType = "V",
@@ -40,7 +39,8 @@ internal object ComposeParagraphIntrinsicsFingerprint : Fingerprint(
             method.parameters[0].type == "Ljava/lang/String;" &&
             method.parameters[2].type == "Ljava/util/List;" &&
             method.parameters[3].type == "Ljava/util/List;" &&
-            method.parameters[6].type == "Z"
+            method.parameters[6].type == "Z" &&
+            findComposeParagraphPaintField(method) != null
     },
 )
 
@@ -56,8 +56,13 @@ internal data class ComposeParagraphPaintTarget(
  */
 internal fun resolveComposeParagraphPaintTarget(): ComposeParagraphPaintTarget {
     val method = ComposeParagraphIntrinsicsFingerprint.method
-    val instructions = method.implementation?.instructions?.toList()
-        ?: throw PatchException("Compose paragraph constructor has no implementation.")
+    val paintField = findComposeParagraphPaintField(method)
+        ?: throw PatchException("Could not find the Compose text paint field.")
+    return ComposeParagraphPaintTarget(method, paintField)
+}
+
+private fun findComposeParagraphPaintField(method: Method): FieldReference? {
+    val instructions = method.implementation?.instructions ?: return null
 
     val paintType = instructions
         .asSequence()
@@ -65,18 +70,15 @@ internal fun resolveComposeParagraphPaintTarget(): ComposeParagraphPaintTarget {
         .mapNotNull { (it as? ReferenceInstruction)?.reference as? TypeReference }
         .map { it.type }
         .firstOrNull { isPaintType(it) }
-        ?: throw PatchException("Could not find the Compose text paint allocation.")
+        ?: return null
 
-    val paintField = instructions
+    return instructions
         .asSequence()
         .filter { it.opcode == Opcode.IPUT_OBJECT }
         .mapNotNull { (it as? ReferenceInstruction)?.reference as? FieldReference }
         .firstOrNull {
             it.definingClass == method.definingClass && it.type == paintType
         }
-        ?: throw PatchException("Could not find the Compose text paint field.")
-
-    return ComposeParagraphPaintTarget(method, paintField)
 }
 
 private fun isPaintType(type: String): Boolean {

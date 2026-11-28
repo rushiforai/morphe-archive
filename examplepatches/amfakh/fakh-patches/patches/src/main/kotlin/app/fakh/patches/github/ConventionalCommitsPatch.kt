@@ -28,14 +28,19 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
 private const val CONVENTIONAL = "Lapp/fakh/extension/github/ConventionalCommits;"
 
+private const val PILL_LAMBDA = "Lapp/fakh/extension/github/FakhCommitPill;"
+
 private const val STRING = "Ljava/lang/String;"
 
 private const val CHARS = "Ljava/lang/CharSequence;"
+
+private const val OBJECT = "Ljava/lang/Object;"
 
 private const val SET_TEXT = "Landroid/widget/TextView;->setText($CHARS)V"
 
@@ -91,9 +96,9 @@ private fun modelPrinting(text: String): ClassDef {
 }
 
 /**
- * Adds methods to the class of the app's formatted title, a text with its inline images. `fakhText` returns a text with a
- * commit prefix styled, using the app's text builder, and `fakhLabel` does so for a whole formatted title.
- * `fakhMarkedText` does so only for the marked title of an issue or pull request.
+ * Adds methods to the class of the app's formatted title, a text with its inline images. `fakhLabel` returns a formatted
+ * title with a commit prefix drawn as a rounded pill via `InlineTextContent`, and `fakhMarkedLabel` does so only for the
+ * marked title of an issue or pull request.
  */
 private fun addLabelMethod(title: ClassDef, formatter: Method) {
     val type = title.type
@@ -114,6 +119,49 @@ private fun addLabelMethod(title: ClassDef, formatter: Method) {
             it.name != "<init>" && !AccessFlags.SYNTHETIC.isSet(it.accessFlags) &&
                 parameters(it.parameterTypes.map(CharSequence::toString)) && returns(it.returnType)
         } ?: throw PatchException("Text builder: $what not found")
+
+    // Find the inline content helper (`o0f.r`, which holds "image_key") to get Placeholder, InlineTextContent,
+    // ComposableLambda, TextUnit pack, and appendInlineContent.
+    val inlineBuilder = classDefByOrNull(formatter.definingClass)?.methods?.singleOrNull { method ->
+        method.returnType == type && method.types == listOf(text) &&
+            method.instructions.any { it.string == "image_key" }
+    } ?: throw PatchException("Inline content builder not found in ${formatter.definingClass}")
+    val inlineCalls = inlineBuilder.instructions.mapNotNull { it.method }
+    val packUnit = inlineCalls.firstOrNull { it.types == listOf("F", "J") && it.returnType == "J" }
+        ?: throw PatchException("TextUnit pack helper not found")
+    val placeholderInit = inlineCalls.firstOrNull { it.name == "<init>" && it.types == listOf("J", "J") }
+        ?: throw PatchException("Placeholder constructor not found")
+    val lambdaInit = inlineCalls.firstOrNull { it.name == "<init>" && it.types == listOf(OBJECT, "Z", "I") }
+        ?: throw PatchException("ComposableLambda constructor not found")
+    val inlineContentInit = inlineCalls.firstOrNull {
+        it.name == "<init>" && it.types == listOf(placeholderInit.definingClass, lambdaInit.definingClass)
+    } ?: throw PatchException("InlineTextContent constructor not found")
+    val appendInline = inlineCalls.firstOrNull { it.types == listOf(builder, STRING, STRING) && it.returnType == "V" }
+        ?: throw PatchException("appendInlineContent not found")
+
+    // Find Function3 (implemented by ComposableLambda) and Composer from ComposableLambda's 3-arg invoke.
+    val lambdaClass = classDefByOrNull(lambdaInit.definingClass)
+        ?: throw PatchException("ComposableLambda class not found")
+    val function3 = lambdaClass.interfaces.firstOrNull { iface ->
+        classDefByOrNull(iface)?.methods?.any {
+            it.types == listOf(OBJECT, OBJECT, OBJECT) && it.returnType == OBJECT
+        } == true
+    } ?: throw PatchException("Function3 interface not found on ${lambdaClass.type}")
+    val composer = lambdaClass.methods.firstOrNull {
+        it.types.size == 3 && it.types[0] == OBJECT && it.types[2] == "I" && it.returnType == OBJECT
+    }?.types?.get(1) ?: throw PatchException("Composer type not found on ${lambdaClass.type}")
+
+    // The app draws the image of an emoji in a title with a composable that takes its address, which the pill reuses.
+    val emojiLambda = inlineCalls.firstOrNull { it.name == "<init>" && it.types.size == 2 && it.types[1] == "I" }
+        ?: throw PatchException("Inline image lambda not found")
+    val image = classDefByOrNull(emojiLambda.definingClass)?.methods?.flatMap { method ->
+        method.implementation?.instructions?.mapNotNull { it.method }.orEmpty()
+    }?.distinctBy { it.smali }?.singleOrNull {
+        it.returnType == "V" && it.types.size == 14 && it.types[1] == STRING && it.types[10] == composer &&
+            it.types.takeLast(3) == listOf("I", "I", "I")
+    } ?: throw PatchException("Inline image composable not found in ${emojiLambda.definingClass}")
+    addPillLambda(function3, composer, image)
+
     var style: ClassDef? = null
     classDefForEach { classDef -> if (classDef.printsAs("SpanStyle(color=")) style = classDef }
     val span = style ?: throw PatchException("Text span style not found")
@@ -146,35 +194,6 @@ private fun addLabelMethod(title: ClassDef, formatter: Method) {
         ).toMutable().apply { addInstructionsWithLabels(0, smali) }
 
     val owner = mutableClassDefBy(type)
-    // A span style with a text color and a background; every other argument keeps its default.
-    owner.methods.add(
-        method(
-            "fakhStyle",
-            listOf("J", "J"),
-            span.type,
-            24,
-            """
-                new-instance v0, ${span.type}
-                move-wide/from16 v1, p0
-                const-wide/16 v3, 0x0
-                const/4 v5, 0x0
-                const/4 v6, 0x0
-                const/4 v7, 0x0
-                const/4 v8, 0x0
-                const/4 v9, 0x0
-                const-wide/16 v10, 0x0
-                const/4 v12, 0x0
-                const/4 v13, 0x0
-                const/4 v14, 0x0
-                move-wide/from16 v15, p2
-                const/16 v17, 0x0
-                const/16 v18, 0x0
-                const v19, 0xf7fe
-                invoke-direct/range { v0 .. v19 }, ${span.type}-><init>(${create.parameterTypes.joinToString("")})V
-                return-object v0
-            """,
-        ),
-    )
     // The scope takes only a text color, so its background bit stays set.
     owner.methods.add(
         method(
@@ -206,17 +225,18 @@ private fun addLabelMethod(title: ClassDef, formatter: Method) {
     )
     owner.methods.add(
         method(
-            "fakhText",
-            listOf(text),
-            text,
-            10,
+            "fakhLabel",
+            listOf(type),
+            type,
+            12,
             """
-                move-object v0, p0
+                iget-object v0, p0, ${textField.smali}
                 invoke-virtual { v0 }, Ljava/lang/Object;->toString()$STRING
                 move-result-object v1
                 invoke-static { v1 }, $CONVENTIONAL->label($STRING)$STRING
                 move-result-object v2
                 if-eqz v2, :keep
+
                 new-instance v3, $builder
                 invoke-direct { v3 }, $builder-><init>()V
                 const/4 v4, 0x0
@@ -225,16 +245,10 @@ private fun addLabelMethod(title: ClassDef, formatter: Method) {
                 invoke-virtual { v0, v4, v5 }, $text->${cut.name}(II)$text
                 move-result-object v4
                 invoke-virtual { v3, v4 }, $builder->${addStyled.name}($text)V
-                invoke-static { v1 }, $CONVENTIONAL->foreground($STRING)J
-                move-result-wide v4
-                invoke-static { v1 }, $CONVENTIONAL->background($STRING)J
-                move-result-wide v6
-                invoke-static { v4, v5, v6, v7 }, $type->fakhStyle(JJ)${span.type}
-                move-result-object v4
-                invoke-virtual { v3, v4 }, $builder->${push.name}(${span.type})I
-                move-result v4
-                invoke-virtual { v3, v2 }, $builder->${add.name}($STRING)V
-                invoke-virtual { v3, v4 }, $builder->${pop.name}(I)V
+
+                const-string v4, "fakh_cc"
+                invoke-static { v3, v4, v2 }, ${appendInline.smali}
+
                 invoke-static {}, $CONVENTIONAL->gray()J
                 move-result-wide v4
                 invoke-static { v4, v5 }, $type->fakhColor(J)${span.type}
@@ -245,6 +259,7 @@ private fun addLabelMethod(title: ClassDef, formatter: Method) {
                 move-result-object v5
                 invoke-virtual { v3, v5 }, $builder->${add.name}($STRING)V
                 invoke-virtual { v3, v4 }, $builder->${pop.name}(I)V
+
                 invoke-static { v1 }, $CONVENTIONAL->length($STRING)I
                 move-result v4
                 invoke-virtual { v1 }, $STRING->length()I
@@ -253,52 +268,118 @@ private fun addLabelMethod(title: ClassDef, formatter: Method) {
                 move-result-object v4
                 invoke-virtual { v3, v4 }, $builder->${addStyled.name}($text)V
                 invoke-virtual { v3 }, $builder->${build.name}()$text
-                move-result-object v4
-                return-object v4
-                :keep
-                return-object p0
-            """,
-        ),
-    )
-    owner.methods.add(
-        method(
-            "fakhMarkedText",
-            listOf(text),
-            text,
-            2,
-            """
-                invoke-virtual { p0 }, Ljava/lang/Object;->toString()$STRING
                 move-result-object v0
-                invoke-static { v0 }, $CONVENTIONAL->isMarked($STRING)Z
-                move-result v0
-                if-eqz v0, :keep
-                invoke-static { p0 }, $type->fakhText($text)$text
-                move-result-object p0
-                :keep
-                return-object p0
-            """,
-        ),
-    )
-    owner.methods.add(
-        method(
-            "fakhLabel",
-            listOf(type),
-            type,
-            4,
-            """
-                iget-object v0, p0, ${textField.smali}
-                invoke-static { v0 }, $type->fakhText($text)$text
-                move-result-object v1
-                if-eq v0, v1, :keep
-                iget-object v0, p0, ${imagesField.smali}
+
+                new-instance v1, Ljava/util/LinkedHashMap;
+                iget-object v4, p0, ${imagesField.smali}
+                invoke-direct { v1, v4 }, Ljava/util/LinkedHashMap;-><init>($MAP)V
+
+                invoke-static { v2 }, $CONVENTIONAL->pillWidthEm($STRING)F
+                move-result v4
+                const-wide v5, 0x200000000L
+                invoke-static { v4, v5, v6 }, ${packUnit.smali}
+                move-result-wide v4
+                invoke-static {}, $CONVENTIONAL->pillHeightEm()F
+                move-result v7
+                const-wide v8, 0x200000000L
+                invoke-static { v7, v8, v9 }, ${packUnit.smali}
+                move-result-wide v6
+                new-instance v8, ${placeholderInit.definingClass}
+                invoke-direct { v8, v4, v5, v6, v7 }, ${placeholderInit.smali}
+
+                new-instance v4, $PILL_LAMBDA
+                invoke-direct { v4 }, $PILL_LAMBDA-><init>()V
+                new-instance v5, ${lambdaInit.definingClass}
+                const/4 v6, 0x1
+                const v7, 0x66616b63
+                invoke-direct { v5, v4, v6, v7 }, ${lambdaInit.smali}
+
+                new-instance v4, ${inlineContentInit.definingClass}
+                invoke-direct { v4, v8, v5 }, ${inlineContentInit.smali}
+                const-string v5, "fakh_cc"
+                invoke-interface { v1, v5, v4 }, $MAP->put($OBJECT$OBJECT)$OBJECT
+
                 new-instance v2, $type
-                invoke-direct { v2, v1, v0 }, $type-><init>($text$images)V
+                invoke-direct { v2, v0, v1 }, $type-><init>($text$images)V
                 return-object v2
                 :keep
                 return-object p0
             """,
         ),
     )
+    owner.methods.add(
+        method(
+            "fakhMarkedLabel",
+            listOf(type),
+            type,
+            3,
+            """
+                iget-object v0, p0, ${textField.smali}
+                invoke-virtual { v0 }, Ljava/lang/Object;->toString()$STRING
+                move-result-object v0
+                invoke-static { v0 }, $CONVENTIONAL->isMarked($STRING)Z
+                move-result v0
+                if-eqz v0, :keep
+                invoke-static { p0 }, $type->fakhLabel($type)$type
+                move-result-object p0
+                :keep
+                return-object p0
+            """,
+        ),
+    )
+}
+
+/**
+ * Makes the extension's pill class the content of the inline pill: a [function3] that gets the label and the [composer],
+ * and has the app's [image] composable draw the label's pill into the placeholder.
+ */
+private fun addPillLambda(function3: String, composer: String, image: MethodReference) {
+    val invoke = classDefByOrNull(function3)?.methods?.singleOrNull {
+        it.types == listOf(OBJECT, OBJECT, OBJECT) && it.returnType == OBJECT
+    } ?: throw PatchException("Function3 invoke method not found in $function3")
+
+    mutableClassDefBy(PILL_LAMBDA).apply {
+        interfaces.add(function3)
+        methods.add(
+            ImmutableMethod(
+                PILL_LAMBDA,
+                invoke.name,
+                List(3) { ImmutableMethodParameter(OBJECT, null, null) },
+                OBJECT,
+                AccessFlags.PUBLIC.value or AccessFlags.FINAL.value,
+                null,
+                null,
+                MutableMethodImplementation(18),
+            ).toMutable().apply {
+                // Only the address is set; the mask leaves every other argument at its default.
+                addInstructions(
+                    0,
+                    """
+                        check-cast p1, $STRING
+                        check-cast p2, $composer
+                        invoke-static { p1 }, $CONVENTIONAL->pillImage($STRING)$STRING
+                        move-result-object v1
+                        const/4 v0, 0x0
+                        const/4 v2, 0x0
+                        const/4 v3, 0x0
+                        const/4 v4, 0x0
+                        const/4 v5, 0x0
+                        const/4 v6, 0x0
+                        const/4 v7, 0x0
+                        const/4 v8, 0x0
+                        const/4 v9, 0x0
+                        move-object/from16 v10, p2
+                        const/4 v11, 0x0
+                        const/4 v12, 0x0
+                        const/16 v13, 0x7fd
+                        invoke-static/range { v0 .. v13 }, ${image.smali}
+                        const/4 v0, 0x0
+                        return-object v0
+                    """,
+                )
+            },
+        )
+    }
 }
 
 /** The field of [model] that holds a title: the string number [position], from zero, that its constructor stores. */
@@ -323,7 +404,7 @@ private fun move(type: String, to: String, from: String) = when {
 private const val IMAGES_DEFAULT = 16
 
 /**
- * Has Compose's text of a plain string draw a marked title with its label: it formats the title and hands it to the
+ * Has Compose's text of a plain string draw a marked title with its pill: it formats the title and hands it to the
  * overload that takes a formatted text and its images, with the same other arguments. R8 dropped the parameters no
  * caller of an overload sets, so one only the formatted text has is passed empty, to take its default.
  *
@@ -420,15 +501,14 @@ private fun labelPlainText(title: ClassDef, plain: Method, rich: Method, formatt
 
 /**
  * Labels the titles of issues and pull requests, in lists, in the inbox and at the top of their pages. A list turns the HTML of a
- * title into a text, which then goes through `fakhMarkedText`. A page draws the plain title with Compose's text, which
+ * title into an EmojiInlineContent, which then goes through `fakhMarkedLabel`. A page draws the plain title with Compose's text, which
  * formats a marked one itself. Whoever hands them the title of an issue or pull request marks it first.
  */
 private fun labelListsAndPages(title: ClassDef, formatter: String) {
     val constructor = title.methods.single { it.name == "<init>" }
     val text = constructor.parameterTypes[0].toString()
-    fun Instruction.convertsHtml() = method?.let {
-        it.returnType == text &&
-            it.parameterTypes.map(CharSequence::toString) == listOf("Landroid/text/Spannable;", "Z")
+    fun Instruction.buildsInlineContent() = method?.let {
+        it.returnType == title.type && it.parameterTypes.map(CharSequence::toString) == listOf(text)
     } == true
 
     val composables = mutableListOf<Method>()
@@ -440,7 +520,7 @@ private fun labelListsAndPages(title: ClassDef, formatter: String) {
         composables += drawing.filter { method ->
             method.parameterTypes.any { it.toString() == STRING } &&
                 method.instructions.any { it.method?.smali == FROM_HTML } &&
-                method.instructions.any { it.convertsHtml() }
+                method.instructions.any { it.buildsInlineContent() }
         }
         // The two overloads of Material's text, which end in three integers: the formatted one also takes the images,
         // and at most one other parameter differs, an object.
@@ -465,12 +545,12 @@ private fun labelListsAndPages(title: ClassDef, formatter: String) {
         val method = mutableClassDefBy(composable.definingClass).methods.first {
             it.name == composable.name && it.parameterTypes == composable.parameterTypes
         }
-        method.instructions.indices.filter { method.instructions[it].convertsHtml() }.asReversed().forEach { index ->
+        method.instructions.indices.filter { method.instructions[it].buildsInlineContent() }.asReversed().forEach { index ->
             val register = (method.instructions[index + 1] as OneRegisterInstruction).registerA
             method.addInstructions(
                 index + 2,
                 """
-                    invoke-static/range { v$register .. v$register }, ${title.type}->fakhMarkedText($text)$text
+                    invoke-static/range { v$register .. v$register }, ${title.type}->fakhMarkedLabel(${title.type})${title.type}
                     move-result-object v$register
                 """,
             )
@@ -530,7 +610,7 @@ private fun labelListsAndPages(title: ClassDef, formatter: String) {
 @Suppress("unused")
 val conventionalCommitsPatch = patch(
     name = "Conventional commits",
-    description = "Titles of commits, issues, pull requests and notifications such as feat(auth): add login show their type as a colored label.",
+    description = "Titles of commits, issues, pull requests and notifications such as feat(auth): add login show their type as a colored pill.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_GITHUB)

@@ -95,6 +95,18 @@ internal const val SIMEJI_SETTINGS_CLASS =
 internal const val SIMEJI_SETTINGS_ENTRY_CLASS =
     "Lapp/ayufa/extension/simeji/SimejiSettingsEntry;"
 
+internal const val NAV_BAR_COLOR_CLASS =
+    "Lapp/ayufa/extension/simeji/NavBarColor;"
+
+internal const val CURSOR_PAD_CLASS =
+    "Lapp/ayufa/extension/simeji/CursorPad;"
+
+internal const val CURSOR_PAD_PROVIDER_CLASS =
+    "Lapp/ayufa/extension/simeji/CursorPadProvider;"
+
+internal const val CURSOR_PAD_CATALOG_CLASS =
+    "Lapp/ayufa/extension/simeji/CursorPadCatalog;"
+
 /** Smali prefix: calls settings helper [helper] and jumps to [label] when disabled. */
 private fun settingsGate(helper: String, label: String): String =
     """
@@ -169,6 +181,61 @@ internal fun MutableMethod.finishIfEnabledAfterSuperOnCreate(
                 return-void
                 :$label
             """
+    )
+}
+
+/**
+ * Routes the result of `ITheme.getNavigationBarBackColor()` inside
+ * this method through the extension's NavBarColor resolver.
+ *
+ * Finds the method's single call to that getter, and right after its
+ * move-result-object inserts a branch-free substitution: run
+ * [contextSetup] (which must load a Context — or null — into
+ * [tempRegister]), then replace the colour register with
+ * `NavBarColor.resolveNavBarColor(colour, context)`. The resolver
+ * returns a non-null colour unchanged and a sampled theme colour
+ * for a null colour; it returns null only on failure, so the stock
+ * null handling that follows runs unchanged in that case.
+ *
+ * No label is used on purpose: labels in mid-method insertions are
+ * resolved against the start of the inserted block by the patcher's
+ * smali compiler, which produced wrong branch targets when this
+ * hook used an if-nez skip (found by inspecting the patched dex of
+ * v1.5.0-dev.1; superseded by the branch-free form).
+ *
+ * [colorRegister] and [tempRegister] must be registers the method
+ * does not read between the getter call and the next stock
+ * instruction that overwrites them; this was verified per call site
+ * against the Simeji 22.5 dex.
+ */
+internal fun MutableMethod.substituteNavBarColor(
+    colorRegister: String,
+    tempRegister: String,
+    contextSetup: String
+) {
+    val methodInstructions = implementation?.instructions
+        ?: throw PatchException("Method has no implementation: $this")
+    val callIndex = methodInstructions.indexOfFirst { instruction ->
+        (instruction.opcode == Opcode.INVOKE_INTERFACE ||
+            instruction.opcode == Opcode.INVOKE_VIRTUAL) &&
+            ((instruction as? ReferenceInstruction)?.reference as? MethodReference)
+                ?.name == "getNavigationBarBackColor"
+    }
+    if (callIndex < 0) {
+        throw PatchException("No getNavigationBarBackColor call found in $this")
+    }
+    if (methodInstructions[callIndex + 1].opcode != Opcode.MOVE_RESULT_OBJECT) {
+        throw PatchException(
+            "getNavigationBarBackColor is not followed by move-result-object in $this"
+        )
+    }
+    addInstructions(
+        callIndex + 2,
+        """
+            $contextSetup
+            invoke-static { $colorRegister, $tempRegister }, $NAV_BAR_COLOR_CLASS->resolveNavBarColor(Ljava/lang/Integer;Landroid/content/Context;)Ljava/lang/Integer;
+            move-result-object $colorRegister
+        """
     )
 }
 

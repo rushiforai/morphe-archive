@@ -11,6 +11,7 @@ val skipLaunchVideoPatch = bytecodePatch(
     name = "Skip launch video",
     description = "Opens the app with the static logo instead of the branded intro video.",
 ) {
+    category("Playback")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute { forceSplashVideoOff() }

@@ -16,5 +16,4 @@ val gmsCoreSupportPatch = gmsCoreSupportPatch(
     // SHA-1 of the Play app signing certificate.
     signature = "bef32362c09f50807e025fad8e1f78a8c34a3805",
     launcherActivity = "Lcom/yahoo/mobile/client/android/yahoo/MainActivity;",
-    category = "Setup",
 )

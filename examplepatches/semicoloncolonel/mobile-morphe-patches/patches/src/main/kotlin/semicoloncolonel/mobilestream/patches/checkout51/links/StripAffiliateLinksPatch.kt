@@ -6,7 +6,6 @@ import semicoloncolonel.mobilestream.patches.shared.links.stripAffiliateLinksPat
 @Suppress("unused")
 val stripAffiliateLinksPatch = stripAffiliateLinksPatch(
     Constants.COMPATIBILITY,
-    category = "Privacy",
     description = "Opens store links without affiliate tags or click tracking. Checkout 51 online cash back needs those, so it stops working.",
     use = false,
 )

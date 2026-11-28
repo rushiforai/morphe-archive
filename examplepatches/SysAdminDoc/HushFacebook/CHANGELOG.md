@@ -6,6 +6,9 @@ Changes in each Hushfacebook version, newest first. Versions 0.1.0 to 0.19.0 are
 
 ### Added
 
+* `Hide stories from people` under Stories works the other way round from `Hide stories from Pages`. It takes your friends' and other people's stories out of the Stories tray, so the stories of the Pages you follow are easy to find. Your own story stays, and suggested stories still go by `Hide suggested stories`. It starts off. (#616)
+* New `Pick the app icon` patch. `App icon` under Appearance in Hushfacebook settings changes the home screen icon without patching again. Pick Facebook's own, Hushfacebook's logo in color, white on black or black on white, or Facebook's "f" in white on black or black on white. The new icon shows once you leave Facebook, and you may need to add it to your home screen again from the app drawer. Until you pick one, you keep the icon you patched with. (#467)
+* `Hide Send message under posts` under News feed takes away the Messenger Send message bar some posts get after you stop on them for a moment, so it's not there to tap by mistake. Like, Comment, Share and Send stay. It starts off. (#609)
 * `Icon style` in Hushfacebook settings has two more looks, `Hushfacebook white on black` and `Hushfacebook black on white`, which draw the H logo in one color on a plain icon. Next to it, `Icon picture` uses a square PNG of your own as the home screen icon, and `Icon background` puts a color you pick behind the logo or your picture. (#467)
 * `Hide the AI content label on reels` under Reels and Watch takes the "AI content" or "AI info" label off reels Facebook marks as made with AI. That covers the button next to the sound line under the author, the label under the caption and the reel's info rows. It starts off. (#574)
 * `Save files to Downloads` puts a PDF, document or other file you download from a post in your phone's Downloads folder, where a file manager can open it. Facebook kept those in a folder no file manager could reach. It's on by default. (#590)
@@ -31,6 +34,7 @@ Changes in each Hushfacebook version, newest first. Versions 0.1.0 to 0.19.0 are
 
 ### Changed
 
+* You need Morphe Manager 2.8.0 or newer now. The patches are built on Morphe patcher 2.6.0, and older Managers turn the bundle down, so update Manager before you repatch. Desktop patching needs morphe-desktop 2.4.0.
 * `Export settings` and `Import settings` sit at the top of the Hushfacebook settings, right under the search box, so a backup before you try something new is one tap away. `Reset settings` stays under Pause, backup and diagnostics. (#608)
 * With `See-through bars` on, the top bar no longer shows as a plain strip at the top of your feed. It keeps the color of your posts while nothing but the empty space above the first post is under it, and turns see-through as posts slide under it. (#588)
 * Back in the Hushfacebook settings folds the section you have open and keeps its header where it was, and the next Back leaves. Before, Back closed the settings with a section still open. After `Show all settings as a list`, Back still leaves right away. (#604)
@@ -38,6 +42,10 @@ Changes in each Hushfacebook version, newest first. Versions 0.1.0 to 0.19.0 are
 
 ### Fixed
 
+* A call you start from Facebook's chats opens Facebook's own call screen instead of the Play Store's Messenger page, or Google's sign-in on phones without a Google account. Facebook sends calls to Messenger when its microphone or phone permission was turned down, and a patched Facebook can't see Messenger, even when it's installed and signed in. (#568)
+* With `Tap a reel above its comments` on, pausing a reel with its comments open and then playing it again plays that reel, not the sound of the next one. The next reel waits just below the screen, and the play tap could pick it. (#617)
+* Restarting Facebook from the settings no longer hangs on "isn't responding" on some phones. The restart ended the app in a way that waited on Facebook's own crash reporter, which could take longer than Android allows. (#612)
+* Feed videos start playing on their own again on phones where they sometimes waited for a tap. The background video saver could think Facebook was closed while you were looking at it, and slowed those videos down to once a second. (#602)
 * With `Only reels from accounts I follow` on, a reel you tap in search or on a Page plays again instead of another reel or a black screen. Facebook handed that reel on in a new item a moment after it opened, and the new item got dropped. (#565)
 * With `See-through bars` or `Rounded tab bar` on, the first reel on the Reels tab no longer jumps as it starts. Its name, caption and buttons sat behind the tab bar for a moment before moving up. With `Keep the progress bar` on, the time and seek bar then jumped up once more, and that happened on the first reel after an ad too. (#594)
 * With `See-through bars` or `Rounded tab bar` on, a reel's name, caption and buttons no longer stay partly behind the tab bar on some reels. A reel taller than the Reels page only had them moved up to the page's bottom edge, which still sat under the bar. (#503)

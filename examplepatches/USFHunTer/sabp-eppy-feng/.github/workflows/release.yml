@@ -1,0 +1,84 @@
+name: Release
+
+# Builds the Morphe patch bundle (.mpp) and publishes it as a GitHub release.
+# Runs on every push to main, or by hand from the Actions tab.
+# To publish a new version, raise "version" in gradle.properties.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - patches-bundle.json
+      - patches-list.json
+      - README.md
+      - CHANGELOG.md
+      - docs/**
+      - ui-tests/**
+      - .github/workflows/ui-tests.yml
+      - .github/workflows/dev-build.yml
+      - .github/workflows/native.yml
+      - native/**
+
+permissions:
+  contents: write
+  packages: read
+
+jobs:
+  release:
+    name: Build and release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build patches
+        env:
+          # Morphe's Gradle plugin is downloaded from GitHub Packages with this token.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x gradlew
+          bash ./gradlew :patches:buildAndroid generatePatchesList --no-daemon
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(grep '^version' gradle.properties | cut -d= -f2 | tr -d ' ')
+          TAG="v$VERSION"
+          MPP=$(ls patches/build/libs/*.mpp | grep -v -e sources -e javadoc | head -n 1)
+          ASSET="patches-$VERSION.mpp"
+          cp "$MPP" "$ASSET"
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$ASSET" --clobber
+          else
+            gh release create "$TAG" "$ASSET" --title "$TAG" \
+              --notes "Morphe patches for Smart AudioBook Player. Add https://github.com/${GITHUB_REPOSITORY} as a patch source in Morphe Manager."
+          fi
+
+          jq -n \
+            --arg version "$VERSION" \
+            --arg created "$(date -u +%Y-%m-%dT%H:%M:%S)" \
+            --arg url "https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/${ASSET}" \
+            '{created_at: $created, description: ("Release " + $version), download_url: $url, signature_download_url: "", version: $version}' \
+            > patches-bundle.json
+          jq --arg v "$VERSION" '.version = $v' patches-list.json > patches-list.tmp && mv patches-list.tmp patches-list.json
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add patches-bundle.json patches-list.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: update bundle metadata for $TAG [skip ci]"
+            git push
+          fi

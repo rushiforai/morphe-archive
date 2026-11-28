@@ -9,6 +9,10 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.RippleDrawable;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.DynamicDrawableSpan;
+import android.text.style.ImageSpan;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -96,6 +100,38 @@ final class Ui {
         return b;
     }
 
+    /** Lets a pill's long label wrap at large text sizes instead of being cut off. */
+    TextView wrapping(TextView pill) {
+        pill.setSingleLine(false);
+        pill.setMaxLines(3);
+        pill.setPadding(pill.getPaddingLeft(), dp(10), pill.getPaddingRight(), dp(10));
+        return pill;
+    }
+
+    /**
+     * Buttons side by side in equal widths within [availablePx], or stacked when a label
+     * wouldn't fit, as with large text.
+     */
+    LinearLayout buttonRow(int availablePx, TextView... buttons) {
+        int gap = dp(12);
+        int widest = 0;
+        int unspecified = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
+        for (TextView b : buttons) {
+            b.measure(unspecified, unspecified);
+            widest = Math.max(widest, b.getMeasuredWidth());
+        }
+        boolean stack = widest * buttons.length + gap * (buttons.length - 1) > availablePx;
+        LinearLayout row = new LinearLayout(context);
+        row.setOrientation(stack ? LinearLayout.VERTICAL : LinearLayout.HORIZONTAL);
+        for (int i = 0; i < buttons.length; i++) {
+            LinearLayout.LayoutParams lp = stack ? matchWidth() : new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
+            if (i > 0 && stack) lp.topMargin = gap;
+            else if (i > 0) lp.setMarginStart(gap);
+            row.addView(buttons[i], lp);
+        }
+        return row;
+    }
+
     /** Pressed feedback for full-width rows. */
     Drawable rowBackground() {
         return new RippleDrawable(ColorStateList.valueOf(pressed), null, new ColorDrawable(Color.WHITE));
@@ -106,6 +142,16 @@ final class Ui {
         v.setBackgroundColor(divider);
         v.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Math.max(1, dp(0.5f))));
         return v;
+    }
+
+    /** An icon that sits in text like a character, sizePx square and centered on its line. */
+    static CharSequence inlineIcon(Glyphs.Glyph glyph, int color, float sizePx) {
+        Drawable d = glyph.asDrawable(color);
+        int size = Math.round(sizePx);
+        d.setBounds(0, 0, size, size);
+        SpannableString s = new SpannableString("\uFFFC");
+        s.setSpan(new ImageSpan(d, DynamicDrawableSpan.ALIGN_CENTER), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        return s;
     }
 
     static LinearLayout.LayoutParams matchWidth() {

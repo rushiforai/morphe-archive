@@ -12,6 +12,7 @@ import static app.morphed.extension.twitch.musicfilter.Canceller.HOP;
 public final class Filter {
     /** Where the filtered sound goes, a HOP at a time. */
     public interface Output {
+        /** The arrays are the filter's own and reused: valid during the call only (copy what's kept). */
         void block(float[] left, float[] right);
     }
 
@@ -28,6 +29,8 @@ public final class Filter {
     private final HeardListener onHeard;
     private final ProblemListener onProblem;
     Canceller[] cancellers = {new Canceller(), new Canceller()};
+    /** The two cancellers' output for one HOP (their arrays, reused). */
+    private final float[][] filtered = new float[2][];
     private final float[][] pending = {new float[HOP], new float[HOP]}; // sound not yet a whole HOP
     private int pendingLength;
     private long fed;
@@ -75,9 +78,9 @@ public final class Filter {
             if (!broken && enabled) {
                 boolean hasSong = song(fed);
                 try {
-                    result = new float[][]{
-                            cancellers[0].process(pending[0], hasSong ? songLeft : null),
-                            cancellers[1].process(pending[1], hasSong ? songRight : null)};
+                    filtered[0] = cancellers[0].process(pending[0], hasSong ? songLeft : null);
+                    filtered[1] = cancellers[1].process(pending[1], hasSong ? songRight : null);
+                    result = filtered;
                 } catch (Throwable error) { // the filter must never stop the sound: from now on it goes through
                     broken = true;
                     onProblem.problem("Filter broke | Song removal broke, the sound plays unfiltered: "

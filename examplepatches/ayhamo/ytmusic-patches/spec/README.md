@@ -18,6 +18,12 @@ spec/
     editor.md              the transition editor: presets, lanes as exact curves, the window, beat match, overrides
     override.schema.json   one pair's saved edit
     editor-cases.json      every preset and lane → its curves; saved window positions → seconds
+    mix-file.md            mix files: pairs' overrides in one file, to import and export between the apps
+    mix-file.schema.json   one mix file
+    mixes/*.json           ready-made mix files (read by scripts/test_automix_plan.mjs)
+    spotify-mixes.md       a Spotify mix export imported as it is, converted to overrides
+    spotify-benchmark.md   each app's analyser scored against Spotify's own song analysis
+    plan-progress-row.md   the plan for the overview's progress row (a draft; editor.md §11 holds the rules)
   canvas/
     canvas.md              the canvas sources and their order, the part and clip picking, the display and backdrops
     canvas-cases.json      inputs → the expected choice, for each of those rules
@@ -26,6 +32,10 @@ spec/
     matcher-cases.json     YouTube song + addon rows → the row the matcher must pick; queries() per song
     pick-cases.json        our rules on top of the matcher, and the client's readings (tier, kbps, probe, params, stream answer, base URL)
     offset-map.md          an addon file's timeline against YouTube's, and its level
+    window-cases.json      the phone's measured windows on real songs, as numbers (the audio kept local)
+  lyrics/
+    lyrics.md              the lyrics rules (timing, offsets, scroll, duets, gaps, layout, sources)
+    lyrics-cases.json      inputs → the expected result, for those rules
 ```
 
 ## Automix fixtures
@@ -76,7 +86,8 @@ against a port of Metrolist's functions kept in the script.
 ## CI
 
 `.github/workflows/spec-tests.yml` runs every suite above on every push, except the real-song
-analysis cases.
+analysis cases. The suites are listed in `scripts/run_spec.sh`, which the release workflow also runs
+after its merge: `bash scripts/run_spec.sh`.
 
 ## Addon fixtures
 
@@ -98,7 +109,7 @@ The offset fit and the level (`offset-map.md`, `src/addons/offset-fit.js`): `nod
 
 The window check on real songs: `window-cases.json` holds the phone's 51 measured windows on 9 songs as numbers (the audio isn't kept). `node scripts/addon_window_cases.mjs` runs them on local copies in `.cache/addons/` (git-ignored, never in CI) and skips a song without them; the cases' notes say how to rebuild the copies (`scripts/addon_window_fetch.mjs` asks the user's addons, so it runs only with the user's word).
 
-The client (`src/addons/client.js`: discovery, request shape, caching, statuses, health, resolve) is tested against a local mock server by `node scripts/addon_client_tests.mjs`. The PC's addon list and its popup messages (`src/addons/bg-addons.js`; links stay in the background, the popup sees name and host) by `node scripts/addon_store_tests.mjs`. The page side of the look-ahead (`src/addons/page-addons.js`) by `node scripts/addon_page_tests.mjs`.
+The client (`src/addons/client.js`: discovery, request shape, caching, statuses, health, resolve) is tested against a local mock server by `node scripts/addon_client_tests.mjs`. The PC's addon list and its popup messages (`src/addons/bg-addons.js`; links stay in the background, the popup sees name and host) by `node scripts/addon_store_tests.mjs`. The page side of the look-ahead (`src/addons/page-addons.js`) by `node scripts/addon_page_tests.mjs`. The persistent cache (`src/addons/file-cache.js`, protocol.md §8.1.6) by `node scripts/addon_file_cache_tests.mjs`, and HLS and DASH assembly (`src/addons/stream-assemble.js`, §8.1.5) by `node scripts/addon_stream_tests.mjs`.
 
 To check against BitChord itself, export its matcher from the BitChord clone and run it (Node 23.6+ runs the .ts file directly):
 

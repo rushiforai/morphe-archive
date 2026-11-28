@@ -1,8 +1,8 @@
 package semicoloncolonel.mobilestream.patches.dealnews.misc
 
+import semicoloncolonel.mobilestream.patches.shared.misc.isOptionOn
 import app.morphe.patcher.patch.rawResourcePatch
 import app.morphe.patcher.patch.resourcePatch
-import semicoloncolonel.mobilestream.patches.dealnews.shared.Constants
 import semicoloncolonel.mobilestream.patches.shared.misc.HERMES_BUNDLE
 import semicoloncolonel.mobilestream.patches.shared.misc.HermesBundle
 
@@ -22,6 +22,7 @@ import semicoloncolonel.mobilestream.patches.shared.misc.HermesBundle
 
 private val hidePopupsInBundlePatch = rawResourcePatch {
     execute {
+        if (!isOptionOn(hidePromptsAndPopupsPatch, "popUps")) return@execute
         val file = get(HERMES_BUNDLE)
         val bundle = HermesBundle(file.readBytes())
         bundle.returnAtStart("UserReviewCard", HermesBundle.Value.NULL)
@@ -30,13 +31,7 @@ private val hidePopupsInBundlePatch = rawResourcePatch {
     }
 }
 
-@Suppress("unused")
-val hidePopupsPatch = resourcePatch(
-    name = "Hide pop-ups",
-    description = "Removes the rating card and the first-launch walkthrough.",
-) {
-    category("Interface")
-    compatibleWith(Constants.COMPATIBILITY)
-
+// Part of hidePromptsAndPopupsPatch: runs only when its "popUps" option is on.
+internal val hidePopupsPatch = resourcePatch {
     dependsOn(hidePopupsInBundlePatch)
 }

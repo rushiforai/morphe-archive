@@ -1,7 +1,8 @@
 # Morphe reference notes (for our private YT Music bundle)
 
 Target: `com.google.android.apps.youtube.music`, applied next to the official bundle
-(`MorpheApp/morphe-patches`) in one run, via Morphe Desktop CLI now and Morphe Manager later.
+(`MorpheApp/morphe-patches`) in one run: Morphe Manager for users (released since v0.1.0, Expert
+mode), Morphe Desktop CLI for local and emulator builds.
 
 Sources (read in full, 2026-11-08):
 - `MorpheApp/morphe-patcher` `docs/` (all 9 files) - cited as `patcher/<file>`
@@ -401,6 +402,14 @@ All from `patcher/4_apis.md` unless noted.
 
 ## 8. Release / signing workflow (template)
 
+**This repo differs from the template** (as of v0.2.0): Gradle plugin `app.morphe.patches` 2.1.2,
+`morphe-patcher` 2.5.0 (`bundle/gradle/libs.versions.toml`), Morphe Desktop 2.3.0 in the toolbox image
+(`docker/Dockerfile`). No semantic-release, no `dev` branch: everything goes on `main`, and releases
+are cut by hand with the root `.github/workflows/release.yml` (`workflow_dispatch` with a version and
+notes), which runs the tests and the spec check, builds with `./gradlew buildAndroid`, publishes the
+`.mpp` and commits `patches-bundle.json`. `patches-list.json` is not generated. The notes below are
+the template's flow, kept for reference.
+
 - Build locally: `./gradlew buildAndroid` -> `patches/build/libs/patches-*.mpp`; apply with Morphe
   Desktop like any bundle. Requires GitHub Packages auth even for public packages: PAT with
   `read:packages` in `~/.gradle/gradle.properties` (`gpr.user`, `gpr.key`) or `GITHUB_ACTOR` +
@@ -466,3 +475,10 @@ All from `patcher/4_apis.md` unless noted.
 16. **GitHub Packages auth** (`read:packages`) is needed even to build.
 17. **Don't hand-edit generated release files** or force-push release commits.
 18. **Keep Morphe's "Disable DRC audio" on**: addon levels are measured against the non-DRC stream, so with DRC the addon plays quieter than YouTube. Our extension switches it on once at first start (`Features.drcOffOnce`); a user who turns it off keeps it off.
+19. **Morphe 2.4.0 changed `replaceDeclinedOfflinePlayerResponse`**: `(Object)` up to 2.3.0,
+    `(Object, boolean saveStoryboards)` from 2.4.0. `OfflineExtrasPatch` matches on the first parameter
+    only (p0 is the response in both), so both versions hook.
+20. **Morphe 2.4.0 has its own Apple Music animated artwork** (`AppleMusicCatalog.findMotionArtwork`).
+    We call its catalog lookup by reflection (`MorpheApple`) and leave its overlay patch out
+    (`scripts/patch.ps1` passes `-d "Apple Music animated artwork"`; Manager users turn it off), so the
+    two overlays don't draw on top of each other.

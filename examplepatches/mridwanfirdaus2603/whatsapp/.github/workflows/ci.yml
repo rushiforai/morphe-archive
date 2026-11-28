@@ -1,0 +1,71 @@
+name: CI Build
+
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Patches
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Gradle Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle.kts', 'gradle/libs.versions.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Build Patches
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid --no-daemon
+
+      - name: Verify MPP artifact exists
+        run: |
+          MPP_FILE=$(find patches/build/libs -name "patches-*.mpp" ! -name "*sources*" ! -name "*javadoc*" | head -1)
+          if [ -z "$MPP_FILE" ]; then
+            echo "::error::No .mpp artifact found in patches/build/libs/"
+            exit 1
+          fi
+          echo "MPP_FILE=$MPP_FILE" >> $GITHUB_ENV
+          echo "✅ Found artifact: $MPP_FILE"
+          ls -lh "$MPP_FILE"
+
+      - name: Upload MPP artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: patches-mpp
+          path: ${{ env.MPP_FILE }}
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload build reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-reports
+          path: |
+            patches/build/reports/
+          retention-days: 14
+          if-no-files-found: ignore

@@ -368,8 +368,19 @@ public final class QualityUnlock {
         if (closing == null) return;
         forgetAddresses();
         DECIDED.clear();
+        tunnelClosed(name); // (the stream plays direct until decided afresh)
         VpnTunnel old = closing;
         BACKGROUND.execute(old::close);
+    }
+
+    /** A tunnel closed: the status no longer says a stream is unlocked through it (another stream's stays). */
+    private static void tunnelClosed(String name) {
+        if (saysUnlockedThrough(status, name)) publish(idle());
+    }
+
+    static boolean saysUnlockedThrough(Status shown, String name) {
+        return shown != null && shown.text != null && !shown.problem && shown.text.startsWith("Unlocked ")
+                && shown.text.endsWith(" through " + name);
     }
 
     private static void closeTunnel() {
@@ -392,6 +403,7 @@ public final class QualityUnlock {
                 forgetAddresses();
                 // Only the streams that went through it are decided again; "nothing locked" stays decided.
                 DECIDED.values().removeIf(viaVpn -> viaVpn);
+                tunnelClosed(current.config.name);
             } else {
                 current.tidy();
             }

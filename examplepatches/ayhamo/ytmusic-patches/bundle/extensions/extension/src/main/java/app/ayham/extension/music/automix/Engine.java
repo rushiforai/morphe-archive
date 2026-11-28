@@ -249,12 +249,25 @@ final class Engine {
         long hOut = 0, hIn = 0;
         try {
             Models.loadNative();
-            Analyzer.Pcm outPcm = Analyzer.tail(ctx, m.outId), inPcm = Analyzer.head(ctx, m.inId);
+            // each song's opening and end are kept decoded: a window placed anywhere (editor.md §6) is
+            // read from the part that holds it, or from both joined (a song up to 4.5 min)
+            double outFrom = m.out.needFrom, outTo = m.out.needTo;
+            double inFrom = Math.max(0, m.in.needFrom), inTo = m.in.trackAt(m.elementAt) + 2;
+            Analyzer.Pcm ot = Analyzer.tail(ctx, m.outId), oh = Analyzer.head(ctx, m.outId);
+            Analyzer.Pcm ih = Analyzer.head(ctx, m.inId), it = Analyzer.tail(ctx, m.inId);
+            Analyzer.Pcm outPcm = Analyzer.Pcm.covering(ot, oh, oh, ot, outFrom, outTo);
+            Analyzer.Pcm inPcm = Analyzer.Pcm.covering(ih, it, ih, it, inFrom, inTo);
             // a song heard from an addon (or about to be) is mixed from the addon's audio, so the
             // takeover and the handover don't change the sound
-            Analyzer.Pcm ao = AddonDirect.audibleFor(m.outId) ? AddonPcm.tail(ctx, m.outId) : null;
-            Analyzer.Pcm ai = app.ayham.extension.music.addons.AddonSettings.on() && app.ayham.extension.music.addons.AddonPrep.get(m.inId) != null
-                    ? AddonPcm.head(ctx, m.inId) : null;
+            Analyzer.Pcm ao = null, ai = null;
+            if (AddonDirect.audibleFor(m.outId)) {
+                Analyzer.Pcm at = AddonPcm.tail(ctx, m.outId), ah = AddonPcm.head(ctx, m.outId);
+                ao = at == null ? null : Analyzer.Pcm.covering(at, ah, ah, at, outFrom, outTo);
+            }
+            if (app.ayham.extension.music.addons.AddonSettings.on() && app.ayham.extension.music.addons.AddonPrep.get(m.inId) != null) {
+                Analyzer.Pcm ah = AddonPcm.head(ctx, m.inId), at = AddonPcm.tail(ctx, m.inId);
+                ai = ah == null ? null : Analyzer.Pcm.covering(ah, at, ah, at, inFrom, inTo);
+            }
             if (ao != null) outPcm = ao;
             if (ai != null) inPcm = ai;
             if (ao != null || ai != null)

@@ -154,6 +154,50 @@ public final class LokiLog {
         Files.write(file.toPath(), newest);
     }
 
+    private static boolean recording;
+    private static Thread.UncaughtExceptionHandler mine;
+
+    /**
+     * Writes an uncaught crash, with its cause chain, to the log before the app's own handler runs, then hands over
+     * to that handler unchanged. Safe to call again: it wraps whatever handler is current, so an SDK that installed
+     * its own handler later is still called. Without this a crash leaves nothing in the diagnostic report.
+     */
+    public static synchronized void recordCrashes() {
+        try {
+            Thread.UncaughtExceptionHandler current = Thread.getDefaultUncaughtExceptionHandler();
+            if (current != null && current == mine) return;
+            final Thread.UncaughtExceptionHandler previous = current;
+            mine = (thread, failure) -> {
+                try {
+                    if (!recording) {
+                        recording = true;
+                        StringBuilder text = new StringBuilder("CRASH in thread ")
+                                .append(thread == null ? "?" : thread.getName()).append(": ");
+                        Throwable at = failure;
+                        for (int depth = 0; at != null && depth < 4; depth++) {
+                            if (depth > 0) text.append(" || Caused by: ");
+                            text.append(at.getClass().getName()).append(": ").append(at.getMessage());
+                            StackTraceElement[] frames = at.getStackTrace();
+                            for (int i = 0; i < Math.min(frames.length, 14); i++) {
+                                text.append(" | at ").append(frames[i]);
+                            }
+                            at = at.getCause() == at ? null : at.getCause();
+                        }
+                        note(text.toString());
+                    }
+                } catch (Throwable ignored) {
+                    // a recorder must never make a crash worse
+                } finally {
+                    recording = false;
+                }
+                if (previous != null) previous.uncaughtException(thread, failure);
+            };
+            Thread.setDefaultUncaughtExceptionHandler(mine);
+        } catch (Throwable ignored) {
+            // no recorder is better than a broken start-up
+        }
+    }
+
     public static synchronized void clear(Context context) {
         File target = logFile(context);
         if (target != null) target.delete();
@@ -212,6 +256,12 @@ public final class LokiLog {
         }
         sb.append(exported.isEmpty() ? "  (none)\n" : "  " + exported.replace("\n", "\n  ") + "\n");
 
+        List<String> key = keyLines(context);
+        if (!key.isEmpty()) {
+            sb.append("\nKey lines (kept from the whole log, newest last):\n");
+            for (String line : key) sb.append(line).append('\n');
+        }
+
         sb.append("\nLog (newest ").append(REPORT_LINES).append(" lines):\n");
         List<String> tail = newestLines(context);
         if (tail.isEmpty()) sb.append("  (empty)\n");
@@ -227,6 +277,28 @@ public final class LokiLog {
                         ).replaceAll("[email]")
                 ).replaceAll("[id]")
         ).replaceAll("[number]");
+    }
+
+    /**
+     * Lines that explain a failure or a screen's contents and are written once ("request failed", "home sections"),
+     * pulled from the whole log so repeated chatter cannot push them out of the newest-lines window.
+     */
+    private static List<String> keyLines(Context context) {
+        List<String> found = new ArrayList<>();
+        try {
+            File source = logFile(context);
+            if (!source.exists()) return found;
+            for (String line : Files.readAllLines(source.toPath(), StandardCharsets.UTF_8)) {
+                if (line.contains("request failed:") || line.contains("home sections:") || line.startsWith("CRASH")
+                        || line.contains("CRASH in thread")
+                        || line.contains("could not read the result")) {
+                    found.add(line);
+                }
+            }
+        } catch (Throwable harmless) {
+            // No key lines is the same as none found.
+        }
+        return found.subList(Math.max(0, found.size() - 8), found.size());
     }
 
     private static List<String> newestLines(Context context) {

@@ -1,9 +1,9 @@
 {
-  "official_patches_version": "2.3.0",
-  "official_patcher_version": "2.4.0",
-  "verified_on": "2026-11-17",
+  "official_patches_version": "2.4.0",
+  "official_patcher_version": "2.5.0",
+  "verified_on": "2026-11-27",
   "youtube_version": "21.30.216",
   "reddit_version": "2026.40.0",
   "result": "compatible",
-  "notes": "The official release moved to patcher 2.4.0 and Gradle plugin 2.1.1; this bundle was moved to the same versions, no code change needed. Combined run with the official default patches: YouTube 118 patches applied, Reddit 31, none failed. The official YouTube theme patch still wraps the one setTextColor call in app.variablenine.nudge.ui.Ui with ThemeColorPatch.getForegroundColor, which returns our colours unchanged."
+  "notes": "The official release moved to patcher 2.5.0 and Gradle plugin 2.1.2; this bundle was moved to the same versions, no code change needed (ReminderSpot.kt compiles unchanged against patcher 2.5.0). Recommended app versions are unchanged. The combined run with real apps was skipped this time: the Android SDK could not be installed in the unattended session, so the bundle was built and tested by CI only, where compat-check.sh compared patcher versions and file names. Changelog read: GmsCore support gained GNP / Chime push registration, Clone app now repairs invalid package names instead of rejecting them, and Disable Play Store updates keeps the original version code for Morphe extension code; none of these changes how provider authorities starting with the package name are rewritten."
 }

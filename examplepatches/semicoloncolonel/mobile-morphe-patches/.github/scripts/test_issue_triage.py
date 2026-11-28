@@ -99,6 +99,12 @@ class EvaluateTest(unittest.TestCase):
     def test_supported_report_passes(self):
         self.assertIsNone(self.check("Disney+", "26.20.0+rc2-2026.10.28", code="179321403"))
 
+    def test_version_written_with_a_prefix_passes(self):
+        # Issue 135 on mobile-morphe-patches: "v32.20.0.100" was read as unsupported.
+        for written in ("v26.20.0+rc2-2026.10.28", "V 26.20.0+rc2-2026.10.28",
+                        "version 26.20.0+rc2-2026.10.28", "`26.20.0+rc2-2026.10.28`"):
+            self.assertIsNone(self.check("Disney+", written, code="179321403"), written)
+
     def test_unsupported_version(self):
         problem = self.check("Disney+", "26.14.0+rc6-2026.07.30")
         self.assertEqual(problem["kind"], "version")
@@ -144,7 +150,7 @@ class CommentTest(unittest.TestCase):
             "version code is `1793662190`. They support these versions and builds of Disney+:\n\n"))
         self.assertTrue(text.endswith(
             "Please patch one of these and check whether the problem still happens. If it does, edit this issue "
-            "so it lists the version and build you used, and the `untargeted version` label will be removed. "
+            "so it lists the version and build you used, and the `status: untargeted version` label will be removed. "
             "An issue with this label closes after 7 days without an update."))
 
     def test_dev_only_versions_are_marked(self):
@@ -196,7 +202,8 @@ class CommentTest(unittest.TestCase):
         self.assertIn("closes after 7 days", t.incomplete_comment(gaps))
 
     def test_a_complete_bug_report_has_no_gaps(self):
-        values = {"App": "Disney+", "App version": "26.20.0+rc3-2026.11.02", "Phone or Android TV build": "Phone or tablet",
+        values = {"App": "Disney+", "App version": "26.20.0+rc3-2026.11.02",
+                  "Are you enrolled as a beta tester for this app?": "No", "Phone or Android TV build": "Phone or tablet",
                   "Where the APK came from": "Aurora Store", "Patches version": "1.0.20", "Patches release": "Main release",
                   "Morphe Manager version": "2.5.0", "Patches selected": "Defaults", "Device": "Samsung Galaxy S25 Ultra",
                   "Android version": "Android 17", "Ad blockers or DNS filters": "No ad blocker or DNS filter",
@@ -211,7 +218,8 @@ class CommentTest(unittest.TestCase):
 
     def test_version_form(self):
         labels = [label for label, _ in t.required_fields("0-version-or-build.yml")]
-        self.assertEqual(labels[:4], ["App", "App version", "App version code", "Phone or Android TV build"])
+        self.assertEqual(labels[:5], ["App", "App version", "Are you enrolled as a beta tester for this app?",
+                                      "App version code", "Phone or Android TV build"])
         self.assertIn("Morphe Manager's message", labels)
         self.assertNotIn("Anything else", labels)
         body = (form("Disney+", "26.20.0+rc3-2026.11.02", code="1793662190", build="Android TV or Google TV")
@@ -260,7 +268,7 @@ class TvRepositoryTest(unittest.TestCase):
 
 
 class TvRedirectTest(unittest.TestCase):
-    """This repository sends Android TV reports for apps with a TV target to the TV source (issue 80)."""
+    """This repository sends every Android TV report for a named app to the TV source (issue 80)."""
 
     apps = dict(apps_from(KOTLIN), **{
         "Hulu": {"6.34.0+18552420-google": {"codes": set(), "descriptions": set()}},
@@ -289,9 +297,15 @@ class TvRedirectTest(unittest.TestCase):
     def test_phone_reports_are_unchanged(self):
         self.assertIsNone(self.check("Hulu", "6.34.0+18552420-google"))
 
-    def test_app_without_a_tv_target_keeps_the_build_check(self):
+    def test_app_without_a_tv_target_goes_to_the_tv_source(self):
         problem = self.check("Disney+", "26.20.0+rc3-2026.11.02", build="Android TV or Google TV")
-        self.assertEqual(problem["kind"], "build")
+        self.assertEqual(problem["kind"], "tv")
+
+    def test_app_this_source_does_not_list_goes_to_the_tv_source(self):
+        self.assertEqual(self.check("Prime Video", "6.24.13", build="Android TV or Google TV")["kind"], "tv")
+
+    def test_other_apps_are_left_alone(self):
+        self.assertIsNone(self.check("Other (name it in the description)", "1.0", build="Android TV or Google TV"))
 
     def test_no_redirect_without_a_tv_source(self):
         t.TV_REPO = ""

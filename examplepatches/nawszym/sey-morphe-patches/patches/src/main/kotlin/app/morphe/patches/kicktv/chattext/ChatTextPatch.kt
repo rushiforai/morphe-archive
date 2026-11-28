@@ -78,6 +78,21 @@ private object ChatMessageListFingerprint : Fingerprint(
 )
 
 /**
+ * `hp1.I(Lhn, ...)` draws one complete chat line. The username is a SpanStyle
+ * inside that CharSequence with no explicit font weight, so the extension sets
+ * it to semi-bold before the line is drawn when Twitch-like is selected.
+ */
+private object ChatTextRenderFingerprint : Fingerprint(
+    definingClass = "Lhp1;",
+    name = "I",
+    parameters = listOf(
+        "Lhn;", "Lei5;", "Ljava/util/Map;", "J", "Lfv8;", "I",
+        "Lkotlin/jvm/functions/Function1;", "Lp73;", "I",
+    ),
+    returnType = "V",
+)
+
+/**
  * `KickApplication.onCreate()` runs before Compose builds any TextStyle, so
  * the extension can capture the context and read the saved preference in time.
  */
@@ -98,7 +113,7 @@ private object KickApplicationOnCreateFingerprint : Fingerprint(
 val chatTextPatch = patch(
     name = "CHAT TEXT SIZE",
     description = "Two options: Native (stock KICK text and spacing) or " +
-        "Twitch-like (larger 16 sp text, a wider 10 dp gap, lighter message text " +
+        "Twitch-like (larger 15 sp text, a tighter 6 dp gap, lighter message text " +
         "and bolder usernames). Toggle in SEYTTINGS. Requires the SEYTTINGS patch.",
     default = true,
 ) {
@@ -154,6 +169,13 @@ val chatTextPatch = patch(
                     move-result-object v$weightRegister
                     check-cast v$weightRegister, Ly23;
                 """,
+            )
+        }
+
+        ChatTextRenderFingerprint.apply {
+            method.addInstructions(
+                0,
+                "invoke-static/range {p0 .. p0}, ${EXTENSION_CLASS}ChatTextPrefs;->boldUsernames(Ljava/lang/Object;)V",
             )
         }
 

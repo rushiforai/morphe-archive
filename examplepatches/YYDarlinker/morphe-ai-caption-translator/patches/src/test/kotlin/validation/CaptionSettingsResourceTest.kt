@@ -2,14 +2,13 @@ package validation
 
 import app.morphe.patcher.Patcher
 import app.morphe.patcher.PatcherConfig
-import app.morphe.patcher.apk.ApkUtils.applyTo
 import app.morphe.patcher.patch.*
 import kotlinx.coroutines.runBlocking
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 import java.io.File
-import java.nio.file.Files
 import java.util.zip.ZipFile
+import javax.xml.parsers.DocumentBuilderFactory
 
 /** Real decode -> bundled resource patch -> compile -> decode contracts, without a YouTube fixture. */
 object CaptionSettingsResourceTest {
@@ -28,21 +27,39 @@ object CaptionSettingsResourceTest {
         else -> ""
     }
 
+    private fun bindings(screen: Element): Map<String, Pair<String, String>> {
+        val nodes = screen.getElementsByTagName("*")
+        val rows = (0 until nodes.length).map { nodes.item(it) as Element }
+        val byKey = rows.associate {
+            val key = it.getAttribute("android:key")
+            check(key.isNotEmpty()) { "Missing preference key: ${it.tagName}" }
+            key to (it.tagName to it.getAttribute("android:title"))
+        }
+        check(rows.size == byKey.size) { "Duplicate settings keys" }
+        return byKey
+    }
+
+    private val inflatedFixture by lazy {
+        val file = File("extensions/extension/src/test/res/xml/caption_settings_fixture.xml")
+        val doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
+        bindings(doc.documentElement)
+    }
+
     private data class Snapshot(val manifest: String, val network: String?, val reference: String, val rows: Int,
                                 val hostPages: Map<String, String>)
 
-    private fun ResourcePatchContext.snapshot(output: File): Snapshot {
+    private fun snapshot(output: File): Snapshot {
         output.mkdirs()
         var reference = ""
         val manifest = document("AndroidManifest.xml").use { doc ->
             reference = (doc.getElementsByTagName("application").item(0) as Element).getAttribute(NETWORK)
             canonical(doc.documentElement)
         }
-        get("AndroidManifest.xml").copyTo(output.resolve("AndroidManifest.xml"))
+        resourceFile("AndroidManifest.xml").copyTo(output.resolve("AndroidManifest.xml"))
         val network = if (reference.startsWith("@xml/")) {
             val path = "res/xml/${reference.removePrefix("@xml/")}.xml"
             val content = document(path).use { canonical(it.documentElement) }
-            get(path).copyTo(output.resolve("network-security.xml"))
+            resourceFile(path).copyTo(output.resolve("network-security.xml"))
             content
         } else null
         var rows = 0
@@ -66,14 +83,18 @@ object CaptionSettingsResourceTest {
                     (0 until screen.childNodes.length).mapNotNull { screen.childNodes.item(it) as? Element }
                         .forEach { check(it.getAttribute("android:iconSpaceReserved") == "false") }
                     val keys = elements.map { it.getAttribute("android:key") }
-                    check(keys.count { it == "deepseek_caption_enabled" } == 1)
-                    check(keys.containsAll(listOf("deepseek_caption_profiles", "deepseek_caption_api_key",
-                        "deepseek_caption_text_size", "deepseek_caption_diagnostics", "deepseek_caption_shorts_flyout_menu")))
+                    check(keys.count { it == "ai_caption_enabled" } == 1)
+                    check(keys.containsAll(listOf("ai_caption_profiles", "ai_caption_api_key",
+                        "ai_caption_text_size", "ai_caption_diagnostics", "ai_caption_shorts_flyout_menu")))
                     if (path.contains("morphe_prefs")) {
                         check((screen.parentNode as Element).getAttribute("android:key").startsWith("morphe_settings_screen_12_video"))
                         var previous = screen.previousSibling
                         while (previous != null && previous !is Element) previous = previous.previousSibling
                         check((previous as Element).getAttribute("android:key") == "morphe_vot_screen")
+                    }
+                    val actual = bindings(screen)
+                    check(actual == inflatedFixture) {
+                        "Patched XML differs from the JVM inflation fixture: ${(actual.entries - inflatedFixture.entries)} / ${(inflatedFixture.entries - actual.entries)}"
                     }
                     rows++
                 }
@@ -84,14 +105,14 @@ object CaptionSettingsResourceTest {
                 additions.forEach { it.parentNode.removeChild(it) }
                 hostPages[path] = canonical(host)
             }
-            get(path).copyTo(output.resolve(File(path).name))
+            resourceFile(path).copyTo(output.resolve(File(path).name))
         }
         return Snapshot(manifest, network, reference, rows, hostPages)
     }
 
     private fun read(apk: File, output: File): Snapshot {
         var result: Snapshot? = null
-        val probe = resourcePatch { execute { result = snapshot(output.resolve("decoded")) } }
+        val probe = patch { execute { result = snapshot(output.resolve("decoded")) } }
         Patcher(PatcherConfig(apkFile = apk, temporaryFilesPath = output.resolve("session"))).use { patcher ->
             patcher += setOf(probe)
             runBlocking { patcher().collect { check(it.exception == null) { it.exception.toString() } } }
@@ -122,8 +143,7 @@ object CaptionSettingsResourceTest {
         Patcher(PatcherConfig(apkFile = input, temporaryFilesPath = output.resolve("patch-session"))).use { patcher ->
             patcher += setOf(settings)
             runBlocking { patcher().collect { check(it.exception == null) { it.exception.toString() } } }
-            val result = patcher.get()
-            Files.copy(input.toPath(), patched.toPath()); result.applyTo(patched)
+            patcher.writeApk(patched)
         }
         val after = read(patched, output.resolve("after"))
         check(before.rows == 0 && after.rows > 0) { "Settings screen not added" }
@@ -137,7 +157,7 @@ object CaptionSettingsResourceTest {
         if (values.getValue("expect") == "preserved") {
             check(before.manifest == after.manifest) { "Host manifest policy changed" }
             check(before.network == after.network) { "Host network policy changed" }
-            ZipFile(patched).use { zip -> check(zip.getEntry("res/xml/deepseek_caption_network_security.xml") == null) }
+            ZipFile(patched).use { zip -> check(zip.getEntry("res/xml/ai_caption_network_security.xml") == null) }
         } else {
             check(values.getValue("expect") == "legacy")
             check(after.network?.contains("127.0.0.1") == true)

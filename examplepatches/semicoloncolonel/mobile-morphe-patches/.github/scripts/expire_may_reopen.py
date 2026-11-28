@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Removes the "may reopen" label from closed issues that stayed quiet for 7 days.
+"""Removes the "status: may reopen" label from closed issues that stayed quiet for 7 days.
 
 The 7 days count from the later of when the label was added and the issue's
 newest comment, so a new comment restarts them. An open issue keeps the label.
@@ -13,7 +13,7 @@ import datetime
 import json
 import subprocess
 
-LABEL = "may reopen"
+LABEL = "status: may reopen"
 DAYS = 7
 
 
@@ -26,7 +26,7 @@ def when(stamp):
 
 
 def last_activity(number, repo):
-    """The later of the newest "may reopen" label event and the newest comment."""
+    """The later of the newest "status: may reopen" label event and the newest comment."""
     events = json.loads(gh("api", "--paginate", "--slurp", f"repos/{repo}/issues/{number}/timeline"))
     times = []
     for page in events:

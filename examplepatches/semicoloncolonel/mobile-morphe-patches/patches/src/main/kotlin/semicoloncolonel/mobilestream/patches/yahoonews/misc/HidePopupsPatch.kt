@@ -1,11 +1,11 @@
 package semicoloncolonel.mobilestream.patches.yahoonews.misc
 
+import semicoloncolonel.mobilestream.patches.shared.misc.isOptionOn
 import app.morphe.patcher.patch.rawResourcePatch
 import app.morphe.patcher.patch.resourcePatch
 import semicoloncolonel.mobilestream.patches.shared.misc.HERMES_BUNDLE
 import semicoloncolonel.mobilestream.patches.shared.misc.HermesBundle
 import semicoloncolonel.mobilestream.patches.shared.misc.disableExpoUpdatesPatch
-import semicoloncolonel.mobilestream.patches.yahoonews.shared.Constants
 import semicoloncolonel.mobilestream.patches.yahoonews.shared.videoOptOutPatch
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -25,6 +25,7 @@ import semicoloncolonel.mobilestream.patches.yahoonews.shared.videoOptOutPatch
 
 private val hidePopupsInBundlePatch = rawResourcePatch {
     execute {
+        if (!isOptionOn(hidePromptsAndPopupsPatch, "popUps")) return@execute
         val file = get(HERMES_BUNDLE)
         val bundle = HermesBundle(file.readBytes())
         bundle.returnAtStart("eligibleNow", HermesBundle.Value.FALSE)
@@ -36,13 +37,7 @@ private val hidePopupsInBundlePatch = rawResourcePatch {
     }
 }
 
-@Suppress("unused")
-val hidePopupsPatch = resourcePatch(
-    name = "Hide pop-ups",
-    description = "Removes the rating request, the notification prompts, and the feature tooltips.",
-) {
-    category("Interface")
-    compatibleWith(Constants.COMPATIBILITY)
-
+// Part of hidePromptsAndPopupsPatch: runs only when its "popUps" option is on.
+internal val hidePopupsPatch = resourcePatch {
     dependsOn(hidePopupsInBundlePatch, disableExpoUpdatesPatch, videoOptOutPatch)
 }

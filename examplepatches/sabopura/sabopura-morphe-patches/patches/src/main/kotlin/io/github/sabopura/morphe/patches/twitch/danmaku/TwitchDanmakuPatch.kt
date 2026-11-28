@@ -1,5 +1,6 @@
 package io.github.sabopura.morphe.patches.twitch.danmaku
 
+import io.github.sabopura.morphe.patches.twitch.support.TWITCH_MOVED_NOTE
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
@@ -158,7 +159,7 @@ internal val liveChatHook = bytecodePatch {
 @Suppress("unused")
 val twitchDanmakuPatch = bytecodePatch(
     name = "Danmaku chat",
-    description = "Flows live chat, and the chat replay of VODs, over the video like NicoNico/bilibili, " +
+    description = TWITCH_MOVED_NOTE + "Flows live chat, and the chat replay of VODs, over the video like NicoNico/bilibili, " +
         "with emotes and NG words. Long-press the player menu button to switch it on or off.",
     default = true,
 ) {

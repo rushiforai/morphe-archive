@@ -6,6 +6,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.czyeru.patches.shared.compat.AppCompatibilities
 import app.czyeru.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.czyeru.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
+import app.czyeru.util.addInstructionsAtControlFlowLabel
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
@@ -47,10 +48,10 @@ val feedTabNavigationPatch = bytecodePatch(
 
             returnIndices.asReversed().forEach { returnIndex ->
                 val register = (method.implementation!!.instructions[returnIndex] as OneRegisterInstruction).registerA
-                method.addInstructions(
+                method.addInstructionsAtControlFlowLabel(
                     returnIndex,
                     """
-                        invoke-static {v$register}, $EXTENSION_CLASS_DESCRIPTOR->filterBottomTabs(Ljava/util/List;)Ljava/util/List;
+                        invoke-static/range {v$register .. v$register}, $EXTENSION_CLASS_DESCRIPTOR->filterBottomTabs(Ljava/util/List;)Ljava/util/List;
                         move-result-object v$register
                     """,
                 )

@@ -1,0 +1,158 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.hushgram.extension.instagram.direct;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.BooleanSupplier;
+
+import app.hushgram.extension.instagram.settings.FamilyNames;
+import app.hushgram.extension.instagram.settings.Settings;
+import app.hushgram.extension.shared.Logger;
+import app.hushgram.extension.shared.Utils;
+import app.hushgram.extension.shared.diagnostics.FeedFilterCounters;
+import app.hushgram.extension.shared.diagnostics.HookStatus;
+
+/**
+ * Helper for the "Hide suggested accounts in DMs" patch.
+ *
+ * <p>Under your chats Instagram can show a section of accounts to follow. Your messages load it
+ * with a list of units, each a group of accounts with a name, and the inbox builds that section
+ * from the first unit: Accounts to follow when it's named {@link #ACCOUNTS_TO_FOLLOW}, or another
+ * group, like the people who follow you. Follow requests come from the second unit, read
+ * elsewhere. The patch hands the list to {@link #units} as the inbox starts building the section,
+ * and while the switch is on a list led by Accounts to follow is answered with an empty one, so
+ * the section isn't built. A list led by any other unit goes through, and follow requests stay.
+ * The same switch empties More suggestions in Messages search through {@link #searchSuggestions},
+ * and {@link #searchSections} takes the section out of the search, its header too.
+ *
+ * <p>The hook fails open: with the switch off, HushGram paused, the settings not read yet or
+ * anything thrown, Instagram gets its own list.
+ */
+public final class InboxSuggestions {
+    /** The name Instagram's unit of accounts to follow carries. */
+    static final String ACCOUNTS_TO_FOLLOW = "suggested_accounts_to_follow";
+
+    /** The diagnostic counter route: how often the inbox had the section, and how often it was left out. */
+    static final String ROUTE = "Accounts to follow in messages";
+
+    static final String SECTION = "accounts to follow";
+    static final String SEARCH = "More suggestions in search";
+
+    /** The name Messages search gives More suggestions in its list of the sections it builds. */
+    static final String SUGGESTED = "SUGGESTED";
+
+    private static volatile boolean logged;
+    private static volatile boolean searchLogged;
+    private static volatile boolean sectionLogged;
+
+    private InboxSuggestions() {
+    }
+
+    /**
+     * Injected first thing where your messages build their section of accounts. Answers an empty
+     * list when [units] is led by Accounts to follow and the switch is on, and [units] itself
+     * otherwise, or when anything goes wrong. Never throws, and never changes the list it's given.
+     */
+    public static List<?> units(List<?> units) {
+        return units(units, InboxSuggestions::switchedOn);
+    }
+
+    static List<?> units(List<?> units, BooleanSupplier on) {
+        if (units == null || units.isEmpty()) return units;
+        try {
+            HookStatus.invoked(FamilyNames.INBOX_SUGGESTIONS);
+            if (!ACCOUNTS_TO_FOLLOW.equals(nameOf(units.get(0)))) return units;
+            FeedFilterCounters.sawKind(ROUTE, SECTION);
+            if (!on.getAsBoolean()) return units;
+            FeedFilterCounters.removed(ROUTE, 1, SECTION);
+            if (!logged) {
+                logged = true;
+                Logger.printDebug(() -> "Inbox suggestions: left Accounts to follow out of your messages");
+            }
+            return Collections.emptyList();
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.INBOX_SUGGESTIONS, SECTION, failure);
+            return units;
+        }
+    }
+
+    /**
+     * Injected first thing where Instagram sorts the accounts it suggests under More suggestions in
+     * Messages search (and its See all page), taking out the ones you removed. Answers a new empty
+     * list while the switch is on, so the search shows none, and [people] itself otherwise, or when
+     * anything goes wrong. Never throws, and never changes the list it's given.
+     */
+    public static List<?> searchSuggestions(List<?> people) {
+        return searchSuggestions(people, InboxSuggestions::switchedOn);
+    }
+
+    static List<?> searchSuggestions(List<?> people, BooleanSupplier on) {
+        if (people == null || people.isEmpty()) return people;
+        try {
+            HookStatus.invoked(FamilyNames.INBOX_SUGGESTIONS);
+            FeedFilterCounters.sawKind(ROUTE, SEARCH);
+            if (!on.getAsBoolean()) return people;
+            FeedFilterCounters.removed(ROUTE, people.size(), SEARCH);
+            if (!searchLogged) {
+                searchLogged = true;
+                Logger.printDebug(() -> "Inbox suggestions: left More suggestions out of Messages search");
+            }
+            return new ArrayList<>();
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.INBOX_SUGGESTIONS, SEARCH, failure);
+            return people;
+        }
+    }
+
+    /**
+     * Injected where Messages search has its list of section names, every one in, just before it
+     * builds the sections one after another. Takes More suggestions ({@link #SUGGESTED}) out of the
+     * list while the switch is on, so neither its header nor its rows are built. The list stays as
+     * it is with the switch off, HushGram paused, or anything thrown. Never throws.
+     */
+    public static void searchSections(List<?> sections) {
+        searchSections(sections, InboxSuggestions::switchedOn);
+    }
+
+    static void searchSections(List<?> sections, BooleanSupplier on) {
+        if (sections == null || !sections.contains(SUGGESTED)) return;
+        try {
+            HookStatus.invoked(FamilyNames.INBOX_SUGGESTIONS);
+            if (!on.getAsBoolean()) return;
+            sections.removeAll(Collections.singleton(SUGGESTED));
+            if (!sectionLogged) {
+                sectionLogged = true;
+                Logger.printDebug(() -> "Inbox suggestions: left the More suggestions section out of Messages search");
+            }
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.INBOX_SUGGESTIONS, SEARCH, failure);
+        }
+    }
+
+    /**
+     * A unit's name, through the getName() Instagram's unit models keep their name for. Null for
+     * an item without one, or one whose name isn't text.
+     */
+    static String nameOf(Object unit) throws ReflectiveOperationException {
+        if (unit == null) return null;
+        Method getName;
+        try {
+            getName = unit.getClass().getMethod("getName");
+        } catch (NoSuchMethodException none) {
+            return null;
+        }
+        // The model's class needn't be public, so its public method can't be called without this.
+        getName.setAccessible(true);
+        Object name = getName.invoke(unit);
+        return name instanceof String ? (String) name : null;
+    }
+
+    private static boolean switchedOn() {
+        return Utils.settingsReady() && Settings.HIDE_INBOX_SUGGESTIONS.get();
+    }
+}

@@ -32,12 +32,15 @@ public final class MenuProvider extends ContentProvider {
         /* audit: keep */ LokiLog.note("loki: extension started in " + (getContext() == null ? "?" : getContext().getPackageName())
                 + " (SDK " + Build.VERSION.SDK_INT + ")");
         // Splitwise's AMOLED switch layers its theme overlay onto every screen; registered before any activity.
+        LokiLog.recordCrashes();
         LokiSwitches.installAmoled(getContext());
         // A provider is created while the app is still in the background, and Android drops or throttles
         // dynamic shortcuts pushed from a background app: setDynamicShortcuts() returns without error and
         // nothing is stored. Republish a few seconds later, by which time the launcher activity is on screen.
         android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
         handler.postDelayed(this::publish, 5000);
+        // The app's own crash SDKs install their handler after this provider starts; wrap theirs too.
+        handler.postDelayed(LokiLog::recordCrashes, 8000);
         handler.postDelayed(this::publish, 20000);
         return true;
     }

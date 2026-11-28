@@ -5,21 +5,21 @@ opens or edits an issue made with the Bug report form. It reads the App, App
 version, App version code, and Phone or Android TV build fields, and compares
 them with the targets in the patches on main and dev. When the version, the
 version code, or the build is not one the patches support, it labels the issue
-"untargeted version" and comments with the supported versions. When an edit
+"status: untargeted version" and comments with the supported versions. When an edit
 fixes that, it removes the label. Reports for apps it does not know, such as
 "Other", are left alone.
 
 A report for a dev pre-release, by the Patches release field or a "-dev"
-patches version, is labeled "dev pre-release". When the app has an open
-issue labeled "testing on dev", the report gets a comment that asks for the
+patches version, is labeled "status: dev pre-release". When the app has an open
+issue labeled "status: testing on dev", the report gets a comment that asks for the
 problem there instead, unless it is critical.
 
 Every issue made with a form is checked for the fields its form marks
 required, read from .github/ISSUE_TEMPLATE, and a bug report also for an
 attached screenshot or video or a crash log with a stack trace. An issue that
-lacks any of them is labeled "incomplete" with a comment that lists them, and
+lacks any of them is labeled "status: needs info" with a comment that lists them, and
 the label is removed when an edit fills them in. Labeled issues close after 7
-days, like "untargeted version". The version checks run for bug reports and the
+days, like "status: untargeted version". The version checks run for bug reports and the
 version or build form only.
 
 Run from the repository root with GITHUB_EVENT_PATH set. DRY_RUN=true prints
@@ -32,21 +32,21 @@ import re
 import subprocess
 import sys
 
-LABEL = "untargeted version"
+LABEL = "status: untargeted version"
 REFS = ["origin/main", "origin/dev"]
 SOURCE = "patches/src/main/kotlin"
 DEV_TARGET_HELPER = "shared/misc/DevTarget.kt"
 NO_RESPONSE = "_No response_"
-DEV_LABEL = "dev pre-release"
-TESTING_LABEL = "testing on dev"
+DEV_LABEL = "status: dev pre-release"
+TESTING_LABEL = "status: testing on dev"
 APP_UPDATE_PREFIX = "App update: "
-INCOMPLETE_LABEL = "incomplete"
+INCOMPLETE_LABEL = "status: needs info"
 # tv-morphe-patches runs this script from a checkout of this repository, with
 # its own forms, which have no "Phone or Android TV build" field.
 FORMS_DIR = os.environ.get("TRIAGE_FORMS_DIR", ".github/ISSUE_TEMPLATE")
 DEFAULT_BUILD = os.environ.get("TRIAGE_DEFAULT_BUILD", "")
-# The repository that takes Android TV reports ("owner/name"), set here from the
-# TV_SOURCE variable. Empty in tv-morphe-patches itself.
+# The repository that takes Android TV reports ("owner/name"). The triage
+# workflow sets it; tv-morphe-patches leaves it empty.
 TV_REPO = os.environ.get("TRIAGE_TV_REPO", "")
 # A heading that only one form has, which tells the forms apart.
 FORM_MARKERS = {"Morphe Manager's message": "0-version-or-build.yml", "What happened": "1-bug-report.yml", "What could be better": "2-enhancement.yml",
@@ -195,6 +195,13 @@ def is_tv(description):
     return bool(description) and "tv" in description.lower()
 
 
+def normalize_version(version):
+    """The version as the patches name it: reporters often write "v1.2.3", "version 1.2.3", or `1.2.3`."""
+    v = version.strip().strip("`").strip()
+    v = re.sub(r"^(?:version\s+|v\s*)(?=\d)", "", v, flags=re.IGNORECASE)
+    return v.lower()
+
+
 def evaluate(fields, apps):
     """None when the report matches a supported target or cannot be checked, else what is wrong."""
     app, version = fields.get("App"), fields.get("App version")
@@ -202,13 +209,14 @@ def evaluate(fields, apps):
     # The forms list "Apple TV", and the patches name the TV entry "Apple TV (Android TV)".
     if app and build.startswith("Android TV") and f"{app} (Android TV)" in apps:
         app = f"{app} (Android TV)"
+    # This source patches phone apps only, so every Android TV report for a
+    # named app goes to the TV source, whether or not its targets are still here.
+    if TV_REPO and app and version and build.startswith("Android TV") and not app.startswith("Other"):
+        return {"kind": "tv", "app": app, "version": version.strip(), "versions": apps.get(app, {})}
     if not app or not version or app not in apps:
         return None
     versions = apps[app]
-    has_tv_target = any(is_tv(d) for e in versions.values() for d in e["descriptions"])
-    if TV_REPO and build.startswith("Android TV") and has_tv_target:
-        return {"kind": "tv", "app": app, "version": version.strip(), "versions": versions}
-    match = next((v for v in versions if v.lower() == version.strip().lower()), None)
+    match = next((v for v in versions if v.lower() == normalize_version(version)), None)
     if match is None:
         return {"kind": "version", "app": app, "version": version.strip(), "versions": versions}
     entry = versions[match]
@@ -244,9 +252,8 @@ def version_line(version, entry):
 
 def tv_comment(problem):
     repo = TV_REPO
-    return (f"The Android TV patches, including {problem['app']}, now come from a separate patch source, "
-            f"[{repo}](https://github.com/{repo}). The dev pre-releases of this source no longer include them, "
-            f"and the main releases will stop including them after version 1.1.\n\n"
+    return (f"Starting version 1.2.0, this source patches phone apps only. The Android TV patches, including "
+            f"{problem['app']}, come from a separate patch source, [{repo}](https://github.com/{repo}).\n\n"
             f"Please [add that source](https://morphe.software/add-source?github={repo}) in Morphe Manager, "
             f"as [its instructions](https://github.com/{repo}#readme) describe, and patch the app again with "
             f"it. If the problem "
@@ -340,7 +347,7 @@ def incomplete_comment(gaps):
     items = "\n".join(f"- {gap}" for gap in gaps)
     return ("This issue is missing details that are needed to look into it:\n\n" + items + "\n\n"
             "Please edit this issue and fill them in. A screenshot or video can be attached by dragging it "
-            "into the issue, and a crash log can be pasted in the Crash log field. The `incomplete` label is "
+            "into the issue, and a crash log can be pasted in the Crash log field. The `status: needs info` label is "
             "removed when nothing is missing. An issue with this label closes after 7 days without an update.\n")
 
 

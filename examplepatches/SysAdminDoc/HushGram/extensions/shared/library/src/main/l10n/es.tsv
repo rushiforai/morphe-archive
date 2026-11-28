@@ -380,7 +380,7 @@ Removes the summary, Sources and Ask Meta AI box from a reel's more menu. In you
 Hide Ask Meta AI in About this reel	Ocultar Pregúntale a Meta AI en Información sobre este reel
 About this reel keeps its summary and Sources, and only the Ask Meta AI box under them goes.	Sobre este reel conserva su resumen y las Fuentes, y solo desaparece el cuadro Preguntar a Meta AI que hay debajo.
 Hide Meta AI in the share sheet	Ocultar Meta AI en el menú para compartir
-Removes Meta AI from the row at the bottom of the share sheet. Some accounts see it as Muse.	Quita Meta AI de la fila de la parte inferior de la hoja de compartir. Algunas cuentas lo ven como Muse.
+Removes Meta AI from the share sheet, both from the people you can send to and from the row at the bottom. Some accounts see it as Muse.	Quita Meta AI de la hoja de compartir, tanto de las personas a las que puedes enviar como de la fila de la parte inferior. Algunas cuentas lo ven como Muse.
 Hide the Muse card	Ocultar la tarjeta de Muse
 Removes the Meet Muse card, with its Try Muse button, from Home and your profile. Your other cards stay.	Quita de Inicio y de tu perfil la tarjeta Meet Muse, con su botón Try Muse. Tus otras tarjetas se quedan.
 Hide the Muse button on your profile	Ocultar el botón de Muse en tu perfil
@@ -605,6 +605,9 @@ Adds an eye button to the top of each story while you view anonymously. Tap it t
 Mark as seen	Marcar como vista
 Marked as seen. Tap again to undo.	Marcada como vista. Toca de nuevo para deshacer.
 Marked as seen and sent	Marcada como vista y enviada
+# context: View stories anonymously's third switch, after Mark as seen button. A like is the heart under a story, a quick reaction is an emoji from the row above a story's reply box
+Mark a story seen when you like or reply	Marcar una historia como vista al darle me gusta o responder
+While you view anonymously, liking a story, replying to it or sending it a quick reaction puts you on that story's viewer list first. The other stories stay hidden.	Mientras ves de forma anónima, dar me gusta a una historia, responderla o enviarle una reacción rápida te pone primero en la lista de espectadores de esa historia. Las demás historias siguen ocultas.
 View DM photos and videos anonymously	Ver fotos y videos de mensajes de forma anónima
 Stops people seeing that you opened their view once photos and videos. They still disappear after you view them. This is a test feature and starts off.	Evita que la gente vea que abriste sus fotos y videos de ver una vez. Siguen desapareciendo después de verlos. Es una función de prueba y empieza desactivada.
 Restored %1$d settings. Kept %2$d newer choices.	Se restauraron %1$d ajustes. Se conservaron %2$d elecciones posteriores.
@@ -1582,6 +1585,14 @@ All of them. Tap to leave some out, and Ghost mode leaves those as you set them.
 %1$s. The others stay as you set them.	%1$s. Los demás se quedan como los pusiste.
 Switches Ghost mode turns	Interruptores que cambia el modo fantasma
 Ghost mode needs at least one switch to turn.	El modo fantasma necesita al menos un interruptor.
+# context: Ghost mode: the switch under its rows in Ads and privacy that holds likes, story replies, comments, share links and new stories and posts back while Ghost mode is on (#876). A like is the heart under a post, a reel, a story or a comment, a share link is what Copy link and sharing a post out make, and posting is sharing a new story, post or reel from Instagram's camera; the five short ones are toasts shown when a tap is held back
+Block likes, replies and posts in Ghost mode	Bloquear me gusta, respuestas y publicaciones en modo fantasma
+While Ghost mode is on, liking, commenting, replying to a story, posting a story or post and copying or sharing a link do nothing, and a message says why. Nothing is sent.	Mientras el modo fantasma está activado, dar me gusta, comentar, responder a una historia, publicar una historia o una publicación y copiar o compartir un enlace no hace nada, y un mensaje explica por qué. No se envía nada.
+Likes are off in Ghost mode.	Me gusta desactivados en modo fantasma.
+Replies are off in Ghost mode.	Respuestas desactivadas en modo fantasma.
+Comments are off in Ghost mode.	Comentarios desactivados en modo fantasma.
+Share links are off in Ghost mode.	Enlaces desactivados en modo fantasma.
+Posting is off in Ghost mode.	Publicar desactivado en modo fantasma.
 # context: Ghost mode: turning it on or off with a long press on a tab (#255). %1$s is a tab's name
 Turn Ghost mode on or off with a tab long press	Activar o desactivar el modo fantasma al mantener pulsada una pestaña
 Tab long presses keep Instagram's own action. Choose one to turn Ghost mode on or off instead.	Mantener pulsadas las pestañas conserva la acción de Instagram. Elige una para activar o desactivar el modo fantasma en su lugar.
@@ -1822,7 +1833,7 @@ Previous page	Página anterior
 Next page	Página siguiente
 # context: Feed settings: the Page dots on a pill switch, right under Carousel arrows (#419). A pill is a small bar with round ends that holds the dots.
 Page dots on a pill	Puntos de página en una cápsula
-Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue. Hold the pill and slide left or right to move through the pages.	Mueve los puntos de página de una publicación en carrusel a una cápsula redonda en la parte inferior de su foto o video, con la página en la que estás en azul. Mantén presionada la cápsula y desliza a la izquierda o a la derecha para pasar las páginas.
+Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue, or your accent color when Accent color is on. Hold the pill and slide left or right to move through the pages.	Mueve los puntos de página de una publicación en carrusel a una cápsula redonda en la parte inferior de su foto o video, con la página en la que estás en azul, o en tu color de acento cuando Color de acento está activado. Mantén presionada la cápsula y desliza a la izquierda o a la derecha para pasar las páginas.
 # context: Feed settings: the Hide page number switch, under Carousel arrows (#581). The number is the 3/5 in the corner of a carousel post.
 Hide page number	Ocultar número de página
 Takes the number like 3/5 off the corner of a carousel post's photo or video.	Quita el número como 3/5 de la esquina de la foto o el video de una publicación en carrusel.
@@ -1958,6 +1969,10 @@ Hide the Map bubble	Ocultar la burbuja del Mapa
 Takes only the Map bubble out of the row of notes. Your notes stay.	Quita solo la burbuja del Mapa de la fila de notas. Tus notas se quedan.
 Split the notes row	Dividir la fila de notas
 Splits the row of notes into three stacks, Instants, Notes and Stories, the layout Instagram is trying out. Restart Instagram to see the change.	Divide la fila de notas en tres pilas, Instants, Notas e Historias, el diseño que Instagram está probando. Reinicia Instagram para ver el cambio.
+# context: Messages: a switch under Split the notes row (#832). Primary and General are the two tabs Instagram shows professional accounts at the top of their messages. Use the names Instagram's own messages page gives them in this language.
+Primary and General tabs	Pestañas Principal y General
+# context: the summary under Primary and General tabs; Primary is the tab's name again
+Experimental. Adds the Primary and General tabs that professional accounts get to your messages. Instagram may put every chat in Primary at first. Starts off. Restart Instagram to see the change.	Experimental. Añade a tus mensajes las pestañas Principal y General que tienen las cuentas profesionales. Al principio, Instagram puede poner todos los chats en Principal. Empieza desactivado. Reinicia Instagram para ver el cambio.
 Hide Saved in the plus menu	Ocultar Guardado en el menú más
 Takes Saved off the menu the plus button opens in a chat's message bar.	Quita Guardado del menú que abre el botón más en la barra de mensajes de un chat.
 Hide AI images in the plus menu	Ocultar imágenes con IA en el menú más
@@ -2141,9 +2156,11 @@ Solid	Sólido
 See-through	Transparente
 # context: a look for the page-dots pill and the seek bars: blurs what's under it
 Frosted glass	Vidrio esmerilado
+Dots only	Solo puntos
 A light pill with dark dots, as it's always been.	Una cápsula clara con puntos oscuros, como siempre.
 A see-through dark pill with white dots, so more of the photo shows.	Una cápsula oscura transparente con puntos blancos, para que se vea más de la foto.
 A frosted glass pill that blurs the photo under it. Before Android 12 it's see-through instead.	Una cápsula de vidrio esmerilado que difumina la foto de debajo. Antes de Android 12 es transparente.
+Just the white dots with no pill behind them. A soft shadow keeps them clear on a bright photo.	Solo los puntos blancos, sin cápsula detrás. Una sombra suave los mantiene visibles sobre una foto clara.
 Turn on Page dots on a pill to use this choice.	Activa «Puntos de página en una cápsula» para usar esta opción.
 Turn on Seek bar on feed videos or its button to use this choice.	Activa «Barra de reproducción en videos del feed» o su botón para usar esta opción.
 Turn on Seek bar on stories to use this choice.	Activa «Barra de reproducción en historias» para usar esta opción.

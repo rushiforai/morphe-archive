@@ -1,3 +1,9 @@
+## [1.21.0](https://github.com/callMeBeyonder/morphe-patches/compare/v1.20.1...v1.21.0) (2026-11-28)
+
+### ✨ New Features
+
+* **bestronger:** add Unlock BeStronger Pro patch ([27201fd](https://github.com/callMeBeyonder/morphe-patches/commit/27201fd967f95d5cb275353b4594cc482b5c0c8c))
+
 ## [1.20.1](https://github.com/callMeBeyonder/morphe-patches/compare/v1.20.0...v1.20.1) (2026-11-26)
 
 ### 🚀 Updated App Support

@@ -6,7 +6,7 @@ import semicoloncolonel.mobilestream.patches.shared.misc.HERMES_BUNDLE
 import semicoloncolonel.mobilestream.patches.shared.misc.HermesBundle
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Plex 2026.22.0 — Skip ads.
+// Plex 2026.22.0 and 2026.23.0 — Skip ads.
 //
 // Plex is a React Native app. Its logic is Hermes bytecode in
 // assets/index.android.bundle, and there is no ad SDK on the Java side.
@@ -20,7 +20,8 @@ import semicoloncolonel.mobilestream.patches.shared.misc.HermesBundle
 //
 // Pause ads (an ad image shown while playback is paused) are fetched by
 // fetchPauseAdTile, which starts the request and returns nothing. It is made
-// to return at once, so no pause ad is requested.
+// to return at once, so no pause ad is requested. 2026.23.0 bundles that
+// module twice, so every copy is changed.
 //
 // Ads on live channels are inserted by the server into the stream itself and
 // are not removed by this patch.
@@ -31,13 +32,14 @@ val skipAdsPatch = rawResourcePatch(
     name = "Skip ads",
     description = "Stops on-demand titles from requesting video ads and pause ads.",
 ) {
+    category("Ads")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {
         val file = get(HERMES_BUNDLE)
         val bundle = HermesBundle(file.readBytes())
         bundle.returnAtStart("shouldRequestPrerollAds", HermesBundle.Value.FALSE)
-        bundle.returnAtStart("fetchPauseAdTile", HermesBundle.Value.UNDEFINED)
+        bundle.returnAtStartEvery("fetchPauseAdTile", HermesBundle.Value.UNDEFINED)
         file.writeBytes(bundle.toByteArray())
     }
 }

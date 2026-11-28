@@ -27,4 +27,15 @@ object Constants {
             AppTarget(version = "26.44.06.1006895251", minSdk = 29),
         ),
     )
+
+    /** Waze ships as an App Bundle (base.apk plus config splits), so users need an APKM from ApkMirror. */
+    val COMPATIBILITY_WAZE = Compatibility(
+        name = "Waze",
+        packageName = "com.waze",
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0x33CCFF,
+        targets = listOf(
+            AppTarget(version = "5.27.90.900", minSdk = 29),
+        ),
+    )
 }

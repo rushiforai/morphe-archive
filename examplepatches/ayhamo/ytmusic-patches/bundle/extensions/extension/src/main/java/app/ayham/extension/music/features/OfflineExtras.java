@@ -25,8 +25,11 @@ import java.util.concurrent.ConcurrentHashMap;
  *   (the same track key Morphe's player uses: YT Music's title and artist, cleaned by Morphe);</li>
  *   <li>its animated art clip, into the app's files (not the 80 MB cache), saved against the
  *   video id so the canvas finds it offline;</li>
- *   <li>its video type, for the song-version and automix rules.</li>
+ *   <li>its canvas (Spotify's, or a loop of the music video), the same way;</li>
+ *   <li>its video type, for automix's rules;</li>
+ *   <li>when the download popup picked lossless: the addon's file (AddonDownloads.enqueue).</li>
  * </ul>
+ * The popup's choices say which of these are saved.
  * YT saves the thumbnail and the player data itself. Two songs at a time in the background (a
  * whole playlist saved at once would otherwise ask every server for every song at once), once per run.
  */

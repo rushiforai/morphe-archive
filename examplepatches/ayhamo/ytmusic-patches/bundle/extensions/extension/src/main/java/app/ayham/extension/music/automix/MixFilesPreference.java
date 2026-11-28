@@ -284,11 +284,7 @@ public class MixFilesPreference extends Preference {
                 String[] ids = k.split(">", 2);
                 if (ids.length < 2) continue;
                 MixOverride o = saved.get(k);
-                // its gridBpm as saved, else this app's tempo for A when A is analysed (rule 8)
-                if (!(o.gridBpm > 0)) {
-                    double bpm = bpmOf(a, ids[0]);
-                    if (bpm >= 20 && bpm <= 400) o.gridBpm = bpm;
-                }
+                o = MixFile.forExport(o, o.gridBpm > 0 ? Double.NaN : bpmOf(a, ids[0]));
                 entries.add(new MixFile.Mix(song(songs, ids[0]), song(songs, ids[1]), o));
             }
             Map<String, Object> file = MixFile.write(entries);
@@ -386,7 +382,7 @@ public class MixFilesPreference extends Preference {
             Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             i.addCategory(Intent.CATEGORY_OPENABLE);
             i.setType("*/*");
-            on(a).startActivityForResult(i, OPEN);
+            start(a, i, OPEN);
         }
 
         static void create(Activity a, MixFilesPreference from, String name, String text, int n) {
@@ -398,7 +394,33 @@ public class MixFilesPreference extends Preference {
             i.addCategory(Intent.CATEGORY_OPENABLE);
             i.setType("application/json");
             i.putExtra(Intent.EXTRA_TITLE, name);
-            on(a).startActivityForResult(i, CREATE);
+            start(a, i, CREATE);
+        }
+
+        /** The system file picker; with none on the device, said so and nothing held. */
+        private static void start(Activity a, Intent i, int request) {
+            MixFilesPreference from = pref;
+            try {
+                on(a).startActivityForResult(i, request);
+            } catch (Throwable t) {
+                Log.w(TAG, "no file picker", t);
+                clear();
+                if (from != null) from.say(a, "No file picker on this device.");
+            }
+        }
+
+        private static void clear() {
+            pref = null;
+            pendingName = null;
+            pendingText = null;
+        }
+
+        @Override
+        public void onDestroy() {
+            super.onDestroy();
+            // the settings screen closed with the picker open: not held (a rotation keeps them for the answer)
+            Activity a = getActivity();
+            if (a == null || a.isFinishing()) clear();
         }
 
         @Override
@@ -408,9 +430,7 @@ public class MixFilesPreference extends Preference {
             String name = pendingName, out = pendingText;
             int count = pendingCount;
             // the settings screen is not held past its answer
-            pref = null;
-            pendingName = null;
-            pendingText = null;
+            clear();
             Uri uri = data != null ? data.getData() : null;
             if (a == null || p == null || resultCode != Activity.RESULT_OK || uri == null) return;
             android.content.ContentResolver cr = a.getContentResolver();
@@ -425,7 +445,14 @@ public class MixFilesPreference extends Preference {
                         why = "Not imported: the file could not be read.";
                     }
                     if (why == null && text == null) why = "Not imported: the file is over 2 MB, not a mix file.";
-                    if (why == null) r = MixFile.read(text);
+                    if (why == null) {
+                        try {
+                            r = MixFile.read(text);
+                        } catch (Throwable t) {
+                            Log.w(TAG, "import failed", t);
+                            why = "Not imported: the file could not be read.";
+                        }
+                    }
                     String said = why;
                     MixFile.Read read = r;
                     a.runOnUiThread(() -> {

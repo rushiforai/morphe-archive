@@ -85,7 +85,7 @@ https://github.com/6zev/morphe-patches
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.7.12](https://github.com/6zev/morphe-patches/releases/tag/v1.7.12)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
+> **[v1.7.13](https://github.com/6zev/morphe-patches/releases/tag/v1.7.13)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
 <details open>
 <summary>📦 tvQuickActions Pro&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>

@@ -32,6 +32,7 @@ fun main() {
             .getValue("Version")
             ?.let {
                 generatePatchList(it, loadedPatches)
+                syncIssueTemplates(loadedPatches)
             }
     }
 }
@@ -100,6 +101,27 @@ private fun generatePatchList(version: String, patches: Set<Patch>) {
     jsonObject.add("patches", gson.toJsonTree(patchesMap))
 
     listJson.writeText(gson.toJson(jsonObject))
+}
+
+/** Keeps the `App` dropdown options in `.github/ISSUE_TEMPLATE` in sync with supported apps. */
+private fun syncIssueTemplates(patches: Set<Patch>) {
+    val apps = patches.flatMap { it.compatibility.orEmpty() }
+        .mapNotNull { it.name }
+        .distinct()
+        .sortedWith(String.CASE_INSENSITIVE_ORDER)
+    val optionsBlock = apps.joinToString("\n", postfix = "\n") { name ->
+        if (": " in name) "        - \"$name\"" else "        - $name"
+    }
+    val pattern = Regex("""(?m)(^    id: app\n    attributes:\n      label: App\n      options:\n)(?:        - .*\n)+""")
+    val templateDir = File("../.github/ISSUE_TEMPLATE")
+    templateDir.listFiles { file -> file.extension == "yml" && file.name != "config.yml" }
+        .orEmpty()
+        .sortedBy { it.name }
+        .forEach { file ->
+            val content = file.readText()
+            val match = checkNotNull(pattern.find(content)) { "Missing `id: app` dropdown in ${file.name}" }
+            file.writeText(content.replaceRange(match.range, match.groupValues[1] + optionsBlock))
+        }
 }
 
 /** JSON representation of a patch entry in patches-list.json. */

@@ -4,9 +4,14 @@ import hashlib
 import json
 import re
 import struct
+import tomllib
 import zipfile
 import zlib
 from pathlib import Path
+
+
+VERSION_CATALOG = Path(__file__).resolve().parents[2] / "gradle/libs.versions.toml"
+PATCHER_VERSION = tomllib.loads(VERSION_CATALOG.read_text(encoding="utf-8"))["versions"]["morphe-patcher"]
 
 
 def dex_strings(data):
@@ -40,7 +45,7 @@ def inspect_bundle(path, version, build_id, mode="release", mpe=None):
         assert "YYDarlinker/morphe-ai-caption-translator" in mf, "wrong repository identity"
         assert "YYDarlinker/morphe-ai-captions\n" not in mf, "old repository identity"
         assert f"Version: {version}\n" in mf, "wrong version"
-        assert "Patcher-Version: 2.0.0\n" in mf, "wrong Patcher version"
+        assert f"Patcher-Version: {PATCHER_VERSION}\n" in mf, "wrong Patcher version"
         root_dex = z.read("classes.dex")
         dex = z.read("extensions/extension.mpe")
         root_strings = dex_strings(root_dex)
@@ -57,12 +62,12 @@ def inspect_bundle(path, version, build_id, mode="release", mpe=None):
             assert b"CaptionTargetPolicy" not in dex, "removed target policy leaked"
             assert b"Remember caption selection" not in root_dex, "removed public patch leaked"
         if release >= (1, 3, 5):
-            assert b"RebuildController" in dex and b"CaptionDiagnosticArchive" in dex
+            assert b"RebuildController" in dex and b"CaptionDiagnostics" in dex
         else:
             assert b"AnchoredCaptionPlan" in dex
         assert b"SemanticLedgerCaptionController" not in dex and b"LocalDisplaySliceFallback" not in dex
         for s in strings | root_strings:
-            assert not re.search(r"^L(?:validation/|org/(?:robolectric|junit)/)|(?:IntegrationTest|LiveTest|UiPreviewActivity);$", s), f"test/preview class leaked: {s}"
+            assert not re.search(r"^L(?:validation/|org/(?:robolectric|junit)/)|(?:IntegrationTest|LiveTest);$", s), f"test class leaked: {s}"
         locales = z.read("captionlocales/index.txt").decode().splitlines()
         assert len(locales) == 14 and len(set(locales)) == 14, "expected 14 unique locales"
         for locale in locales:
@@ -92,7 +97,7 @@ def main():
         p.error("expected --version or positional release version")
     if a.mode == "candidate" and (not a.mpp or not a.mpe or not a.build_id):
         p.error("candidate requires explicit --mpp, --mpe and --build-id")
-    path = a.mpp or Path(f"build/n39/gradle/patches/libs/patches-{version}.mpp")
+    path = a.mpp or Path(f"patches/build/libs/patches-{version}.mpp")
     try:
         result = inspect_bundle(path, version, a.build_id or f"release-{version}", a.mode, a.mpe)
     except (AssertionError, OSError, ValueError, zipfile.BadZipFile) as exc:

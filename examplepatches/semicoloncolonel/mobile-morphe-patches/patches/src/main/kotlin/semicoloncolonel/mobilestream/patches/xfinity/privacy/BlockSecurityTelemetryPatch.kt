@@ -25,6 +25,7 @@ val blockSecurityTelemetryPatch = bytecodePatch(
     description = "Stops Advanced Security from uploading the websites it checked and your network changes.",
     default = false,
 ) {
+    category("Privacy")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

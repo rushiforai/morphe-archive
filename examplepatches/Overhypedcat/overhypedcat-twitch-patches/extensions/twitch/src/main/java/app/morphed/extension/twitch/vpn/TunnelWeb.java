@@ -128,11 +128,12 @@ public final class TunnelWeb implements Web {
         byte[] headBytes = head.toString().getBytes(StandardCharsets.ISO_8859_1);
 
         // A kept connection may have been closed by the server meanwhile: one more try on a fresh one.
+        int timeoutMs = request.timeoutMs;
         for (int attempt = 0; ; attempt++) {
             Pooled connection = attempt == 0 ? take(key) : null;
             boolean reused = connection != null;
-            if (connection == null) connection = open(host, port, tls, request.timeoutMs);
-            connection.tcp.setTimeout(request.timeoutMs);
+            if (connection == null) connection = open(host, port, tls, timeoutMs);
+            connection.tcp.setTimeout(timeoutMs);
             try {
                 connection.out.write(headBytes);
                 if (request.body != null) connection.out.write(request.body);
@@ -144,6 +145,9 @@ public final class TunnelWeb implements Web {
             } catch (IOException e) {
                 connection.tcp.reset();
                 if (!reused) throw e;
+                // A kept connection the server dropped: one fresh try. One that ran out of time may mean the
+                // tunnel itself is gone: its try gets half the time, so the two together don't outlast the player.
+                if (e instanceof java.net.SocketTimeoutException) timeoutMs = Math.max(1000, timeoutMs / 2);
             } catch (RuntimeException broken) { // a malformed answer: the connection can't be trusted any more
                 connection.tcp.reset();
                 throw new IOException("A broken answer from " + host + ": " + broken, broken);

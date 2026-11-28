@@ -1,3 +1,9 @@
+## [1.7.13](https://github.com/6zev/morphe-patches/compare/v1.7.12...v1.7.13) (2026-11-28)
+
+### 🐛 Bug Fixes
+
+* **patches:** keep the heartbeat mutex shape so the synchronized methods boot ([41fc4df](https://github.com/6zev/morphe-patches/commit/41fc4dfbb20595124913772bd8f7e041720c47f1))
+
 ## [1.7.12](https://github.com/6zev/morphe-patches/compare/v1.7.11...v1.7.12) (2026-11-27)
 
 ### 🐛 Bug Fixes

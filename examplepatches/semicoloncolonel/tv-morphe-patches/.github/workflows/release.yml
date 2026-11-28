@@ -53,9 +53,25 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # check_release.py verifies the bundle's Ed25519 signature with the
+      # cryptography package.
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Install the release check
+        run: python -m pip install --quiet cryptography==50.0.2
+
       # Semantic release runs its own Gradle build, which signs the bundle with
       # MORPHE_SIGNING_KEY. A separate build before it would leave a second .mpp
       # with the old version number in patches/build/libs.
+      #
+      # semantic-release commits patches-bundle.json and pushes the tag in its
+      # prepare step, before it creates the GitHub release. So .releaserc builds
+      # the signed bundle and runs check_release.py built in prepare, before
+      # @semantic-release/git pushes anything. A wrong version, download URL,
+      # key, or signature stops the release there.
       - name: Release
         uses: cycjimmy/semantic-release-action@v8
         id: release
@@ -105,3 +121,23 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ./gradlew clean :patches:buildAndroid
+
+      # Morphe Manager follows patches-bundle.json on the branch to the .mpp on
+      # the GitHub release. This checks that the release, the .mpp, its version,
+      # and its signature are all there, even after the Release step failed.
+      # v1.2.0-dev.10 was tagged and its patches-bundle.json pushed, but GitHub
+      # refused semantic-release's git note, so the release was never created.
+      # When this run released or tried to, a missing release, .mpp, or note is
+      # published from the bundle this run built and checked. Otherwise the
+      # check only reports, and the job fails so the problem is seen.
+      - name: Check the published release
+        if: ${{ always() && steps.release.outcome != 'skipped' }}
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
+          REPAIR: ${{ steps.release.outcome == 'failure' || steps.release.outputs.new_release_published == 'true' }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          args=()
+          if [ "$REPAIR" = true ]; then args+=(--repair); fi
+          python .github/scripts/check_release.py published --branch "${{ github.ref_name }}" "${args[@]}"

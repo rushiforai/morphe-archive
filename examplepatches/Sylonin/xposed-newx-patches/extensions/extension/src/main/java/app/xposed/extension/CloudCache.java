@@ -62,23 +62,8 @@ final class CloudCache {
                 // The server once returned unrequested users (extension issue #23).
                 if (!handles.contains(handle)) continue;
                 JSONObject entry = results.optJSONObject(user);
-                if (entry == null) continue;
-
-                long observedAt = entry.optLong("t", 0) * 1000;
-                if (observedAt <= 0 || now - observedAt > MAX_AGE_MS) continue;
-                String location = sanitize(AccountInfo.optString(entry, "l"));
-                String source = sanitize(AccountInfo.optString(entry, "d"));
-                if (location == null && source == null) continue;
-
-                hits.put(handle, new AccountInfo(
-                        location,
-                        source,
-                        entry.optBoolean("a", true),
-                        sanitize(AccountInfo.optString(entry, "af")),
-                        observedAt,
-                        AccountInfo.ORIGIN_CLOUD,
-                        parseId(AccountInfo.optString(entry, "id"))
-                ));
+                AccountInfo info = entry != null ? parseEntry(entry, now) : null;
+                if (info != null) hits.put(handle, info);
             }
             Stats.add(Stats.CLOUD_HITS, hits.size());
             return hits;
@@ -87,6 +72,25 @@ final class CloudCache {
             Log.w(Hooks.TAG, "Community cache lookup failed: " + e);
             return null;
         }
+    }
+
+    /**
+     * One account of a lookup response, or null when it is expired or has neither location nor
+     * connection. "c" (creation, epoch seconds) and "uc" (handle changes) are the optional
+     * profile signals the cache carries since its version 2.8.0.
+     */
+    static AccountInfo parseEntry(JSONObject entry, long now) {
+        long observedAt = entry.optLong("t", 0) * 1000;
+        if (observedAt <= 0 || now - observedAt > MAX_AGE_MS) return null;
+        String location = sanitize(AccountInfo.optString(entry, "l"));
+        String source = sanitize(AccountInfo.optString(entry, "d"));
+        if (location == null && source == null) return null;
+        long created = entry.optLong("c", 0);
+        int changes = entry.optInt("uc", -1);
+        AccountInfo.Details details = new AccountInfo.Details(created > 0 && created < now / 1000 ? created * 1000 : 0,
+                changes, 0, 0, null);
+        return new AccountInfo(location, source, entry.optBoolean("a", true), sanitize(AccountInfo.optString(entry, "af")),
+                observedAt, AccountInfo.ORIGIN_CLOUD, parseId(AccountInfo.optString(entry, "id")), details);
     }
 
     /**
@@ -109,6 +113,8 @@ final class CloudCache {
             entry.put("a", !Boolean.FALSE.equals(info.locationAccurate));
             entry.putOpt("af", info.affiliation);
             if (info.userId != 0) entry.put("id", String.valueOf(info.userId));
+            if (info.details.createdAt != 0) entry.put("c", info.details.createdAt / 1000);
+            if (info.details.handleChanges >= 0) entry.put("uc", info.details.handleChanges);
             contributions.put(handle, entry);
         } catch (Exception e) {
             return;

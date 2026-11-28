@@ -109,8 +109,10 @@ object Constants {
         )
     )
 
-    // Locket Widget 1.247.1 (version code 632), distributed as an XAPK/APKM
-    // with a base APK plus config.arm64_v8a, config.en and config.xxhdpi splits.
+    // Locket Widget 1.247.3 (version code 636), distributed as an XAPK with a
+    // base APK plus ABI/locale/density splits. The signing certificate and the
+    // Hermes bytecode version are pinned; the Gold override fingerprint was
+    // verified against this exact build (older builds use different bytecode).
     val LOCKET_COMPATIBILITY = Compatibility(
         name = "Locket Widget",
         packageName = "com.locket.Locket",
@@ -121,8 +123,8 @@ object Constants {
         ),
         targets = listOf(
             AppTarget(
-                version = "1.247.1",
-                versionCode = 632,
+                version = "1.247.3",
+                versionCode = 636,
                 minSdk = 27
             )
         )

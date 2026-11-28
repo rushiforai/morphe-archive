@@ -19,6 +19,7 @@ val blockAnalyticsPatch = bytecodePatch(
     description = "Stops Adobe Analytics, comScore, Kochava, and Firebase Analytics.",
     default = false,
 ) {
+    category("Privacy")
     compatibleWith(Constants.COMPATIBILITY)
 
     dependsOn(analyticsKillSwitchesPatch)

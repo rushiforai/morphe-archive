@@ -16,6 +16,6 @@ object Constants {
         signatures = setOf("9a7256fe63399de21de63acf31d89420bed88ae615016077f5a17d8e8b32027d"),
         apkFileType = ApkFileType.XAPK,
         appIconColor = 0x2F8963,
-        targets = listOf(AppTarget(version = "2.8.2", versionCode = 213)),
+        targets = listOf(AppTarget(version = "2.8.2", versionCode = 213), AppTarget(version = "2.8.3", versionCode = 214)),
     )
 }

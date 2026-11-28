@@ -427,6 +427,7 @@ internal object XP135NativeEditor {
      * consumption as success, without changing positive piece spending.
      */
     fun allowZeroPieceHeroUnlock(input: ByteArray): ByteArray {
+        if (XP272NativeEditor.matchesSize(input)) return XP272NativeEditor.unlock(input)
         if (input.size == EXPECTED_SIZE_27) {
             verify27Native(input)
             return input.copyOf().also {
@@ -445,6 +446,7 @@ internal object XP135NativeEditor {
      * callsite and consume it through the original successful one-shard path.
      */
     fun freeHeroStarUpgrades(input: ByteArray): ByteArray {
+        if (XP272NativeEditor.matchesSize(input)) return XP272NativeEditor.upgrade(input)
         if (input.size == EXPECTED_SIZE_27) return freeHeroStarUpgrades27(input)
         verify(input)
         return input.copyOf().also { result ->
@@ -460,6 +462,7 @@ internal object XP135NativeEditor {
     }
 
     fun freeTraitRerolls(input: ByteArray): ByteArray {
+        if (XP272NativeEditor.matchesSize(input)) return XP272NativeEditor.traits(input)
         if (input.size == EXPECTED_SIZE_27) {
             verify27Native(input)
             return input.copyOf().also { FREE_TRAIT.copyInto(it, TRAIT_OFFSET_27) }
@@ -470,6 +473,7 @@ internal object XP135NativeEditor {
 
     fun freeHeroesTombRefills(input: ByteArray, freeReturnDaily: Int): ByteArray {
         require(freeReturnDaily in 10..5000) { "Invalid daily free Return ticket count" }
+        if (XP272NativeEditor.matchesSize(input)) return XP272NativeEditor.tickets(input, freeReturnDaily)
         if (input.size == EXPECTED_SIZE_27) return freeHeroesTombRefills27(input, freeReturnDaily)
         verify(input)
         return input.copyOf().also {

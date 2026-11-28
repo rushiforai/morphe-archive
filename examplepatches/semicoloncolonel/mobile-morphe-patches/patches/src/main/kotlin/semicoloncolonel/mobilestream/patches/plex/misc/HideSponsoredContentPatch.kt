@@ -56,6 +56,7 @@ val hideSponsoredContentPatch = bytecodePatch(
     name = "Hide sponsored content",
     description = "Removes sponsored titles and promotion cards from the home screen and rows.",
 ) {
+    category("Ads")
     compatibleWith(Constants.COMPATIBILITY)
 
     dependsOn(hideSponsoredCardsInBundlePatch)

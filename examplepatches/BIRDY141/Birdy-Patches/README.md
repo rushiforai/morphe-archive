@@ -1,34 +1,21 @@
 <p align="center">
-  <img src="branding/preview-banner.png" alt="FaroTV" width="480">
+  <img src="branding/preview-banner.png" alt="BirdyTV" width="480">
 </p>
 
 # Birdy Patches
 
 Unofficial patches for **YouTube on Android TV** (`com.google.android.youtube.tv`), compatible with [Morphe](https://morphe.software).
 
+Built upon **Faro Patches** (`FaroTV`) with additional features, UI overhaul, and customizations.  
 *Birdy Patches is an independent community project and is not affiliated with Google, YouTube, or the Morphe project.*
 
 Tested and confirmed working on **YouTube TV 8.02.300 (armeabi-v7a)** and **7.32.300**.
-
-## ✨ Features
-
-- **Advanced SponsorBlock:** 
-  - Supports **Skip**, **Prompt to Skip**, or **Off** for each segment category (sponsorships, self-promotion, interaction reminders, intros, outros, previews, filler, music offtopic).
-  - TV Prompt Mode: displays a native, non-intrusive on-screen pill with a remote `[OK]` button and countdown timer.
-  - Pressing OK/Center on the TV remote instantly jumps past the segment and dismisses the prompt without pausing playback.
-- **Ad Blocking:** Blocks video advertisements and sponsored video items on Home.
-- **MicroG-RE Support:** Allows full Google account sign-in via `yt.be/activate` without requiring Google Play Services.
-- **Return YouTube Dislike (RYD):** Restores dislike metrics in the video details panel.
-- **Hide Shorts & Topics:** Toggles to hide Shorts rows and unwanted topic tabs.
-- **Player Customization:** Individual toggles to hide player action buttons (Subscribe, Like/Dislike, Comments, Super Thanks, AI Ask, etc.).
-- **In-App Settings:** Custom settings section integrated directly into the native YouTube TV Settings menu.
-- **Multilingual:** Full translations in English, Spanish, and Arabic.
 
 ## 📦 How to Use in Morphe Manager
 
 1. Install [MicroG-RE](https://github.com/MorpheApp/MicroG-RE/releases) on your Android TV.
 2. Add this repository as a patch source in Morphe Manager:
-   https://github.com/BIRDY141/Birdy-Patches
+   `https://github.com/BIRDY141/Birdy-Patches`
 
    <a href="https://morphe.software/add-source?github=BIRDY141/Birdy-Patches">
      <img src=".github/assets/add-to-morphe.svg" alt="Add to Morphe" height="36">
@@ -38,12 +25,59 @@ Tested and confirmed working on **YouTube TV 8.02.300 (armeabi-v7a)** and **7.32
 
 This repository does **not** distribute YouTube APKs, neither original nor modified.
 
-## 🩹 Lista de parches
+## ⚙️ BirdyTV Settings
+
+All in-app features are configured from the **BirdyTV** section inside YouTube TV's native Settings menu:
+
+- **UI Tweaks**
+  - **Hide topic tabs** — Hide or show individual topic tabs in the sidebar (Gaming, Music, News, Sports, Podcasts, Movies & TV, Live).
+  - **Hide Shorts** — Remove Shorts shelves from Home and subscriptions.
+  - **Hide YouTube Playables** — Hide Playables shelves from feeds.
+  - **Hide channel watermarks** — Remove branding watermarks overlaid on videos.
+  - **Return YouTube Dislike** — Restore dislike counts in the video details panel.
+  - **Hide Premium promotions** — Hide YouTube Premium upsell banners and pop-ups.
+  - **Hide video ads** — Block video advertisements and sponsored items on Home.
+  - **Hide in-video overlays** — Hide end-screen cards, info cards, and interactive overlays.
+  - **Enable Watch Next** — Control Watch Next recommendations on the Android TV home screen.
+
+- **Video**
+  - **Default video quality** — Force a preferred resolution for regular videos (Auto up to 4K 2160p).
+  - **Default Shorts quality** — Force a preferred resolution for Shorts.
+  - **Default playback speed** — Force a default playback speed on every video (0.25x – 4x).
+  - **Custom speed menu** — Unlock 0.25x–4x options inside the player's Video speed menu (per-video).
+  - **Picture-in-Picture (PiP)** — Enter Picture-in-Picture when pressing Home during playback.
+  - **Original title** — Show original video titles instead of auto-translated ones.
+  - **Original audio track** — Prefer the original audio track instead of auto-dubbed tracks.
+  - **Caption language** — Automatically select your preferred subtitle/caption language.
+  - **Auto-translate captions** — Automatically translate captions when your preferred language is unavailable.
+
+- **Player**
+  - **Hide Join button** — Hide the channel membership Join button.
+  - **Hide Subscribe button** — Hide the Subscribe button in the player.
+  - **Hide Like / Dislike / Comments / Save / Share / Clip / Report / Thanks / Ask / More** — Individual toggles to hide each action button in the player.
+
+- **SponsorBlock**
+  - **Enable SponsorBlock** — Master toggle for SponsorBlock segment handling.
+  - **Prompt on all categories** — Show an on-screen `[OK]` skip prompt instead of auto-skipping.
+  - **Per-category mode (Skip / Prompt / Off)** — Configure Sponsor, Self-Promotion, Interaction Reminder, Intro, Outro, Preview/Recap, Non-Music Section, and Filler Tangent individually.
+  - **Show segments on seekbar** — Highlight SponsorBlock segments on the player progress bar.
+  - **Show skip notice** — Display a brief toast when a segment is skipped.
+
+- **DeArrow**
+  - **Replace clickbait titles** — Replace sensationalized titles with community-submitted DeArrow titles.
+  - **Replace thumbnails** — Replace clickbait thumbnails with clean video frames.
+  - **Show original on focus** — Temporarily reveal the original title/thumbnail when a video is focused.
+
+- **About**
+  - **Language** — Switch the BirdyTV interface language (`Default (System)`, English, Español, العربية).
+  - **Version & Credits** — Displays the current BirdyTV extension version and acknowledgments.
+
+## 🩹 Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.15.1](https://github.com/BIRDY141/Birdy-Patches/releases/tag/v1.15.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
+> **[v2.0.9](https://github.com/BIRDY141/Birdy-Patches/releases/tag/v2.0.9)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;8 patches total
 <details open>
-<summary>📦 YouTube for Android TV&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
+<summary>📦 YouTube for Android TV&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
 <br>
 
 **Package name:** `com.google.android.youtube.tv`
@@ -55,12 +89,11 @@ This repository does **not** distribute YouTube APKs, neither original nor modif
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [BirdyTV settings and scripts](#birdytv-settings-and-scripts) | Adds a "BirdyTV" section to YouTube's Settings with switches to hide Shorts, hide the topic tabs and block video ads. |  |
+| [BirdyTV settings and scripts](#birdytv-settings-and-scripts) | Adds a "BirdyTV" settings menu to YouTube TV. |  |
 | [Custom branding](#custom-branding) | Changes the app name, icon, TV banner and the logo inside the app to BirdyTV's (or another name). | • App name |
 | [Disable start on boot](#disable-start-on-boot) | Keeps the app (and MicroG-RE) from starting in the background when the TV is switched on. |  |
 | [Fix volume keys](#fix-volume-keys) | Lets Android handle short presses and held volume keys instead of sending them to the web input method. |  |
 | [GmsCore support](#gmscore-support) | Redirects the app's Google Play Services calls to GmsCore (MicroG-RE). Requires MicroG-RE to be installed. Without it, YouTube for Android TV crashes because Google Play Services rejects DroidGuard for the new package name. |  |
-| [Performance diagnostics](#performance-diagnostics) | Logs aggregate script timings, resource durations and supported long tasks for troubleshooting. Disabled by default; does not log video URLs or response contents. |  |
 | [Run without Google Play Services](#run-without-google-play-services) | Changes the package name so the patched app installs next to the original one, and keeps it running when Google Play Services rejects the new package name. Sign in with an activation code (yt.be/activate). |  |
 | [Spoof device](#spoof-device) | Reports another TV model to YouTube, so it runs on TVs it calls "not compatible". Default: Google Chromecast. | • Brand<br>• Model<br>• Manufacturer<br>• Chipset |
 
@@ -77,34 +110,3 @@ This repository does **not** distribute YouTube APKs, neither original nor modif
 </details>
 
 <!-- PATCHES_END -->
-
-## 🛠️ Cómo funciona
-
-YouTube para Android TV es una capa Android (Cobalt, basado en Chromium) que carga la web `youtube.com/tv`.
-- Los parches de bytecode añaden MicroG-RE, mantienen activo el observador de navegación de Cobalt e inyectan los
-  scripts de `extensions/extension/src/main/js/` en cada carga de página.
-- Los scripts modifican las respuestas de InnerTube (`JSON.parse`) y registran los ajustes como ajustes propios de
-  YouTube.
-- "Spoof device" añade `libytvshim.so` (fuente en `native/ytvshim/`), que responde a las consultas de marca y modelo
-  del motor nativo.
-
-Más detalles en [docs/ANALISIS_YOUTUBE_TV.md](docs/ANALISIS_YOUTUBE_TV.md).
-
-### Compilar
-
-Requiere Java 21 y un token de GitHub con permiso `read:packages`:
-
-```bash
-GITHUB_ACTOR=<usuario> GITHUB_TOKEN=<token> ./gradlew buildAndroid
-```
-
-Resultado: `patches/build/libs/patches-<versión>.mpp`. Las versiones se publican solas con `release.yml` al subir
-commits `feat:` / `fix:` a `dev` (prerelease) o `main` (estable).
-
-## ⚖️ Licencia y créditos
-
-GPLv3 (ver [LICENSE](LICENSE) y [NOTICE](NOTICE)).
-- Partes de GmsCore support y Clone app vienen de [Morphe](https://github.com/MorpheApp/morphe-patches)
-  y ReVanced.
-- El sistema de scripts y ajustes se basa en [utv-runtime](https://github.com/DylanDuff/utv-runtime) (MIT, Dylan Duff).
-- La inyección de JavaScript se basa en [ysamjo/morphe-patches](https://github.com/ysamjo/morphe-patches) (GPLv3).

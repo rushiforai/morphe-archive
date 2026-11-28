@@ -33,6 +33,7 @@ val blockTvDiscoveryPatch = bytecodePatch(
     description = "Stops Vizbee, which scans your home network for TVs.",
     default = false,
 ) {
+    category("Privacy")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

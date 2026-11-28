@@ -1,0 +1,59 @@
+name: Build and publish patch bundle
+
+on:
+  push:
+    tags:
+      - 'v*'
+  # A manual run builds everything and keeps the files as a workflow artifact, without a release.
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Build patch bundle and SBOM
+        run: |
+          chmod +x gradlew
+          ./gradlew :patches:buildAndroid :patches:releaseSbom
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.MORPHE_PACKAGES_TOKEN }}
+
+      - name: Write SHA256SUMS.txt
+        working-directory: patches/build/release
+        run: |
+          ls -l
+          sha256sum patches-*.mpp patches-*.cdx.json > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Keep the files from a manual run
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: patch-bundle
+          path: |
+            patches/build/release/patches-*.mpp
+            patches/build/release/patches-*.cdx.json
+            patches/build/release/SHA256SUMS.txt
+
+      - name: Publish bundle on GitHub Releases
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            patches/build/release/patches-*.mpp
+            patches/build/release/patches-*.cdx.json
+            patches/build/release/SHA256SUMS.txt

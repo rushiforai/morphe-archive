@@ -1,5 +1,7 @@
 package semicoloncolonel.mobilestream.patches.kouponai.privacy
 
+import app.morphe.patcher.patch.booleanOption
+import app.morphe.patcher.patch.BytecodePatch
 import app.morphe.patcher.patch.bytecodePatch
 import semicoloncolonel.mobilestream.patches.kouponai.shared.Constants
 import semicoloncolonel.mobilestream.patches.kouponai.shared.requireNativeLibsPatch
@@ -31,19 +33,28 @@ private const val TRACKING_FILTER =
     "Lsemicoloncolonel/mobilestream/extension/kouponai/privacy/KouponTrackingFilter;"
 
 @Suppress("unused")
-val blockAnalyticsPatch = bytecodePatch(
+val blockAnalyticsPatch: BytecodePatch = bytecodePatch(
     name = "Block analytics & tracking",
     description = "Stops the app's analytics and install attribution services.",
     default = false,
 ) {
     category("Privacy")
     compatibleWith(Constants.COMPATIBILITY)
+    dependsOn(stopBehaviorTrackingPatch)
 
     dependsOn(requireNativeLibsPatch)
 
     dependsOn(analyticsKillSwitchesPatch, kouponWebFilterPatch)
 
     extendWith("extensions/extension.mpe")
+
+    booleanOption(
+        key = "behavioralTracking",
+        default = false,
+        title = "Behavioral tracking",
+        description = "Stops the app from recording the deals you open, and drops the personalized " +
+        "recommendations built from them. Does not delete history already saved.",
+    )
 
     execute {
         filterJsRequests(TRACKING_FILTER)

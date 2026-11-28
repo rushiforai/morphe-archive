@@ -373,12 +373,26 @@ public final class Planner {
                 p.outRate = sp[0];
             }
         }
+        // B's late entry, set before the curves so A's trim follows B's heard rise (mix-file.md rule 2,
+        // automix.js plan, extension audit 2026-11-27 M1); its warnings still go last
+        List<String> lateNotes = null;
+        if (ov != null && !ov.loop()) {
+            List<String> before = p.warnings;
+            p.warnings = null;
+            lateEntry(p, ov);
+            lateNotes = p.warnings;
+            p.warnings = before;
+        }
         p.curves = Curves.blend(p);
         // a length picked is kept whatever the move (editor.md §6); only a song with no tempo can't take it
         if (ov != null && ov.bars > 0 && !ov.loop() && warnings.size() == notes.size()
                 && Double.isNaN(pinnedSec(pinned, from)) && (p.handoff || p.bridge || p.fallback))
             warnings.add(ov.bars + " bars not used: " + (p.reason != null ? p.reason : "a plain fade here") + " (no tempo for this song)");
         if (ov != null && !ov.loop()) {
+            if (ov.out != null || ov.in != null) {
+                String u = undecoded(p, from, to);
+                if (u != null) warnings.add(u);
+            }
             if (!warnings.isEmpty()) p.warnings = warnings;
             if (ov.in != null && "blend".equals(p.style)) p.windowIn = true; // placed by the user: the kick lock leaves it
             boolean both = from != null && to != null;
@@ -402,7 +416,7 @@ public final class Planner {
                 // the phone: Morphe's crossfade can't play a preset, our decks can
                 if (both) p.fallback = false;
             }
-            lateEntry(p, ov);
+            if (lateNotes != null) for (String w : lateNotes) note(p, w);
         }
         return p;
     }
@@ -439,6 +453,35 @@ public final class Planner {
      * Beat match Off (or Sync/Glide out of range): both songs at their own speed, overlapping over
      * the window and length asked for; with neither asked for, the plain crossfade at the song's end.
      */
+    /**
+     * Why the phone can't play a placed window, or null: each song's opening (Analyzer.HEAD_SEC) and
+     * end (TAIL_SEC) are kept decoded, so a window in the middle of a longer song has no audio here,
+     * and B's player needs about 2 s of B after the mix to take over. Morphe's crossfade then plays.
+     */
+    static String undecoded(Plan p, Analysis a, Analysis b) {
+        if (p == null || p.fallback || !(p.durationSec > 0)) return null;
+        if (a != null && a.durationSec > 0 && !kept(a.durationSec, p.mixOutTrackTime - 1, p.mixOutTrackTime + p.durationSec * p.outRate + 1))
+            return "the mix-out at " + clock(p.mixOutTrackTime) + " is in the middle of a long song, which isn't kept decoded: Morphe's crossfade plays";
+        if (b == null || !(b.durationSec > 0)) return null;
+        double inEnd = p.mixInTrackTime + p.durationSec * p.rate;
+        if (inEnd + 2.5 > b.durationSec)
+            return "the window ends " + String.format(Locale.US, "%.1f", Math.max(0, b.durationSec - inEnd)) + " s before the next song's end, too close to hand it over: Morphe's crossfade plays";
+        if (!kept(b.durationSec, p.mixInTrackTime - 1, inEnd + 3))
+            return "the mix-in at " + clock(p.mixInTrackTime) + " is in the middle of a long song, which isn't kept decoded: Morphe's crossfade plays";
+        return null;
+    }
+
+    /** Song seconds [from, to) lie in what is kept decoded of a song this long. */
+    private static boolean kept(double dur, double from, double to) {
+        if (dur <= Analyzer.HEAD_SEC + Analyzer.TAIL_SEC) return true;
+        return to <= Analyzer.HEAD_SEC || from >= dur - Analyzer.TAIL_SEC;
+    }
+
+    private static String clock(double sec) {
+        int s = (int) Math.max(0, Math.round(sec));
+        return s / 60 + ":" + (s % 60 < 10 ? "0" : "") + s % 60;
+    }
+
     static Plan overlap(Analysis cur, Analysis next, Grid fromGrid, MixOverride ov, double earliest, String reason, List<String> warnings) {
         Plan base = fallback(cur, next, earliest, reason);
         MixOverride.Resolved outW = ov != null ? MixOverride.resolveWindow(ov.out, null) : null;

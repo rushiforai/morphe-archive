@@ -53,6 +53,26 @@ internal object CoreAdSlotFingerprint : Fingerprint(
     },
 )
 
+// Section feeds wrap the slot in SectionPageAd, which shows a 326dp loading
+// placeholder (AdLoader) until the container is on screen and then swaps in the
+// slot. With the slot empty, the container collapses to nothing, counts as off
+// screen again, and brings the placeholder back. Scrolling up through it jumps
+// back and forth and never gets past it (issue 112). Cutting the container, its
+// prefetch wrapper, and the placeholder removes the feed item instead.
+private const val SECTION_ADS = "Lcom/dowjones/ads/"
+
+internal object SectionAdContainersFingerprint : Fingerprint(
+    returnType = "V",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
+    custom = { method, classDef ->
+        when (classDef.type) {
+            "${SECTION_ADS}SectionPageAdKt;" -> method.name == "SectionPageAd" || method.name == "AdLoader"
+            "${SECTION_ADS}SectionPageAdWithPrefetchKt;" -> method.name.startsWith("SectionPageAdWithPrefetch")
+            else -> false
+        }
+    },
+)
+
 internal object CreateAdFingerprint : Fingerprint(
     definingClass = "${ADS}ui/DJAdViewModel;",
     returnType = "Lkotlinx/coroutines/Job;",
@@ -98,11 +118,16 @@ val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
     description = "Removes the ads in sections, articles, and videos, and the full-screen video ad.",
 ) {
+    category("Ads")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {
         AdSlotComponentsFingerprint.matchAll().forEach { it.method.addInstructions(0, "return-void") }
         CoreAdSlotFingerprint.method.addInstructions(0, "return-void")
+
+        val containers = SectionAdContainersFingerprint.matchAll()
+        if (containers.size != 3) throw PatchException("Expected 3 section ad containers, found ${containers.size}")
+        containers.forEach { it.method.addInstructions(0, "return-void") }
 
         // .locals 22 in both, so v0 is free.
         listOf(CreateAdFingerprint, CreateNativeAdFingerprint).forEach {

@@ -1,5 +1,9 @@
 package semicoloncolonel.mobilestream.patches.tlife.privacy
 
+import semicoloncolonel.mobilestream.patches.shared.privacy.gatedAnalyticsKillSwitchesPatch
+import semicoloncolonel.mobilestream.patches.shared.misc.isOptionOn
+import app.morphe.patcher.patch.booleanOption
+import app.morphe.patcher.patch.BytecodePatch
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -7,7 +11,6 @@ import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import semicoloncolonel.mobilestream.patches.shared.misc.forEachMatchingMethod
 import semicoloncolonel.mobilestream.patches.shared.misc.returnEarly
-import semicoloncolonel.mobilestream.patches.shared.privacy.analyticsKillSwitchesPatch
 import semicoloncolonel.mobilestream.patches.shared.privacy.blockTrackers
 import semicoloncolonel.mobilestream.patches.tlife.shared.Constants
 
@@ -40,18 +43,39 @@ private fun ClassDef.declares(names: Set<String>, static: Boolean? = null) =
         .map { it.name }.toSet().containsAll(names)
 
 @Suppress("unused")
-val blockAnalyticsPatch = bytecodePatch(
+val blockAnalyticsPatch: BytecodePatch = bytecodePatch(
     name = "Block analytics & tracking",
-    description = "Stops the app's analytics, ad measurement, and marketing services.",
-    default = false,
+    description = "Blocks the tracking you choose in the patch options.",
 ) {
+    category("Privacy")
     compatibleWith(Constants.COMPATIBILITY)
+    dependsOn(blockLocationTrackingPatch, blockSessionRecordingPatch)
 
-    dependsOn(analyticsKillSwitchesPatch)
+    dependsOn(gatedAnalyticsKillSwitchesPatch { isOptionOn(blockAnalyticsPatch, "analytics") })
 
     extendWith("extensions/extension.mpe")
 
+    booleanOption(
+        key = "analytics",
+        default = false,
+        title = "Analytics and tracking services",
+        description = "Stops the app's analytics, ad measurement, and marketing services.",
+    )
+    booleanOption(
+        key = "locationTracking",
+        default = true,
+        title = "Location tracking",
+        description = "Stops Radar, which sends your location to its servers every 30 seconds.",
+    )
+    booleanOption(
+        key = "sessionRecording",
+        default = true,
+        title = "Session recording",
+        description = "Stops Quantum Metric, which records what you do in T-Life.",
+    )
+
     execute {
+        if (!isOptionOn(blockAnalyticsPatch, "analytics")) return@execute
         fun stop(sdk: String, minimum: Int, classFilter: (ClassDef) -> Boolean, methodFilter: (Method) -> Boolean, smali: String) {
             val count = forEachMatchingMethod(classFilter, methodFilter) { it.returnEarly(smali) }
             if (count < minimum) throw PatchException("$sdk entry points not found ($count)")

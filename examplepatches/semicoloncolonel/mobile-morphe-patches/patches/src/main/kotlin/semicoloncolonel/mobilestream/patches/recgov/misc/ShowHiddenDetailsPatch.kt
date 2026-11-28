@@ -10,7 +10,6 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import semicoloncolonel.mobilestream.patches.recgov.shared.Constants
 import semicoloncolonel.mobilestream.patches.shared.misc.forEachMatchingMethod
@@ -68,6 +67,7 @@ val showHiddenDetailsPatch = bytecodePatch(
     description = "Shows ticket lottery, ticket sales, and booking details the app receives but hides.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

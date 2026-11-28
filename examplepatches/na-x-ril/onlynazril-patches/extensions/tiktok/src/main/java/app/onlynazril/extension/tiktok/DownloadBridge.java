@@ -159,6 +159,6 @@ public final class DownloadBridge {
     }
 
     private static void report(String message) {
-        if (logged++ < LOG_CAP) Debug.print(message);
+        if (logged++ < LOG_CAP) Debug.print(message + Debug.by(4));
     }
 }

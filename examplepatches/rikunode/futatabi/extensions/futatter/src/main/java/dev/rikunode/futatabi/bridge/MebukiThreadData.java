@@ -17,8 +17,10 @@ final class MebukiThreadData {
         final String id, date, body, image, replyTo;
         final boolean author, deleted, hasAttachment;
         final Integer parent;
-        NativePost(String id, String date, String body, String image, Integer parent, String replyTo, boolean author, boolean deleted, boolean hasAttachment) {
+        final int imageWidth, imageHeight;
+        NativePost(String id, String date, String body, String image, int imageWidth, int imageHeight, Integer parent, String replyTo, boolean author, boolean deleted, boolean hasAttachment) {
             this.id=id;this.date=date;this.body=body;this.image=image;this.parent=parent;
+            this.imageWidth=imageWidth;this.imageHeight=imageHeight;
             this.replyTo=replyTo;this.author=author;this.deleted=deleted;this.hasAttachment=hasAttachment;
         }
     }
@@ -97,23 +99,38 @@ final class MebukiThreadData {
                     FutabaQuoteMarkup.render(esc(body).replace("\r\n","\n").replace("\r","\n").replace("\n","<br>")))
                     .append("</blockquote>");
             String nativeImage = null;
+            int nativeWidth = 50, nativeHeight = 50;
             boolean hasAttachment = false;
             if (!deleted && post.get("attachments") != null) {
                 List<?> attachments = array(post.get("attachments"));
                 hasAttachment = !attachments.isEmpty();
                 if (attachments.size()>32) throw invalid();
                 for (Object item : attachments) {
-                    String image = original(object(item));
+                    Map<?,?> attachment = object(item);
+                    String image = original(attachment);
                     if (image != null && images.size()<200) {
                         out.append("<p><a href='https://futatabi.invalid/attachment/")
                                 .append(images.size()).append("'>\u753b\u50cf\u3092\u8868\u793a</a></p>");
                         images.add(image);
-                        if (nativeImage == null) nativeImage = image;
+                        if (nativeImage == null) {
+                            nativeImage = image;
+                            // Official attachment width/height refer to filePath, not _sm.
+                            // Stock Flutter requires positive numeric attributes and applies its own display caps.
+                            Object w = attachment.get("width"), h = attachment.get("height");
+                            if (w instanceof Long && h instanceof Long) {
+                                long width = (Long)w, height = (Long)h;
+                                if (width > 0 && height > 0 && width <= 16000 && height <= 16000 &&
+                                        width * height <= 40_000_000L) {
+                                    nativeWidth = (int)width;
+                                    nativeHeight = (int)height;
+                                }
+                            }
+                        }
                     } else out.append("<p class='meta'>\u6dfb\u4ed8\u3042\u308a\uff08\u516c\u5f0f\u30b5\u30a4\u30c8\u3067\u78ba\u8a8d\uff09</p>");
                 }
             }
             nativePosts.add(new NativePost(string(post.get("id")), date, deleted ? "\u524a\u9664\u30fb\u975e\u8868\u793a\u306e\u30ec\u30b9" : body,
-                    nativeImage, !deleted && to != null && to < i ? to : null, parent,
+                    nativeImage, nativeWidth, nativeHeight, !deleted && to != null && to < i ? to : null, parent,
                     Boolean.TRUE.equals(post.get("isAuthor")), deleted, hasAttachment));
             out.append("</article>");
             if (out.length()>2_000_000) throw invalid();
@@ -203,7 +220,8 @@ final class MebukiThreadData {
                 String id=imageId.apply(p.image);
                 if(id!=null)h.append("<a href='/mebuki/src/").append(id).append(".jpg'>").append(id)
                         .append(".jpg</a><br><a href='/mebuki/src/").append(id)
-                        .append(".jpg'><img src='/mebuki/thumb/").append(id).append("s.jpg' width=50 height=50></a>");
+                        .append(".jpg'><img src='/mebuki/thumb/").append(id).append("s.jpg' ")
+                        .append(ThreadImageSize.attributes(p.imageWidth,p.imageHeight)).append("></a>");
             }
             String body=esc(p.body).replace("\r\n","\n").replace("\r","\n").replace("\n","<br>");
             if(p.parent!=null)body="&gt;No."+numbers[p.parent]+"<br>"+body;

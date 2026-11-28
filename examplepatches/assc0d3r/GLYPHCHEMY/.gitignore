@@ -22,3 +22,6 @@ tmp/
 
 # Python bytecode cache
 __pycache__/
+
+# Local npm cache created by tooling runs
+.tmp-npm-cache/

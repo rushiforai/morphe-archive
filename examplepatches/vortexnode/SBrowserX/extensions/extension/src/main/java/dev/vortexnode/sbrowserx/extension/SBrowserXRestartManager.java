@@ -370,11 +370,14 @@ public final class SBrowserXRestartManager {
     /** Crisp One UI-style circular restart arrow (↻) drawn natively on Canvas. */
     private static final class CircularRestartDrawable extends Drawable {
         private final float mDensity;
+        private final boolean mEmphasized;
         private final Paint mStrokePaint;
         private final Paint mFillPaint;
+        private final Paint mDotPaint;
 
         CircularRestartDrawable(float density, int color, boolean emphasized) {
             mDensity = density;
+            mEmphasized = emphasized;
             mStrokePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             mStrokePaint.setStyle(Paint.Style.STROKE);
             mStrokePaint.setStrokeWidth((emphasized ? 2.25f : 1.9f) * density);
@@ -385,6 +388,10 @@ public final class SBrowserXRestartManager {
             mFillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             mFillPaint.setStyle(Paint.Style.FILL);
             mFillPaint.setColor(color);
+
+            mDotPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            mDotPaint.setStyle(Paint.Style.FILL);
+            mDotPaint.setColor(0xFFFF7A00);
         }
 
         @Override
@@ -429,12 +436,17 @@ public final class SBrowserXRestartManager {
             head.lineTo(backX - perpX, backY - perpY);
             head.close();
             canvas.drawPath(head, mFillPaint);
+
+            if (mEmphasized) {
+                canvas.drawCircle(cx, cy, 2.6f * mDensity, mDotPaint);
+            }
         }
 
         @Override
         public void setAlpha(int alpha) {
             mStrokePaint.setAlpha(alpha);
             mFillPaint.setAlpha(alpha);
+            mDotPaint.setAlpha(alpha);
         }
 
         @Override

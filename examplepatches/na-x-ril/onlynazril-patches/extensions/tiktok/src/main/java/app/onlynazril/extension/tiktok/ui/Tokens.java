@@ -32,6 +32,7 @@ public final class Tokens {
 
     public static final int TEXT_PRIMARY = 0xFFF5F5F5;
     public static final int TEXT_SECONDARY = 0xFF9A9A9A;
+    public static final int TEXT_WARNING = 0xFFFFB74D;
     public static final int TEXT_DISABLED = 0xFF5A5A5A;
     public static final int TEXT_DANGER = 0xFFFF5252;
 

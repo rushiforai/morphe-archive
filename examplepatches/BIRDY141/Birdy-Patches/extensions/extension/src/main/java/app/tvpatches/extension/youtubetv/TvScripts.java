@@ -47,6 +47,12 @@ public final class TvScripts {
             if (message.startsWith("@locale ")) {
                 I18n.setLanguage(message.substring(8));
                 Log.i(TAG, "UI language: " + message.substring(8));
+            } else if (message.startsWith("@pip ")) {
+                PipHelper.setPipEnabled("1".equals(message.substring(5).trim()));
+            } else if (message.startsWith("@playing ")) {
+                PipHelper.setVideoPlaying("1".equals(message.substring(9).trim()));
+            } else if (message.equals("@enterpip")) {
+                PipHelper.enterPipNow();
             } else if (message.startsWith(NetBridge.REQUEST_PREFIX)) {
                 NetBridge.handle(message);
             } else {

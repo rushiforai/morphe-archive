@@ -101,6 +101,7 @@ import app.morphe.extension.facebook.feed.FullPostText;
 import app.morphe.extension.facebook.feed.PostTranslation;
 import app.morphe.extension.facebook.feed.PostTranslationForTests;
 import app.morphe.extension.facebook.feed.MetaAiQuestions;
+import app.morphe.extension.facebook.feed.SendMessageCta;
 import app.morphe.extension.facebook.feed.NotificationFooter;
 import app.morphe.extension.facebook.feed.PostDates;
 import app.morphe.extension.facebook.feed.PostPrompts;
@@ -648,10 +649,12 @@ public class PausedHooksTest {
         probes.put(PatchFamily.SPONSORED_STORIES, Collections.singletonList(FeedFilter::hideSponsoredStories));
         // A tray of a friend's bucket, a suggested one and one labelled SUGGESTED keeps only the friend's,
         // a Page's bucket leaves it, and so does a bucket you've watched.
+        // A friend's bucket leaves and yours stays (#616).
         // With Show only watched stories on, the tray keeps only what you've watched (#340).
         // The Create story tile leaves the tray's tile list (#445).
         probes.put(PatchFamily.SUGGESTED_STORIES, Arrays.asList(allStories(SuggestedStoriesForTests::hidesSuggestions),
                 allStories(SuggestedStoriesForTests::hidesPageStories), allStories(SuggestedStoriesForTests::hidesSeenStories),
+                allStories(SuggestedStoriesForTests::hidesPeopleStories),
                 SuggestedStoriesForTests::keepsOnlyWatchedStories, SuggestedStoriesForTests::hidesCreateStory));
         // A forward tap on a bucket's last card gets the completion's reason (#380).
         probes.put(PatchFamily.STORY_AUTO_ADVANCE, Arrays.asList(StoryAdvance::waitForTap, StoryAdvance::loop,
@@ -729,7 +732,9 @@ public class PausedHooksTest {
                 PostActionButtonsForTests::hidesLike,
                 PostActionButtonsForTests::hidesStars,
                 PostActionButtonsForTests::addsDownload,
-                PostActionButtonsForTests::leavesTheTapOff));
+                PostActionButtonsForTests::leavesTheTapOff,
+                // The Send message bar under a post is told it doesn't apply (#609).
+                () -> SendMessageCta.hidesSendMessage(SendMessageCta.SEND_MESSAGE)));
         // Marketplace's feed query asks to skip its ads, an ads-only query isn't sent, and a search
         // answer loses its ad.
         probes.put(PatchFamily.SPONSORED_MARKETPLACE, Arrays.asList(

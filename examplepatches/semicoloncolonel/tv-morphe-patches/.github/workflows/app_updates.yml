@@ -64,7 +64,11 @@ jobs:
     name: Check app versions
     needs: schedule
     if: needs.schedule.outputs.run == 'true'
-    runs-on: ubuntu-24.04
+    # The mac-mini self-hosted runner: the check runs from a home residential IP,
+    # which APKPure, APKMirror, and the Aurora dispenser accept, unlike GitHub's
+    # datacenter ranges. Safe here because this workflow only triggers on
+    # schedule and workflow_dispatch, never pull_request, so no fork runs code.
+    runs-on: [self-hosted, macOS]
     timeout-minutes: 120
     permissions:
       contents: read
@@ -86,20 +90,16 @@ jobs:
           distribution: 'zulu'
           java-version: '26'
 
-      - name: Setup Python
-        uses: actions/setup-python@v7
-        with:
-          python-version: '3.12'
-
+      # No setup-python: the self-hosted mac-mini uses its own Homebrew python3
+      # (the script is standard-library only). setup-python writes its tool cache
+      # to the GitHub-hosted /Users/runner path, which fails on a self-hosted Mac.
       - name: Install tools
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          mkdir -p "$HOME/bin" tools
-          # gh downloads through the API, which keeps working when direct release links do not.
-          gh release download 1.1.0 -R EFForg/apkeep -p apkeep-x86_64-unknown-linux-gnu -O "$HOME/bin/apkeep"
-          chmod +x "$HOME/bin/apkeep"
-          echo "$HOME/bin" >> "$GITHUB_PATH"
+          # apkeep, the Android build-tools (ANDROID_HOME) and a JDK are already
+          # installed on the self-hosted mac-mini runner; fetch only per-run tools.
+          mkdir -p tools
           gh release download -R MorpheApp/morphe-cli -p '*-all.jar' -D tools
           tag=$(gh release list -R "$GITHUB_REPOSITORY" --limit 1 --json tagName --jq '.[0].tagName')
           gh release download "$tag" -R "$GITHUB_REPOSITORY" -p '*.mpp' -D tools
@@ -119,7 +119,7 @@ jobs:
           PLAY_EMAIL: ${{ secrets.PLAY_EMAIL }}
           PLAY_AAS_TOKEN: ${{ secrets.PLAY_AAS_TOKEN }}
         run: |
-          python .github/scripts/app_updates.py \
+          python3 .github/scripts/app_updates.py \
             --cli tools/*-all.jar --mpp tools/*.mpp --aapt2 "$AAPT2" --apksigner "$APKSIGNER" \
             --only "$ONLY" --out app-updates --issues --stable-mpp tools/stable/*.mpp
 

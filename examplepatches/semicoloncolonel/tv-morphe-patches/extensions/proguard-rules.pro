@@ -146,3 +146,18 @@
 -keep class semicoloncolonel.mobilestream.extension.primevideotv.PrimeVideoHookLoader {
     public static void load();
 }
+
+# Fandango at Home — "Mask ads". Called only from injected smali in
+# PlaybackPresenter, PlayerActivity, and NVPlaybackActivity.
+-keep class semicoloncolonel.mobilestream.extension.fandango.ads.AdMask {
+    public static *;
+}
+
+# ABC News and CBS News — "Mask live ad breaks". Called only from injected
+# smali; trackTimer reads getValue() by reflection.
+-keep class semicoloncolonel.mobilestream.extension.shared.misc.LiveBreakMask { public static *; }
+-keep class semicoloncolonel.mobilestream.extension.cbsnews.CbsLiveMask { public static *; }
+-keep class semicoloncolonel.mobilestream.extension.cbsnews.CbsLiveMask$Remaining { public *; }
+
+# CNBC, NBC News, and MS NOW — "Skip ads". Called only from the injected shouldInterceptRequest.
+-keep class semicoloncolonel.mobilestream.extension.nbcuott.ClipAdFilter { public static *; }

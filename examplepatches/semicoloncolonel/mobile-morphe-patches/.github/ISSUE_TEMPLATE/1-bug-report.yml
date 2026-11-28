@@ -1,7 +1,7 @@
 name: 🐞 Bug report
-description: Morphe Manager does not accept your app version or build, a patch fails to apply, the patched app crashes or will not play, or a patch does not do what its description says.
+description: Morphe Manager does not accept your app version or build, a patch fails to apply, the patched app crashes or will not play, or a patch does not do what its description says, misses something it should remove, or causes a new problem, such as out-of-sync subtitles.
 title: "bug: "
-labels: ["bug"]
+labels: ["type: bug"]
 body:
   - type: markdown
     attributes:
@@ -14,17 +14,18 @@ body:
 
         **Security problem?** Please do not report it here. Report it privately, as the [security policy](https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/SECURITY.md) describes. The troubleshooting steps do not apply.
 
-        **Using a dev pre-release?** Please comment on the app's open issue labeled [testing on dev](https://github.com/semicoloncolonel/mobile-morphe-patches/issues?q=is%3Aissue+is%3Aopen+label%3A%22testing+on+dev%22) instead of opening a report here. Open a report only for a critical problem, such as a patched app that will not install or open.
+        **Using a dev pre-release?** Please comment on the app's open issue labeled [status: testing on dev](https://github.com/semicoloncolonel/mobile-morphe-patches/issues?q=is%3Aissue+is%3Aopen+label%3A%22status%3A+testing+on+dev%22) instead of opening a report here. Open a report only for a critical problem, such as a patched app that will not install or open.
   - type: checkboxes
     id: before
     attributes:
       label: Before you submit
+      description: "New to this tracker? [Issue labels](https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/docs/issue-labels.md) explains how issues are sorted, tracked, and closed."
       options:
         - label: "I read the [Known issues](https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/docs/known-issues.md)."
           required: true
         - label: "I searched the [open and closed issues](https://github.com/semicoloncolonel/mobile-morphe-patches/issues?q=is%3Aissue) and did not find this problem."
           required: true
-        - label: "I understand that the patches do not currently remove paywalls or unlock paid content."
+        - label: "Unless otherwise stated, I understand that none of the patches bypass paywalls or unlock paid content."
           required: true
   - type: checkboxes
     id: troubleshooting
@@ -51,16 +52,21 @@ body:
       description: The app you patched.
       options:
         - "ABC News"
+        - "Al Jazeera"
         - "Amazon Shopping"
         - "AMC+"
         - "AP News"
         - "Apple TV"
+        - "BBC: World News & Stories"
         - "Best Buy"
         - "C-SPAN Now"
         - "CBS News"
+        - "CGTN"
         - "Checkout 51"
+        - "CNA"
         - "CNBC"
         - "CNN"
+        - "Consumer Reports"
         - "Costco"
         - "CVS"
         - "DealNews"
@@ -69,6 +75,7 @@ body:
         - "eBay"
         - "ESPN"
         - "Fandango at Home"
+        - "Fawesome"
         - "FEMA"
         - "Flipp"
         - "Fox Local"
@@ -79,11 +86,13 @@ body:
         - "JustWatch"
         - "Kanopy"
         - "Koupon"
+        - "Libby"
         - "Lowe's"
         - "MGM+"
         - "Mint Mobile"
         - "MLB"
         - "Moviebase"
+        - "Movies Anywhere"
         - "MS NOW"
         - "My Verizon"
         - "myAT&T"
@@ -95,6 +104,8 @@ body:
         - "NewsBreak"
         - "NewsNation"
         - "NFL"
+        - "NHK WORLD-JAPAN"
+        - "Nikkei Asia"
         - "NPR"
         - "NPS"
         - "Paramount+"
@@ -110,6 +121,7 @@ body:
         - "Shudder"
         - "SiriusXM"
         - "Slickdeals"
+        - "South China Morning Post"
         - "Starz"
         - "Substack"
         - "Sundance Now"
@@ -119,20 +131,24 @@ body:
         - "The Daily Wire"
         - "The Home Depot"
         - "The New York Times"
+        - "The Straits Times"
         - "The Wall Street Journal"
         - "The Washington Post"
         - "theScore"
         - "Truth Social"
         - "Tubi"
         - "USA TODAY"
+        - "Viki"
         - "Visible"
         - "Walgreens"
         - "Walmart"
         - "White House"
         - "Xfinity"
+        - "Xinhua News"
         - "Xumo Play"
         - "Yahoo Finance"
         - "Yahoo News"
+        - "Yonhap News English"
         - "YouTube TV"
         - "Other (name it in the description)"
     validations:
@@ -143,6 +159,17 @@ body:
       label: App version
       description: The version you patched. In Morphe Manager it is shown when you select the APK.
       placeholder: "17.3.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: beta
+    attributes:
+      label: Are you enrolled as a beta tester for this app?
+      description: On Google Play, the app's page says "You're a beta tester" when you are. A beta tester can get a version that is not public yet, and I can only support a beta that I can install myself.
+      options:
+        - "No"
+        - "Yes"
+        - "I do not know"
     validations:
       required: true
   - type: input

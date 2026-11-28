@@ -23,9 +23,9 @@ KingInstaller as a fallback).
 ## 🩹 Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v0.30.66](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.66)**&nbsp;&nbsp;•&nbsp;&nbsp;37 patches total
+> **[v0.30.67](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.67)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;38 patches total
 <details open>
-<summary>📦 Waze&nbsp;&nbsp;•&nbsp;&nbsp;37 patches</summary>
+<summary>📦 Waze&nbsp;&nbsp;•&nbsp;&nbsp;38 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -35,6 +35,7 @@ KingInstaller as a fallback).
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
+| **Accept AARE as car host** | Lets AARE and other non-Google hosts show Waze's car screen. |  |
 | **Alert distances** | How early alerts sound, plus a speed-bump switch and per-alert distances. Pick a level; Standard changes nothing. | • Alert distance level<br>• Speed bump (ramp) warnings<br>• Police<br>• Hazards<br>• Crashes<br>• Traffic jams<br>• Speed cams - streets<br>• Speed cams - highways<br>• Speed cams - freeways<br>• Blocked lanes<br>• Gap between alerts<br>• Speed cameras - all types |
 | **Allow high refresh rate** | Runs above 60 Hz, up to your screen's limit. | • Target refresh rate (Hz) |
 | **Any audio app as a Waze audio partner** | Adds a music app of your choice to Waze's audio player, even though it does not ship Waze's SDK. It only needs a media browser service, like Android Auto. Default: BitChord. | • Audio app package name<br>• Audio app name |
@@ -50,7 +51,7 @@ KingInstaller as a fallback).
 | **Enable police & enforcement alerts** | Turns police and enforcement alerts on. |  |
 | **Extra map info** | Compass always shown and toll price on routes. | • Always show compass<br>• Toll price on route |
 | **Hide recent destinations** | Keeps the places you navigated to out of every recent list. Waze still stores them. |  |
-| **Instrument cluster support** | Shows the map and alerts on the car's cluster screen. | • Large cluster layout |
+| **Instrument cluster support** | Shows the map and alerts on the car's cluster screen. | • Light-commercial-vehicle mode (LCV) |
 | **Keep Waze alive** | Stops Waze closing when you leave it. | • Where<br>• Minutes alive |
 | **Lane guidance** | Shows lane guidance, including straight-ahead hints. |  |
 | **Launch screen background colour** | Colour behind the Waze logo while the app starts. #00000000 makes it transparent. | • Background colour<br>• Custom colour |
@@ -70,7 +71,7 @@ KingInstaller as a fallback).
 | **Theme** | Picks the map theme for day and night. | • Day theme<br>• Night theme |
 | **Traffic meter** | Shows the traffic meter on the car screen. |  |
 | **UI Themes** | Chrome colour themes, picked separately for light and dark mode. Stock leaves each mode untouched. | • Light theme<br>• Dark theme |
-| **Unlock driver moods** | Unlocks all moods on the device. |  |
+| **Unlock driver moods** | Unlocks all moods on the device. | • Keep my mood after a restart |
 | **YouTube Music as a Waze audio partner** | Lets Morphe YouTube Music and stock YouTube Music play through Waze's audio player. |  |
 
 </details>

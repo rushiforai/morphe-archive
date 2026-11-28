@@ -20,6 +20,7 @@ val blockAnalyticsPatch = bytecodePatch(
     description = "Stops Segment, comScore, Adjust, the Facebook SDK, and Firebase/Google Analytics.",
     default = false,
 ) {
+    category("Privacy")
     compatibleWith(Constants.COMPATIBILITY)
 
     dependsOn(analyticsKillSwitchesPatch)

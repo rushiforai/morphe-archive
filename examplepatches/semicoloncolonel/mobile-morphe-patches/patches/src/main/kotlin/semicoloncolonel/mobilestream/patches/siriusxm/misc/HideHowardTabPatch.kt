@@ -23,6 +23,7 @@ val hideHowardTabPatch = resourcePatch(
     description = "Removes the Howard tab from the top of Discover.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

@@ -21,8 +21,13 @@ import java.util.Properties;
  * MediaPlayer on a TextureView. Only one clip plays, only while the player is expanded and in
  * song mode; otherwise it is paused and hidden, and YT's art shows as usual.
  *
- * spike.properties: canvas=1 turns it on; canvasUrl=... plays that URL for every song (test);
- * canvasApple=1 looks the song up on Apple Music (AppleCanvas).
+ * Sources, in the order and with the switches set in CanvasSettings: Apple Music motion art
+ * (AppleCanvas, which asks Morphe 2.4.0's catalog first through MorpheApple), Spotify's canvas
+ * (SpotifyCanvas), and a loop or the full video of the song's music video (VideoCanvas). A clip
+ * saved for offline play is used first.
+ *
+ * spike.properties: canvasUrl=... plays that URL for every song (test); the settings switches
+ * (canvas, canvasApple, canvasSpotify, canvasVideo) can be overridden there too.
  */
 final class AnimatedCover {
     private static final String TAG = "Ayham";
@@ -470,6 +475,8 @@ final class AnimatedCover {
             if (saved != null && !saved.isEmpty()) {
                 // saved lookup: a miss for 24 h, or the clip file (also offline)
                 Log.i(TAG, "canvas: saved lookup: " + (saved.isEmpty() ? "no clip" : "clip " + new java.io.File(saved).getName()));
+                // this song's names for the canvas menu (CanvasSongMenu.now), as the online lookup sets them
+                if (forKey.equals(key)) current = new String[]{title, artist, vid};
                 final String clip = saved;
                 if (!clip.isEmpty()) main.post(() -> {
                     if (forKey.equals(key)) play(clip);

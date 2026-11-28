@@ -80,6 +80,7 @@ val hideLeaguePassUpsellsPatch = bytecodePatch(
     description = "Skips the League Pass paywall after sign-in and removes League Pass upgrade screens and banners.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

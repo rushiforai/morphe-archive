@@ -23,6 +23,7 @@ public final class SBrowserXWebRtcManager {
             String policy = SBrowserXPrefs.getWebRtcPolicy(context);
             boolean antiFingerprint = SBrowserXPrefs.isFingerprintProtectionEnabled(context);
             boolean allowNonProxiedUdp = !SBrowserXPrefs.WEBRTC_DISABLE_NON_PROXIED_UDP.equals(policy);
+            String sig = policy + "|" + antiFingerprint;
 
             File sbrowserDir = context.getDir("sbrowser", Context.MODE_PRIVATE);
             File defaultDir = new File(sbrowserDir, "Default");
@@ -30,6 +31,10 @@ public final class SBrowserXWebRtcManager {
                 defaultDir.mkdirs();
             }
             File prefsFile = new File(defaultDir, "Preferences");
+            android.content.SharedPreferences sp = context.getSharedPreferences(SBrowserXPrefs.PREFS_NAME, Context.MODE_PRIVATE);
+            if (prefsFile.isFile() && prefsFile.length() > 0L && sig.equals(sp.getString("webrtc_applied_sig", ""))) {
+                return; // Zero-cost fast path on cold start when profile prefs are already synced
+            }
             JSONObject root;
             if (prefsFile.isFile()) {
                 long len = prefsFile.length();
@@ -53,6 +58,7 @@ public final class SBrowserXWebRtcManager {
                         && existingWebrtc.optBoolean("nonproxied_udp_enabled") == allowNonProxiedUdp
                         && root.has("enable_block_fingerprinting")
                         && root.optBoolean("enable_block_fingerprinting") == antiFingerprint) {
+                    sp.edit().putString("webrtc_applied_sig", sig).apply();
                     return;
                 }
             } else {
@@ -82,6 +88,9 @@ public final class SBrowserXWebRtcManager {
 
     public static void restartBrowser(Context context) {
         if (context == null) return;
+        try {
+            SBrowserXStartPageServer.stop();
+        } catch (Throwable ignored) {}
         try {
             Intent launch = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
             if (launch != null) {

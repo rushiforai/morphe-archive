@@ -26,6 +26,7 @@ val hideFollowUpsellPatch = bytecodePatch(
     name = "Hide follow upsell",
     description = "Removes the \"Follow\" upsell card in the Notes feed.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

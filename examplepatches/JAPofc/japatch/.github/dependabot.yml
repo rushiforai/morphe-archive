@@ -1,0 +1,14 @@
+# Keep the actions the build depends on current. JaPatch ships no runtime dependencies,
+# so this is the only thing Dependabot has to watch.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "ci"
+    groups:
+      actions:
+        patterns:
+          - "*"

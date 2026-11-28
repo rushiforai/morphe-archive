@@ -4,6 +4,7 @@ import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.FormFactor
+import semicoloncolonel.mobilestream.patches.shared.misc.devTarget
 
 object Constants {
     val COMPATIBILITY = Compatibility(
@@ -16,7 +17,7 @@ object Constants {
         // 6.12.1 is pinned to the Android TV build's version code (9511). The phone and
         // Fire tablet build of the same version is 4519, so it is never offered here.
         // 6.12.0 is matched by version name, and its Android TV build is 9510.
-        targets = listOf(AppTarget("6.12.1", versionCode = 9511), AppTarget("6.12.0")),
+        targets = listOf(AppTarget("6.12.1", versionCode = 9511), devTarget("6.12.2", versionCode = 9512), AppTarget("6.12.0")),
         formFactor = FormFactor.TV,
     )
 }

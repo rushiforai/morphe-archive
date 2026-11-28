@@ -53,6 +53,17 @@ body:
       description: The version you would like supported, if it matters.
     validations:
       required: true
+  - type: dropdown
+    id: beta
+    attributes:
+      label: Are you enrolled as a beta tester for this app?
+      description: On Google Play, the app's page says "You're a beta tester" when you are. A beta tester can get a version that is not public yet, and I can only support a beta that I can install myself.
+      options:
+        - "No"
+        - "Yes"
+        - "I do not know"
+    validations:
+      required: true
   - type: textarea
     id: request
     attributes:

@@ -91,4 +91,20 @@ public class AlignTest {
         assertNull(found.at);
         assertEquals(0.0, found.score, 0);
     }
+
+    @Test
+    public void theMedianBySelectionIsTheSortsExactly() {
+        java.util.Random random = new java.util.Random(7);
+        for (int n : new int[]{1, 2, 3, 4, 5, 10, 11, 1000, 1001}) {
+            for (int round = 0; round < 20; round++) {
+                double[] values = new double[n];
+                for (int i = 0; i < n; i++) values[i] = round % 3 == 0 ? random.nextInt(4) : random.nextGaussian();
+                if (round % 5 == 1) java.util.Arrays.sort(values); // sorted already
+                double[] sorted = values.clone();
+                java.util.Arrays.sort(sorted);
+                double expected = n % 2 == 1 ? sorted[n / 2] : (sorted[n / 2 - 1] + sorted[n / 2]) / 2;
+                org.junit.Assert.assertEquals(expected, Align.median(values), 0.0);
+            }
+        }
+    }
 }

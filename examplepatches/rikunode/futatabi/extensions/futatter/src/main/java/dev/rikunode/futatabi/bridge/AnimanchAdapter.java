@@ -81,7 +81,7 @@ final class AnimanchAdapter {
             String path = rawPath.split("\\?", 2)[0];
             if (path.equals("/animanch/") || (path.equals("/animanch/futaba.php") &&
                     BridgeServer.hasCatalogMode(rawPath)))
-                return BridgeServer.BridgeResponse.html(BridgePalette.decorate(context,catalog()));
+                return BridgeServer.BridgeResponse.html(BridgePalette.decorate(context,catalog(CatalogOrder.fromPath(rawPath))));
             if (path.matches("/animanch/res/[0-9]{13}\\.htm")) {
                 String id = path.substring("/animanch/res/".length(), path.length() - 4);
                 String board = prefs.getString("board." + id, null);
@@ -101,13 +101,18 @@ final class AnimanchAdapter {
         }
     }
 
-    JSONObject threadsJson() throws Exception {
+    static final int CATALOG_LIMIT = 1000;
+
+    synchronized JSONObject threadsJson() throws Exception {
         String html = new String(fetch(HOST + "/", 90000L, 1_500_000), StandardCharsets.UTF_8);
         JSONArray items = new JSONArray();
         Matcher matches = CARD.matcher(html);
-        while (matches.find() && items.length() < 50) {
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        Map<String,String> pending = new HashMap<>();
+        while (matches.find() && items.length() < CATALOG_LIMIT) {
             String board = matches.group(1), card = matches.group(2);
-            String virtualId = remember("board.", board);
+            if (!seen.add(board)) continue;
+            String virtualId = remember("board.", board, pending);
             Matcher title = BODY.matcher(card);
             String body = title.find() ? plain(title.group(1)) : "スレ";
             Matcher count = COUNT.matcher(card);
@@ -118,26 +123,29 @@ final class AnimanchAdapter {
             items.put(item);
         }
         if (items.length() == 0) throw new IllegalStateException("No catalog entries parsed");
+        commitCatalogIndex(pending);
         JSONObject result = new JSONObject();
         result.put("threads", items);
         return result;
     }
 
-    private byte[] catalog() throws Exception {
-        JSONArray items = threadsJson().getJSONArray("threads");
+    private synchronized byte[] catalog(int sort) throws Exception {
+        JSONArray items = CatalogOrder.replies(threadsJson().getJSONArray("threads"),sort);
+        Map<String,String> pending = new HashMap<>();
         StringBuilder html = page("あにまん");
         html.append("<table id='cattable'><tr>");
         for (int i = 0; i < items.length(); i++) {
             JSONObject item = items.getJSONObject(i);
             String id = item.getString("id");
             String boardId = prefs.getString("board." + id, "");
-            String imageId = remember("image.", HOST + "/thumb_s/" + boardId + "/");
+            String imageId = remember("image.", HOST + "/thumb_s/" + boardId + "/", pending);
             html.append("<td><a href='res/").append(id).append(".htm'>")
                 .append("<img src='/animanch/thumb/").append(imageId).append("s.jpg'></a>")
                 .append("<small>").append(escape(item.getString("title"))).append("</small>")
                 .append("<font size=2>").append(item.optInt("replies")).append("</font></td>");
             if (i % 5 == 4 && i != items.length() - 1) html.append("</tr><tr>");
         }
+        commitCatalogIndex(pending);
         html.append("</tr></table></body></html>");
         return html.toString().getBytes(SJIS);
     }
@@ -191,7 +199,8 @@ final class AnimanchAdapter {
                     html.append("<a href='/animanch/src/").append(photoId).append(".jpg'>")
                             .append(photoId).append(".jpg</a><br>")
                             .append("<a href='/animanch/src/").append(photoId).append(".jpg'>")
-                            .append("<img src='/animanch/thumb/").append(photoId).append("s.jpg' width=50 height=50></a>");
+                            .append("<img src='/animanch/thumb/").append(photoId).append("s.jpg' ")
+                            .append(ThreadImageSize.attributes(null,null)).append("></a>");
                 }
             }
             html.append("<blockquote>").append(FutabaQuoteMarkup.render(escape(text).replace("\n", "<br>")))
@@ -643,7 +652,18 @@ final class AnimanchAdapter {
         } finally { bitmap.recycle(); }
     }
 
+    private void commitCatalogIndex(Map<String,String> pending) {
+        if(pending.isEmpty())return;
+        SharedPreferences.Editor editor=prefs.edit();
+        for(Map.Entry<String,String> entry:pending.entrySet())editor.putString(entry.getKey(),entry.getValue());
+        if(!editor.commit())throw new IllegalStateException("Catalog index save failed");
+    }
+
     private synchronized String remember(String prefix, String source) throws Exception {
+        return remember(prefix,source,null);
+    }
+
+    private synchronized String remember(String prefix, String source, Map<String,String> pending) throws Exception {
         String key = prefix + source;
         byte[] digest = MessageDigest.getInstance("SHA-256").digest(key.getBytes(StandardCharsets.UTF_8));
         long v = 0;
@@ -651,9 +671,12 @@ final class AnimanchAdapter {
         long n = 1_000_000_000_000L + ((v & Long.MAX_VALUE) % 9_000_000_000_000L);
         for (int i = 0; i < 100; i++, n++) {
             String id = Long.toString(n);
-            String existing = prefs.getString(prefix + id, null);
+            String existing = pending!=null&&pending.containsKey(prefix+id)?pending.get(prefix+id):prefs.getString(prefix + id, null);
             if (existing == null || existing.equals(source)) {
-                if (existing == null) prefs.edit().putString(prefix + id, source).commit();
+                if (existing == null) {
+                    if(pending!=null)pending.put(prefix+id,source);
+                    else prefs.edit().putString(prefix + id, source).commit();
+                }
                 return id;
             }
         }

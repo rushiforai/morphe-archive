@@ -90,9 +90,9 @@ public final class GboardPatchesRestartSourceTest {
         String settingsText = GboardSettingsTextFiles.englishAndTraditionalChinese();
 
         Assert.assertTrue(settingsText.contains(
-                ">Restart Gboard</string>"));
+                ">Restart Rambler Bangla</string>"));
         Assert.assertTrue(settingsText.contains(
-                ">重新啟動 Gboard</string>"));
+                ">重新啟動 Rambler Bangla</string>"));
         Assert.assertTrue(settingsText.contains("gboard_patches_restart_failed"));
     }
 

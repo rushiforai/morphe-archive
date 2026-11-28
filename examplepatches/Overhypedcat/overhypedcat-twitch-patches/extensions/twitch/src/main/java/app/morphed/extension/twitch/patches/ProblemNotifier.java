@@ -12,7 +12,7 @@ import java.util.Set;
 import app.morphed.extension.twitch.adblock.Problem;
 
 /**
- * Tells the user once per app launch and problem that the ad blocker needs an update.
+ * Tells the user once per app launch and problem what went wrong with the ad blocker (and whether it needs an update).
  */
 final class ProblemNotifier implements Problem.Reporter {
     private static final String TAG = "TwitchMorphed";
@@ -36,7 +36,7 @@ final class ProblemNotifier implements Problem.Reporter {
                 }
                 return;
             }
-            String message = "Ad blocker needs an update (" + problem.code + ")\n" + problem.description;
+            String message = problem.heading + " (" + problem.code + ")\n" + problem.description;
             if (detail != null && !detail.isEmpty()) message += "\n" + shorten(detail);
             Toast.makeText(context, message, Toast.LENGTH_LONG).show();
         });

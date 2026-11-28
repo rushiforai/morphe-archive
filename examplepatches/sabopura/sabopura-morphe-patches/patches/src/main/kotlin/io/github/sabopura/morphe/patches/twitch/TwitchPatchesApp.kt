@@ -2,6 +2,7 @@
 
 package io.github.sabopura.morphe.patches.twitch
 
+import io.github.sabopura.morphe.patches.twitch.support.TWITCH_MOVED_NOTE
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import io.github.sabopura.morphe.patches.twitch.Constants.TWITCH_ADS
@@ -37,7 +38,7 @@ val disableUpdatePromptsPatch = twitchFeaturePatch(
 
 val fixLoginCrashPatch = bytecodePatch(
     name = "Fix login crash",
-    description = "Stops sign-in from failing when Twitch's login page sends a field the app does not know.",
+    description = TWITCH_MOVED_NOTE + "Stops sign-in from failing when Twitch's login page sends a field the app does not know.",
 ) {
     compatibleWith(TWITCH_SUPPORTED)
     dependsOn(loginFixHook)
@@ -45,7 +46,7 @@ val fixLoginCrashPatch = bytecodePatch(
 
 val fixPipLinksPatch = bytecodePatch(
     name = "Fix links during picture-in-picture",
-    description = "Opens the stream or video of a link that arrives while another one plays in picture-in-picture. " +
+    description = TWITCH_MOVED_NOTE + "Opens the stream or video of a link that arrives while another one plays in picture-in-picture. " +
         "Twitch sometimes brought the old one back full screen instead.",
 ) {
     compatibleWith(TWITCH_SUPPORTED)
@@ -143,7 +144,7 @@ private val TRACKING_PERMISSIONS = setOf(
 
 val removeTrackingPermissionsPatch = resourcePatch(
     name = "Privacy: Remove tracking permissions",
-    description = "Removes the advertising ID and Play install-referrer permissions from the manifest, so Twitch and its SDKs cannot read those two identifiers. Google Play services keep working.",
+    description = TWITCH_MOVED_NOTE + "Removes the advertising ID and Play install-referrer permissions from the manifest, so Twitch and its SDKs cannot read those two identifiers. Google Play services keep working.",
 ) {
     compatibleWith(TWITCH_SUPPORTED)
     execute {
@@ -164,7 +165,7 @@ private fun NodeList.elements(): List<Element> = (0 until length).map { item(it)
 
 val separateAppPatch = resourcePatch(
     name = "Install: Separate app",
-    description = "Installs the patched app next to the official Twitch app under its own package name instead of replacing it. Nothing extra leaves the device. Sign in again in the new app.",
+    description = TWITCH_MOVED_NOTE + "Installs the patched app next to the official Twitch app under its own package name instead of replacing it. Nothing extra leaves the device. Sign in again in the new app.",
     default = false,
 ) {
     compatibleWith(TWITCH_SUPPORTED)

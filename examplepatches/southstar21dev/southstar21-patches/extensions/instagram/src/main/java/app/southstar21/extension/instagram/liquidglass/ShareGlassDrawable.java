@@ -21,6 +21,8 @@ import android.graphics.RenderNode;
 import android.graphics.Shader;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.os.SystemClock;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -74,6 +76,11 @@ final class ShareGlassDrawable extends Drawable {
     private final Outline outline = new Outline();
     private int outlineW = -1, outlineH = -1;
     private int drawnH;
+
+    /** How often to look again for SurfaceViews below the sheet. */
+    private static final long SURFACE_SCAN_MS = 500;
+    private final java.util.ArrayList<SurfaceView> surfaces = new java.util.ArrayList<>();
+    private long surfacesAt = -SURFACE_SCAN_MS;
 
     ShareGlassDrawable(View host, float density) {
         this.host = host;
@@ -243,6 +250,7 @@ final class ShareGlassDrawable extends Drawable {
      * ancestors, up to the window, that overlaps the recorded area.
      */
     private void recordBelow(RecordingCanvas rc, float minX, float minY, float maxX, float maxY) {
+        findSurfaces();
         View path = host;
         // The host's top left in the current parent's coordinates.
         float px = host.getLeft() + host.getTranslationX();
@@ -267,7 +275,7 @@ final class ShareGlassDrawable extends Drawable {
                     save = rc.save();
                 }
                 rc.translate(left, top);
-                child.draw(rc);
+                drawWithoutSurfaces(rc, child);
                 rc.restoreToCount(save);
             }
             // Up a level: the host's position in the grandparent's coordinates.
@@ -275,6 +283,77 @@ final class ShareGlassDrawable extends Drawable {
             py += p.getTop() + p.getTranslationY() - p.getScrollY();
             path = p;
         }
+    }
+
+    /**
+     * The SurfaceViews in the window (a reel playing in Instagram's SurfaceView player), looked
+     * for again at most every {@link #SURFACE_SCAN_MS}.
+     */
+    private void findSurfaces() {
+        long now = SystemClock.uptimeMillis();
+        if (now - surfacesAt < SURFACE_SCAN_MS) return;
+        surfacesAt = now;
+        surfaces.clear();
+        collectSurfaces(host.getRootView());
+    }
+
+    private void collectSurfaces(View v) {
+        if (v == host || v.getVisibility() != View.VISIBLE) return;
+        if (v instanceof SurfaceView) {
+            surfaces.add((SurfaceView) v);
+            return;
+        }
+        if (v instanceof ViewGroup) {
+            ViewGroup g = (ViewGroup) v;
+            for (int i = 0, n = g.getChildCount(); i < n; i++) collectSurfaces(g.getChildAt(i));
+        }
+    }
+
+    /** Whether {@code v} is one of the SurfaceViews found, or holds one. */
+    private boolean holdsSurface(View v) {
+        for (int i = 0, n = surfaces.size(); i < n; i++) {
+            for (Object p = surfaces.get(i); p instanceof View; p = ((View) p).getParent()) {
+                if (p == v) return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Draws {@code v}, at the canvas origin, without the SurfaceViews in it. A SurfaceView draws a
+     * hole down to its video layer, and recorded into the glass that hole would cut through the
+     * whole sheet: the video showed through it sharp, around a stray square of backdrop (issue
+     * #23). Views holding one are drawn piece by piece instead (background, then children), and
+     * the video's place is left to the material's base color.
+     */
+    private void drawWithoutSurfaces(RecordingCanvas rc, View v) {
+        if (v instanceof SurfaceView) return;
+        if (surfaces.isEmpty() || !(v instanceof ViewGroup) || !holdsSurface(v)) {
+            v.draw(rc);
+            return;
+        }
+        Drawable bg = v.getBackground();
+        if (bg != null) {
+            bg.setBounds(0, 0, v.getWidth(), v.getHeight());
+            bg.draw(rc);
+        }
+        ViewGroup g = (ViewGroup) v;
+        int save = rc.save();
+        if (g.getClipChildren()) rc.clipRect(0, 0, g.getWidth(), g.getHeight());
+        rc.translate(-g.getScrollX(), -g.getScrollY());
+        for (int i = 0, n = g.getChildCount(); i < n; i++) {
+            View c = g.getChildAt(i);
+            if (c.getVisibility() != View.VISIBLE || c.getAlpha() == 0f) continue;
+            int s = c.getAlpha() < 1f
+                    ? rc.saveLayerAlpha(c.getLeft(), c.getTop(), c.getRight(), c.getBottom(),
+                    Math.round(c.getAlpha() * 255f))
+                    : rc.save();
+            rc.translate(c.getLeft(), c.getTop());
+            if (!c.getMatrix().isIdentity()) rc.concat(c.getMatrix());
+            drawWithoutSurfaces(rc, c);
+            rc.restoreToCount(s);
+        }
+        rc.restoreToCount(save);
     }
 
     @Override

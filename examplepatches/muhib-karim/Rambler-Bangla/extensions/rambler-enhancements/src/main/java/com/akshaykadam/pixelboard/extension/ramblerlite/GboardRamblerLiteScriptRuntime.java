@@ -43,7 +43,7 @@ public final class GboardRamblerLiteScriptRuntime {
         "ne", "or", "pa", "sa", "sd", "ta", "te", "ur",
     };
 
-    /** Native-script replacement for the stock "3. Hinglish Override" rule. */
+    /** Native-script replacement for the stock "3. Hinglish Override" rule (legacy fallback). */
     public static final String NATIVE_SCRIPT_RULE =
         "3. Native Script Preservation: For any combination of Indian languages"
         + " (e.g., Hindi, Bengali, Marathi, Kannada, etc.) and English,"
@@ -52,6 +52,65 @@ public final class GboardRamblerLiteScriptRuntime {
         + " words in Latin characters. Only use Romanized script (e.g.,"
         + " Banglish) when the enabled language tag explicitly requests a"
         + " Latin variant (e.g., bn-Latn).";
+
+    /** Active-keyboard rule for native Bangla layout (বাংলা): 100% Bengali Unicode. */
+    public static final String ALL_BANGLA_SCRIPT_RULE =
+        "3. Native Bengali Script Policy: The user's active keyboard is native"
+        + " Bengali (বাংলা). Write ALL spoken content — including Bengali speech"
+        + " and English loanwords spoken inside Bengali — in standard, natural"
+        + " modern Bangla Academy Bengali Unicode script with accurate spelling"
+        + " (e.g., সবকিছু, সবকিছুই, বুঝে, ভালো, সুন্দরভাবে, দেওয়া, ইংলিশ,"
+        + " আন্ডারস্ট্যান্ড, ক্লিয়ারলি, হোয়াটেভার, ফোনেটিকস, কম্পিউটার, অফিস —"
+        + " never misspelled forms like শবকিছু, বুযে, ভালে, শবকিছু-আই, ইংগলিশ,"
+        + " ওয়টেভার, or অন্দারস্ট্যান্ডজ). Use Bengali dari (।) to end Bengali"
+        + " sentences. Restore any Romanized Bengali into natural Bengali Unicode."
+        + " Keep URLs, emails, #hashtags, and @handles verbatim. Never translate semantic meaning.";
+
+    /** Active-keyboard rule for abc -> বাংলা layout: true intra-sentence mixed Bangla + English. */
+    public static final String MIXED_BN_EN_SCRIPT_RULE =
+        "3. Natural Mixed Bangla + English Policy: The user's active keyboard is"
+        + " Bengali-English transliteration (abc -> বাংলা). Write spoken Bengali"
+        + " words and clauses in native Bengali Unicode script (বাংলা) and keep"
+        + " spoken English words and clauses in English Latin script, naturally"
+        + " mixing both scripts within the same sentence when the speaker"
+        + " switches languages. Restore Romanized Bengali words to Bengali"
+        + " Unicode while keeping English words in Latin. Never translate"
+        + " semantic meaning.";
+
+    /** Active-keyboard rule for English (US) / Bangla (Latin): strict Latin / phonetic output. */
+    public static final String ENGLISH_LATIN_SCRIPT_RULE =
+        "3. English & Phonetic Latin Script Policy: The user's active keyboard"
+        + " is English / Latin. Keep ALL output strictly in English / ASCII"
+        + " Latin script. If the speaker says Bengali or other Indic words,"
+        + " write them phonetically in ASCII Latin script (Banglish/Hinglish)"
+        + " — NEVER output Bengali Unicode script. Never translate semantic"
+        + " meaning.";
+
+    public enum ActiveKeyboardMode {
+        /** No active keyboard signal yet; fall back to enabled-language classification. */
+        UNSET,
+        /** Native Bangla keyboard (বাংলা): 100% Bengali Unicode script. */
+        ALL_BANGLA,
+        /** Transliteration keyboard (abc -> বাংলা): natural mixed Bangla + English. */
+        MIXED_BN_EN,
+        /** English (US) or Bangla (Latin): strict English / phonetic Latin script. */
+        ENGLISH_LATIN,
+    }
+
+    /** Active keyboard mode updated live on AgenticDictationExtension activation. */
+    private static volatile ActiveKeyboardMode activeKeyboardMode = ActiveKeyboardMode.UNSET;
+
+    public static void setActiveKeyboardMode(ActiveKeyboardMode mode) {
+        activeKeyboardMode = mode == null ? ActiveKeyboardMode.UNSET : mode;
+    }
+
+    public static ActiveKeyboardMode getActiveKeyboardMode() {
+        return activeKeyboardMode;
+    }
+
+    public static void resetActiveKeyboardModeForTesting() {
+        activeKeyboardMode = ActiveKeyboardMode.UNSET;
+    }
 
     /** Sentinels delimiting the stock Branch A Romanization bullet. */
     static final String BRANCH_A_BULLET_START =
@@ -129,6 +188,19 @@ public final class GboardRamblerLiteScriptRuntime {
             lastHookStatus = "hinglish:disabled-by-setting";
             return stockRule;
         }
+        ActiveKeyboardMode mode = activeKeyboardMode;
+        if (mode == ActiveKeyboardMode.ENGLISH_LATIN) {
+            lastHookStatus = "hinglish:active-en-latin";
+            return ENGLISH_LATIN_SCRIPT_RULE;
+        }
+        if (mode == ActiveKeyboardMode.ALL_BANGLA) {
+            lastHookStatus = "hinglish:active-all-bangla";
+            return ALL_BANGLA_SCRIPT_RULE;
+        }
+        if (mode == ActiveKeyboardMode.MIXED_BN_EN) {
+            lastHookStatus = "hinglish:active-mixed-bn-en";
+            return MIXED_BN_EN_SCRIPT_RULE;
+        }
         switch (classifyEnabledLanguages(enabledLanguages)) {
             case NATIVE_PRESENT:
                 lastHookStatus = "hinglish:native-preserve";
@@ -148,9 +220,9 @@ public final class GboardRamblerLiteScriptRuntime {
 
     /**
      * Hook for kfd.d: rewrites the SCRIPT GATE Branch A Romanization mandate
-     * inside the assembled Lite cleanup prompt, but only under a native Indic
-     * policy and only when the expected stock block is present verbatim. Any
-     * drift leaves the prompt byte-identical.
+     * inside the assembled Lite cleanup prompt according to the active keyboard
+     * mode (or enabled-language fallback when unset), only when the expected
+     * stock block is present verbatim. Any drift leaves the prompt byte-identical.
      */
     public static String rewriteCleanupPromptScriptGate(String prompt, String enabledLanguages) {
         if (prompt == null) {
@@ -160,7 +232,9 @@ public final class GboardRamblerLiteScriptRuntime {
             lastHookStatus = "scriptgate:disabled-by-setting";
             return prompt;
         }
-        if (classifyEnabledLanguages(enabledLanguages) != IndicScriptPolicy.NATIVE_PRESENT) {
+        ActiveKeyboardMode mode = activeKeyboardMode;
+        if (mode == ActiveKeyboardMode.UNSET
+                && classifyEnabledLanguages(enabledLanguages) != IndicScriptPolicy.NATIVE_PRESENT) {
             lastHookStatus = "scriptgate:untouched";
             return prompt;
         }
@@ -176,10 +250,59 @@ public final class GboardRamblerLiteScriptRuntime {
             lastHookStatus = "scriptgate:block-drift-noop";
             return prompt;
         }
-        lastHookStatus = "scriptgate:rewritten-native";
+        String replacement;
+        if (mode == ActiveKeyboardMode.ENGLISH_LATIN) {
+            lastHookStatus = "scriptgate:rewritten-en-latin";
+            replacement = buildEnglishLatinBranchABlock(enabledLanguages);
+        } else if (mode == ActiveKeyboardMode.ALL_BANGLA) {
+            lastHookStatus = "scriptgate:rewritten-all-bangla";
+            replacement = buildAllBanglaBranchABlock(enabledLanguages);
+        } else if (mode == ActiveKeyboardMode.MIXED_BN_EN) {
+            lastHookStatus = "scriptgate:rewritten-mixed-bn-en";
+            replacement = buildMixedBnEnBranchABlock(enabledLanguages);
+        } else {
+            lastHookStatus = "scriptgate:rewritten-native";
+            replacement = buildNativeBranchABlock(enabledLanguages);
+        }
         return prompt.substring(0, start)
-            + buildNativeBranchABlock(enabledLanguages)
+            + replacement
             + prompt.substring(end);
+    }
+
+    private static String buildAllBanglaBranchABlock(String enabledLanguages) {
+        String langs = enabledLanguages == null ? "" : enabledLanguages.trim();
+        return
+            "   * Active-Keyboard Script Policy (ALL BANGLA, enabled: " + langs + "):"
+            + " The user selected the native Bengali keyboard (বাংলা).\n"
+            + "     - Write ALL Bengali speech and English loanwords inside Bengali speech"
+            + " in standard, natural modern Bengali Unicode script (e.g., ইংলিশ, আন্ডারস্ট্যান্ড,"
+            + " ক্লিয়ারলি — never awkward phoneme spellings like ইংগলিশ or অন্দারস্ট্যান্ডজ).\n"
+            + "     - If the ASR transcript Romanized Bengali into Latin letters, restore"
+            + " it into natural Bengali Unicode script.\n"
+            + "     - Keep URLs, emails, #hashtags, and @handles verbatim. Never translate meaning.\n";
+    }
+
+    private static String buildMixedBnEnBranchABlock(String enabledLanguages) {
+        String langs = enabledLanguages == null ? "" : enabledLanguages.trim();
+        return
+            "   * Active-Keyboard Script Policy (MIXED BANGLA + ENGLISH, enabled: " + langs + "):"
+            + " The user selected the Bengali-English transliteration keyboard (abc -> বাংলা).\n"
+            + "     - Write spoken Bengali words and clauses in native Bengali Unicode script (বাংলা).\n"
+            + "     - Keep spoken English words and clauses in English Latin script, naturally"
+            + " mixing both scripts inside the same sentence when the speaker code-switches.\n"
+            + "     - Restore Romanized Bengali words to Bengali Unicode while keeping English words"
+            + " in Latin. Never translate meaning.\n";
+    }
+
+    private static String buildEnglishLatinBranchABlock(String enabledLanguages) {
+        String langs = enabledLanguages == null ? "" : enabledLanguages.trim();
+        return
+            "   * Active-Keyboard Script Policy (ENGLISH / PHONETIC LATIN, enabled: " + langs + "):"
+            + " The user selected the English / Latin keyboard.\n"
+            + "     - Keep ALL output strictly in English / ASCII Latin script.\n"
+            + "     - If the speaker says Bengali or other Indic words, phonetically Romanize them"
+            + " into ASCII Latin (Banglish/Hinglish). NEVER output Bengali Unicode script.\n"
+            + "     - Never translate meaning.\n";
     }
 
     private static String buildNativeBranchABlock(String enabledLanguages) {

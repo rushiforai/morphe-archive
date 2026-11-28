@@ -22,6 +22,7 @@ val blockAdsPatch = bytecodePatch(
     name = "Block ads",
     description = "Stops Madme, which shows ads over other apps, after calls, and as notifications.",
 ) {
+    category("Ads")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

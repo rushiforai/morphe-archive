@@ -1,8 +1,8 @@
 {
   "name": "AllMorphe Bundle Index",
-  "lastUpdated": "2026-11-22T09:33:14Z",
+  "lastUpdated": "2026-11-27T04:50:51Z",
   "source": "morphe-patches.software",
-  "totalBundles": 589,
+  "totalBundles": 645,
   "bundles": [
     {
       "repo": "0-BlackSpectrum-0/MAL-Patches",
@@ -36,14 +36,29 @@
       "url": "github.com/0x11DFE/morphe-patches",
       "name": "0x11DFE",
       "author": "0x11DFE",
-      "patchCount": 10,
+      "patchCount": 12,
       "targetApps": [
         "com.omarea.vtools",
         "com.greycastel.waypoint",
+        "com.tribalfs.gmh",
         "com.vpnproxymd.mdproxyvpn"
       ],
       "stars": 8,
       "deepLink": "https://morphe.software/add-source?github=0x11DFE/morphe-patches"
+    },
+    {
+      "repo": "0xJohnnyboy/morphe-patches",
+      "source": "github",
+      "url": "github.com/0xJohnnyboy/morphe-patches",
+      "name": "0xJohnnyboy",
+      "author": "0xJohnnyboy",
+      "patchCount": 2,
+      "targetApps": [
+        "com.apple.android.music",
+        "com.google.android.GoogleCamera"
+      ],
+      "stars": 3,
+      "deepLink": "https://morphe.software/add-source?github=0xJohnnyboy/morphe-patches"
     },
     {
       "repo": "0xRJDev/shikify",
@@ -74,6 +89,19 @@
       "deepLink": "https://morphe.software/add-source?github=0xtalos/vibe-patches"
     },
     {
+      "repo": "1-Felix/jimaku-patches",
+      "source": "github",
+      "url": "github.com/1-Felix/jimaku-patches",
+      "name": "1-Felix",
+      "author": "1-Felix",
+      "patchCount": 1,
+      "targetApps": [
+        "com.google.android.youtube"
+      ],
+      "stars": 0,
+      "deepLink": "https://morphe.software/add-source?github=1-Felix/jimaku-patches"
+    },
+    {
       "repo": "2eno/morphe-patches",
       "source": "github",
       "url": "github.com/2eno/morphe-patches",
@@ -86,8 +114,21 @@
         "com.ebay.kleinanzeigen",
         "com.untappdllc.app"
       ],
-      "stars": 10,
+      "stars": 11,
       "deepLink": "https://morphe.software/add-source?github=2eno/morphe-patches"
+    },
+    {
+      "repo": "2kshoka/morphe-patches",
+      "source": "github",
+      "url": "github.com/2kshoka/morphe-patches",
+      "name": "2kshoka",
+      "author": "2kshoka",
+      "patchCount": 10,
+      "targetApps": [
+        "com.soundcloud.android"
+      ],
+      "stars": 2,
+      "deepLink": "https://morphe.software/add-source?github=2kshoka/morphe-patches"
     },
     {
       "repo": "3kh0/slick-morphe",
@@ -134,12 +175,25 @@
       "url": "github.com/6zev/morphe-patches",
       "name": "6zev",
       "author": "6zev",
-      "patchCount": 5,
+      "patchCount": 1,
       "targetApps": [
         "dev.vodik7.tvquickactions"
       ],
-      "stars": 2,
+      "stars": 3,
       "deepLink": "https://morphe.software/add-source?github=6zev/morphe-patches"
+    },
+    {
+      "repo": "aaayd/waze-custom-patches",
+      "source": "github",
+      "url": "github.com/aaayd/waze-custom-patches",
+      "name": "Aaayd",
+      "author": "aaayd",
+      "patchCount": 8,
+      "targetApps": [
+        "com.waze"
+      ],
+      "stars": 2,
+      "deepLink": "https://morphe.software/add-source?github=aaayd/waze-custom-patches"
     },
     {
       "repo": "aayy-dev/patches",
@@ -178,8 +232,21 @@
       "targetApps": [
         "com.Splitwise.SplitwiseMobile"
       ],
-      "stars": 19,
+      "stars": 20,
       "deepLink": "https://morphe.software/add-source?github=abhis1n/Morphe-Patches"
+    },
+    {
+      "repo": "abotmaker/gboard-rambler-enhancements",
+      "source": "github",
+      "url": "github.com/abotmaker/gboard-rambler-enhancements",
+      "name": "Abotmaker",
+      "author": "abotmaker",
+      "patchCount": 7,
+      "targetApps": [
+        "com.google.android.inputmethod.latin"
+      ],
+      "stars": 14,
+      "deepLink": "https://morphe.software/add-source?github=abotmaker/gboard-rambler-enhancements"
     },
     {
       "repo": "AbShaheen184/CinemaHQ-Morphe_Patches",
@@ -243,7 +310,7 @@
       "targetApps": [
         "com.twitter.android"
       ],
-      "stars": 2,
+      "stars": 3,
       "deepLink": "https://morphe.software/add-source?github=AetherMagee/xposed-patches"
     },
     {
@@ -269,7 +336,7 @@
       "targetApps": [
         "com.instagram.android"
       ],
-      "stars": 25,
+      "stars": 24,
       "deepLink": "https://morphe.software/add-source?github=aic0d3r/oxbow"
     },
     {
@@ -318,7 +385,7 @@
         "com.formulaone.production",
         "com.discovery.dplay"
       ],
-      "stars": 316,
+      "stars": 327,
       "deepLink": "https://morphe.software/add-source?github=ajstrick81/morphe-androidtv-patches"
     },
     {
@@ -371,7 +438,7 @@
       "targetApps": [
         "com.google.android.apps.photos"
       ],
-      "stars": 150,
+      "stars": 157,
       "deepLink": "https://morphe.software/add-source?github=Akash-Sriram/morphe-google-photos"
     },
     {
@@ -399,7 +466,7 @@
       "targetApps": [
         "com.google.android.GoogleCamera"
       ],
-      "stars": 274,
+      "stars": 286,
       "deepLink": "https://morphe.software/add-source?github=Akshayykadam/Pixel-Camera"
     },
     {
@@ -412,7 +479,7 @@
       "targetApps": [
         "com.google.android.inputmethod.latin"
       ],
-      "stars": 1706,
+      "stars": 1764,
       "deepLink": "https://morphe.software/add-source?github=Akshayykadam/PixelBoard"
     },
     {
@@ -425,7 +492,7 @@
       "targetApps": [
         "com.brobuddy.game"
       ],
-      "stars": 0,
+      "stars": 1,
       "deepLink": "https://morphe.software/add-source?github=alaeddinefaouzi/morphe-patches"
     },
     {
@@ -470,7 +537,7 @@
         "com.android.chrome",
         "com.pixilart.app"
       ],
-      "stars": 15,
+      "stars": 16,
       "deepLink": "https://morphe.software/add-source?github=Alastor-Kaneki/Morphe-Patches"
     },
     {
@@ -481,7 +548,7 @@
       "author": "Alcostrider",
       "patchCount": 1,
       "targetApps": [],
-      "stars": 2,
+      "stars": 3,
       "deepLink": "https://morphe.software/add-source?github=Alcostrider/Soundsync"
     },
     {
@@ -507,7 +574,7 @@
       "targetApps": [
         "com.application.pokecardex"
       ],
-      "stars": 15,
+      "stars": 16,
       "deepLink": "https://morphe.software/add-source?github=Almewty/my-morphe-patches/tree/dev"
     },
     {
@@ -534,7 +601,7 @@
         "io.foodvisor.foodvisor",
         "com.roidapp.photogrid"
       ],
-      "stars": 22,
+      "stars": 23,
       "deepLink": "https://morphe.software/add-source?github=ameenalasady/ameen-morphe"
     },
     {
@@ -543,27 +610,35 @@
       "url": "github.com/amfakh/fakh-patches",
       "name": "Amfakh",
       "author": "amfakh",
-      "patchCount": 102,
+      "patchCount": 189,
       "targetApps": [
         "com.idntimes.idntimes",
         "com.linkedin.android",
+        "com.neopawstudio.warunglife",
+        "com.github.android",
         "com.tuya.smartlife",
         "com.tuya.smart",
         "com.bardi.smart.home",
+        "com.kawanlama.smartklic",
         "com.atlassian.android.confluence.core",
         "com.atlassian.android.jira.core",
+        "com.mazii.dictionary",
         "com.bitsmedia.android.muslimpro",
         "com.cnn.indonesia",
         "apps.ijp.coverscreenos",
         "org.detikcom.rss",
         "com.dundunstudio.autoplay",
+        "com.genius.android",
         "com.ertanto.kompas.official",
+        "mobi.eup.jpnews",
+        "mobi.eup.easygerman",
+        "com.eup.todaiisuper",
         "com.appmind.radios.id",
-        "com.github.android",
-        "com.dinoster.flipside",
-        "com.windyty.android"
+        "com.windyty.android",
+        "id.anon.android",
+        "com.dinoster.flipside"
       ],
-      "stars": 11,
+      "stars": 13,
       "deepLink": "https://morphe.software/add-source?github=amfakh/fakh-patches"
     },
     {
@@ -585,7 +660,7 @@
       "url": "github.com/AmpleReVanced/revanced-patches",
       "name": "Ample",
       "author": "naijun0403",
-      "patchCount": 130,
+      "patchCount": 132,
       "targetApps": [
         "com.kakao.talk",
         "com.dcinside.app.android",
@@ -596,7 +671,7 @@
         "com.nhn.android.nmap",
         "com.samsung.android.honeyboard"
       ],
-      "stars": 200,
+      "stars": 204,
       "deepLink": "https://morphe.software/add-source?github=AmpleReVanced/revanced-patches"
     },
     {
@@ -622,7 +697,7 @@
       "targetApps": [
         "com.huawei.maps.app"
       ],
-      "stars": 9,
+      "stars": 10,
       "deepLink": "https://morphe.software/add-source?github=andersonlucasg3/PetalMaps-NonHuawei"
     },
     {
@@ -631,12 +706,12 @@
       "url": "github.com/andrewliang25/morphe-patches",
       "name": "AndrewLiang25",
       "author": "andrewliang25",
-      "patchCount": 61,
+      "patchCount": 62,
       "targetApps": [
         "com.facebook.katana",
         "jp.naver.line.android"
       ],
-      "stars": 159,
+      "stars": 165,
       "deepLink": "https://morphe.software/add-source?github=andrewliang25/morphe-patches"
     },
     {
@@ -650,7 +725,7 @@
         "io.stark.admob",
         "com.thetransitapp.droid"
       ],
-      "stars": 87,
+      "stars": 88,
       "deepLink": "https://morphe.software/add-source?github=andronedev/morphe-patches"
     },
     {
@@ -774,7 +849,7 @@
         "com.thehungrywasp.iamsober",
         "com.spocky.projengmenu"
       ],
-      "stars": 279,
+      "stars": 286,
       "deepLink": "https://morphe.software/add-source?github=arandomhooman/hoomans-morphe-patches"
     },
     {
@@ -802,7 +877,7 @@
         "com.google.android.inputmethod.latin",
         "com.pinterest"
       ],
-      "stars": 7,
+      "stars": 8,
       "deepLink": "https://morphe.software/add-source?github=archivesteak/Quest"
     },
     {
@@ -861,16 +936,29 @@
       "deepLink": "https://morphe.software/add-source?github=AsrOfficialDev/Saiyan007"
     },
     {
+      "repo": "assc0d3r/GLYPHCHEMY",
+      "source": "github",
+      "url": "github.com/assc0d3r/GLYPHCHEMY",
+      "name": "assc0d3r",
+      "author": "assc0d3r",
+      "patchCount": 91,
+      "targetApps": [
+        "com.google.android.inputmethod.latin"
+      ],
+      "stars": 7,
+      "deepLink": "https://morphe.software/add-source?github=assc0d3r/GLYPHCHEMY"
+    },
+    {
       "repo": "AudioPatchLab/deezer-morphe-patches",
       "source": "github",
       "url": "github.com/AudioPatchLab/deezer-morphe-patches",
       "name": "AudioPatchLab",
       "author": "AudioPatchLab",
-      "patchCount": 8,
+      "patchCount": 9,
       "targetApps": [
         "deezer.android.app"
       ],
-      "stars": 17,
+      "stars": 21,
       "deepLink": "https://morphe.software/add-source?github=AudioPatchLab/deezer-morphe-patches"
     },
     {
@@ -885,6 +973,34 @@
       ],
       "stars": 2,
       "deepLink": "https://morphe.software/add-source?github=avano/morphe-patches"
+    },
+    {
+      "repo": "AWTMODS/AWT-Morphe",
+      "source": "github",
+      "url": "github.com/AWTMODS/AWT-Morphe",
+      "name": "AWTMODS",
+      "author": "AWTMODS",
+      "patchCount": 1,
+      "targetApps": [
+        "ai.regainapp"
+      ],
+      "stars": 1,
+      "deepLink": "https://morphe.software/add-source?github=AWTMODS/AWT-Morphe"
+    },
+    {
+      "repo": "Axandel/amazon-amoled-patches",
+      "source": "github",
+      "url": "github.com/Axandel/amazon-amoled-patches",
+      "name": "Axandel",
+      "author": "Axandel",
+      "patchCount": 1,
+      "targetApps": [
+        "com.amazon.mShop.android.shopping",
+        "in.amazon.mShop.android.shopping",
+        "com.amazon.mShop.android.business.shopping"
+      ],
+      "stars": 0,
+      "deepLink": "https://morphe.software/add-source?github=Axandel/amazon-amoled-patches"
     },
     {
       "repo": "Ayufa/ayufa-patches",
@@ -910,7 +1026,7 @@
       "targetApps": [
         "com.blackmagicdesign.android.blackmagiccam"
       ],
-      "stars": 10,
+      "stars": 11,
       "deepLink": "https://morphe.software/add-source?github=azain47/blackmagic-camera-patches"
     },
     {
@@ -1030,7 +1146,7 @@
         "ru.mts.mymts",
         "ru.megafon.mlk"
       ],
-      "stars": 9,
+      "stars": 10,
       "deepLink": "https://morphe.software/add-source?github=Basil-AS/ru-apps-patches"
     },
     {
@@ -1044,7 +1160,7 @@
         "com.persapps.multitimer",
         "com.ihealthlabs.MyVitalsPro"
       ],
-      "stars": 8,
+      "stars": 9,
       "deepLink": "https://morphe.software/add-source?github=bdgerszewski/morphe-patches-ihealth"
     },
     {
@@ -1143,8 +1259,34 @@
         "com.oplus.camera",
         "com.lge.lifetracker"
       ],
-      "stars": 403,
+      "stars": 414,
       "deepLink": "https://morphe.software/add-source?github=bearinmindcat/morphe-patches"
+    },
+    {
+      "repo": "beepboopmachine/brave-patches",
+      "source": "github",
+      "url": "github.com/beepboopmachine/brave-patches",
+      "name": "BeepBoopMachine Brave",
+      "author": "beepboopmachine",
+      "patchCount": 22,
+      "targetApps": [
+        "com.brave.browser"
+      ],
+      "stars": 0,
+      "deepLink": "https://morphe.software/add-source?github=beepboopmachine/brave-patches"
+    },
+    {
+      "repo": "beepboopmachine/redsave",
+      "source": "github",
+      "url": "github.com/beepboopmachine/redsave",
+      "name": "BeepBoopMachine Reddit",
+      "author": "beepboopmachine",
+      "patchCount": 1,
+      "targetApps": [
+        "com.reddit.frontpage"
+      ],
+      "stars": 0,
+      "deepLink": "https://morphe.software/add-source?github=beepboopmachine/redsave"
     },
     {
       "repo": "belalsalah74/pogo-2",
@@ -1214,7 +1356,7 @@
         "com.vpn.free.hotspot.secure.vpnify",
         "bin.mt.plus"
       ],
-      "stars": 92,
+      "stars": 94,
       "deepLink": "https://morphe.software/add-source?github=BholeyKaBhakt/android-patches-xtra"
     },
     {
@@ -1236,11 +1378,11 @@
       "url": "github.com/bin0culars/bin0culars-patches",
       "name": "Bin0culars",
       "author": "bin0culars",
-      "patchCount": 10,
+      "patchCount": 22,
       "targetApps": [
         "com.reddit.frontpage"
       ],
-      "stars": 8,
+      "stars": 21,
       "deepLink": "https://morphe.software/add-source?github=bin0culars/bin0culars-patches"
     },
     {
@@ -1259,57 +1401,21 @@
         "app.symfonik.music.player",
         "org.withouthat.acalendar"
       ],
-      "stars": 152,
+      "stars": 154,
       "deepLink": "https://morphe.software/add-source?github=binarymend/morphe-patches"
     },
     {
-      "repo": "BlazeFTL/FaceBook-Lite-Morphe",
+      "repo": "BIRDY141/Birdy-Patches",
       "source": "github",
-      "url": "github.com/BlazeFTL/FaceBook-Lite-Morphe",
-      "name": "BlazeFTL Facebook",
-      "author": "BlazeFTL",
-      "patchCount": 12,
+      "url": "github.com/BIRDY141/Birdy-Patches",
+      "name": "Birdy",
+      "author": "BIRDY141",
+      "patchCount": 9,
       "targetApps": [
-        "com.facebook.lite"
+        "com.google.android.youtube.tv"
       ],
-      "stars": 20,
-      "deepLink": "https://morphe.software/add-source?github=BlazeFTL/FaceBook-Lite-Morphe"
-    },
-    {
-      "repo": "BlazeFTL/FTL-Patches",
-      "source": "github",
-      "url": "github.com/BlazeFTL/FTL-Patches",
-      "name": "FTL",
-      "author": "BlazeFTL",
-      "patchCount": 121,
-      "targetApps": [
-        "videoplayer.videodownloader.downloader",
-        "com.mxtech.videoplayer.ad",
-        "com.agendaplanner.taskmangereventmangercalendar",
-        "calendar.agenda.schedule.event.advance.calendar.planner",
-        "files.fileexplorer.filemanager",
-        "video.player.videoplayer",
-        "com.snaptube.premium",
-        "cn.xender",
-        "com.rs.explorer.filemanager",
-        "org.mozilla.fenix",
-        "demigos.com.mobilism",
-        "com.mixplorer",
-        "video.downloader.videodownloader",
-        "com.hdictionary.bn",
-        "idm.internet.download.manager.plus",
-        "com.estrongs.android.pop",
-        "com.mxtech.videoplayer.pro",
-        "com.allformatplayer.streamvideoplayer",
-        "com.gombosdev.ampere",
-        "com.themausoft.wpsapppro",
-        "kallossoft.videotophoto",
-        "com.bytedz.printflow",
-        "com.tester.wpswpatester",
-        "abdelrahman.wifianalyzerpro"
-      ],
-      "stars": 67,
-      "deepLink": "https://morphe.software/add-source?github=BlazeFTL/FTL-Patches"
+      "stars": 0,
+      "deepLink": "https://morphe.software/add-source?github=BIRDY141/Birdy-Patches"
     },
     {
       "repo": "BOPBOP-glitch/WhatsApp-share",
@@ -1340,17 +1446,17 @@
       "deepLink": "https://morphe.software/add-source?github=braiNtropy/braintropy-patches"
     },
     {
-      "repo": "brandonp2412/instagram-notification-nudges",
+      "repo": "brandonp2412/instagram-patches",
       "source": "github",
-      "url": "github.com/brandonp2412/instagram-notification-nudges",
+      "url": "github.com/brandonp2412/instagram-patches",
       "name": "Brandonp2412",
       "author": "brandonp2412",
-      "patchCount": 1,
+      "patchCount": 2,
       "targetApps": [
         "com.instagram.android"
       ],
       "stars": 2,
-      "deepLink": "https://morphe.software/add-source?github=brandonp2412/instagram-notification-nudges"
+      "deepLink": "https://morphe.software/add-source?github=brandonp2412/instagram-patches"
     },
     {
       "repo": "brealorg/breal-morphe-patches",
@@ -1372,7 +1478,7 @@
         "org.cygnusx1.continuum",
         "me.edgan.redditslide"
       ],
-      "stars": 106,
+      "stars": 107,
       "deepLink": "https://morphe.software/add-source?github=brealorg/breal-morphe-patches"
     },
     {
@@ -1389,7 +1495,7 @@
         "fr.tramb.park4night",
         "cz.seznam.mapy"
       ],
-      "stars": 351,
+      "stars": 354,
       "deepLink": "https://morphe.software/add-source?github=brosssh/morphe-patches"
     },
     {
@@ -1398,12 +1504,12 @@
       "url": "github.com/browzomje/browzomje-patches",
       "name": "Browzomje",
       "author": "browzomje",
-      "patchCount": 44,
+      "patchCount": 45,
       "targetApps": [
         "com.pinterest",
         "easy.sudoku.puzzle.solver.free"
       ],
-      "stars": 86,
+      "stars": 87,
       "deepLink": "https://morphe.software/add-source?github=browzomje/browzomje-patches"
     },
     {
@@ -1450,7 +1556,7 @@
         "com.Splitwise.SplitwiseMobile",
         "com.overdevs.at4k"
       ],
-      "stars": 137,
+      "stars": 139,
       "deepLink": "https://morphe.software/add-source?github=bufferk/morphe-patches"
     },
     {
@@ -1498,7 +1604,7 @@
       "url": "github.com/byehi98/okish-morphe-patches",
       "name": "byehi98",
       "author": "byehi98",
-      "patchCount": 163,
+      "patchCount": 171,
       "targetApps": [
         "com.pikpok.dr2.play",
         "com.sidheinteractive.sif.DR",
@@ -1561,9 +1667,12 @@
         "com.generalcomp.truecloud",
         "com.naturalmotion.csrracing",
         "com.nekki.vector",
-        "com.vitastudio.mahjong"
+        "com.vitastudio.mahjong",
+        "com.brotato.shooting.survivors.action.roguelike",
+        "com.blackpanther.ninjaarashi",
+        "com.blackpanther.ninjaarashi2"
       ],
-      "stars": 68,
+      "stars": 70,
       "deepLink": "https://morphe.software/add-source?github=byehi98/okish-morphe-patches"
     },
     {
@@ -1598,13 +1707,15 @@
       "url": "github.com/callMeBeyonder/morphe-patches",
       "name": "CallMeBeyonder",
       "author": "callMeBeyonder",
-      "patchCount": 29,
+      "patchCount": 32,
       "targetApps": [
         "com.alphaprogression.alphaprogression",
         "com.healthifyme.basic",
         "com.cricfytv.sports",
         "com.community.mbox.tv",
         "com.jtsstrength.juggernautai",
+        "com.anthonyng.workoutapp",
+        "com.sbs.diet",
         "com.bpmhealth.boostcamp",
         "com.c10kforpink",
         "com.c13_1forpink2",
@@ -1615,11 +1726,10 @@
         "com.rp.hypertrophy",
         "com.muzudre.jump.rope.training.challenges.jumprope",
         "com.runbuddy.prod",
-        "com.sbs.diet",
         "com.sbs.train",
         "com.stronglifts.app"
       ],
-      "stars": 11,
+      "stars": 13,
       "deepLink": "https://morphe.software/add-source?github=callMeBeyonder/morphe-patches"
     },
     {
@@ -1689,7 +1799,7 @@
         "com.citymapper.app.release",
         "com.yanstarstudio.joss.undercover"
       ],
-      "stars": 20,
+      "stars": 21,
       "deepLink": "https://morphe.software/add-source?github=cesbar/zpatches"
     },
     {
@@ -1718,8 +1828,21 @@
         "com.github.android",
         "com.whereismytrain.android"
       ],
-      "stars": 31,
+      "stars": 32,
       "deepLink": "https://morphe.software/add-source?github=ch3thanhs/stylus"
+    },
+    {
+      "repo": "chaosmanage/mygate-surprise-delivery-morphe-patches",
+      "source": "github",
+      "url": "github.com/chaosmanage/mygate-surprise-delivery-morphe-patches",
+      "name": "Chaosmanage",
+      "author": "chaosmanage",
+      "patchCount": 1,
+      "targetApps": [
+        "com.mygate.user"
+      ],
+      "stars": 1,
+      "deepLink": "https://morphe.software/add-source?github=chaosmanage/mygate-surprise-delivery-morphe-patches"
     },
     {
       "repo": "CharlesAttend/beeper-morphe-patch",
@@ -1757,7 +1880,7 @@
       "targetApps": [
         "com.sauzask.nicoid"
       ],
-      "stars": 37,
+      "stars": 38,
       "deepLink": "https://morphe.software/add-source?github=chikuwadon/nicoid-re-patches"
     },
     {
@@ -1822,7 +1945,7 @@
       "targetApps": [
         "com.google.android.apps.youtube.vr.oculus"
       ],
-      "stars": 21,
+      "stars": 24,
       "deepLink": "https://morphe.software/add-source?github=commit-regrets/morphe-youtube-vr-patches"
     },
     {
@@ -1831,12 +1954,13 @@
       "url": "github.com/ComoEstaisAmigos/morphe-patches",
       "name": "ComoEstaisAmigos",
       "author": "ComoEstaisAmigos",
-      "patchCount": 16,
+      "patchCount": 22,
       "targetApps": [
         "com.glu.android.zombsniper",
-        "com.glu.ckzombies2"
+        "com.glu.ckzombies2",
+        "com.feelingtouch.crossx"
       ],
-      "stars": 0,
+      "stars": 1,
       "deepLink": "https://morphe.software/add-source?github=ComoEstaisAmigos/morphe-patches"
     },
     {
@@ -1871,7 +1995,7 @@
       "url": "github.com/CozyCode890/HoiTruyenChu-patches",
       "name": "CozyCode890",
       "author": "CozyCode890",
-      "patchCount": 7,
+      "patchCount": 10,
       "targetApps": [
         "com.ngoctieucac.itruyenchu"
       ],
@@ -1889,7 +2013,7 @@
         "com.twitter.android",
         "com.instagram.android"
       ],
-      "stars": 6063,
+      "stars": 6124,
       "deepLink": "https://morphe.software/add-source?github=crimera/piko"
     },
     {
@@ -1902,7 +2026,7 @@
       "targetApps": [
         "com.instagram.android"
       ],
-      "stars": 40,
+      "stars": 42,
       "deepLink": "https://morphe.software/add-source?github=crimera/piko-ig-lite"
     },
     {
@@ -1947,24 +2071,38 @@
       "deepLink": "https://morphe.software/add-source?github=d0nj/morphe-patches"
     },
     {
+      "repo": "d0r4nn/mergenv1-patches",
+      "source": "github",
+      "url": "github.com/d0r4nn/mergenv1-patches",
+      "name": "d0r4nn",
+      "author": "d0r4nn",
+      "patchCount": 1,
+      "targetApps": [
+        "com.zhiliaoapp.musically"
+      ],
+      "stars": 1,
+      "deepLink": "https://morphe.software/add-source?github=d0r4nn/mergenv1-patches"
+    },
+    {
       "repo": "Dan1elTheMan1el/Morphe-Patches",
       "source": "github",
       "url": "github.com/Dan1elTheMan1el/Morphe-Patches",
       "name": "DanielTheManiel",
       "author": "Dan1elTheMan1el",
-      "patchCount": 31,
+      "patchCount": 37,
       "targetApps": [
         "com.instagram.android",
         "me.pokeraid",
         "de.humbergsoftware.keyboarddesigner",
+        "net.tinywhale.remote",
         "com.google.android.youtube",
         "com.fitness.debugger",
         "com.nianticlabs.campfire",
         "com.cjin.pokegenie.standard",
         "com.izorg.munchkin",
-        "net.tinywhale.remote"
+        "com.google.android.apps.maps"
       ],
-      "stars": 6,
+      "stars": 8,
       "deepLink": "https://morphe.software/add-source?github=Dan1elTheMan1el/Morphe-Patches"
     },
     {
@@ -1997,6 +2135,20 @@
       ],
       "stars": 2,
       "deepLink": "https://morphe.software/add-source?github=daqot-The-real-one/morphe-patches"
+    },
+    {
+      "repo": "Darkaxt/morphe-patches",
+      "source": "github",
+      "url": "github.com/Darkaxt/morphe-patches",
+      "name": "Darkaxt",
+      "author": "Darkaxt",
+      "patchCount": 6,
+      "targetApps": [
+        "com.lima.doodlejump",
+        "de.application_systems.TheLonging"
+      ],
+      "stars": 1,
+      "deepLink": "https://morphe.software/add-source?github=Darkaxt/morphe-patches"
     },
     {
       "repo": "DasCarstel/yazio-patches",
@@ -2090,7 +2242,7 @@
         "io.github.jqssun.helium",
         "org.barebrowser"
       ],
-      "stars": 85,
+      "stars": 87,
       "deepLink": "https://morphe.software/add-source?github=dh6k/morphe-patches"
     },
     {
@@ -2128,6 +2280,19 @@
       "deepLink": "https://morphe.software/add-source?github=DigitalPals/johns-morphe-patches"
     },
     {
+      "repo": "diminDDL/ytm-ru-skippper",
+      "source": "github",
+      "url": "github.com/diminDDL/ytm-ru-skippper",
+      "name": "DiminDDL",
+      "author": "diminDDL",
+      "patchCount": 2,
+      "targetApps": [
+        "com.google.android.apps.youtube.music"
+      ],
+      "stars": 2,
+      "deepLink": "https://morphe.software/add-source?github=diminDDL/ytm-ru-skippper"
+    },
+    {
       "repo": "DiogoGra/morphe-patches",
       "source": "github",
       "url": "github.com/DiogoGra/morphe-patches",
@@ -2151,7 +2316,7 @@
         "com.google.android.apps.magazines",
         "com.ebay.kleinanzeigen"
       ],
-      "stars": 59,
+      "stars": 60,
       "deepLink": "https://morphe.software/add-source?github=docbt/patched-up"
     },
     {
@@ -2229,7 +2394,7 @@
       "targetApps": [
         "com.imperihome.lite"
       ],
-      "stars": 5,
+      "stars": 6,
       "deepLink": "https://morphe.software/add-source?github=drosoCode/morphe-patches"
     },
     {
@@ -2286,7 +2451,7 @@
         "com.ansangha.drdriving",
         "com.truecaller"
       ],
-      "stars": 19,
+      "stars": 21,
       "deepLink": "https://morphe.software/add-source?github=dunecache/oyasumi-patches"
     },
     {
@@ -2313,8 +2478,21 @@
         "com.mediocre.commute",
         "jp.firstascent.cryanalyzer"
       ],
-      "stars": 57,
+      "stars": 59,
       "deepLink": "https://morphe.software/add-source?github=durgesh0505/chiggi_morphe_patches"
+    },
+    {
+      "repo": "dusk-beep/morphe-patch",
+      "source": "github",
+      "url": "github.com/dusk-beep/morphe-patch",
+      "name": "Dusk-Beep",
+      "author": "dusk-beep",
+      "patchCount": 2,
+      "targetApps": [
+        "org.mozilla.firefox"
+      ],
+      "stars": 2,
+      "deepLink": "https://morphe.software/add-source?github=dusk-beep/morphe-patch"
     },
     {
       "repo": "DutchPharaoh/De-Waze-Patches",
@@ -2326,7 +2504,7 @@
       "targetApps": [
         "com.waze"
       ],
-      "stars": 3,
+      "stars": 2,
       "deepLink": "https://morphe.software/add-source?github=DutchPharaoh/De-Waze-Patches"
     },
     {
@@ -2365,7 +2543,7 @@
       "targetApps": [
         "com.tiktok.tv"
       ],
-      "stars": 4,
+      "stars": 5,
       "deepLink": "https://morphe.software/add-source?github=dzungtvd/morphe-androidtv-patches"
     },
     {
@@ -2396,7 +2574,7 @@
         "com.going.mobile",
         "com.innologica.inoreader"
       ],
-      "stars": 5,
+      "stars": 6,
       "deepLink": "https://morphe.software/add-source?gitlab=early.egg3707/ee-morphe-patches"
     },
     {
@@ -2490,6 +2668,19 @@
       "deepLink": "https://morphe.software/add-source?github=encarnian/gboard-enc-patches"
     },
     {
+      "repo": "EnesCevikdogan/LiquidMusic",
+      "source": "github",
+      "url": "github.com/EnesCevikdogan/LiquidMusic",
+      "name": "EnesCevikdogan",
+      "author": "EnesCevikdogan",
+      "patchCount": 3,
+      "targetApps": [
+        "com.apple.android.music"
+      ],
+      "stars": 2,
+      "deepLink": "https://morphe.software/add-source?github=EnesCevikdogan/LiquidMusic"
+    },
+    {
       "repo": "Entree3k/Morning-Entree-Patches",
       "source": "github",
       "url": "github.com/Entree3k/Morning-Entree-Patches",
@@ -2555,7 +2746,7 @@
         "eu.darken.bluemusic",
         "com.javiersantos.mlmanager"
       ],
-      "stars": 62,
+      "stars": 63,
       "deepLink": "https://morphe.software/add-source?github=Entree3k/Morning-Entree-Patches"
     },
     {
@@ -2595,8 +2786,34 @@
         "com.freereels.app",
         "com.mazii.dictionary"
       ],
-      "stars": 22,
+      "stars": 23,
       "deepLink": "https://morphe.software/add-source?github=epxec/android-patches"
+    },
+    {
+      "repo": "ErnestTrung/x-filter",
+      "source": "github",
+      "url": "github.com/ErnestTrung/x-filter",
+      "name": "ErnestTrung",
+      "author": "ErnestTrung",
+      "patchCount": 1,
+      "targetApps": [
+        "com.twitter.android"
+      ],
+      "stars": 0,
+      "deepLink": "https://morphe.software/add-source?github=ErnestTrung/x-filter"
+    },
+    {
+      "repo": "erobertsme/shatteredpixel-morphe-patches",
+      "source": "github",
+      "url": "github.com/erobertsme/shatteredpixel-morphe-patches",
+      "name": "Erobertsme",
+      "author": "erobertsme",
+      "patchCount": 11,
+      "targetApps": [
+        "com.shatteredpixel.shatteredpixeldungeon"
+      ],
+      "stars": 0,
+      "deepLink": "https://morphe.software/add-source?github=erobertsme/shatteredpixel-morphe-patches"
     },
     {
       "repo": "Error404rt/Anixart-patches",
@@ -2610,6 +2827,19 @@
       ],
       "stars": 7,
       "deepLink": "https://morphe.software/add-source?github=Error404rt/Anixart-patches"
+    },
+    {
+      "repo": "EryrizalH/Morphe-patch-Siagatani",
+      "source": "github",
+      "url": "github.com/EryrizalH/Morphe-patch-Siagatani",
+      "name": "EryrizalH",
+      "author": "EryrizalH",
+      "patchCount": 2,
+      "targetApps": [
+        "id.go.pertanian.epersonal"
+      ],
+      "stars": 1,
+      "deepLink": "https://morphe.software/add-source?github=EryrizalH/Morphe-patch-Siagatani"
     },
     {
       "repo": "ethan-manny/spotify-tv-crossfade",
@@ -2660,7 +2890,7 @@
       "targetApps": [
         "com.google.android.apps.maps"
       ],
-      "stars": 36,
+      "stars": 38,
       "deepLink": "https://morphe.software/add-source?github=fangkampanat/gmaps-patches"
     },
     {
@@ -2673,7 +2903,7 @@
       "targetApps": [
         "com.google.android.apps.maps"
       ],
-      "stars": 25,
+      "stars": 26,
       "deepLink": "https://morphe.software/add-source?github=fangkampanat/google-maps-automotive-patches"
     },
     {
@@ -2688,6 +2918,19 @@
       ],
       "stars": 2,
       "deepLink": "https://morphe.software/add-source?github=farbener/shuffle-plus-spotify"
+    },
+    {
+      "repo": "FarhanZafarr-9/myzong-patches",
+      "source": "github",
+      "url": "github.com/FarhanZafarr-9/myzong-patches",
+      "name": "FarhanZafarr-9",
+      "author": "FarhanZafarr-9",
+      "patchCount": 15,
+      "targetApps": [
+        "com.zong.customercare"
+      ],
+      "stars": 3,
+      "deepLink": "https://morphe.software/add-source?github=FarhanZafarr-9/myzong-patches"
     },
     {
       "repo": "feixiangdao/letterboxd-stremio-nuvio-morphe-patch",
@@ -2765,7 +3008,7 @@
       "targetApps": [
         "com.waze"
       ],
-      "stars": 13,
+      "stars": 16,
       "deepLink": "https://morphe.software/add-source?github=Forsigh/waze-patches"
     },
     {
@@ -2780,7 +3023,7 @@
         "com.poncle.vampiresurvivors",
         "com.ascent"
       ],
-      "stars": 3,
+      "stars": 4,
       "deepLink": "https://morphe.software/add-source?github=FoxxoOwO/foxxo-patches"
     },
     {
@@ -2807,7 +3050,7 @@
         "com.rawcam.app",
         "com.bolpatranepal.axios"
       ],
-      "stars": 28,
+      "stars": 30,
       "deepLink": "https://morphe.software/add-source?github=franticg33k/morphe-patches"
     },
     {
@@ -2833,7 +3076,7 @@
       "targetApps": [
         "jp.pxv.android"
       ],
-      "stars": 4,
+      "stars": 3,
       "deepLink": "https://morphe.software/add-source?github=Fripe070/PixivPatches"
     },
     {
@@ -2846,7 +3089,7 @@
       "targetApps": [
         "com.tuya.smartlife"
       ],
-      "stars": 5,
+      "stars": 4,
       "deepLink": "https://morphe.software/add-source?github=Fuku856/smartlife-patches"
     },
     {
@@ -2861,6 +3104,19 @@
       ],
       "stars": 2,
       "deepLink": "https://morphe.software/add-source?github=fynnaly/morphe-patches"
+    },
+    {
+      "repo": "Gagan-Pratap-S/GT-morphe-patches",
+      "source": "github",
+      "url": "github.com/Gagan-Pratap-S/GT-morphe-patches",
+      "name": "Gagan-Pratap-S",
+      "author": "Gagan-Pratap-S",
+      "patchCount": 3,
+      "targetApps": [
+        "com.google.android.dialer"
+      ],
+      "stars": 3,
+      "deepLink": "https://morphe.software/add-source?github=Gagan-Pratap-S/GT-morphe-patches"
     },
     {
       "repo": "GahahaWang/TWRailway-patch",
@@ -2885,8 +3141,21 @@
       "targetApps": [
         "com.google.android.GoogleCamera"
       ],
-      "stars": 6,
+      "stars": 7,
       "deepLink": "https://morphe.software/add-source?github=Gamer92000/pixelcamera-patches"
+    },
+    {
+      "repo": "georgewoodall82/eurowag-patches",
+      "source": "gitlab",
+      "url": "gitlab.com/georgewoodall82/eurowag-patches",
+      "name": "Georgewoodall82 Eurowag",
+      "author": "georgewoodall82",
+      "patchCount": 1,
+      "targetApps": [
+        "com.roadlords.android"
+      ],
+      "stars": 0,
+      "deepLink": "https://morphe.software/add-source?gitlab=georgewoodall82/eurowag-patches"
     },
     {
       "repo": "georgewoodall82/songsterr-patches",
@@ -2924,7 +3193,7 @@
       "targetApps": [
         "com.tomtom.gplay.navapp"
       ],
-      "stars": 0,
+      "stars": 1,
       "deepLink": "https://morphe.software/add-source?gitlab=georgewoodall82/tomtom-patches"
     },
     {
@@ -3029,7 +3298,7 @@
         "com.adguard.android",
         "com.apktools.app.decompile"
       ],
-      "stars": 27,
+      "stars": 31,
       "deepLink": "https://morphe.software/add-source?github=ginDoki19/GinArena-patch"
     },
     {
@@ -3051,19 +3320,19 @@
         "dev.goodwy.rphone",
         "com.krillsson.monitee"
       ],
-      "stars": 5,
+      "stars": 6,
       "deepLink": "https://morphe.software/add-source?github=GitGitro/Gitro-Morphe-Patches"
     },
     {
-      "repo": "gitmyasm/httpinjectorpatches",
+      "repo": "gitmyasm/Patches-",
       "source": "github",
-      "url": "github.com/gitmyasm/httpinjectorpatches",
+      "url": "github.com/gitmyasm/Patches-",
       "name": "Gitmyasm",
       "author": "gitmyasm",
       "patchCount": 0,
       "targetApps": [],
       "stars": 1,
-      "deepLink": "https://morphe.software/add-source?github=gitmyasm/httpinjectorpatches"
+      "deepLink": "https://morphe.software/add-source?github=gitmyasm/Patches-"
     },
     {
       "repo": "Globberry/morphe-patches",
@@ -3077,6 +3346,19 @@
       ],
       "stars": 4,
       "deepLink": "https://morphe.software/add-source?github=Globberry/morphe-patches"
+    },
+    {
+      "repo": "gogamid/morphed",
+      "source": "github",
+      "url": "github.com/gogamid/morphed",
+      "name": "Gogamid",
+      "author": "gogamid",
+      "patchCount": 1,
+      "targetApps": [
+        "de.rossmann.app.android"
+      ],
+      "stars": 0,
+      "deepLink": "https://morphe.software/add-source?github=gogamid/morphed"
     },
     {
       "repo": "GoldRift/morphe-patches",
@@ -3102,7 +3384,7 @@
       "targetApps": [
         "jp.naver.line.android"
       ],
-      "stars": 0,
+      "stars": 1,
       "deepLink": "https://morphe.software/add-source?github=gomjirak0803/line-notification-patches"
     },
     {
@@ -3115,7 +3397,7 @@
       "targetApps": [
         "com.twitter.android"
       ],
-      "stars": 0,
+      "stars": 1,
       "deepLink": "https://morphe.software/add-source?github=h19e8p/h19e8p-patches"
     },
     {
@@ -3124,14 +3406,15 @@
       "url": "github.com/HagiaHaya/morphe-patches",
       "name": "HagiaHaya",
       "author": "HagiaHaya",
-      "patchCount": 34,
+      "patchCount": 37,
       "targetApps": [
         "pl.wykop.droid",
         "com.tippingcanoe.pepperpl",
+        "com.citynav.jakdojade.pl.android",
         "com.Slack",
         "com.pixel.art.coloring.color.number"
       ],
-      "stars": 3,
+      "stars": 4,
       "deepLink": "https://morphe.software/add-source?github=HagiaHaya/morphe-patches"
     },
     {
@@ -3144,7 +3427,7 @@
       "targetApps": [
         "com.mojang.minecraftpe"
       ],
-      "stars": 5,
+      "stars": 6,
       "deepLink": "https://morphe.software/add-source?github=hajs110208/morphe-patches"
     },
     {
@@ -3159,6 +3442,19 @@
       ],
       "stars": 4,
       "deepLink": "https://morphe.software/add-source?github=hammadhassan94/ary-live"
+    },
+    {
+      "repo": "HaoDH/vbook-patche",
+      "source": "github",
+      "url": "github.com/HaoDH/vbook-patche",
+      "name": "HaoDH",
+      "author": "HaoDH",
+      "patchCount": 2,
+      "targetApps": [
+        "com.vbook.android"
+      ],
+      "stars": 2,
+      "deepLink": "https://morphe.software/add-source?github=HaoDH/vbook-patche"
     },
     {
       "repo": "hashtagbasit/aimal-patches",
@@ -3186,8 +3482,21 @@
       "targetApps": [
         "jp.gocro.smartnews.android"
       ],
-      "stars": 3,
+      "stars": 4,
       "deepLink": "https://morphe.software/add-source?github=haukist/morphe-patches-smartnews"
+    },
+    {
+      "repo": "havaem/Gboard-patches",
+      "source": "github",
+      "url": "github.com/havaem/Gboard-patches",
+      "name": "Havaem",
+      "author": "havaem",
+      "patchCount": 48,
+      "targetApps": [
+        "com.google.android.inputmethod.latin"
+      ],
+      "stars": 0,
+      "deepLink": "https://morphe.software/add-source?github=havaem/Gboard-patches"
     },
     {
       "repo": "haya9924/box_md_preview",
@@ -3221,7 +3530,7 @@
       "url": "github.com/HellLord77/media-patches",
       "name": "Media",
       "author": "HellLord77",
-      "patchCount": 64,
+      "patchCount": 67,
       "targetApps": [
         "com.addatimes.Addatimes",
         "com.bongo.bongobd",
@@ -3256,8 +3565,21 @@
       "targetApps": [
         "com.sankakucomplex.channel.black"
       ],
-      "stars": 13,
+      "stars": 14,
       "deepLink": "https://morphe.software/add-source?github=HellveticaStandard/HellveticaPatches"
+    },
+    {
+      "repo": "heltonricardo/morphe-patches",
+      "source": "github",
+      "url": "github.com/heltonricardo/morphe-patches",
+      "name": "Heltonricardo",
+      "author": "heltonricardo",
+      "patchCount": 1,
+      "targetApps": [
+        "com.waze"
+      ],
+      "stars": 0,
+      "deepLink": "https://morphe.software/add-source?github=heltonricardo/morphe-patches"
     },
     {
       "repo": "hemk651/meta-patches",
@@ -3265,7 +3587,7 @@
       "url": "github.com/hemk651/meta-patches",
       "name": "Hemk651",
       "author": "hemk651",
-      "patchCount": 8,
+      "patchCount": 9,
       "targetApps": [
         "com.instagram.android",
         "com.instagram.moonshot"
@@ -3302,7 +3624,7 @@
       "url": "github.com/heval99/Heval-Morphe-Patches",
       "name": "Heval",
       "author": "heval99",
-      "patchCount": 337,
+      "patchCount": 353,
       "targetApps": [
         "eu.livesport.FlashScore_com",
         "com.mobilefootie.wc2010",
@@ -3387,6 +3709,7 @@
         "bitpit.launcher",
         "com.nordiskfilmplus.android",
         "com.shazam.android",
+        "ginlemon.flowerfree",
         "dk.tv2.tv2play",
         "mark.via.gp",
         "com.viaplay.android",
@@ -3408,23 +3731,13 @@
         "com.getupnote.android",
         "eu.faircode.email",
         "com.jetappfactory.jetaudio",
-        "com.wunderground.android.weather"
+        "com.wunderground.android.weather",
+        "com.l",
+        "com.outfit7.mytalkingtomfree",
+        "com.outfit7.mytalkingtom2"
       ],
-      "stars": 120,
+      "stars": 127,
       "deepLink": "https://morphe.software/add-source?github=heval99/Heval-Morphe-Patches"
-    },
-    {
-      "repo": "hexberk/VK-IM",
-      "source": "github",
-      "url": "github.com/hexberk/VK-IM",
-      "name": "Hexberk",
-      "author": "hexberk",
-      "patchCount": 9,
-      "targetApps": [
-        "com.vk.im"
-      ],
-      "stars": 1,
-      "deepLink": "https://morphe.software/add-source?github=hexberk/VK-IM"
     },
     {
       "repo": "Hexclyde/bitchord-morphe-patches",
@@ -3436,7 +3749,7 @@
       "targetApps": [
         "com.music.bitchord"
       ],
-      "stars": 39,
+      "stars": 42,
       "deepLink": "https://morphe.software/add-source?github=Hexclyde/bitchord-morphe-patches"
     },
     {
@@ -3539,11 +3852,11 @@
       "url": "github.com/HvQ/eksi-morphe",
       "name": "Ek\u015fi",
       "author": "HvQ",
-      "patchCount": 2,
+      "patchCount": 3,
       "targetApps": [
         "com.eksiteknoloji.eksisozluk"
       ],
-      "stars": 13,
+      "stars": 14,
       "deepLink": "https://morphe.software/add-source?github=HvQ/eksi-morphe"
     },
     {
@@ -3565,7 +3878,7 @@
       "url": "github.com/hxreborn/morphe-patches",
       "name": "Hxreborn",
       "author": "hxreborn",
-      "patchCount": 592,
+      "patchCount": 640,
       "targetApps": [
         "com.bittorrent.client",
         "apps.automan.blurwallpaper",
@@ -3580,7 +3893,9 @@
         "proton.android.authenticator",
         "ch.protonmail.android",
         "proton.android.pass",
+        "proton.android.pass.fdroid",
         "ch.protonvpn.android",
+        "ch.protonvpn.android.reproducible",
         "com.realme.link",
         "com.michaldrabik.showly2",
         "com.utorrent.client",
@@ -3590,14 +3905,16 @@
         "com.king.blossomblast",
         "com.king.candycrushsaga",
         "com.king.candycrushsodasaga",
-        "com.community.oneroom",
-        "com.community.mbox.tv",
+        "com.microsoft.office.outlook",
         "com.allformatplayer.streamvideoplayer",
         "com.taobao.idlefish",
+        "ru.zdevs.zarchiver",
         "com.bereal.ft",
         "com.gstarmc.android",
         "net.techet.netanalyzerlite.an",
         "com.dubox.drive",
+        "com.musclewiki.macro",
+        "com.community.mbox.tv",
         "com.athan",
         "com.viber.voip",
         "com.patreon.android",
@@ -3622,6 +3939,7 @@
         "com.internet.speed.meter.lite",
         "com.hardcodedjoy.iototoy",
         "com.keepa.mobile",
+        "com.magicposernew",
         "com.flyersoft.moonreader",
         "com.soulbreakers.mymoveset",
         "com.myscript.math",
@@ -3631,7 +3949,6 @@
         "com.pixlr.express",
         "com.pleco.chinesesystem",
         "com.poe.android",
-        "com.spocky.projengmenu",
         "com.cardfeed.video_public",
         "com.radiojavan.androidradio",
         "com.serializdmobile",
@@ -3644,9 +3961,11 @@
         "com.watchit.vod",
         "me.aap.fermatamod.dear.google.why.bingo2.rec",
         "com.external.castle",
+        "com.community.oneroom",
         "com.free.vpn.super.hotspot.open",
         "com.connected2.ozzy.c2m",
         "com.thesortdapp.sortd",
+        "com.audiomack",
         "org.quantumbadger.redreader",
         "org.quantumbadger.redreaderalpha",
         "com.sparkine.widgets",
@@ -3654,7 +3973,6 @@
         "all.in.one.calculator",
         "com.getaloa.app",
         "com.oneletters.audiobooksai",
-        "com.audiomack",
         "com.biobird.exvee",
         "com.biwenger.app",
         "com.androholic.wallpapersdepthpix",
@@ -3666,7 +3984,6 @@
         "com.lingodeer",
         "net.mangatime.app",
         "com.halalfire.medicneet",
-        "com.musclewiki.macro",
         "com.lernr.app",
         "com.gooded.essential",
         "com.nextdoor",
@@ -3678,6 +3995,7 @@
         "com.ultimateguitar.tabs",
         "wp.wattpad",
         "com.lonelycatgames.Xplore",
+        "io.yuka.android",
         "com.etsy.android",
         "com.gamma.scan",
         "de.prosiebensat1digital.seventv",
@@ -3687,25 +4005,30 @@
         "com.yunyi.smartcamera",
         "com.audible.application",
         "flar2.devcheck",
+        "jp.co.celsys.clipstudiopaint.googleplay",
         "me.proton.android.lumo",
         "com.streetwriters.notesnook",
         "com.nieruo.healthapp",
-        "jp.co.celsys.clipstudiopaint.googleplay",
         "com.gxnet.castle.indiatv",
+        "com.theemulator.citra",
+        "com.exiftool.free",
         "com.vblast.flipaclip",
+        "com.gsmarena.android",
         "ru.ok.android",
+        "com.itunestoppodcastplayer.app",
         "ridmik.keyboard",
         "com.tunneldoom.http",
         "in.krosbits.castplugin",
         "com.reworewo.prayertimes",
+        "com.folderv.file",
         "com.ivoox.app",
         "ringtonemaker.musiccutter.customringtones.freeringtonemaker",
         "to.freedom.android2",
-        "io.yuka.android",
         "com.withopal.opal",
         "com.phlox.simpleserver.marketless",
         "com.shervinkoushan.anyTracker",
         "ltd.anti.clink",
+        "wtf.riedel.onesec",
         "org.withouthat.acalendar",
         "com.gymbros.app",
         "psyberia.alpinequest.free",
@@ -3716,13 +4039,17 @@
         "com.neonbhoot.behisabi",
         "ipnossoft.rma.free",
         "com.azeravn.bulletjournal",
+        "com.stervs.chessscanner",
         "tech.coddy.coddyapp",
         "com.hapibits.soundlift",
         "com.liori.echogram",
         "com.performance.meshview",
         "com.fddb",
+        "com.filmish.android",
         "com.myvitale.forus",
         "com.jndapp.glass.widgets",
+        "com.caynax.hourlychime",
+        "com.brakefield.painter",
         "de.klassikradio.app",
         "com.unbrokensoftware.launchbox",
         "com.ledblinker",
@@ -3733,8 +4060,10 @@
         "com.andatsoft.myapk.fwa",
         "com.orion.notein.global",
         "com.one4studio.one4home",
+        "com.emanuelef.remote_capture",
         "com.lbrc.PeriodCalendar",
         "io.lightray.photone",
+        "com.maxmpz.equalizer",
         "app.privacynotes",
         "com.psiphon3.subscription",
         "com.mchutov.Quranify",
@@ -3748,6 +4077,7 @@
         "vpn.usa_tap2free",
         "india.vpn_tap2free",
         "videoeditor.videomaker.videoeditorforyoutube",
+        "kr.co.devstory.vocat",
         "com.stresscodes.wallp",
         "com.wetter.androidclient",
         "pl.neptis.yanosik.mobi.android",
@@ -3756,7 +4086,7 @@
         "com.quickcursor",
         "com.classdojo.android"
       ],
-      "stars": 425,
+      "stars": 459,
       "deepLink": "https://morphe.software/add-source?github=hxreborn/morphe-patches"
     },
     {
@@ -3791,20 +4121,33 @@
         "dk.tacit.android.foldersync.lite",
         "com.spocky.projengmenu"
       ],
-      "stars": 8,
+      "stars": 9,
       "deepLink": "https://morphe.software/add-source?github=hyzor/hyzor-morphe-patches"
+    },
+    {
+      "repo": "iAmGodKiller/M3-Redesign",
+      "source": "github",
+      "url": "github.com/iAmGodKiller/M3-Redesign",
+      "name": "iAmGodKiller",
+      "author": "iAmGodKiller",
+      "patchCount": 1,
+      "targetApps": [
+        "com.google.android.apps.youtube.music"
+      ],
+      "stars": 0,
+      "deepLink": "https://morphe.software/add-source?github=iAmGodKiller/M3-Redesign"
     },
     {
       "repo": "icysymmetra/tiktok-patches-for-morphe",
       "source": "github",
       "url": "github.com/icysymmetra/tiktok-patches-for-morphe",
-      "name": "Metra TikTok",
+      "name": "Metra",
       "author": "icysymmetra",
       "patchCount": 136,
       "targetApps": [
         "com.zhiliaoapp.musically"
       ],
-      "stars": 474,
+      "stars": 480,
       "deepLink": "https://morphe.software/add-source?github=icysymmetra/tiktok-patches-for-morphe"
     },
     {
@@ -3813,7 +4156,7 @@
       "url": "github.com/ihatenodejs/aidans-patches",
       "name": "Aidan",
       "author": "ihatenodejs",
-      "patchCount": 80,
+      "patchCount": 88,
       "targetApps": [
         "com.sidelineswap.android",
         "com.aftership.AfterShip",
@@ -3828,9 +4171,11 @@
         "com.adobe.reader",
         "com.creditkarma.mobile",
         "com.eumlab.android.prometronome",
-        "com.eab.se"
+        "com.eab.se",
+        "com.bigduckgames.flow",
+        "vo.threes.free"
       ],
-      "stars": 15,
+      "stars": 16,
       "deepLink": "https://morphe.software/add-source?github=ihatenodejs/aidans-patches"
     },
     {
@@ -3907,7 +4252,7 @@
       "url": "gitlab.com/IMXEren/mix-patches",
       "name": "Mix",
       "author": "IMXEren",
-      "patchCount": 48,
+      "patchCount": 50,
       "targetApps": [
         "org.cris.aikyam",
         "com.ipay.mobile",
@@ -3961,7 +4306,7 @@
         "ch.protonvpn.android",
         "com.microsoft.office.word"
       ],
-      "stars": 27,
+      "stars": 32,
       "deepLink": "https://morphe.software/add-source?github=ineednotitle/Proteus-Patches"
     },
     {
@@ -3988,7 +4333,7 @@
         "org.fdroid.fdroid",
         "com.merkury.geeni.morphe"
       ],
-      "stars": 4,
+      "stars": 3,
       "deepLink": "https://morphe.software/add-source?github=ispacecase/patchweaver"
     },
     {
@@ -4003,6 +4348,19 @@
       ],
       "stars": 3,
       "deepLink": "https://morphe.software/add-source?github=isuruhg/cricinfo-tweaks"
+    },
+    {
+      "repo": "itnaegele/mobile-de-morphe-patches",
+      "source": "github",
+      "url": "github.com/itnaegele/mobile-de-morphe-patches",
+      "name": "itnaegele",
+      "author": "itnaegele",
+      "patchCount": 7,
+      "targetApps": [
+        "de.mobile.android.app"
+      ],
+      "stars": 1,
+      "deepLink": "https://morphe.software/add-source?github=itnaegele/mobile-de-morphe-patches"
     },
     {
       "repo": "jackblk/morphe-patches",
@@ -4027,7 +4385,7 @@
       "targetApps": [
         "com.google.android.inputmethod.latin"
       ],
-      "stars": 17,
+      "stars": 18,
       "deepLink": "https://morphe.software/add-source?github=JacksonJones2003/immersive-keyboard-patches"
     },
     {
@@ -4036,7 +4394,7 @@
       "url": "github.com/JacksonJones2003/origin-island-patches",
       "name": "JacksonJones2003",
       "author": "JacksonJones2003",
-      "patchCount": 8,
+      "patchCount": 9,
       "targetApps": [
         "com.google.android.youtube",
         "com.google.android.apps.youtube.music",
@@ -4084,34 +4442,8 @@
         "com.flightradar24free",
         "com.caltopo.android"
       ],
-      "stars": 2,
+      "stars": 3,
       "deepLink": "https://morphe.software/add-source?github=jagjordi/morphe-patches"
-    },
-    {
-      "repo": "jair1c/farotv-patches",
-      "source": "github",
-      "url": "github.com/jair1c/farotv-patches",
-      "name": "Jair1c FaroTV",
-      "author": "jair1c",
-      "patchCount": 9,
-      "targetApps": [
-        "com.google.android.youtube.tv"
-      ],
-      "stars": 6,
-      "deepLink": "https://morphe.software/add-source?github=jair1c/farotv-patches"
-    },
-    {
-      "repo": "jair1c/tiktok-lite-patches",
-      "source": "github",
-      "url": "github.com/jair1c/tiktok-lite-patches",
-      "name": "Jair1c TikTok",
-      "author": "jair1c",
-      "patchCount": 2,
-      "targetApps": [
-        "com.zhiliaoapp.musically.go"
-      ],
-      "stars": 0,
-      "deepLink": "https://morphe.software/add-source?github=jair1c/tiktok-lite-patches"
     },
     {
       "repo": "jancerny2001/morphe-patches",
@@ -4179,7 +4511,7 @@
       "targetApps": [
         "com.google.android.inputmethod.latin"
       ],
-      "stars": 1150,
+      "stars": 1185,
       "deepLink": "https://morphe.software/add-source?github=jasonwu1994/Gboard-patches"
     },
     {
@@ -4244,7 +4576,7 @@
       "targetApps": [
         "com.samsung.android.app.notes"
       ],
-      "stars": 4,
+      "stars": 5,
       "deepLink": "https://morphe.software/add-source?github=jibon-k/notes-morphe-patches"
     },
     {
@@ -4329,30 +4661,27 @@
       "deepLink": "https://morphe.software/add-source?github=joelmzj/cyberjoe"
     },
     {
-      "repo": "JoFSlash/google-health-patches",
+      "repo": "JoFSlash/morphe-patches",
       "source": "github",
-      "url": "github.com/JoFSlash/google-health-patches",
-      "name": "JoFSlash Health",
+      "url": "github.com/JoFSlash/morphe-patches",
+      "name": "JoFSlash",
       "author": "JoFSlash",
-      "patchCount": 12,
+      "patchCount": 179,
       "targetApps": [
-        "com.fitbit.FitbitMobile"
+        "com.quora.android",
+        "com.booking",
+        "com.fitbit.FitbitMobile",
+        "com.imdb.mobile",
+        "cz.psc.android.kaloricketabulky",
+        "com.l",
+        "org.zwanoo.android.speedtest",
+        "org.wikipedia",
+        "com.yallagroup.yallashoot",
+        "com.google.android.apps.youtube.kids",
+        "com.crypter.cryptocyrrency"
       ],
-      "stars": 1,
-      "deepLink": "https://morphe.software/add-source?github=JoFSlash/google-health-patches"
-    },
-    {
-      "repo": "JoFSlash/quora-patches",
-      "source": "github",
-      "url": "github.com/JoFSlash/quora-patches",
-      "name": "JoFSlash Quora",
-      "author": "JoFSlash",
-      "patchCount": 67,
-      "targetApps": [
-        "com.quora.android"
-      ],
-      "stars": 4,
-      "deepLink": "https://morphe.software/add-source?github=JoFSlash/quora-patches"
+      "stars": 8,
+      "deepLink": "https://morphe.software/add-source?github=JoFSlash/morphe-patches"
     },
     {
       "repo": "Johannes7k75/gemini-work-profile-patches",
@@ -4374,10 +4703,11 @@
       "url": "gitlab.com/johninnld/nl-morphe-patches",
       "name": "JohnInNL",
       "author": "johninnld",
-      "patchCount": 391,
+      "patchCount": 444,
       "targetApps": [
         "com.google.android.apps.maps",
         "com.google.android.inputmethod.latin",
+        "com.jamworks.dynamicspot",
         "app.wuplay.android",
         "com.parkmobile",
         "com.waze",
@@ -4391,6 +4721,8 @@
         "net.easypark.android",
         "com.generalmagic.magicearth",
         "com.aspiro.tidal",
+        "com.xatori.Plugshare",
+        "com.eclipse.android",
         "be.persgroep.android.news.mobilead",
         "be.persgroep.android.news.mobiledm",
         "be.persgroep.android.news.mobilehln",
@@ -4408,6 +4740,8 @@
         "io.github.artcraftandroid.pdfcraft",
         "io.github.jqssun.helium",
         "io.github.artcraftandroid.wordcraft",
+        "com.cronometer.android.gold",
+        "com.douglas.upflix",
         "com.bol.shop",
         "nl.rtl.rtlnieuws",
         "com.supportware.Buienradar",
@@ -4416,6 +4750,8 @@
         "com.alibaba.aliexpresshd",
         "com.soundcloud.android",
         "com.medium.reader",
+        "com.rovio.baba",
+        "com.rovio.angrybirdsfriends",
         "com.vectorunit.purple.googleplay",
         "nl.omroepbrabant.android",
         "nl.bright.pro",
@@ -4438,6 +4774,7 @@
         "com.spocky.projengmenu",
         "com.lucky_apps.RainViewer",
         "com.dennisk.rollerbank",
+        "com.hitcents.drawastickmanepic3",
         "com.eoffice.android",
         "com.mecom.tctubantia.nl",
         "nl.tvgids",
@@ -4449,11 +4786,12 @@
         "nl.rtl.videoland.v2",
         "com.google.android.apps.youtube.music",
         "com.klevico.monet",
+        "com.google.android.apps.automotive.gamesnacks",
         "app.wuplay.androidtv",
         "app.vela",
         "com.overdevs.at4k"
       ],
-      "stars": 9,
+      "stars": 12,
       "deepLink": "https://morphe.software/add-source?gitlab=johninnld/nl-morphe-patches"
     },
     {
@@ -4467,7 +4805,7 @@
         "com.waze",
         "com.google.android.apps.maps"
       ],
-      "stars": 1,
+      "stars": 2,
       "deepLink": "https://morphe.software/add-source?github=Johnnycyan/waze-morphe-patches"
     },
     {
@@ -4495,7 +4833,7 @@
         "com.rumble.battles",
         "tv.twitch.android.app"
       ],
-      "stars": 46,
+      "stars": 47,
       "deepLink": "https://morphe.software/add-source?github=jordanwoodson/lurk-morphe-patches"
     },
     {
@@ -4508,8 +4846,21 @@
       "targetApps": [
         "com.laurencedawson.reddit_sync"
       ],
-      "stars": 13,
+      "stars": 14,
       "deepLink": "https://morphe.software/add-source?github=Joristdh/Platypatch"
+    },
+    {
+      "repo": "josselinonduty/morphe-patches",
+      "source": "github",
+      "url": "github.com/josselinonduty/morphe-patches",
+      "name": "Josselinonduty",
+      "author": "josselinonduty",
+      "patchCount": 10,
+      "targetApps": [
+        "com.snapchat.android"
+      ],
+      "stars": 1,
+      "deepLink": "https://morphe.software/add-source?github=josselinonduty/morphe-patches"
     },
     {
       "repo": "jrddupont/discord-patches",
@@ -4548,7 +4899,7 @@
       "targetApps": [
         "com.facebook.katana"
       ],
-      "stars": 2,
+      "stars": 3,
       "deepLink": "https://morphe.software/add-source?github=Just-a-lurker/facebook-morphe-patches"
     },
     {
@@ -4561,7 +4912,7 @@
       "targetApps": [
         "com.google.android.inputmethod.latin"
       ],
-      "stars": 45,
+      "stars": 46,
       "deepLink": "https://morphe.software/add-source?github=JZ6/Flexboard"
     },
     {
@@ -4730,6 +5081,19 @@
       "deepLink": "https://morphe.software/add-source?github=Kenny201/medium-morphe-patches"
     },
     {
+      "repo": "kennyric/byd-maps-patches",
+      "source": "github",
+      "url": "github.com/kennyric/byd-maps-patches",
+      "name": "Kennyric",
+      "author": "kennyric",
+      "patchCount": 34,
+      "targetApps": [
+        "com.google.android.apps.maps"
+      ],
+      "stars": 2,
+      "deepLink": "https://morphe.software/add-source?github=kennyric/byd-maps-patches"
+    },
+    {
       "repo": "Kero309x/Kero309x-patches",
       "source": "github",
       "url": "github.com/Kero309x/Kero309x-patches",
@@ -4810,7 +5174,7 @@
         "jp.pxv.android",
         "io.github.sds100.keymapper"
       ],
-      "stars": 76,
+      "stars": 77,
       "deepLink": "https://morphe.software/add-source?github=kiraio-moe/Lain-Patches"
     },
     {
@@ -4829,8 +5193,21 @@
         "hidratenow.com.hidrate.hidrateandroid",
         "uk.gov.metoffice.weather.android"
       ],
-      "stars": 3,
+      "stars": 4,
       "deepLink": "https://morphe.software/add-source?github=Kirby1997/morphe-patches"
+    },
+    {
+      "repo": "kirihime9/morphe-patches",
+      "source": "github",
+      "url": "github.com/kirihime9/morphe-patches",
+      "name": "Kirihime9",
+      "author": "kirihime9",
+      "patchCount": 1,
+      "targetApps": [
+        "tomka.lockmyphone"
+      ],
+      "stars": 1,
+      "deepLink": "https://morphe.software/add-source?github=kirihime9/morphe-patches"
     },
     {
       "repo": "Kirkland-Pickles/Gboard-offline-morphe",
@@ -4842,7 +5219,7 @@
       "targetApps": [
         "com.google.android.inputmethod.latin"
       ],
-      "stars": 2,
+      "stars": 3,
       "deepLink": "https://morphe.software/add-source?github=Kirkland-Pickles/Gboard-offline-morphe"
     },
     {
@@ -4859,30 +5236,6 @@
       "deepLink": "https://morphe.software/add-source?github=kljjh/flyme-lyrics-patches"
     },
     {
-      "repo": "kmru/nai64extrapatches",
-      "source": "gitlab",
-      "url": "gitlab.com/kmru/nai64extrapatches",
-      "name": "Nai64 Extra",
-      "author": "kmru",
-      "patchCount": 432,
-      "targetApps": [
-        "com.bandcamp.android"
-      ],
-      "stars": 33,
-      "deepLink": "https://morphe.software/add-source?gitlab=kmru/nai64extrapatches"
-    },
-    {
-      "repo": "kmru/nai64patches",
-      "source": "gitlab",
-      "url": "gitlab.com/kmru/nai64patches",
-      "name": "Nai64",
-      "author": "kmru",
-      "patchCount": 5,
-      "targetApps": [],
-      "stars": 33,
-      "deepLink": "https://morphe.software/add-source?gitlab=kmru/nai64patches"
-    },
-    {
       "repo": "kolaron/morphe-patches",
       "source": "github",
       "url": "github.com/kolaron/morphe-patches",
@@ -4892,7 +5245,7 @@
       "targetApps": [
         "cz.mafra.jizdnirady"
       ],
-      "stars": 13,
+      "stars": 14,
       "deepLink": "https://morphe.software/add-source?github=kolaron/morphe-patches"
     },
     {
@@ -4914,7 +5267,7 @@
         "com.brightstripe.parcels",
         "com.yazio.android"
       ],
-      "stars": 42,
+      "stars": 43,
       "deepLink": "https://morphe.software/add-source?github=kondratjev/morphe-patches"
     },
     {
@@ -4944,60 +5297,6 @@
       "deepLink": "https://morphe.software/add-source?github=kurageno8156-lgtm/tiktok-lite-patches"
     },
     {
-      "repo": "kveld9/brave-patches",
-      "source": "github",
-      "url": "github.com/kveld9/brave-patches",
-      "name": "Kveld9 Brave",
-      "author": "kveld9",
-      "patchCount": 115,
-      "targetApps": [
-        "com.zhiliaoapp.musically",
-        "com.tiktok.lite.go",
-        "com.google.android.inputmethod.latin",
-        "com.brave.browser"
-      ],
-      "stars": 187,
-      "deepLink": "https://morphe.software/add-source?github=kveld9/brave-patches"
-    },
-    {
-      "repo": "kveld9/kveld-extra-morphe-patches",
-      "source": "github",
-      "url": "github.com/kveld9/kveld-extra-morphe-patches",
-      "name": "Kveld9 Extra",
-      "author": "kveld9",
-      "patchCount": 53,
-      "targetApps": [
-        "com.instagram.android",
-        "com.twitter.android",
-        "com.nokoprint",
-        "com.lemon.lvoverseas",
-        "com.tranzmate",
-        "com.sube.app",
-        "com.hevy",
-        "com.mi.earphone",
-        "jp.ne.ibis.ibispaintx.app",
-        "eu.darken.sdmse"
-      ],
-      "stars": 46,
-      "deepLink": "https://morphe.software/add-source?github=kveld9/kveld-extra-morphe-patches"
-    },
-    {
-      "repo": "kveld9/kveld-morphe-patches",
-      "source": "github",
-      "url": "github.com/kveld9/kveld-morphe-patches",
-      "name": "Kveld9",
-      "author": "kveld9",
-      "patchCount": 115,
-      "targetApps": [
-        "com.zhiliaoapp.musically",
-        "com.tiktok.lite.go",
-        "com.google.android.inputmethod.latin",
-        "com.brave.browser"
-      ],
-      "stars": 187,
-      "deepLink": "https://morphe.software/add-source?github=kveld9/kveld-morphe-patches"
-    },
-    {
       "repo": "kyurem39/mpvEx-patches",
       "source": "github",
       "url": "github.com/kyurem39/mpvEx-patches",
@@ -5007,8 +5306,34 @@
       "targetApps": [
         "app.marlboroadvance.mpvex"
       ],
-      "stars": 3,
+      "stars": 4,
       "deepLink": "https://morphe.software/add-source?github=kyurem39/mpvEx-patches"
+    },
+    {
+      "repo": "KyVexo/farotv-patches",
+      "source": "github",
+      "url": "github.com/KyVexo/farotv-patches",
+      "name": "FaroTV",
+      "author": "KyVexo",
+      "patchCount": 9,
+      "targetApps": [
+        "com.google.android.youtube.tv"
+      ],
+      "stars": 7,
+      "deepLink": "https://morphe.software/add-source?github=KyVexo/farotv-patches"
+    },
+    {
+      "repo": "KyVexo/tiktok-lite-patches",
+      "source": "github",
+      "url": "github.com/KyVexo/tiktok-lite-patches",
+      "name": "KyVexo TikTok Lite",
+      "author": "KyVexo",
+      "patchCount": 12,
+      "targetApps": [
+        "com.zhiliaoapp.musically.go"
+      ],
+      "stars": 1,
+      "deepLink": "https://morphe.software/add-source?github=KyVexo/tiktok-lite-patches"
     },
     {
       "repo": "LaBlazer/morphe-patches",
@@ -5035,22 +5360,8 @@
         "com.instapaper.android",
         "com.jndapp.depth.live.wallpaper"
       ],
-      "stars": 14,
+      "stars": 15,
       "deepLink": "https://morphe.software/add-source?github=LaKakaReal/LaKakaShitPatches"
-    },
-    {
-      "repo": "lamphung-phuc/nmax-patches",
-      "source": "github",
-      "url": "github.com/lamphung-phuc/nmax-patches",
-      "name": "Lamphung-Phuc",
-      "author": "lamphung-phuc",
-      "patchCount": 9,
-      "targetApps": [
-        "com.google.android.apps.maps",
-        "com.waze"
-      ],
-      "stars": 2,
-      "deepLink": "https://morphe.software/add-source?github=lamphung-phuc/nmax-patches"
     },
     {
       "repo": "lchanc3/morphe-patches",
@@ -5073,7 +5384,7 @@
       "url": "github.com/legendsciber/morphe-patches",
       "name": "Legendsciber",
       "author": "legendsciber",
-      "patchCount": 45,
+      "patchCount": 44,
       "targetApps": [
         "com.maxgames.aow2",
         "com.wave.aphelion",
@@ -5098,7 +5409,7 @@
         "com.block.juggle",
         "com.nekki.shadowfight"
       ],
-      "stars": 19,
+      "stars": 20,
       "deepLink": "https://morphe.software/add-source?github=legendsciber/morphe-patches"
     },
     {
@@ -5124,7 +5435,7 @@
       "targetApps": [
         "com.discord"
       ],
-      "stars": 4,
+      "stars": 5,
       "deepLink": "https://morphe.software/add-source?github=lildanlid1/Cordly"
     },
     {
@@ -5199,16 +5510,20 @@
       "url": "github.com/lokesh-sparrow/loki-patches",
       "name": "Loki",
       "author": "lokesh-sparrow",
-      "patchCount": 46,
+      "patchCount": 54,
       "targetApps": [
         "com.Splitwise.SplitwiseMobile",
         "com.linkedin.android",
         "com.mxtech.videoplayer.pro",
         "com.cv.docscanner",
         "com.truecaller",
-        "com.google.android.apps.photos"
+        "com.google.android.apps.photos",
+        "idm.internet.download.manager",
+        "com.dv.adm",
+        "com.metalsoft.trackchecker_mobile",
+        "net.dinglisch.android.taskerm"
       ],
-      "stars": 90,
+      "stars": 91,
       "deepLink": "https://morphe.software/add-source?github=lokesh-sparrow/loki-patches"
     },
     {
@@ -5221,7 +5536,7 @@
       "targetApps": [
         "com.soundcloud.android"
       ],
-      "stars": 3,
+      "stars": 2,
       "deepLink": "https://morphe.software/add-source?github=longthree1/morphe-patches"
     },
     {
@@ -5247,7 +5562,7 @@
       "targetApps": [
         "com.soundcloud.android"
       ],
-      "stars": 3,
+      "stars": 4,
       "deepLink": "https://morphe.software/add-source?github=lootdev78/psylos-morphe-patches"
     },
     {
@@ -5256,7 +5571,7 @@
       "url": "github.com/lopikss/lopikss-patches",
       "name": "Lopikss",
       "author": "lopikss",
-      "patchCount": 15,
+      "patchCount": 16,
       "targetApps": [
         "io.supercent.weaponrpg"
       ],
@@ -5303,6 +5618,19 @@
       "deepLink": "https://morphe.software/add-source?github=LuckyTheCookie/unison-morphe-patches"
     },
     {
+      "repo": "Lumi-01/dcinside-personal-patches",
+      "source": "github",
+      "url": "github.com/Lumi-01/dcinside-personal-patches",
+      "name": "Lumi-01",
+      "author": "Lumi-01",
+      "patchCount": 5,
+      "targetApps": [
+        "com.dcinside.app.android"
+      ],
+      "stars": 0,
+      "deepLink": "https://morphe.software/add-source?github=Lumi-01/dcinside-personal-patches"
+    },
+    {
       "repo": "luvztroy/muse-patches",
       "source": "github",
       "url": "github.com/luvztroy/muse-patches",
@@ -5321,7 +5649,7 @@
       "url": "github.com/M1zir/swiftkey-clipboard-patches",
       "name": "M1zir",
       "author": "M1zir",
-      "patchCount": 5,
+      "patchCount": 6,
       "targetApps": [
         "com.touchtype.swiftkey"
       ],
@@ -5391,7 +5719,7 @@
         "com.nike.plusgps",
         "com.fitbit.FitbitMobile"
       ],
-      "stars": 7,
+      "stars": 8,
       "deepLink": "https://morphe.software/add-source?github=madushas/morphe-patches-custom"
     },
     {
@@ -5479,6 +5807,19 @@
       "deepLink": "https://morphe.software/add-source?github=markpaul099/gboard-gifs-extended"
     },
     {
+      "repo": "matteomorganti/pixel10pro-camera-patches",
+      "source": "github",
+      "url": "github.com/matteomorganti/pixel10pro-camera-patches",
+      "name": "Matteomorganti",
+      "author": "matteomorganti",
+      "patchCount": 9,
+      "targetApps": [
+        "com.google.android.GoogleCamera"
+      ],
+      "stars": 0,
+      "deepLink": "https://morphe.software/add-source?github=matteomorganti/pixel10pro-camera-patches"
+    },
+    {
       "repo": "matthewclso/chrome-morphe",
       "source": "github",
       "url": "github.com/matthewclso/chrome-morphe",
@@ -5488,7 +5829,7 @@
       "targetApps": [
         "com.android.chrome"
       ],
-      "stars": 5,
+      "stars": 8,
       "deepLink": "https://morphe.software/add-source?github=matthewclso/chrome-morphe"
     },
     {
@@ -5497,12 +5838,35 @@
       "url": "github.com/MatthewRiley05/Machu-Morphe-Patches",
       "name": "MatthewRiley05",
       "author": "MatthewRiley05",
-      "patchCount": 2,
+      "patchCount": 4,
       "targetApps": [
-        "com.miui.miwallpaper.earth"
+        "com.miui.miwallpaper.earth",
+        "com.miui.miwallpaper.moon"
       ],
       "stars": 2,
       "deepLink": "https://morphe.software/add-source?github=MatthewRiley05/Machu-Morphe-Patches"
+    },
+    {
+      "repo": "mben25/morphe-patches",
+      "source": "github",
+      "url": "github.com/mben25/morphe-patches",
+      "name": "Mben25",
+      "author": "mben25",
+      "patchCount": 80,
+      "targetApps": [
+        "com.ytheekshana.deviceinfo",
+        "com.google.android.contacts",
+        "com.appsqueue.masareef",
+        "com.sigstick.myapp",
+        "com.alibaba.aliexpresshd",
+        "com.burockgames.timeclocker",
+        "org.hicham.salaat",
+        "org.zwanoo.android.speedtest",
+        "ml.docilealligator.infinityforreddit.plus",
+        "com.windyty.android"
+      ],
+      "stars": 1,
+      "deepLink": "https://morphe.software/add-source?github=mben25/morphe-patches"
     },
     {
       "repo": "MegaTheLEGEND/Facebook-Marketplace",
@@ -5527,7 +5891,7 @@
       "targetApps": [
         "com.merriamwebster"
       ],
-      "stars": 2,
+      "stars": 3,
       "deepLink": "https://morphe.software/add-source?github=Mhs11294/educational-morphe-patches"
     },
     {
@@ -5540,7 +5904,7 @@
       "targetApps": [
         "com.teslacoilsw.launcher"
       ],
-      "stars": 11,
+      "stars": 13,
       "deepLink": "https://morphe.software/add-source?github=mich-de/openlauncher"
     },
     {
@@ -5598,7 +5962,7 @@
         "org.telegram.messenger",
         "com.wakeup.howear"
       ],
-      "stars": 67,
+      "stars": 69,
       "deepLink": "https://morphe.software/add-source?github=mich111discord/MightyMichs-Patches"
     },
     {
@@ -5649,7 +6013,7 @@
         "com.tradingview.tradingviewapp",
         "com.bergfex.tour"
       ],
-      "stars": 2,
+      "stars": 3,
       "deepLink": "https://morphe.software/add-source?github=mirbyte/morphe-patches"
     },
     {
@@ -5658,7 +6022,7 @@
       "url": "github.com/Mlkem/Morphe",
       "name": "Mlkem",
       "author": "Mlkem",
-      "patchCount": 48,
+      "patchCount": 49,
       "targetApps": [
         "com.neave.zoomearth",
         "com.amazon.mShop.android.shopping",
@@ -5768,7 +6132,7 @@
       "targetApps": [
         "com.andrewshu.android.reddit"
       ],
-      "stars": 4,
+      "stars": 6,
       "deepLink": "https://morphe.software/add-source?github=MojiRS/morphe-rif-patches"
     },
     {
@@ -5785,7 +6149,7 @@
         "com.google.android.apps.youtube.music",
         "org.telegram.messenger"
       ],
-      "stars": 4,
+      "stars": 5,
       "deepLink": "https://morphe.software/add-source?github=mormislaw/zeekr-adapt-morphe-patches"
     },
     {
@@ -5813,7 +6177,7 @@
         "ginlemon.flowerfree",
         "ginlemon.iconpackstudio"
       ],
-      "stars": 7,
+      "stars": 9,
       "deepLink": "https://morphe.software/add-source?github=MrCool-888/mrcool-patches"
     },
     {
@@ -5899,7 +6263,7 @@
       "targetApps": [
         "com.letterboxd.letterboxd"
       ],
-      "stars": 31,
+      "stars": 32,
       "deepLink": "https://morphe.software/add-source?github=mvaishak/letterboxd-morphe-patches"
     },
     {
@@ -5908,7 +6272,7 @@
       "url": "github.com/mwbra130/Retro-Bowl-College",
       "name": "Mwbra130",
       "author": "mwbra130",
-      "patchCount": 95,
+      "patchCount": 44,
       "targetApps": [
         "com.jamworks.alwaysondisplay",
         "app.contentcam.android",
@@ -5935,26 +6299,9 @@
         "com.kiloo.subwaysurf",
         "com.maxmpz.audioplayer",
         "com.MustBeFun.GamesInOneWatchGames",
-        "com.newstargames.retrobowlcollege",
-        "com.diskwalaapp",
-        "com.instantbits.cast.webvideo",
-        "com.codeswitch.drapes",
-        "com.pika.dynamicisland",
-        "ai.moises",
-        "com.lonelycatgames.Xplore",
-        "com.lucky_apps.RainViewer",
-        "com.shrey_businessx.android",
-        "com.yinyang.launcher",
-        "com.google.android.apps.youtube.music",
-        "org.skvalex.cr",
-        "com.astech.forscanlite",
-        "com.strava",
-        "com.google.android.apps.messaging",
-        "com.olx.pk",
-        "com.inotesapp.inotes",
-        "com.optimageeks.vehico_app"
+        "com.newstargames.retrobowlcollege"
       ],
-      "stars": 5,
+      "stars": 7,
       "deepLink": "https://morphe.software/add-source?github=mwbra130/Retro-Bowl-College"
     },
     {
@@ -5997,6 +6344,33 @@
       "deepLink": "https://morphe.software/add-source?github=Nagol12344/patch"
     },
     {
+      "repo": "Nai64/Nai64ExtraPatches",
+      "source": "github",
+      "url": "github.com/Nai64/Nai64ExtraPatches",
+      "name": "Nai64 Extra",
+      "author": "Nai64",
+      "patchCount": 432,
+      "targetApps": [
+        "com.bandcamp.android"
+      ],
+      "stars": 63,
+      "deepLink": "https://morphe.software/add-source?github=Nai64/Nai64ExtraPatches"
+    },
+    {
+      "repo": "Nai64/Nai64Patches",
+      "source": "github",
+      "url": "github.com/Nai64/Nai64Patches",
+      "name": "Nai64",
+      "author": "Nai64",
+      "patchCount": 17,
+      "targetApps": [
+        "com.vivo.vivotws",
+        "com.ghost.detective.rpg"
+      ],
+      "stars": 615,
+      "deepLink": "https://morphe.software/add-source?github=Nai64/Nai64Patches"
+    },
+    {
       "repo": "NekoGryphou/gryphous-morphe-patches",
       "source": "github",
       "url": "github.com/NekoGryphou/gryphous-morphe-patches",
@@ -6009,8 +6383,21 @@
         "com.petkit.oversea",
         "com.tuya.smartlife"
       ],
-      "stars": 11,
+      "stars": 12,
       "deepLink": "https://morphe.software/add-source?github=NekoGryphou/gryphous-morphe-patches"
+    },
+    {
+      "repo": "neoKushan/smortthings",
+      "source": "github",
+      "url": "github.com/neoKushan/smortthings",
+      "name": "NeoKushan",
+      "author": "neoKushan",
+      "patchCount": 3,
+      "targetApps": [
+        "com.samsung.android.oneconnect"
+      ],
+      "stars": 5,
+      "deepLink": "https://morphe.software/add-source?github=neoKushan/smortthings"
     },
     {
       "repo": "newuser7171/telegram-morphe-patches-",
@@ -6024,7 +6411,7 @@
         "org.telegram.messenger.web",
         "org.telegram.plus"
       ],
-      "stars": 11,
+      "stars": 12,
       "deepLink": "https://morphe.software/add-source?github=newuser7171/telegram-morphe-patches-"
     },
     {
@@ -6046,11 +6433,11 @@
       "url": "github.com/Nezumi-2711/morphe-patches",
       "name": "Nezumi-2711",
       "author": "Nezumi-2711",
-      "patchCount": 18,
+      "patchCount": 27,
       "targetApps": [
         "com.zing.zalo"
       ],
-      "stars": 5,
+      "stars": 6,
       "deepLink": "https://morphe.software/add-source?github=Nezumi-2711/morphe-patches"
     },
     {
@@ -6059,11 +6446,12 @@
       "url": "github.com/Nich87/nich87-patches",
       "name": "Nich87",
       "author": "Nich87",
-      "patchCount": 3,
+      "patchCount": 9,
       "targetApps": [
-        "com.apple.android.music"
+        "com.apple.android.music",
+        "com.twitter.android"
       ],
-      "stars": 5,
+      "stars": 7,
       "deepLink": "https://morphe.software/add-source?github=Nich87/nich87-patches"
     },
     {
@@ -6106,6 +6494,19 @@
       "deepLink": "https://morphe.software/add-source?github=nikhilbadyal/nik-morphe-patches"
     },
     {
+      "repo": "ninocss/MaterialTidal",
+      "source": "github",
+      "url": "github.com/ninocss/MaterialTidal",
+      "name": "Ninocss",
+      "author": "ninocss",
+      "patchCount": 15,
+      "targetApps": [
+        "com.aspiro.tidal"
+      ],
+      "stars": 2,
+      "deepLink": "https://morphe.software/add-source?github=ninocss/MaterialTidal"
+    },
+    {
       "repo": "Nizarberyan/Avito-Patches",
       "source": "github",
       "url": "github.com/Nizarberyan/Avito-Patches",
@@ -6130,6 +6531,19 @@
       ],
       "stars": 2,
       "deepLink": "https://morphe.software/add-source?github=nm-nvan/Neil-Morphe-Patches"
+    },
+    {
+      "repo": "NotRin7/sadmod-patches",
+      "source": "github",
+      "url": "github.com/NotRin7/sadmod-patches",
+      "name": "NotRin7",
+      "author": "NotRin7",
+      "patchCount": 1,
+      "targetApps": [
+        "com.happymod.apk"
+      ],
+      "stars": 1,
+      "deepLink": "https://morphe.software/add-source?github=NotRin7/sadmod-patches"
     },
     {
       "repo": "ns1207/nl.dumpert.nopatch",
@@ -6232,6 +6646,30 @@
       "deepLink": "https://morphe.software/add-source?github=oliver-leung/transit-patches"
     },
     {
+      "repo": "OmarBrbutovic/merak-patches",
+      "source": "github",
+      "url": "github.com/OmarBrbutovic/merak-patches",
+      "name": "OmarBrbutovic",
+      "author": "OmarBrbutovic",
+      "patchCount": 3,
+      "targetApps": [
+        "com.google.android.apps.authenticator2"
+      ],
+      "stars": 2,
+      "deepLink": "https://morphe.software/add-source?github=OmarBrbutovic/merak-patches"
+    },
+    {
+      "repo": "oscski/morphe-patches",
+      "source": "github",
+      "url": "github.com/oscski/morphe-patches",
+      "name": "Oscski",
+      "author": "oscski",
+      "patchCount": 4,
+      "targetApps": [],
+      "stars": 0,
+      "deepLink": "https://morphe.software/add-source?github=oscski/morphe-patches"
+    },
+    {
       "repo": "osirisad/teamsnap-patches",
       "source": "github",
       "url": "github.com/osirisad/teamsnap-patches",
@@ -6241,7 +6679,7 @@
       "targetApps": [
         "com.teamsnap.teamsnap"
       ],
-      "stars": 6,
+      "stars": 7,
       "deepLink": "https://morphe.software/add-source?github=osirisad/teamsnap-patches"
     },
     {
@@ -6250,11 +6688,11 @@
       "url": "github.com/Overhypedcat/overhypedcat-twitch-patches",
       "name": "Overhypedcat",
       "author": "Overhypedcat",
-      "patchCount": 7,
+      "patchCount": 8,
       "targetApps": [
         "tv.twitch.android.app"
       ],
-      "stars": 2,
+      "stars": 6,
       "deepLink": "https://morphe.software/add-source?github=Overhypedcat/overhypedcat-twitch-patches"
     },
     {
@@ -6263,11 +6701,11 @@
       "url": "github.com/pablobaro/pablobaro-morphe-patches",
       "name": "Pablobaro",
       "author": "pablobaro",
-      "patchCount": 13,
+      "patchCount": 14,
       "targetApps": [
         "com.spotify.music"
       ],
-      "stars": 14,
+      "stars": 17,
       "deepLink": "https://morphe.software/add-source?github=pablobaro/pablobaro-morphe-patches"
     },
     {
@@ -6319,21 +6757,37 @@
       "deepLink": "https://morphe.software/add-source?gitlab=Paresh-Maheshwari/paresh-patches"
     },
     {
+      "repo": "Parideboy/macrofactor-patches",
+      "source": "github",
+      "url": "github.com/Parideboy/macrofactor-patches",
+      "name": "Parideboy",
+      "author": "Parideboy",
+      "patchCount": 3,
+      "targetApps": [
+        "com.sbs.diet",
+        "com.sbs.train",
+        "org.jbarrel.targapp"
+      ],
+      "stars": 2,
+      "deepLink": "https://morphe.software/add-source?github=Parideboy/macrofactor-patches"
+    },
+    {
       "repo": "patapon888/morphe-patches",
       "source": "github",
       "url": "github.com/patapon888/morphe-patches",
       "name": "Patapon888",
       "author": "patapon888",
-      "patchCount": 18,
+      "patchCount": 25,
       "targetApps": [
         "com.ea.gp.bej3",
+        "com.halfbrick.fruitninja",
         "com.google.android.vr.home",
         "com.google.android.vr.inputmethod",
         "com.google.vr.vrcore",
         "com.google.android.apps.youtube.vr",
         "com.teslacoilsw.launcher"
       ],
-      "stars": 2,
+      "stars": 4,
       "deepLink": "https://morphe.software/add-source?github=patapon888/morphe-patches"
     },
     {
@@ -6359,7 +6813,7 @@
         "org.fossify.contacts",
         "com.nononsenseapps.feeder"
       ],
-      "stars": 8,
+      "stars": 9,
       "deepLink": "https://morphe.software/add-source?github=pengusto/penguin-patches"
     },
     {
@@ -6420,11 +6874,11 @@
       "url": "github.com/PerfLite/VK-Zen",
       "name": "PerfLite VK-Zen",
       "author": "PerfLite",
-      "patchCount": 14,
+      "patchCount": 15,
       "targetApps": [
         "com.vkontakte.android"
       ],
-      "stars": 11,
+      "stars": 12,
       "deepLink": "https://morphe.software/add-source?github=PerfLite/VK-Zen"
     },
     {
@@ -6498,7 +6952,7 @@
         "com.windyty.android",
         "chk.kingnet.app"
       ],
-      "stars": 5,
+      "stars": 7,
       "deepLink": "https://morphe.software/add-source?github=pigfoot/morphe-patches"
     },
     {
@@ -6554,6 +7008,19 @@
       "deepLink": "https://morphe.software/add-source?github=Piracola/Pixiv-Patched"
     },
     {
+      "repo": "Pirrotto/aare-patches",
+      "source": "github",
+      "url": "github.com/Pirrotto/aare-patches",
+      "name": "Pirrotto",
+      "author": "Pirrotto",
+      "patchCount": 8,
+      "targetApps": [
+        "net.prototux.aare"
+      ],
+      "stars": 2,
+      "deepLink": "https://morphe.software/add-source?github=Pirrotto/aare-patches"
+    },
+    {
       "repo": "PixelPusher247/morphe-patches",
       "source": "github",
       "url": "github.com/PixelPusher247/morphe-patches",
@@ -6563,7 +7030,7 @@
       "targetApps": [
         "tv.trakt.trakt"
       ],
-      "stars": 29,
+      "stars": 30,
       "deepLink": "https://morphe.software/add-source?github=PixelPusher247/morphe-patches"
     },
     {
@@ -6596,17 +7063,32 @@
       "url": "github.com/Plyrs1/morphe-patches",
       "name": "Plyrs1",
       "author": "Plyrs1",
-      "patchCount": 31,
+      "patchCount": 38,
       "targetApps": [
         "com.doovera.eujianbrowser",
+        "com.moh.nusukapp",
         "com.ogestudio.strukpertamini",
         "com.habitrpg.android.habitica",
         "com.pertaminiku",
         "com.garnesapps.strukpom",
-        "com.moh.nusukapp"
+        "com.google.android.projection.gearhead",
+        "com.gajihub.app"
       ],
       "stars": 8,
       "deepLink": "https://morphe.software/add-source?github=Plyrs1/morphe-patches"
+    },
+    {
+      "repo": "pnam-ng/pnamng-jagat-patchs",
+      "source": "github",
+      "url": "github.com/pnam-ng/pnamng-jagat-patchs",
+      "name": "Pnam-ng",
+      "author": "pnam-ng",
+      "patchCount": 5,
+      "targetApps": [
+        "io.jagat.lite"
+      ],
+      "stars": 0,
+      "deepLink": "https://morphe.software/add-source?github=pnam-ng/pnamng-jagat-patchs"
     },
     {
       "repo": "polka-bear/morphe-patches",
@@ -6619,14 +7101,28 @@
         "com.vladlee.easyblacklist",
         "com.ipoji.app"
       ],
-      "stars": 23,
+      "stars": 24,
       "deepLink": "https://morphe.software/add-source?github=polka-bear/morphe-patches"
+    },
+    {
+      "repo": "pomee4/morphe-patches",
+      "source": "github",
+      "url": "github.com/pomee4/morphe-patches",
+      "name": "Pomee4",
+      "author": "pomee4",
+      "patchCount": 2,
+      "targetApps": [
+        "app.myspoti.dev",
+        "com.reddit.frontpage"
+      ],
+      "stars": 1,
+      "deepLink": "https://morphe.software/add-source?github=pomee4/morphe-patches"
     },
     {
       "repo": "pomee4/waze-audio-patches",
       "source": "github",
       "url": "github.com/pomee4/waze-audio-patches",
-      "name": "Pomee4",
+      "name": "Pomee4 Waze",
       "author": "pomee4",
       "patchCount": 2,
       "targetApps": [
@@ -6664,6 +7160,20 @@
       "deepLink": "https://morphe.software/add-source?github=PyFlat-JR/Morphe-Patches"
     },
     {
+      "repo": "quangmach/waze-minimize-search-bar",
+      "source": "github",
+      "url": "github.com/quangmach/waze-minimize-search-bar",
+      "name": "Quangmach",
+      "author": "quangmach",
+      "patchCount": 4,
+      "targetApps": [
+        "com.waze",
+        "com.chisadin.wazemod"
+      ],
+      "stars": 2,
+      "deepLink": "https://morphe.software/add-source?github=quangmach/waze-minimize-search-bar"
+    },
+    {
       "repo": "quantavil/edge-morphe-patches",
       "source": "github",
       "url": "github.com/quantavil/edge-morphe-patches",
@@ -6674,7 +7184,7 @@
         "com.microsoft.emmx",
         "com.microsoft.emmx.canary"
       ],
-      "stars": 51,
+      "stars": 52,
       "deepLink": "https://morphe.software/add-source?github=quantavil/edge-morphe-patches"
     },
     {
@@ -6687,7 +7197,7 @@
       "targetApps": [
         "com.chess"
       ],
-      "stars": 7,
+      "stars": 10,
       "deepLink": "https://morphe.software/add-source?github=quwi26/Quwis-Patches"
     },
     {
@@ -6715,7 +7225,7 @@
         "com.oplus.keyboard",
         "com.sunnysidesoft.VirtualTablet.lite"
       ],
-      "stars": 0,
+      "stars": 1,
       "deepLink": "https://morphe.software/add-source?github=ra1nify/f4t"
     },
     {
@@ -6724,7 +7234,7 @@
       "url": "github.com/RabehX/rabehx-patches",
       "name": "RabehX",
       "author": "RabehX",
-      "patchCount": 12,
+      "patchCount": 15,
       "targetApps": [
         "app.progres.webetu",
         "ru.bpc.mobilebank.bpc",
@@ -6744,8 +7254,21 @@
         "io.funswitch.blocker",
         "droom.sleepIfUCan"
       ],
-      "stars": 40,
+      "stars": 41,
       "deepLink": "https://morphe.software/add-source?github=rabilrbl/fluffy-patches"
+    },
+    {
+      "repo": "Rafaello0/RealmeLink-Plus",
+      "source": "github",
+      "url": "github.com/Rafaello0/RealmeLink-Plus",
+      "name": "Rafaello0",
+      "author": "Rafaello0",
+      "patchCount": 5,
+      "targetApps": [
+        "com.realme.link"
+      ],
+      "stars": 2,
+      "deepLink": "https://morphe.software/add-source?github=Rafaello0/RealmeLink-Plus"
     },
     {
       "repo": "rafag00/morphe-patches",
@@ -6782,13 +7305,13 @@
       "url": "github.com/rahul9999xda/morphe-patches",
       "name": "Rahul9999xda",
       "author": "rahul9999xda",
-      "patchCount": 21,
+      "patchCount": 20,
       "targetApps": [
         "org.telegram.messenger",
         "org.telegram.plus",
         "org.telegram.messenger.web"
       ],
-      "stars": 16,
+      "stars": 18,
       "deepLink": "https://morphe.software/add-source?github=rahul9999xda/morphe-patches"
     },
     {
@@ -6805,6 +7328,19 @@
       "deepLink": "https://morphe.software/add-source?github=Rajdave69/rajs-morphe-patches"
     },
     {
+      "repo": "ram-prices/AfterSync",
+      "source": "github",
+      "url": "github.com/ram-prices/AfterSync",
+      "name": "AfterSync",
+      "author": "ram-prices",
+      "patchCount": 24,
+      "targetApps": [
+        "com.laurencedawson.reddit_sync"
+      ],
+      "stars": 0,
+      "deepLink": "https://morphe.software/add-source?github=ram-prices/AfterSync"
+    },
+    {
       "repo": "raphaelbahat/zotero-self-hosted-sync",
       "source": "github",
       "url": "github.com/raphaelbahat/zotero-self-hosted-sync",
@@ -6816,6 +7352,19 @@
       ],
       "stars": 8,
       "deepLink": "https://morphe.software/add-source?github=raphaelbahat/zotero-self-hosted-sync"
+    },
+    {
+      "repo": "rareMaxim/uakino-morphe-patches",
+      "source": "github",
+      "url": "github.com/rareMaxim/uakino-morphe-patches",
+      "name": "rareMaxim",
+      "author": "rareMaxim",
+      "patchCount": 1,
+      "targetApps": [
+        "ua.kino"
+      ],
+      "stars": 0,
+      "deepLink": "https://morphe.software/add-source?github=rareMaxim/uakino-morphe-patches"
     },
     {
       "repo": "RashKash103/sync-up",
@@ -6853,7 +7402,7 @@
       "targetApps": [
         "com.depthware.lwp.diffuse.v2"
       ],
-      "stars": 2,
+      "stars": 3,
       "deepLink": "https://morphe.software/add-source?github=rathmerdominik/nick-patches"
     },
     {
@@ -6925,7 +7474,7 @@
       "targetApps": [
         "ru.oneme.app"
       ],
-      "stars": 28,
+      "stars": 29,
       "deepLink": "https://morphe.software/add-source?github=RealCyberwash/max-patches"
     },
     {
@@ -6966,7 +7515,7 @@
         "com.rubenmayayo.reddit",
         "com.fivemobile.thescore"
       ],
-      "stars": 13,
+      "stars": 14,
       "deepLink": "https://morphe.software/add-source?github=rhubarbshoelaces/morphe-patches"
     },
     {
@@ -6988,7 +7537,7 @@
       "url": "github.com/RikoDEV/morphed-pl",
       "name": "RikoDEV",
       "author": "RikoDEV",
-      "patchCount": 42,
+      "patchCount": 43,
       "targetApps": [
         "com.lidl.eci.lidlplus",
         "pl.neptis.yanosik.mobi.android",
@@ -6998,8 +7547,21 @@
         "pl.orange.mojeorange",
         "pl.zabka.apb2c"
       ],
-      "stars": 19,
+      "stars": 22,
       "deepLink": "https://morphe.software/add-source?github=RikoDEV/morphed-pl"
+    },
+    {
+      "repo": "rikunode/chmate-ua-spoof-patches",
+      "source": "github",
+      "url": "github.com/rikunode/chmate-ua-spoof-patches",
+      "name": "Rikunode ChMate",
+      "author": "rikunode",
+      "patchCount": 1,
+      "targetApps": [
+        "jp.co.airfront.android.a2chMate"
+      ],
+      "stars": 2,
+      "deepLink": "https://morphe.software/add-source?github=rikunode/chmate-ua-spoof-patches"
     },
     {
       "repo": "rikunode/fairemail-morphe-patches",
@@ -7015,16 +7577,29 @@
       "deepLink": "https://morphe.software/add-source?github=rikunode/fairemail-morphe-patches"
     },
     {
+      "repo": "rikunode/futatabi",
+      "source": "github",
+      "url": "github.com/rikunode/futatabi",
+      "name": "Rikunode Futat\u01019",
+      "author": "rikunode",
+      "patchCount": 7,
+      "targetApps": [
+        "com.Nanasaki.ftutter"
+      ],
+      "stars": 2,
+      "deepLink": "https://morphe.software/add-source?github=rikunode/futatabi"
+    },
+    {
       "repo": "rikunode/hatena-bookmark-hide-pr-patches",
       "source": "github",
       "url": "github.com/rikunode/hatena-bookmark-hide-pr-patches",
       "name": "Rikunode Hatena",
       "author": "rikunode",
-      "patchCount": 5,
+      "patchCount": 10,
       "targetApps": [
         "com.hatena.android.bookmark"
       ],
-      "stars": 1,
+      "stars": 2,
       "deepLink": "https://morphe.software/add-source?github=rikunode/hatena-bookmark-hide-pr-patches"
     },
     {
@@ -7059,14 +7634,19 @@
       "url": "github.com/rimixyz/morphe-patches",
       "name": "Rimixyz",
       "author": "rimixyz",
-      "patchCount": 31,
+      "patchCount": 35,
       "targetApps": [
+        "com.habitnow",
         "com.newstargames.newstarsoccer",
         "eu.smartpatient.mytherapy",
+        "videoeditor.videorecorder.screenrecorder",
+        "com.truedevelopersstudio.automatictap.autoclicker",
+        "com.tenqube.notisave",
+        "yqtrack.app",
         "air.WRCareer",
-        "yqtrack.app"
+        "com.mi.android.globallauncher"
       ],
-      "stars": 3,
+      "stars": 4,
       "deepLink": "https://morphe.software/add-source?github=rimixyz/morphe-patches"
     },
     {
@@ -7079,7 +7659,7 @@
       "targetApps": [
         "com.google.android.googlequicksearchbox"
       ],
-      "stars": 18,
+      "stars": 20,
       "deepLink": "https://morphe.software/add-source?github=Ripthulhu/morphe-google-patches"
     },
     {
@@ -7154,8 +7734,21 @@
         "com.disney.disneyplus",
         "ginlemon.iconpackstudio"
       ],
-      "stars": 1359,
+      "stars": 1367,
       "deepLink": "https://morphe.software/add-source?github=RookieEnough/De-Vanced"
+    },
+    {
+      "repo": "RoundSalmon4/morphe-patches-template",
+      "source": "github",
+      "url": "github.com/RoundSalmon4/morphe-patches-template",
+      "name": "RoundSalmon4",
+      "author": "RoundSalmon4",
+      "patchCount": 1,
+      "targetApps": [
+        "com.battlelancer.seriesguide"
+      ],
+      "stars": 6,
+      "deepLink": "https://morphe.software/add-source?github=RoundSalmon4/morphe-patches-template"
     },
     {
       "repo": "Rov3r/morphe-patches",
@@ -7169,19 +7762,6 @@
       ],
       "stars": 1,
       "deepLink": "https://morphe.software/add-source?github=Rov3r/morphe-patches"
-    },
-    {
-      "repo": "rubenaaroncalahorra/gospel-library-patches",
-      "source": "github",
-      "url": "github.com/rubenaaroncalahorra/gospel-library-patches",
-      "name": "Rubenaaroncalahorra",
-      "author": "rubenaaroncalahorra",
-      "patchCount": 1,
-      "targetApps": [
-        "org.lds.ldssa"
-      ],
-      "stars": 2,
-      "deepLink": "https://morphe.software/add-source?github=rubenaaroncalahorra/gospel-library-patches"
     },
     {
       "repo": "rudrakshrajpurohit417/rj-patches",
@@ -7432,7 +8012,7 @@
         "com.urbandroid.kinestop",
         "com.nytimes.crossword"
       ],
-      "stars": 1089,
+      "stars": 1110,
       "deepLink": "https://morphe.software/add-source?github=rushiranpise/morphe-patches"
     },
     {
@@ -7447,18 +8027,44 @@
       "deepLink": "https://morphe.software/add-source?github=rushiranpise/Ri-Vanced-Universal-Morphe-Patches"
     },
     {
+      "repo": "RyuuseiAkira/w3s-patches",
+      "source": "github",
+      "url": "github.com/RyuuseiAkira/w3s-patches",
+      "name": "RyuuseiAkira",
+      "author": "RyuuseiAkira",
+      "patchCount": 7,
+      "targetApps": [
+        "com.w3schools.app.prod"
+      ],
+      "stars": 2,
+      "deepLink": "https://morphe.software/add-source?github=RyuuseiAkira/w3s-patches"
+    },
+    {
       "repo": "ryuya0124/gemini-microg-patches",
       "source": "github",
       "url": "github.com/ryuya0124/gemini-microg-patches",
-      "name": "Ryuya0124",
+      "name": "Ryuya0124 Gemini",
       "author": "ryuya0124",
-      "patchCount": 16,
+      "patchCount": 18,
       "targetApps": [
         "com.google.android.googlequicksearchbox",
         "com.google.android.apps.bard"
       ],
-      "stars": 20,
+      "stars": 21,
       "deepLink": "https://morphe.software/add-source?github=ryuya0124/gemini-microg-patches"
+    },
+    {
+      "repo": "ryuya0124/morphe-x-video-60fps",
+      "source": "github",
+      "url": "github.com/ryuya0124/morphe-x-video-60fps",
+      "name": "Ryuya0124 X",
+      "author": "ryuya0124",
+      "patchCount": 1,
+      "targetApps": [
+        "com.twitter.android"
+      ],
+      "stars": 2,
+      "deepLink": "https://morphe.software/add-source?github=ryuya0124/morphe-x-video-60fps"
     },
     {
       "repo": "ryykitty/twitch-patched",
@@ -7470,7 +8076,7 @@
       "targetApps": [
         "tv.twitch.android.app"
       ],
-      "stars": 27,
+      "stars": 28,
       "deepLink": "https://morphe.software/add-source?github=ryykitty/twitch-patched"
     },
     {
@@ -7500,7 +8106,7 @@
         "com.banglatech.bangladeshvpn",
         "com.mtv.sai"
       ],
-      "stars": 2,
+      "stars": 3,
       "deepLink": "https://morphe.software/add-source?github=sabbirdj/viper-patches"
     },
     {
@@ -7525,7 +8131,7 @@
       "url": "github.com/Sabrina-Moonlight/gracie-patches",
       "name": "Sabrina-Moonlight",
       "author": "Sabrina-Moonlight",
-      "patchCount": 14,
+      "patchCount": 15,
       "targetApps": [
         "it.simonesestito.ntiles",
         "net.mm2d.android.orientationfaker",
@@ -7534,6 +8140,7 @@
         "com.saban.glassy.glasswidgets.themes",
         "com.jndapp.glass.widgets",
         "com.jndapp.minimal.widgets",
+        "com.gamesforkids.animals.puzzles.jigsaw",
         "de.twokit.screen.recording.app",
         "gg.sunday.hamsterescape",
         "com.bimiboo.kids.doctor.games"
@@ -7553,8 +8160,21 @@
         "com.nicedayapps.iss_free",
         "com.spocky.projengmenu"
       ],
-      "stars": 27,
+      "stars": 28,
       "deepLink": "https://morphe.software/add-source?github=saieshshirodkar/saiesh-morphe-patches"
+    },
+    {
+      "repo": "saigauthamr/tao-patches",
+      "source": "github",
+      "url": "github.com/saigauthamr/tao-patches",
+      "name": "Saigauthamr",
+      "author": "saigauthamr",
+      "patchCount": 9,
+      "targetApps": [
+        "com.fictionpress.fanfiction"
+      ],
+      "stars": 2,
+      "deepLink": "https://morphe.software/add-source?github=saigauthamr/tao-patches"
     },
     {
       "repo": "SailHighSea/sailhighsea-patches",
@@ -7571,6 +8191,19 @@
       ],
       "stars": 2,
       "deepLink": "https://morphe.software/add-source?github=SailHighSea/sailhighsea-patches"
+    },
+    {
+      "repo": "saiyupunch/sai-patches",
+      "source": "github",
+      "url": "github.com/saiyupunch/sai-patches",
+      "name": "Saiyupunch",
+      "author": "saiyupunch",
+      "patchCount": 1,
+      "targetApps": [
+        "fyi.slot.konkr"
+      ],
+      "stars": 1,
+      "deepLink": "https://morphe.software/add-source?github=saiyupunch/sai-patches"
     },
     {
       "repo": "salihefee/moonreader-regional-patches",
@@ -7595,8 +8228,21 @@
       "targetApps": [
         "com.chess"
       ],
-      "stars": 6,
+      "stars": 7,
       "deepLink": "https://morphe.software/add-source?github=salmanbappi/Quwis-Patches"
+    },
+    {
+      "repo": "saneclacibos19/Anixart-patches",
+      "source": "github",
+      "url": "github.com/saneclacibos19/Anixart-patches",
+      "name": "Saneclacibos19",
+      "author": "saneclacibos19",
+      "patchCount": 2,
+      "targetApps": [
+        "com.swiftsoft.anixartd"
+      ],
+      "stars": 1,
+      "deepLink": "https://morphe.software/add-source?github=saneclacibos19/Anixart-patches"
     },
     {
       "repo": "Santodan/santodan-patches",
@@ -7604,7 +8250,7 @@
       "url": "github.com/Santodan/santodan-patches",
       "name": "Santodan",
       "author": "Santodan",
-      "patchCount": 40,
+      "patchCount": 41,
       "targetApps": [
         "com.ovz.carscanner",
         "com.aeroloom.fylofilemanager",
@@ -7616,7 +8262,7 @@
         "com.reddit.frontpage",
         "com.nexon.tfdc"
       ],
-      "stars": 9,
+      "stars": 10,
       "deepLink": "https://morphe.software/add-source?github=Santodan/santodan-patches"
     },
     {
@@ -7629,7 +8275,7 @@
       "targetApps": [
         "com.facebook.katana"
       ],
-      "stars": 96,
+      "stars": 97,
       "deepLink": "https://morphe.software/add-source?github=SapitoSucio/FroggoMorphePatches"
     },
     {
@@ -7683,7 +8329,7 @@
       "targetApps": [
         "com.crrepa.band.dafit"
       ],
-      "stars": 2,
+      "stars": 3,
       "deepLink": "https://morphe.software/add-source?github=Sayan201/TheFit"
     },
     {
@@ -7722,7 +8368,7 @@
       "targetApps": [
         "com.google.android.apps.maps"
       ],
-      "stars": 3,
+      "stars": 4,
       "deepLink": "https://morphe.software/add-source?github=selim-durmus/ungoogled-maps-local-enhancements"
     },
     {
@@ -7744,7 +8390,7 @@
       "url": "github.com/semicoloncolonel/mobile-morphe-patches",
       "name": "Semicoloncolonel Mobile",
       "author": "semicoloncolonel",
-      "patchCount": 396,
+      "patchCount": 416,
       "targetApps": [
         "com.apple.atve.androidtv.appletv",
         "com.disney.disneyplus",
@@ -7834,7 +8480,13 @@
         "com.walmart.android",
         "com.usablenet.mobile.walgreen",
         "com.google.android.youtube.tvunplugged",
-        "com.moviesanywhere.goo"
+        "com.aljazeera.mobile",
+        "bbc.mobile.news.ww",
+        "com.moviesanywhere.goo",
+        "jp.or.nhk.nhkworld.tv",
+        "com.nikkei.asia",
+        "com.scmp.newspulse",
+        "com.future.moviesByFawesomeAndroidTV"
       ],
       "stars": 20,
       "deepLink": "https://morphe.software/add-source?github=semicoloncolonel/mobile-morphe-patches"
@@ -7845,7 +8497,7 @@
       "url": "github.com/semicoloncolonel/tv-morphe-patches",
       "name": "Semicoloncolonel TV",
       "author": "semicoloncolonel",
-      "patchCount": 97,
+      "patchCount": 99,
       "targetApps": [
         "com.apple.atve.androidtv.appletv",
         "com.justwatch.justwatch",
@@ -7878,7 +8530,8 @@
         "com.moviesanywhere.goo",
         "com.cnbc.client",
         "com.zumobi.msnbc",
-        "com.nbcnews.msnbc.mobile"
+        "com.nbcnews.msnbc.mobile",
+        "com.roku.web.trc"
       ],
       "stars": 6,
       "deepLink": "https://morphe.software/add-source?github=semicoloncolonel/tv-morphe-patches"
@@ -7889,11 +8542,11 @@
       "url": "github.com/Ser1-1y/nyandex",
       "name": "Ser1-1y",
       "author": "Ser1-1y",
-      "patchCount": 14,
+      "patchCount": 15,
       "targetApps": [
         "ru.yandex.music"
       ],
-      "stars": 1,
+      "stars": 4,
       "deepLink": "https://morphe.software/add-source?github=Ser1-1y/nyandex"
     },
     {
@@ -7906,7 +8559,7 @@
       "targetApps": [
         "com.twitter.android"
       ],
-      "stars": 2,
+      "stars": 3,
       "deepLink": "https://morphe.software/add-source?github=serajr/x-twitter-patches"
     },
     {
@@ -7963,6 +8616,19 @@
       "deepLink": "https://morphe.software/add-source?github=Sfehhrths/ekispert-morphe-patches"
     },
     {
+      "repo": "sftsang/sportsnet-patches",
+      "source": "github",
+      "url": "github.com/sftsang/sportsnet-patches",
+      "name": "Sftsang",
+      "author": "sftsang",
+      "patchCount": 12,
+      "targetApps": [
+        "com.rogers.sportsnet.sportsnet"
+      ],
+      "stars": 0,
+      "deepLink": "https://morphe.software/add-source?github=sftsang/sportsnet-patches"
+    },
+    {
       "repo": "Shahriar-0/Telegram-X-Morphe",
       "source": "github",
       "url": "github.com/Shahriar-0/Telegram-X-Morphe",
@@ -7987,7 +8653,7 @@
         "com.urbandroid.kinestop",
         "com.delphicoder.flud"
       ],
-      "stars": 8,
+      "stars": 9,
       "deepLink": "https://morphe.software/add-source?github=shaun-the-sheep-patches/morphe-patches"
     },
     {
@@ -8013,7 +8679,7 @@
       "targetApps": [
         "com.samsung.android.app.galaxyraw"
       ],
-      "stars": 3,
+      "stars": 5,
       "deepLink": "https://morphe.software/add-source?github=ShortEnigma0/expertraw-morphe-patches"
     },
     {
@@ -8067,9 +8733,10 @@
       "url": "github.com/sircoderin/morphe-patches",
       "name": "Sircoderin",
       "author": "sircoderin",
-      "patchCount": 3,
+      "patchCount": 6,
       "targetApps": [
         "de.mm20.launcher2.release",
+        "com.spotify.music",
         "com.urbandroid.lux"
       ],
       "stars": 3,
@@ -8104,6 +8771,19 @@
       "deepLink": "https://morphe.software/add-source?github=Smart123s/morphe-patches"
     },
     {
+      "repo": "smartworldarafath/Gboard_Pro",
+      "source": "github",
+      "url": "github.com/smartworldarafath/Gboard_Pro",
+      "name": "SmartWorldArafath",
+      "author": "smartworldarafath",
+      "patchCount": 4,
+      "targetApps": [
+        "com.google.android.inputmethod.latin"
+      ],
+      "stars": 52,
+      "deepLink": "https://morphe.software/add-source?github=smartworldarafath/Gboard_Pro"
+    },
+    {
       "repo": "snowyegret23/morphe-patches",
       "source": "github",
       "url": "github.com/snowyegret23/morphe-patches",
@@ -8122,7 +8802,7 @@
       "url": "gitlab.com/solo-patches/solo-patches",
       "name": "Solo",
       "author": "solo-patches",
-      "patchCount": 14,
+      "patchCount": 15,
       "targetApps": [
         "com.qidian.Int.reader"
       ],
@@ -8139,7 +8819,7 @@
       "targetApps": [
         "com.pinterest"
       ],
-      "stars": 44,
+      "stars": 45,
       "deepLink": "https://morphe.software/add-source?github=SouBryan/pinterest-morphed"
     },
     {
@@ -8148,13 +8828,13 @@
       "url": "github.com/southstar21dev/southstar21-patches",
       "name": "Southstar21dev",
       "author": "southstar21dev",
-      "patchCount": 10,
+      "patchCount": 12,
       "targetApps": [
         "com.instagram.android",
-        "com.spotify.music",
-        "com.google.android.apps.youtube.music"
+        "com.google.android.apps.youtube.music",
+        "com.spotify.music"
       ],
-      "stars": 11,
+      "stars": 12,
       "deepLink": "https://morphe.software/add-source?github=southstar21dev/southstar21-patches"
     },
     {
@@ -8167,7 +8847,7 @@
       "targetApps": [
         "com.spotify.music"
       ],
-      "stars": 144,
+      "stars": 150,
       "deepLink": "https://morphe.software/add-source?github=spicetify/morphe-patches"
     },
     {
@@ -8184,19 +8864,36 @@
       "deepLink": "https://morphe.software/add-source?github=spookyexe/morphe-patches"
     },
     {
+      "repo": "springfurst/morphe-patches",
+      "source": "github",
+      "url": "github.com/springfurst/morphe-patches",
+      "name": "Springfurst",
+      "author": "springfurst",
+      "patchCount": 3,
+      "targetApps": [
+        "com.teslacoilsw.launcher"
+      ],
+      "stars": 3,
+      "deepLink": "https://morphe.software/add-source?github=springfurst/morphe-patches"
+    },
+    {
       "repo": "sqzass/lustx-patches",
       "source": "github",
       "url": "github.com/sqzass/lustx-patches",
       "name": "Sqzass",
       "author": "sqzass",
-      "patchCount": 34,
+      "patchCount": 42,
       "targetApps": [
         "com.stealthcopter.portdroid",
+        "ch.protonvpn.android",
+        "ch.protonvpn.android.reproducible",
         "com.pawxy.browser",
         "com.lifeonair.postparty",
-        "mega.privacy.android.app"
+        "app.ninjavpn.android",
+        "com.free.vpn.super.hotspot.open",
+        "eu.darken.sdmse"
       ],
-      "stars": 4,
+      "stars": 6,
       "deepLink": "https://morphe.software/add-source?github=sqzass/lustx-patches"
     },
     {
@@ -8211,6 +8908,19 @@
       ],
       "stars": 2,
       "deepLink": "https://morphe.software/add-source?github=srinath1848/nobrokerhood-patches"
+    },
+    {
+      "repo": "srwi/gintype",
+      "source": "github",
+      "url": "github.com/srwi/gintype",
+      "name": "Srwi",
+      "author": "srwi",
+      "patchCount": 5,
+      "targetApps": [
+        "com.google.android.inputmethod.latin"
+      ],
+      "stars": 7,
+      "deepLink": "https://morphe.software/add-source?github=srwi/gintype"
     },
     {
       "repo": "ssch71/wear-patches",
@@ -8255,17 +8965,20 @@
       "deepLink": "https://morphe.software/add-source?github=steeepaaaan/pdalife-morphe-patches"
     },
     {
-      "repo": "stivencop414-bot/Morphe-Vix-Patches",
+      "repo": "stivencop414-bot/PatchLab",
       "source": "github",
-      "url": "github.com/stivencop414-bot/Morphe-Vix-Patches",
-      "name": "Stivencop414",
+      "url": "github.com/stivencop414-bot/PatchLab",
+      "name": "PatchLab",
       "author": "stivencop414-bot",
-      "patchCount": 8,
+      "patchCount": 19,
       "targetApps": [
-        "com.univision.prendetv"
+        "com.univision.prendetv",
+        "com.caracol.streaming",
+        "colombia.tv.plus",
+        "com.mt.mtxx.mtxx"
       ],
-      "stars": 1,
-      "deepLink": "https://morphe.software/add-source?github=stivencop414-bot/Morphe-Vix-Patches"
+      "stars": 3,
+      "deepLink": "https://morphe.software/add-source?github=stivencop414-bot/PatchLab"
     },
     {
       "repo": "suakamargas121/shiny-train",
@@ -8304,7 +9017,7 @@
         "com.nousguide.android.orftvthek",
         "com.mautilus.servus"
       ],
-      "stars": 3,
+      "stars": 4,
       "deepLink": "https://morphe.software/add-source?github=Sudashiii/at-tv-patches"
     },
     {
@@ -8323,6 +9036,19 @@
       ],
       "stars": 3,
       "deepLink": "https://morphe.software/add-source?github=sudeepcapri/morphe_patch"
+    },
+    {
+      "repo": "sujaan13/spotify-scroll-lock-patches",
+      "source": "github",
+      "url": "github.com/sujaan13/spotify-scroll-lock-patches",
+      "name": "Sujaan13",
+      "author": "sujaan13",
+      "patchCount": 1,
+      "targetApps": [
+        "com.spotify.music"
+      ],
+      "stars": 2,
+      "deepLink": "https://morphe.software/add-source?github=sujaan13/spotify-scroll-lock-patches"
     },
     {
       "repo": "Supperelias2/sbs-morphe-patches",
@@ -8382,11 +9108,11 @@
       "url": "github.com/SysAdminDoc/Hushfacebook",
       "name": "Hushfacebook",
       "author": "SysAdminDoc",
-      "patchCount": 127,
+      "patchCount": 130,
       "targetApps": [
         "com.facebook.katana"
       ],
-      "stars": 563,
+      "stars": 596,
       "deepLink": "https://morphe.software/add-source?github=SysAdminDoc/Hushfacebook"
     },
     {
@@ -8395,12 +9121,12 @@
       "url": "github.com/SysAdminDoc/hushfeed",
       "name": "Hushfeed",
       "author": "SysAdminDoc",
-      "patchCount": 154,
+      "patchCount": 159,
       "targetApps": [
         "com.zhiliaoapp.musically",
         "com.zhiliaoapp.musically.go"
       ],
-      "stars": 426,
+      "stars": 449,
       "deepLink": "https://morphe.software/add-source?github=SysAdminDoc/hushfeed"
     },
     {
@@ -8409,11 +9135,11 @@
       "url": "github.com/SysAdminDoc/HushGram",
       "name": "HushGram",
       "author": "SysAdminDoc",
-      "patchCount": 197,
+      "patchCount": 204,
       "targetApps": [
         "com.instagram.android"
       ],
-      "stars": 462,
+      "stars": 497,
       "deepLink": "https://morphe.software/add-source?github=SysAdminDoc/HushGram"
     },
     {
@@ -8422,11 +9148,11 @@
       "url": "github.com/SysAdminDoc/HushMessenger",
       "name": "HushMessenger",
       "author": "SysAdminDoc",
-      "patchCount": 117,
+      "patchCount": 137,
       "targetApps": [
         "com.facebook.orca"
       ],
-      "stars": 227,
+      "stars": 257,
       "deepLink": "https://morphe.software/add-source?github=SysAdminDoc/HushMessenger"
     },
     {
@@ -8435,11 +9161,11 @@
       "url": "github.com/SysAdminDoc/HushPine",
       "name": "HushPine",
       "author": "SysAdminDoc",
-      "patchCount": 102,
+      "patchCount": 103,
       "targetApps": [
         "com.ss.android.ttmd.video"
       ],
-      "stars": 10,
+      "stars": 11,
       "deepLink": "https://morphe.software/add-source?github=SysAdminDoc/HushPine"
     },
     {
@@ -8448,11 +9174,11 @@
       "url": "github.com/SysAdminDoc/HushPinterest",
       "name": "HushPinterest",
       "author": "SysAdminDoc",
-      "patchCount": 51,
+      "patchCount": 59,
       "targetApps": [
         "com.pinterest"
       ],
-      "stars": 60,
+      "stars": 65,
       "deepLink": "https://morphe.software/add-source?github=SysAdminDoc/HushPinterest"
     },
     {
@@ -8461,12 +9187,13 @@
       "url": "github.com/SysAdminDoc/HushTelegram",
       "name": "HushTelegram",
       "author": "SysAdminDoc",
-      "patchCount": 82,
+      "patchCount": 81,
       "targetApps": [
         "org.telegram.messenger",
-        "org.telegram.messenger.web"
+        "org.telegram.messenger.web",
+        "org.telegram.plus"
       ],
-      "stars": 173,
+      "stars": 190,
       "deepLink": "https://morphe.software/add-source?github=SysAdminDoc/HushTelegram"
     },
     {
@@ -8475,11 +9202,11 @@
       "url": "github.com/SysAdminDoc/HushThreads",
       "name": "HushThreads",
       "author": "SysAdminDoc",
-      "patchCount": 26,
+      "patchCount": 30,
       "targetApps": [
         "com.instagram.barcelona"
       ],
-      "stars": 80,
+      "stars": 89,
       "deepLink": "https://morphe.software/add-source?github=SysAdminDoc/HushThreads"
     },
     {
@@ -8488,11 +9215,11 @@
       "url": "github.com/SysAdminDoc/HushTumblr",
       "name": "HushTumblr",
       "author": "SysAdminDoc",
-      "patchCount": 59,
+      "patchCount": 65,
       "targetApps": [
         "com.tumblr"
       ],
-      "stars": 28,
+      "stars": 29,
       "deepLink": "https://morphe.software/add-source?github=SysAdminDoc/HushTumblr"
     },
     {
@@ -8518,7 +9245,7 @@
       "targetApps": [
         "com.xunijun.app.gp"
       ],
-      "stars": 2,
+      "stars": 3,
       "deepLink": "https://morphe.software/add-source?github=testiwy268/morphe-patches"
     },
     {
@@ -8710,7 +9437,7 @@
         "au.com.shiftyjelly.pocketcasts",
         "app.alextran.immich"
       ],
-      "stars": 4,
+      "stars": 6,
       "deepLink": "https://morphe.software/add-source?github=titandrive/morphe-catppuccin"
     },
     {
@@ -8719,19 +9446,20 @@
       "url": "github.com/toidicakhia/morphe-app-patches",
       "name": "Toidicakhia",
       "author": "toidicakhia",
-      "patchCount": 24,
+      "patchCount": 22,
       "targetApps": [
-        "com.dubox.drive",
         "vn.vtv.vtvgo",
         "com.ezviz",
+        "com.dubox.drive",
         "com.cloudflare.onedotonedotonedotone",
         "com.pioneerdj.WeDJ",
         "com.locket.Locket",
         "com.camel.corp.universalcopy",
         "cz.mroczis.netmonster",
+        "com.proxyman.proxymanandroid",
         "com.anetcapture.mock"
       ],
-      "stars": 6,
+      "stars": 9,
       "deepLink": "https://morphe.software/add-source?github=toidicakhia/morphe-app-patches"
     },
     {
@@ -8744,7 +9472,7 @@
       "targetApps": [
         "com.mygate.user"
       ],
-      "stars": 1,
+      "stars": 2,
       "deepLink": "https://morphe.software/add-source?github=tokudai-vs/tokudai-patches"
     },
     {
@@ -8791,7 +9519,7 @@
         "fr.chargeprice.app",
         "de.lineas.lit.ntv.android"
       ],
-      "stars": 8,
+      "stars": 9,
       "deepLink": "https://morphe.software/add-source?github=TorbenStriegel/morphe-patches-custom"
     },
     {
@@ -8804,7 +9532,7 @@
       "targetApps": [
         "com.movistarplus.androidtv"
       ],
-      "stars": 7,
+      "stars": 8,
       "deepLink": "https://morphe.software/add-source?github=Tornillo2/movistar-block-ads-morphe"
     },
     {
@@ -8829,7 +9557,7 @@
         "com.sdev.mtproxy",
         "com.zong.customercare"
       ],
-      "stars": 29,
+      "stars": 31,
       "deepLink": "https://morphe.software/add-source?github=totsiaw/proxma-patches"
     },
     {
@@ -8843,8 +9571,21 @@
         "defense.roguelike.cell.shoot.survivor",
         "com.abi.colony.flow"
       ],
-      "stars": 2,
+      "stars": 3,
       "deepLink": "https://morphe.software/add-source?github=totto357/mini-games-patches"
+    },
+    {
+      "repo": "traychewy/Notes-dark-",
+      "source": "github",
+      "url": "github.com/traychewy/Notes-dark-",
+      "name": "TrayChewy",
+      "author": "traychewy",
+      "patchCount": 2,
+      "targetApps": [
+        "com.samsung.android.app.notes"
+      ],
+      "stars": 0,
+      "deepLink": "https://morphe.software/add-source?github=traychewy/Notes-dark-"
     },
     {
       "repo": "trimpsuz/morphe-patches",
@@ -8935,7 +9676,7 @@
       "targetApps": [
         "jp.naver.line.android"
       ],
-      "stars": 10,
+      "stars": 12,
       "deepLink": "https://morphe.software/add-source?github=uta-a/linimal"
     },
     {
@@ -8975,7 +9716,7 @@
         "com.soundcloud.android",
         "org.parcello"
       ],
-      "stars": 16,
+      "stars": 17,
       "deepLink": "https://morphe.software/add-source?github=V4n1X/morphe-patches"
     },
     {
@@ -9027,7 +9768,7 @@
       "targetApps": [
         "com.discord"
       ],
-      "stars": 207,
+      "stars": 215,
       "deepLink": "https://morphe.software/add-source?github=VenusIsJaded/Venus-Patches"
     },
     {
@@ -9040,7 +9781,7 @@
       "targetApps": [
         "org.cris.aikyam"
       ],
-      "stars": 11,
+      "stars": 10,
       "deepLink": "https://morphe.software/add-source?github=VipinVIP/railone-patches"
     },
     {
@@ -9049,13 +9790,15 @@
       "url": "github.com/vippium/brokenn-patches",
       "name": "Vippium",
       "author": "vippium",
-      "patchCount": 23,
+      "patchCount": 39,
       "targetApps": [
         "net.sjava.officereader",
+        "in.startv.hotstar",
         "it.octogram.android",
-        "in.startv.hotstar"
+        "com.offshore.picasso",
+        "in.startv.hotstartvonly"
       ],
-      "stars": 8,
+      "stars": 9,
       "deepLink": "https://morphe.software/add-source?github=vippium/brokenn-patches"
     },
     {
@@ -9098,6 +9841,32 @@
       "deepLink": "https://morphe.software/add-source?github=VoltoxderEchte/waze-gearslip-morphe-patch"
     },
     {
+      "repo": "vortexnode/GboardSamsung",
+      "source": "github",
+      "url": "github.com/vortexnode/GboardSamsung",
+      "name": "GboardSamsung",
+      "author": "vortexnode",
+      "patchCount": 37,
+      "targetApps": [
+        "com.google.android.inputmethod.latin"
+      ],
+      "stars": 18,
+      "deepLink": "https://morphe.software/add-source?github=vortexnode/GboardSamsung"
+    },
+    {
+      "repo": "vortexnode/SBrowserX",
+      "source": "github",
+      "url": "github.com/vortexnode/SBrowserX",
+      "name": "SBrowserX",
+      "author": "vortexnode",
+      "patchCount": 15,
+      "targetApps": [
+        "com.sec.android.app.sbrowser"
+      ],
+      "stars": 1,
+      "deepLink": "https://morphe.software/add-source?github=vortexnode/SBrowserX"
+    },
+    {
       "repo": "voznyiarsen/bakalari-morphe",
       "source": "github",
       "url": "github.com/voznyiarsen/bakalari-morphe",
@@ -9133,7 +9902,7 @@
         "com.rawcam.app",
         "com.xm.csee"
       ],
-      "stars": 99,
+      "stars": 100,
       "deepLink": "https://morphe.software/add-source?github=WaggBR/Wagg13Patch_Morphe"
     },
     {
@@ -9186,7 +9955,7 @@
         "com.google.android.apps.magazines",
         "com.bambuna.podcastaddict"
       ],
-      "stars": 2,
+      "stars": 3,
       "deepLink": "https://morphe.software/add-source?github=way-lo/waylo-patches"
     },
     {
@@ -9195,7 +9964,7 @@
       "url": "github.com/wchill/patcheddit",
       "name": "Patcheddit",
       "author": "wchill",
-      "patchCount": 115,
+      "patchCount": 128,
       "targetApps": [
         "com.rubenmayayo.reddit",
         "com.onelouder.baconreader",
@@ -9207,7 +9976,7 @@
         "ml.docilealligator.infinityforreddit.plus",
         "ml.docilealligator.infinityforreddit.plus2"
       ],
-      "stars": 866,
+      "stars": 873,
       "deepLink": "https://morphe.software/add-source?github=wchill/patcheddit"
     },
     {
@@ -9220,7 +9989,7 @@
       "targetApps": [
         "net.quetta.browser"
       ],
-      "stars": 2,
+      "stars": 3,
       "deepLink": "https://morphe.software/add-source?github=weird-aftertaste/quetta-privacy-patches"
     },
     {
@@ -9242,11 +10011,10 @@
       "url": "github.com/windwanderer/morphe-patches",
       "name": "WindWanderer",
       "author": "windwanderer",
-      "patchCount": 6,
+      "patchCount": 5,
       "targetApps": [
         "com.metservice.kryten",
-        "com.noctuasoftware.stellarium_free",
-        "com.twtapp"
+        "com.noctuasoftware.stellarium_free"
       ],
       "stars": 5,
       "deepLink": "https://morphe.software/add-source?github=windwanderer/morphe-patches"
@@ -9283,9 +10051,10 @@
       "url": "github.com/WZSE/aapam-patches",
       "name": "aapam",
       "author": "WZSE",
-      "patchCount": 22,
+      "patchCount": 27,
       "targetApps": [
         "org.telegram.messenger.web",
+        "com.sonyliv",
         "com.mygate.user",
         "com.amazon.amazonvideo.livingroom",
         "in.indwealth",
@@ -9294,7 +10063,7 @@
         "com.orange.coloring.learn.kids",
         "com.monect.tv"
       ],
-      "stars": 10,
+      "stars": 11,
       "deepLink": "https://morphe.software/add-source?github=WZSE/aapam-patches"
     },
     {
@@ -9317,7 +10086,7 @@
       "url": "github.com/XBadFellaX/BadFella-Patches",
       "name": "XBadFellaX",
       "author": "XBadFellaX",
-      "patchCount": 59,
+      "patchCount": 60,
       "targetApps": [
         "com.dynanic.ultimea",
         "com.linkedin.android",
@@ -9329,10 +10098,10 @@
         "com.peptalk.app",
         "com.appsfornexus.dailysciencenews",
         "torrent.search.revolutionv2",
-        "com.wanderlog.android",
-        "com.mixapplications.ultimateusb"
+        "com.mixapplications.ultimateusb",
+        "com.wanderlog.android"
       ],
-      "stars": 3,
+      "stars": 4,
       "deepLink": "https://morphe.software/add-source?github=XBadFellaX/BadFella-Patches"
     },
     {
@@ -9371,7 +10140,7 @@
         "uni.cbum",
         "com.sysops.thenx"
       ],
-      "stars": 17,
+      "stars": 19,
       "deepLink": "https://morphe.software/add-source?github=Xhehab/Xhehab-Patches"
     },
     {
@@ -9384,7 +10153,7 @@
       "targetApps": [
         "com.estmob.android.sendanywhere"
       ],
-      "stars": 1,
+      "stars": 2,
       "deepLink": "https://morphe.software/add-source?github=xhyxfxxc/tx-public-patches"
     },
     {
@@ -9425,7 +10194,7 @@
       "targetApps": [
         "com.twitter.android"
       ],
-      "stars": 9,
+      "stars": 10,
       "deepLink": "https://morphe.software/add-source?github=Xittered/xitter-morphe"
     },
     {
@@ -9441,7 +10210,7 @@
         "ru.ozon.app.android",
         "com.wildberries.ru"
       ],
-      "stars": 61,
+      "stars": 63,
       "deepLink": "https://morphe.software/add-source?github=xob0t/morphe-patches"
     },
     {
@@ -9456,7 +10225,7 @@
         "com.robskie.tether",
         "com.google.android.inputmethod.latin"
       ],
-      "stars": 10,
+      "stars": 11,
       "deepLink": "https://morphe.software/add-source?github=XTapped/morphe-patches"
     },
     {
@@ -9465,11 +10234,11 @@
       "url": "github.com/XXLC/grok-morphe-patches",
       "name": "XXLC",
       "author": "XXLC",
-      "patchCount": 11,
+      "patchCount": 13,
       "targetApps": [
         "ai.x.grok"
       ],
-      "stars": 3,
+      "stars": 4,
       "deepLink": "https://morphe.software/add-source?github=XXLC/grok-morphe-patches"
     },
     {
@@ -9526,7 +10295,7 @@
         "io.gh.reisxd.tizentube.cobalt",
         "de.rtli.tvnow"
       ],
-      "stars": 9,
+      "stars": 8,
       "deepLink": "https://morphe.software/add-source?github=ysamjo/morphe-patches"
     },
     {
@@ -9543,6 +10312,20 @@
       "deepLink": "https://morphe.software/add-source?github=yuubinnkyoku/morphe-tver-patch"
     },
     {
+      "repo": "yuuki-kagura/morphe-patches",
+      "source": "github",
+      "url": "github.com/yuuki-kagura/morphe-patches",
+      "name": "Yuuki-Kagura",
+      "author": "yuuki-kagura",
+      "patchCount": 3,
+      "targetApps": [
+        "com.contechity.color_temp_meter",
+        "io.japp.blackscreen"
+      ],
+      "stars": 0,
+      "deepLink": "https://morphe.software/add-source?github=yuuki-kagura/morphe-patches"
+    },
+    {
       "repo": "Zanuaimi/UniPatches",
       "source": "github",
       "url": "github.com/Zanuaimi/UniPatches",
@@ -9552,7 +10335,7 @@
       "targetApps": [
         "com.fingersoft.hillclimb"
       ],
-      "stars": 103,
+      "stars": 105,
       "deepLink": "https://morphe.software/add-source?github=Zanuaimi/UniPatches"
     },
     {
@@ -9579,7 +10362,7 @@
       "targetApps": [
         "dk.dr.tvplayer"
       ],
-      "stars": 2,
+      "stars": 3,
       "deepLink": "https://morphe.software/add-source?github=zenthora/drtv-morphe-patches"
     },
     {
@@ -9613,7 +10396,7 @@
         "run.openbot.mobile",
         "dev.orca.app"
       ],
-      "stars": 5,
+      "stars": 6,
       "deepLink": "https://morphe.software/add-source?github=zimza1abim/kanye-morphe-patches"
     },
     {
@@ -9622,11 +10405,11 @@
       "url": "github.com/ZoomSass/Mighty-Morphing",
       "name": "ZoomSass",
       "author": "ZoomSass",
-      "patchCount": 19,
+      "patchCount": 20,
       "targetApps": [
         "o.o.joey"
       ],
-      "stars": 24,
+      "stars": 28,
       "deepLink": "https://morphe.software/add-source?github=ZoomSass/Mighty-Morphing"
     }
   ]

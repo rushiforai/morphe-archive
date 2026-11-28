@@ -13,6 +13,7 @@ final class Settings {
     static final String BADGE_DEVICES = "badge_devices";
     static final String BADGE_VPN = "badge_vpn";
     static final String BADGE_INFO = "badge_info";
+    static final String BADGE_SHARE = "badge_share";
     static final String ZERO_ENGAGEMENT = "zero_engagement";
     static final String COMMUNITY_CACHE = "community_cache";
     static final String HIGHLIGHT_CONTRAST = "highlight_contrast";
@@ -33,15 +34,17 @@ final class Settings {
     /** Badge settings read together, once per change instead of on every bind. */
     static final class Badge {
         final BadgeStyle.Size size;
-        final boolean background, flags, devices, vpn, info, deviceCountry;
+        final boolean background, flags, devices, vpn, info, share, deviceCountry;
 
         private Badge() {
             size = badgeSize();
             background = bool(BADGE_BACKGROUND, true);
             flags = bool(BADGE_FLAGS, true);
-            devices = bool(BADGE_DEVICES, false);
-            vpn = bool(BADGE_VPN, false);
+            devices = bool(BADGE_DEVICES, true);
+            vpn = bool(BADGE_VPN, true);
             info = bool(BADGE_INFO, true);
+            // Off unless chosen: the button adds a second item to every post's name row.
+            share = bool(BADGE_SHARE, false);
             deviceCountry = bool(DEVICE_COUNTRY, false);
         }
     }

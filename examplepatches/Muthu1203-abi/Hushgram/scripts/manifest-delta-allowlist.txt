@@ -1,0 +1,51 @@
+# Reviewed Android manifest changes the HushGram patches make to a stock Instagram APK.
+#
+# One line per change, as "<kind> <value>":
+#   permission-added     <permission name>      the patched app asks for something stock did not
+#   permission-removed   <permission name>      the patched app no longer asks for it
+#   exported-added       <kind>:<class>         something other apps can now reach
+#   exported-removed     <kind>:<class>         something other apps can no longer reach
+#   version-code         <code>                 the patched build's version code, when a patch changed it
+#   min-sdk              <API>                  the runtime floor, only when the vendor minimum is lower
+#
+# scripts/verify-all-patches.ps1 reads it and stops a run whose patched manifest changed in a way
+# it doesn't list. That run applies every patch, so it also stops when a change listed here is
+# missing: each line is a change some patch makes.
+#
+# The settings shortcut is published at run time and all but two hooks are bytecode, so the patched
+# manifest should read like stock. A patch that asks for a permission, drops one, or changes what
+# other apps can reach stops the run until somebody says why.
+#
+# Taken from Hushfacebook's scripts/manifest-delta-allowlist.txt
+# (https://github.com/SysAdminDoc/Hushfacebook, commit c15d4f7930505824789684d35039d3c78c8b0903).
+# GPL-3.0-only. Modified for HushGram (Instagram), 2026.
+#
+# Remove the advertising ID drops the three permissions behind the advertising ID and Android's ad
+# attribution. Instagram 449 targets Android 16, where Google Play services hands an app without
+# AD_ID a string of zeros, and its one attribution call catches the ad services' refusal.
+permission-removed com.google.android.gms.permission.AD_ID
+permission-removed android.permission.ACCESS_ADSERVICES_AD_ID
+permission-removed android.permission.ACCESS_ADSERVICES_ATTRIBUTION
+#
+# Change version code raises the version code to the highest Android takes, so Google Play stops
+# offering Meta's updates over the patched build. Instagram's own reads of its code are hooked to
+# answer the real one. scripts/verify-injected-registers.ps1 also reads this line: a patched build
+# with this code still counts as the same build as Meta's.
+version-code 2147483647
+# The extension uses Android 9 APIs. 457's arm64-v8a builds (386314297 and 386314341) and its
+# x86_64 build (386314286) start at API 28; its armeabi-v7a build (386314340) starts at API 26
+# and is raised to 28.
+# Assert-HushgramRuntimeFloor checks every output, including builds already at API 28 or higher.
+min-sdk 28
+#
+# Pick the app icon adds eight launcher icons, each an alias that opens Instagram the way its own
+# launcher alias does and is exported as that one is. They start off, and the extension turns on the
+# one picked in settings.
+exported-added activity-alias:com.instagram.android.activity.MainTabActivity.hushgram_hushgram
+exported-added activity-alias:com.instagram.android.activity.MainTabActivity.hushgram_dark
+exported-added activity-alias:com.instagram.android.activity.MainTabActivity.hushgram_light
+exported-added activity-alias:com.instagram.android.activity.MainTabActivity.hushgram_plum
+exported-added activity-alias:com.instagram.android.activity.MainTabActivity.hushgram_sketch
+exported-added activity-alias:com.instagram.android.activity.MainTabActivity.hushgram_gradient
+exported-added activity-alias:com.instagram.android.activity.MainTabActivity.hushgram_retro
+exported-added activity-alias:com.instagram.android.activity.MainTabActivity.hushgram_pink

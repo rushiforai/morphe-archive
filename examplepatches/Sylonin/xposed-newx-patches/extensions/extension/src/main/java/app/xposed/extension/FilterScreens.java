@@ -123,7 +123,8 @@ final class FilterScreens {
                 + "through, such as Switzerland App Store, for flags and location filters. Otherwise use the account "
                 + "location.", Settings.DEVICE_COUNTRY, false);
         globalToggle(page, "Use profile details", "Use bios, links, following counts and post counts from the data X "
-                + "loads. When off, filters on them stay saved but inactive.", Settings.PROFILE_DETAILS, true);
+                + "loads, for filters and the account sheet's activity counts. When off, filters on them stay saved "
+                + "but inactive.", Settings.PROFILE_DETAILS, true);
         if (onClose != null) page.onClose(onClose);
         page.show();
     }

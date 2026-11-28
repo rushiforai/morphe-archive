@@ -8,14 +8,17 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import org.ungoogled.patches.coloros.exportDynamicReceivers
@@ -472,6 +475,139 @@ private val backgroundsPatch = bytecodePatch {
 }
 
 /**
+ * Uninstalling: the launcher removes apps itself (deletePackageAsUser, DELETE_PACKAGES, a system permission), so every
+ * uninstall failed ("Failed to delete ..."). Without the permission each app goes to Android's uninstall prompt
+ * (see Uninstall); every entry point (home screen, drawer, folders, edit-mode selection) ends in these two methods.
+ */
+private val uninstallPatch = bytecodePatch {
+    execute {
+        val manager = mutableClassDefBy("Lcom/android/launcher/pkg/PackageDeleteManager;")
+        for ((name, helper) in listOf(
+            "uninstallApp" to "prompt(Ljava/lang/Object;)Z",
+            "uninstallApps" to "prompts(Ljava/util/List;)Z",
+        )) {
+            val method = manager.methods.firstOrNull { it.name == name && it.returnType == "V" && it.parameterTypes.size == 1 }
+                ?: throw PatchException("PackageDeleteManager.$name not found")
+            method.addInstructionsWithLabels(
+                0,
+                """
+                    invoke-static { p1 }, $EXT/Uninstall;->$helper
+                    move-result v0
+                    if-eqz v0, :own
+                    return-void
+                """,
+                ExternalLabel("own", method.implementation!!.instructions.first()),
+            )
+        }
+    }
+}
+
+/**
+ * Widget list: apps' shortcuts (activities for CREATE_SHORTCUT: "Settings shortcut", "Direct dial", "Directions", ...,
+ * listed by Android's own launcher next to the widgets) never appeared. The list's filter asks OPPO's widget filter about
+ * every entry first, and that answers no for an entry without a widget, so pre-installed apps that offer only shortcuts
+ * were missing. A shortcut entry now gets Widgets.pickerShortcut's answer there; the rest of the filter is unchanged.
+ */
+private val widgetShortcutsPatch = bytecodePatch {
+    execute {
+        val check = mutableClassDefBy("Lcom/android/launcher3/model/WidgetsModel\$WidgetValidityCheck;")
+        val test = check.methods.firstOrNull {
+            it.name == "test" && it.parameterTypes == listOf("Lcom/android/launcher3/model/WidgetItem;")
+        } ?: throw PatchException("WidgetsModel.WidgetValidityCheck.test(WidgetItem) not found")
+        val instructions = test.implementation!!.instructions
+        val call = instructions.indexOfFirst {
+            it.opcode == Opcode.INVOKE_VIRTUAL &&
+                ((it as ReferenceInstruction).reference as? MethodReference)?.let { r ->
+                    r.definingClass == "Lcom/android/launcher3/OplusAppFilter;" && r.name == "shouldShowWidget"
+                } == true
+        }
+        if (call < 0 || instructions.getOrNull(call + 1)?.opcode != Opcode.MOVE_RESULT) {
+            throw PatchException("WidgetValidityCheck.test does not ask OplusAppFilter.shouldShowWidget")
+        }
+        val result = (instructions[call + 1] as OneRegisterInstruction).registerA
+        // The register after the answer is set again before its next read (const/4 0x0 in both versions).
+        val next = instructions[call + 2]
+        if (next.opcode != Opcode.CONST_4) throw PatchException("WidgetValidityCheck.test changed after shouldShowWidget")
+        val free = (next as OneRegisterInstruction).registerA
+        test.addInstructionsWithLabels(
+            call + 2,
+            """
+                iget-object v$free, p1, Lcom/android/launcher3/model/WidgetItem;->activityInfo:Lcom/android/launcher3/pm/ShortcutConfigActivityInfo;
+                if-eqz v$free, :widget
+                iget-object v$free, p1, Lcom/android/launcher3/util/ComponentKey;->componentName:Landroid/content/ComponentName;
+                invoke-static { v$free }, $EXT/Widgets;->pickerShortcut(Landroid/content/ComponentName;)Z
+                move-result v$result
+            """,
+            ExternalLabel("widget", test.implementation!!.instructions[call + 2]),
+        )
+
+        // The list's cells only answered for widgets: a shortcut is picked up by touch and hold like a widget (dropped on
+        // the home screen it opens the app's shortcut screen, as in Android's launcher) and a tap shows Launcher3's
+        // "Touch & hold to move a shortcut." hint. The page thumbnails take only widgets (a shortcut dropped there was lost).
+        val sheet = mutableClassDefBy("Lcom/android/launcher3/views/OplusWidgetsFullSheet;")
+        val pendingWidget = "Lcom/android/launcher3/widget/PendingAddWidgetInfo;"
+        val pendingShortcut = "Lcom/android/launcher3/widget/PendingAddShortcutInfo;"
+        val longClick = sheet.methods.firstOrNull { it.name == "onLongClick" && it.parameterTypes == listOf("Landroid/view/View;") }
+            ?: throw PatchException("OplusWidgetsFullSheet.onLongClick not found")
+        val widgetCheck = longClick.implementation!!.instructions.indexOfFirst {
+            it.opcode == Opcode.INSTANCE_OF && ((it as ReferenceInstruction).reference as? TypeReference)?.type == pendingWidget
+        }
+        if (widgetCheck < 0) throw PatchException("OplusWidgetsFullSheet.onLongClick does not check for a widget")
+        val isWidget = longClick.implementation!!.instructions[widgetCheck] as TwoRegisterInstruction
+        longClick.replaceInstruction(
+            widgetCheck,
+            "instance-of v${isWidget.registerA}, v${isWidget.registerB}, Lcom/android/launcher3/PendingAddItemInfo;",
+        )
+
+        val click = sheet.methods.firstOrNull { it.name == "onClick" && it.parameterTypes == listOf("Landroid/view/View;") }
+            ?: throw PatchException("OplusWidgetsFullSheet.onClick not found")
+        click.addInstructionsWithLabels(
+            0,
+            """
+                invoke-virtual { p1 }, Landroid/view/View;->getTag()Ljava/lang/Object;
+                move-result-object v0
+                instance-of v0, v0, $pendingShortcut
+                if-eqz v0, :own
+                invoke-super { p0, p1 }, Lcom/android/launcher3/widget/BaseWidgetSheet;->onClick(Landroid/view/View;)V
+                return-void
+            """,
+            ExternalLabel("own", click.implementation!!.instructions.first()),
+        )
+
+        val dropped = sheet.methods.firstOrNull { it.name == "onDropCompleted" && it.parameterTypes.size == 3 }
+            ?: throw PatchException("OplusWidgetsFullSheet.onDropCompleted not found")
+        dropped.addInstructionsWithLabels(
+            0,
+            """
+                instance-of v0, p1, Lcom/android/launcher/pagepreview/PagePreviewListView;
+                if-eqz v0, :own
+                iget-object v0, p2, Lcom/android/launcher3/DropTarget${'$'}DragObject;->dragInfo:Lcom/android/launcher3/model/data/ItemInfo;
+                instance-of v0, v0, $pendingWidget
+                if-nez v0, :own
+                invoke-direct { p0, p3 }, Lcom/android/launcher3/views/OplusWidgetsFullSheet;->notifyOnDropWidgetToDesktop(Z)V
+                return-void
+            """,
+            ExternalLabel("own", dropped.implementation!!.instructions.first()),
+        )
+
+        val thumbnails = mutableClassDefBy("Lcom/android/launcher/pagepreview/PagePreviewListView;")
+        val accept = thumbnails.methods.firstOrNull { it.name == "acceptDrop" && it.parameterTypes.size == 1 }
+            ?: throw PatchException("PagePreviewListView.acceptDrop not found")
+        accept.addInstructionsWithLabels(
+            0,
+            """
+                iget-object v0, p1, Lcom/android/launcher3/DropTarget${'$'}DragObject;->dragInfo:Lcom/android/launcher3/model/data/ItemInfo;
+                instance-of v0, v0, $pendingShortcut
+                if-eqz v0, :own
+                const/4 v0, 0x0
+                return v0
+            """,
+            ExternalLabel("own", accept.implementation!!.instructions.first()),
+        )
+    }
+}
+
+/**
  * Selecting apps in edit mode: every app after the first kept its grey check until the page redrew (the selection itself
  * worked). The check's animation marks the icon for redrawing, but that did not reach the page; the icon's parents are
  * now asked to redraw too (see Views.invalidateUp).
@@ -907,13 +1043,15 @@ val enableNonColorOsPatch = bytecodePatch(
         versionCheckPatch, privateClassesPatch, manifestPatch, olderAndroidResourcesPatch, hiddenApisPatch,
         systemPrivilegesPatch, workProfilePatch, wallpaperBrightnessPatch, personalizationPatch, settingsLinksPatch,
         nightBackgroundsPatch, morphIconStylePatch, lockScreenPatch, selectCheckPatch, workspaceRedrawPatch, backgroundsPatch,
+        uninstallPatch, widgetShortcutsPatch,
     )
     extendWith(COLOROS_LAUNCHER_EXTENSION)
-    // OPPO's badge provider (other apps set icon counts through it) and authorities OPPO's SDKs build from the package name.
+    // Authorities OPPO's SDKs build from the package name. OPPO's badge provider (com.android.badge) moves like the
+    // other names: Honor's launcher declares it too, and Android refused the install there (issue #232).
     dependsOn(
         org.ungoogled.patches.shared.launcherCoexistencePatch(
             keep = setOf(
-                "com.android.badge", "com.android.launcher.epona", "com.android.launcher.custom.DictProvider",
+                "com.android.launcher.epona", "com.android.launcher.custom.DictProvider",
                 "com.android.launcher.upk.FileProvider",
             ),
         ),

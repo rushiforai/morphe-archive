@@ -6,10 +6,6 @@
 
 package semicoloncolonel.mobilestream.patches.espn.ads
 
-import app.morphe.patcher.Fingerprint
-import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 internal const val AD_DISABLED_FIELD = "isAdDisabled"
 
@@ -21,15 +17,6 @@ internal const val AD_DISABLED_FIELD = "isAdDisabled"
 // that takes the full argument list. The synthetic default-args constructor
 // only forwards to it, so the match requires the iput itself.
 //
-// The phone build 8.27.0 keeps the com.disney.dmp.sgai names unobfuscated,
-// as the TV build does.
-internal object InterstitialManagerInitFingerprint : Fingerprint(
-    custom = { method, _ ->
-        method.name == "<init>" &&
-            method.definingClass == "Lcom/disney/dmp/sgai/InterstitialManager;" &&
-            method.implementation?.instructions?.any { insn ->
-                insn.opcode == Opcode.IPUT_BOOLEAN &&
-                    ((insn as? ReferenceInstruction)?.reference as? FieldReference)?.name == AD_DISABLED_FIELD
-            } == true
-    },
-)
+// The phone builds 8.27.0 and 8.29.0 keep the com.disney.dmp.sgai names
+// unobfuscated. 8.30.0 renames them, so SkipAdsPatch finds the field from the
+// constructor's " isAdDisabled:" log line instead of by name.

@@ -132,11 +132,11 @@ internal fun Fingerprint.adjustReturns(adjust: String, extraArguments: String = 
 }
 
 /**
- * Passes every object the method returns through [adjust], a static method that takes the object and returns
+ * Passes every object the method returns through [adjust], a static method that takes the object (plus [extraArguments]) and returns
  * the new one.
  */
 context(_: BytecodePatchContext)
-internal fun Fingerprint.adjustObjectReturns(adjust: String) {
+internal fun Fingerprint.adjustObjectReturns(adjust: String, extraArguments: String = "") {
 	val instructions = method.implementation!!.instructions
 	val indices = instructions.withIndex()
 		.filter { it.value.opcode == Opcode.RETURN_OBJECT }
@@ -146,7 +146,8 @@ internal fun Fingerprint.adjustObjectReturns(adjust: String) {
 	indices.reversed().forEach { index ->
 		val register = (instructions[index] as OneRegisterInstruction).registerA
 		if (register > 15) throw PatchException("${method.name} returns from v$register, which is out of range")
-		method.replaceInstruction(index, "invoke-static { v$register }, $adjust")
+		val arguments = if (extraArguments.isEmpty()) "v$register" else "v$register, $extraArguments"
+		method.replaceInstruction(index, "invoke-static { $arguments }, $adjust")
 		method.addInstructions(
 			index + 1,
 			"""

@@ -1,0 +1,243 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.hushgram.extension.instagram.settings;
+
+import static org.junit.Assert.*;
+import android.app.Activity;
+import android.preference.Preference;
+import android.preference.PreferenceGroup;
+import android.preference.SwitchPreference;
+import java.util.EnumSet;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
+import org.robolectric.android.controller.ActivityController;
+import org.robolectric.annotation.Config;
+import app.hushgram.extension.shared.SettingsContextRule;
+import app.hushgram.extension.shared.Utils;
+import app.hushgram.extension.shared.settings.BaseSettings;
+import app.hushgram.extension.shared.settings.PauseForTests;
+
+/** Keep clear mode on sits under Reels after Clean up Reels' other rows, starts off and is kept in a backup. */
+@RunWith(RobolectricTestRunner.class)
+@Config(sdk = {28, 37})
+@SuppressWarnings("deprecation")
+public class ReelClearModeSettingsTest {
+    @Rule public final SettingsContextRule settings = new SettingsContextRule();
+    private ActivityController<Activity> controller;
+    private HushgramPreferenceFragment page;
+
+    @Before public void prepare() {
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
+        Settings.KEEP_REEL_CLEAR_MODE.resetToDefault();
+        Settings.PINCH_CLEAR_MODE.resetToDefault();
+        Settings.HIDE_CLEAR_MODE_EXIT_BUTTON.resetToDefault();
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+        BaseSettings.SAFE_MODE.save(false);
+        Settings.SIGN_IN_NOTICE_HIDDEN.save(true);
+    }
+    @After public void close() throws Exception {
+        if (controller != null) controller.close();
+        Utils.awaitBackgroundTasksForTests();
+        PatchFamily.inBuildForTests = null;
+        Settings.KEEP_REEL_CLEAR_MODE.resetToDefault();
+        Settings.PINCH_CLEAR_MODE.resetToDefault();
+        Settings.HIDE_CLEAR_MODE_EXIT_BUTTON.resetToDefault();
+        Settings.SIGN_IN_NOTICE_HIDDEN.resetToDefault();
+    }
+    private void open(EnumSet<PatchFamily> build) throws Exception {
+        PatchFamily.inBuildForTests = build;
+        controller = Robolectric.buildActivity(Activity.class).setup();
+        page = new HushgramPreferenceFragment();
+        controller.get().getFragmentManager().beginTransaction().add(android.R.id.content, page).commitNow();
+        Utils.awaitBackgroundTasksForTests();
+    }
+    @Test public void itIsUnderReelsAfterBurnInGuardAndStartsOff() throws Exception {
+        open(EnumSet.of(PatchFamily.REEL_DECLUTTER));
+        Preference row = page.getPreferenceScreen().findPreference(Settings.KEEP_REEL_CLEAR_MODE.key);
+        assertNotNull(row);
+        assertTrue(row instanceof SwitchPreference);
+        assertEquals("Keep clear mode on", row.getTitle().toString());
+        assertTrue(row.getSummary().toString(), row.getSummary().toString().contains("the next reels open in it too"));
+        PreferenceGroup reels = (PreferenceGroup) row.getParent();
+        assertEquals("Reels", reels.getTitle().toString());
+        int guard = -1;
+        int keep = -1;
+        for (int i = 0; i < reels.getPreferenceCount(); i++) {
+            String key = reels.getPreference(i).getKey();
+            if (Settings.BURN_IN_STORIES.key.equals(key)) guard = i;
+            if (Settings.KEEP_REEL_CLEAR_MODE.key.equals(key)) keep = i;
+        }
+        assertEquals("right after Burn-in guard's Dim stories too", guard + 1, keep);
+        assertFalse(((SwitchPreference) row).isChecked());
+        assertFalse(Settings.KEEP_REEL_CLEAR_MODE.get());
+        assertEquals(Boolean.FALSE, Settings.KEEP_REEL_CLEAR_MODE.defaultValue);
+        assertTrue(ConfigurationBackup.eligible().containsKey(Settings.KEEP_REEL_CLEAR_MODE.key));
+        assertTrue(PatchFamily.REEL_DECLUTTER.switches.contains(Settings.KEEP_REEL_CLEAR_MODE));
+    }
+    /** Start every reel in clear mode (#138) sits right under Keep clear mode on, starts off and needs it on. */
+    @Test public void startEveryReelSitsUnderItStartsOffAndNeedsIt() throws Exception {
+        open(EnumSet.of(PatchFamily.REEL_DECLUTTER));
+        Preference row = page.getPreferenceScreen().findPreference(Settings.START_REEL_CLEAR_MODE.key);
+        assertNotNull(row);
+        assertTrue(row instanceof SwitchPreference);
+        assertEquals("Start every reel in clear mode", row.getTitle().toString());
+        assertEquals("Reels open in clear mode from the first one, with no tap. Leave it yourself and the next "
+                + "reels show their buttons again. Instagram blocks screenshots in clear mode unless Allow "
+                + "screenshots is on.", row.getSummary().toString());
+        PreferenceGroup reels = (PreferenceGroup) row.getParent();
+        int keep = -1;
+        int start = -1;
+        for (int i = 0; i < reels.getPreferenceCount(); i++) {
+            String key = reels.getPreference(i).getKey();
+            if (Settings.KEEP_REEL_CLEAR_MODE.key.equals(key)) keep = i;
+            if (Settings.START_REEL_CLEAR_MODE.key.equals(key)) start = i;
+        }
+        assertEquals("right after Keep clear mode on", keep + 1, start);
+        assertFalse(((SwitchPreference) row).isChecked());
+        assertEquals(Boolean.FALSE, Settings.START_REEL_CLEAR_MODE.defaultValue);
+        assertFalse("read at each try, so no restart", Settings.START_REEL_CLEAR_MODE.rebootApp);
+        assertFalse("waits for Keep clear mode on", Settings.START_REEL_CLEAR_MODE.isAvailable());
+        Settings.KEEP_REEL_CLEAR_MODE.save(true);
+        assertTrue(Settings.START_REEL_CLEAR_MODE.isAvailable());
+        assertTrue(ConfigurationBackup.eligible().containsKey(Settings.START_REEL_CLEAR_MODE.key));
+    }
+    /**
+     * Don't vibrate in clear mode (#480) sits right under Start every reel in clear mode, starts off,
+     * works with Keep clear mode on off too, and is kept in a backup.
+     */
+    @Test public void dontVibrateSitsUnderStartAndStartsOff() throws Exception {
+        open(EnumSet.of(PatchFamily.REEL_DECLUTTER));
+        Preference row = page.getPreferenceScreen().findPreference(Settings.QUIET_REEL_CLEAR_MODE.key);
+        assertNotNull(row);
+        assertTrue(row instanceof SwitchPreference);
+        assertEquals("Don't vibrate in clear mode", row.getTitle().toString());
+        assertEquals("Stops the short buzz Instagram plays when a reel opens in clear mode. With Keep clear mode "
+                + "on, that's every swipe.", row.getSummary().toString());
+        PreferenceGroup reels = (PreferenceGroup) row.getParent();
+        int start = -1;
+        int quiet = -1;
+        for (int i = 0; i < reels.getPreferenceCount(); i++) {
+            String key = reels.getPreference(i).getKey();
+            if (Settings.START_REEL_CLEAR_MODE.key.equals(key)) start = i;
+            if (Settings.QUIET_REEL_CLEAR_MODE.key.equals(key)) quiet = i;
+        }
+        assertEquals("right after Start every reel in clear mode", start + 1, quiet);
+        assertFalse(((SwitchPreference) row).isChecked());
+        assertEquals(Boolean.FALSE, Settings.QUIET_REEL_CLEAR_MODE.defaultValue);
+        assertFalse("read each time, so no restart", Settings.QUIET_REEL_CLEAR_MODE.rebootApp);
+        assertTrue("doesn't wait for Keep clear mode on", Settings.QUIET_REEL_CLEAR_MODE.isAvailable());
+        assertTrue(PatchFamily.REEL_DECLUTTER.switches.contains(Settings.QUIET_REEL_CLEAR_MODE));
+        assertTrue(ConfigurationBackup.eligible().containsKey(Settings.QUIET_REEL_CLEAR_MODE.key));
+    }
+    /**
+     * Always show seek bar in clear mode (#480) sits right under Don't vibrate in clear mode, starts
+     * off, needs no restart, doesn't wait for Keep clear mode on, and is kept in a backup.
+     */
+    @Test public void alwaysShowSeekBarSitsUnderDontVibrateAndStartsOff() throws Exception {
+        open(EnumSet.of(PatchFamily.REEL_DECLUTTER));
+        Preference row = page.getPreferenceScreen().findPreference(Settings.CLEAR_MODE_SEEK_BAR.key);
+        assertNotNull(row);
+        assertTrue(row instanceof SwitchPreference);
+        assertEquals("Always show seek bar in clear mode", row.getTitle().toString());
+        assertEquals("Keeps the seek bar on a reel in clear mode, and you can still drag it, while the other "
+                + "buttons stay hidden. Short reels get a bar too, in clear mode or not.", row.getSummary().toString());
+        PreferenceGroup reels = (PreferenceGroup) row.getParent();
+        int quiet = -1;
+        int bar = -1;
+        for (int i = 0; i < reels.getPreferenceCount(); i++) {
+            String key = reels.getPreference(i).getKey();
+            if (Settings.QUIET_REEL_CLEAR_MODE.key.equals(key)) quiet = i;
+            if (Settings.CLEAR_MODE_SEEK_BAR.key.equals(key)) bar = i;
+        }
+        assertEquals("right after Don't vibrate in clear mode", quiet + 1, bar);
+        assertFalse(((SwitchPreference) row).isChecked());
+        assertEquals(Boolean.FALSE, Settings.CLEAR_MODE_SEEK_BAR.defaultValue);
+        assertFalse("decided as each reel shows, so no restart", Settings.CLEAR_MODE_SEEK_BAR.rebootApp);
+        assertTrue("doesn't wait for Keep clear mode on", Settings.CLEAR_MODE_SEEK_BAR.isAvailable());
+        assertTrue(PatchFamily.REEL_DECLUTTER.switches.contains(Settings.CLEAR_MODE_SEEK_BAR));
+        assertTrue(ConfigurationBackup.eligible().containsKey(Settings.CLEAR_MODE_SEEK_BAR.key));
+    }
+    /**
+     * Pinch for clear mode (#744) sits right under Always show seek bar in clear mode, starts off, needs
+     * no restart, doesn't wait for Keep clear mode on, and is kept in a backup.
+     */
+    @Test public void pinchForClearModeSitsUnderSeekBarAndStartsOff() throws Exception {
+        open(EnumSet.of(PatchFamily.REEL_DECLUTTER));
+        Preference row = page.getPreferenceScreen().findPreference(Settings.PINCH_CLEAR_MODE.key);
+        assertNotNull(row);
+        assertTrue(row instanceof SwitchPreference);
+        assertEquals("Pinch for clear mode", row.getTitle().toString());
+        assertEquals("Pinch a reel with two fingers to turn clear mode on, and pinch again to leave it. While "
+                + "Pinch to zoom is on, two fingers zoom instead.", row.getSummary().toString());
+        PreferenceGroup reels = (PreferenceGroup) row.getParent();
+        assertEquals("Reels", reels.getTitle().toString());
+        int bar = -1;
+        int pinch = -1;
+        for (int i = 0; i < reels.getPreferenceCount(); i++) {
+            String key = reels.getPreference(i).getKey();
+            if (Settings.CLEAR_MODE_SEEK_BAR.key.equals(key)) bar = i;
+            if (Settings.PINCH_CLEAR_MODE.key.equals(key)) pinch = i;
+        }
+        assertEquals("right after Always show seek bar in clear mode", bar + 1, pinch);
+        assertFalse(((SwitchPreference) row).isChecked());
+        assertFalse(Settings.PINCH_CLEAR_MODE.get());
+        assertEquals(Boolean.FALSE, Settings.PINCH_CLEAR_MODE.defaultValue);
+        assertFalse("read at each pinch, so no restart", Settings.PINCH_CLEAR_MODE.rebootApp);
+        assertTrue("doesn't wait for Keep clear mode on", Settings.PINCH_CLEAR_MODE.isAvailable());
+        assertTrue(PatchFamily.REEL_DECLUTTER.switches.contains(Settings.PINCH_CLEAR_MODE));
+        assertTrue(ConfigurationBackup.eligible().containsKey(Settings.PINCH_CLEAR_MODE.key));
+    }
+    /**
+     * Hide the exit button in clear mode (#744) sits right under Pinch for clear mode, starts off, needs
+     * no restart, waits for Pinch for clear mode, and is kept in a backup.
+     */
+    @Test public void hideTheExitButtonSitsUnderPinchAndNeedsIt() throws Exception {
+        open(EnumSet.of(PatchFamily.REEL_DECLUTTER));
+        Preference row = page.getPreferenceScreen().findPreference(Settings.HIDE_CLEAR_MODE_EXIT_BUTTON.key);
+        assertNotNull(row);
+        assertTrue(row instanceof SwitchPreference);
+        assertEquals("Hide the exit button in clear mode", row.getTitle().toString());
+        assertEquals("Takes away the round button a reel shows in clear mode, so a pinch is how you leave it. "
+                + "The button stays while Pinch to zoom is on.", row.getSummary().toString());
+        PreferenceGroup reels = (PreferenceGroup) row.getParent();
+        int pinch = -1;
+        int hide = -1;
+        for (int i = 0; i < reels.getPreferenceCount(); i++) {
+            String key = reels.getPreference(i).getKey();
+            if (Settings.PINCH_CLEAR_MODE.key.equals(key)) pinch = i;
+            if (Settings.HIDE_CLEAR_MODE_EXIT_BUTTON.key.equals(key)) hide = i;
+        }
+        assertEquals("right after Pinch for clear mode", pinch + 1, hide);
+        assertFalse(((SwitchPreference) row).isChecked());
+        assertEquals(Boolean.FALSE, Settings.HIDE_CLEAR_MODE_EXIT_BUTTON.defaultValue);
+        assertFalse("decided as the button draws, so no restart", Settings.HIDE_CLEAR_MODE_EXIT_BUTTON.rebootApp);
+        assertFalse("waits for Pinch for clear mode", Settings.HIDE_CLEAR_MODE_EXIT_BUTTON.isAvailable());
+        Settings.PINCH_CLEAR_MODE.save(true);
+        assertTrue(Settings.HIDE_CLEAR_MODE_EXIT_BUTTON.isAvailable());
+        assertTrue(PatchFamily.REEL_DECLUTTER.switches.contains(Settings.HIDE_CLEAR_MODE_EXIT_BUTTON));
+        assertTrue(ConfigurationBackup.eligible().containsKey(Settings.HIDE_CLEAR_MODE_EXIT_BUTTON.key));
+    }
+    @Test public void withoutCleanUpReelsThereIsNoSwitch() throws Exception {
+        open(EnumSet.noneOf(PatchFamily.class));
+        assertNull(page.getPreferenceScreen().findPreference(Settings.PINCH_CLEAR_MODE.key));
+        assertNull(page.getPreferenceScreen().findPreference(Settings.HIDE_CLEAR_MODE_EXIT_BUTTON.key));
+        assertFalse(ConfigurationBackup.eligible().containsKey(Settings.PINCH_CLEAR_MODE.key));
+        assertFalse(ConfigurationBackup.eligible().containsKey(Settings.HIDE_CLEAR_MODE_EXIT_BUTTON.key));
+        assertNull(page.getPreferenceScreen().findPreference(Settings.CLEAR_MODE_SEEK_BAR.key));
+        assertNull(page.getPreferenceScreen().findPreference(Settings.KEEP_REEL_CLEAR_MODE.key));
+        assertNull(page.getPreferenceScreen().findPreference(Settings.START_REEL_CLEAR_MODE.key));
+        assertNull(page.getPreferenceScreen().findPreference(Settings.QUIET_REEL_CLEAR_MODE.key));
+        assertFalse(ConfigurationBackup.eligible().containsKey(Settings.KEEP_REEL_CLEAR_MODE.key));
+        assertFalse(ConfigurationBackup.eligible().containsKey(Settings.START_REEL_CLEAR_MODE.key));
+        assertFalse(ConfigurationBackup.eligible().containsKey(Settings.QUIET_REEL_CLEAR_MODE.key));
+    }
+}

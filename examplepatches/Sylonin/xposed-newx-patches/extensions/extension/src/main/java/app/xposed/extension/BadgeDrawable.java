@@ -20,7 +20,7 @@ import java.util.Map;
  * separator and the circled-i. Laid out in the extension's CSS px and scaled to whatever
  * height it is drawn at.
  */
-final class BadgeDrawable extends Drawable {
+final class BadgeDrawable extends Drawable implements NameBadges.Image {
     /** Intrinsic size multiplier, so the settings preview's ImageView scales the badge down, never up. */
     private static final int INTRINSIC_SCALE = 100;
     private static final float BORDER = 1;
@@ -86,10 +86,9 @@ final class BadgeDrawable extends Drawable {
             items.add(new Item(Kind.VPN, size.icon - 2));
         }
 
-        // X-Posed's graphite theme tokens.
-        fillColor = dark ? 0x12A5AFB6 : 0x0920272A;
-        lineColor = dark ? 0x24A5AFB6 : 0x1F20272A;
-        iconColor = dark ? 0xFFA8B0B8 : 0xFF59656B;
+        fillColor = fillColor(dark);
+        lineColor = lineColor(dark);
+        iconColor = iconColor(dark);
         alertColor = dark ? 0xFFE7B36A : 0xFF895314;
 
         padding = background ? size.padding : 0;
@@ -106,6 +105,24 @@ final class BadgeDrawable extends Drawable {
         return d.items.isEmpty() ? null : d;
     }
 
+    // X-Posed's graphite theme tokens.
+    private static int fillColor(boolean dark) {
+        return dark ? 0x12A5AFB6 : 0x0920272A;
+    }
+
+    private static int lineColor(boolean dark) {
+        return dark ? 0x24A5AFB6 : 0x1F20272A;
+    }
+
+    private static int iconColor(boolean dark) {
+        return dark ? 0xFFA8B0B8 : 0xFF59656B;
+    }
+
+    /** The share button X-Posed puts after a post's badge, in the current badge style. */
+    static ShareButton shareButton() {
+        return new ShareButton(Settings.badge(), XTheme.isDark());
+    }
+
     /** Identifies how the badge looks, so a rendered copy can be reused while it stays the same. */
     String key() {
         return location + '|' + source + '|' + warning + '|' + dark + '|' + size + '|' + background + '|'
@@ -117,21 +134,28 @@ final class BadgeDrawable extends Drawable {
     }
 
     /** Width over height. */
-    float aspectRatio() {
+    @Override
+    public float aspectRatio() {
         return width / size.height;
     }
 
     /** Height relative to the medium size, which is as tall as X's verified badge. */
-    float relativeHeight() {
+    @Override
+    public float relativeHeight() {
         return size.height / BadgeStyle.Size.MEDIUM.height;
     }
 
     /** The badge drawn into a bitmap heightPx tall. */
-    Bitmap toBitmap(int heightPx) {
-        int widthPx = Math.max(1, Math.round(heightPx * aspectRatio()));
+    @Override
+    public Bitmap toBitmap(int heightPx) {
+        return render(this, heightPx, aspectRatio());
+    }
+
+    private static Bitmap render(Drawable drawable, int heightPx, float aspectRatio) {
+        int widthPx = Math.max(1, Math.round(heightPx * aspectRatio));
         Bitmap bitmap = Bitmap.createBitmap(widthPx, heightPx, Bitmap.Config.ARGB_8888);
-        setBounds(0, 0, widthPx, heightPx);
-        draw(new Canvas(bitmap));
+        drawable.setBounds(0, 0, widthPx, heightPx);
+        drawable.draw(new Canvas(bitmap));
         return bitmap;
     }
 
@@ -169,18 +193,7 @@ final class BadgeDrawable extends Drawable {
         canvas.translate(bounds.left, bounds.top);
         canvas.scale(s, s);
 
-        if (background) {
-            float half = BORDER / 2;
-            tmp.set(half, half, width - half, size.height - half);
-            paint.setStyle(Paint.Style.FILL);
-            paint.setColor(fillColor);
-            canvas.drawRoundRect(tmp, RADIUS, RADIUS, paint);
-            paint.setStyle(Paint.Style.STROKE);
-            paint.setStrokeWidth(BORDER);
-            paint.setColor(lineColor);
-            canvas.drawRoundRect(tmp, RADIUS, RADIUS, paint);
-            paint.setStyle(Paint.Style.FILL);
-        }
+        if (background) drawFrame(canvas, width, size.height, fillColor, lineColor);
 
         float centerY = size.height / 2;
         float x = BORDER + padding + detailsPadding;
@@ -214,6 +227,94 @@ final class BadgeDrawable extends Drawable {
         }
 
         canvas.restore();
+    }
+
+    /** The badge's rounded box: a faint fill and a hairline border. */
+    private static void drawFrame(Canvas canvas, float width, float height, int fill, int line) {
+        float half = BORDER / 2;
+        tmp.set(half, half, width - half, height - half);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(fill);
+        canvas.drawRoundRect(tmp, RADIUS, RADIUS, paint);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(BORDER);
+        paint.setColor(line);
+        canvas.drawRoundRect(tmp, RADIUS, RADIUS, paint);
+        paint.setStyle(Paint.Style.FILL);
+    }
+
+    /**
+     * X-Posed's share button: its share glyph in the badge's box, as its own item after the badge
+     * so it gets its own tap target.
+     */
+    static final class ShareButton extends Drawable implements NameBadges.Image {
+        private final BadgeStyle.Size size;
+        private final boolean dark, background;
+        private final float width;
+
+        private ShareButton(Settings.Badge config, boolean dark) {
+            size = config.size;
+            this.dark = dark;
+            background = config.background;
+            float control = size.height - 2;
+            width = background ? control + 2 * BORDER + 2 * size.padding : control;
+        }
+
+        String key() {
+            return "share|" + dark + '|' + size + '|' + background;
+        }
+
+        @Override
+        public float relativeHeight() {
+            return size.height / BadgeStyle.Size.MEDIUM.height;
+        }
+
+        @Override
+        public float aspectRatio() {
+            return width / size.height;
+        }
+
+        @Override
+        public Bitmap toBitmap(int heightPx) {
+            return render(this, heightPx, aspectRatio());
+        }
+
+        @Override
+        public int getIntrinsicWidth() {
+            return Math.round(width * INTRINSIC_SCALE);
+        }
+
+        @Override
+        public int getIntrinsicHeight() {
+            return Math.round(size.height * INTRINSIC_SCALE);
+        }
+
+        @Override
+        public void draw(Canvas canvas) {
+            Rect bounds = getBounds();
+            if (bounds.isEmpty()) return;
+            float s = bounds.height() / size.height;
+            canvas.save();
+            canvas.translate(bounds.left, bounds.top);
+            canvas.scale(s, s);
+            if (background) drawFrame(canvas, width, size.height, fillColor(dark), lineColor(dark));
+            float glyph = size.icon - 1;
+            Icons.CAPTURE.draw(canvas, paint, (width - glyph) / 2, (size.height - glyph) / 2, glyph, iconColor(dark));
+            canvas.restore();
+        }
+
+        @Override
+        public void setAlpha(int alpha) {
+        }
+
+        @Override
+        public void setColorFilter(ColorFilter colorFilter) {
+        }
+
+        @Override
+        public int getOpacity() {
+            return PixelFormat.TRANSLUCENT;
+        }
     }
 
     /** Emoji flag, scaled to fit an icon box the way the extension sizes its Twemoji image. */

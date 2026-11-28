@@ -8,11 +8,20 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import dev.jason.gboardpatches.extension.languagemodels.GboardLanguageModelSettingsFeature;
+import dev.jason.gboardpatches.extension.backuprestore.GboardBackupRestoreSettingsFeature;
 import dev.jason.gboardpatches.extension.clipboard.GboardClipboardSettingsFeature;
+import dev.jason.gboardpatches.extension.developeroptions.GboardDeveloperOptionsSettingsFeature;
 import dev.jason.gboardpatches.extension.keyboard.GboardAiVoiceSettingsGroupFeature;
+import dev.jason.gboardpatches.extension.keyboard.GboardAmoledDarkKeyboardSettingsFeature;
+import dev.jason.gboardpatches.extension.keyboard.GboardAtMentionSettingsFeature;
+import dev.jason.gboardpatches.extension.keyboard.GboardKeyboardAppearanceSettingsGroupFeature;
 import dev.jason.gboardpatches.extension.keyboard.GboardKeyboardLayoutSettingsGroupFeature;
 import dev.jason.gboardpatches.extension.keyboard.GboardKeyboardToolsSettingsGroupFeature;
+import dev.jason.gboardpatches.extension.keyboard.GboardLauncherIconSettingsFeature;
+import dev.jason.gboardpatches.extension.lanftp.settings.GboardLanFtpSettingsFeature;
+import dev.jason.gboardpatches.extension.languagemodels.GboardLanguageModelSettingsFeature;
+import dev.jason.gboardpatches.extension.settingshomepage.GboardSettingsHomepageSettingsFeature;
+import dev.jason.gboardpatches.extension.swiftkey.GboardSwiftKeySettingsFeature;
 
 public final class GboardPatchesSettingsFeatureRegistry {
     private static final String TAG = "GboardPatches";
@@ -32,12 +41,24 @@ public final class GboardPatchesSettingsFeatureRegistry {
     /** Every home-page feature in display order, before availability filtering. */
     public static List<GboardPatchesSettingsContract.Feature> allFeatures(Context context) {
         return Collections.unmodifiableList(Arrays.asList(
+                // Keyboard
+                new GboardAmoledDarkKeyboardSettingsFeature(context),
+                new GboardSwiftKeySettingsFeature(context),
+                new GboardKeyboardAppearanceSettingsGroupFeature(context),
+                new GboardKeyboardLayoutSettingsGroupFeature(context),
+                new GboardKeyboardToolsSettingsGroupFeature(context),
+                new GboardAtMentionSettingsFeature(context),
+                new GboardLauncherIconSettingsFeature(context),
+                // Voice & Smart Input
                 new GboardAiVoiceSettingsGroupFeature(context),
                 new GboardLanguageModelSettingsFeature(context),
-                new GboardKeyboardToolsSettingsGroupFeature(context),
-                new GboardKeyboardLayoutSettingsGroupFeature(context),
+                // Clipboard & Sharing
                 new GboardClipboardSettingsFeature(),
-                new GboardMoreSettingsGroupFeature(context)));
+                new GboardLanFtpSettingsFeature(context),
+                // System & Preferences
+                new GboardSettingsHomepageSettingsFeature(),
+                new GboardBackupRestoreSettingsFeature(context),
+                new GboardDeveloperOptionsSettingsFeature(context)));
     }
 
     private static void addIfAvailable(Context context,

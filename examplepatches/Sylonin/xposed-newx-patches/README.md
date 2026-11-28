@@ -12,20 +12,35 @@ Add this repository as a patch source in Morphe Manager:
 https://morphe.software/add-source?github=Sylonin/xposed-newx-patches
 
 Then patch the NewX APKM from APKMirror, version 12.40.1-prod.01 or newer. The patch refuses
-older versions. 12.40.1-prod.01 has been tested on its own and together with
-[piko-newx](https://github.com/crimera/piko-newx) 3.74.0; newer versions have not. The patch
+older versions. 12.40.1-prod.01 and 12.41.0-prod.01 have been tested on their own and together
+with [piko-newx](https://github.com/crimera/piko-newx) 3.75.0; newer versions have not. The patch
 finds X's code by its structure, not by its obfuscated names, and stops with an error instead of
 producing a broken app if something doesn't match.
 
 ## Features
 
-- **Badges**: X-Posed's badge after names in post and reply headers, quotes, user lists, sheets and
-  messages: country flag, optional device icon and location-warning shield, and the circled-i.
-  X draws it as one of the name's badges, next to the verified badge. Badges are not shown on
-  the profile page header.
-- **Account sheet**: tap a badge to see what X reports about the account (country, connection
-  source, location accuracy, affiliation). From there, highlight or hide posts from that
-  country or from the account itself, or add the account to Always Show.
+- **Badges**: X-Posed's badge after names in post and reply headers, quotes, user lists, sheets,
+  the profile page header, and messages (chat headers, the inbox and message requests): country
+  flag, device icon, location-warning shield, and the circled-i. Device icons and the shield
+  are on by default, as in X-Posed. X draws the badge as one of the name's badges, next to the
+  verified badge.
+- **Account sheet**: tap a badge for X-Posed's account card. It shows the profile picture,
+  name and checkmark (blue, gold for organizations, grey for government), "Identity
+  verified" and "Protected", the country, connection source and location accuracy, and
+  followers, following and posts. Under "Account details" it lists when the account was
+  created and its age, when it was verified, how often its handle changed, its affiliation
+  with the organization's badge and link, and its user ID; tap the ID to copy a link to the
+  account that keeps working after handle changes. X doesn't load media counts, so the card
+  has none. Copy, save (to Pictures/X-Posed) or share the card as an image in X's current
+  theme. From the sheet, highlight or hide posts from that country or from the account
+  itself, or add the account to Always Show.
+- **Share posts**: turn on "Show share button" in the badge settings for a button after the
+  badge on posts. It makes an image of the post as X-Posed's evidence card: author, text,
+  up to four photos, date and counts, and what X reports about the account's location and
+  connection, with the post's link and the capture time in UTC. Copy, save or share the
+  image. Under "Post on X", "Open in X" opens X's own post composer with the image attached
+  and your text, as a quote of the post, a reply to it or a new post. Nothing is posted until
+  you tap Post in X.
 - **Filters**: highlight (default) or hide posts and replies, as in X-Posed's Blocking
   settings, by:
   - country, or X region label with optional member countries;
@@ -75,21 +90,32 @@ With the community cache on (default, can be turned off in settings), the handle
 accounts you see are sent to X-Posed's cache server (`x-posed-cache.xaitax.workers.dev`),
 and what X reports about them is shared back. Your X session is never sent there. Filters are
 stored on the device. Profile details read for filters (location, website, post count), post
-languages and which post replies to which are kept in memory only and are gone when X closes.
+languages, which post replies to which, and the names, pictures and counts the account sheet
+shows are kept in memory only and are gone when X closes.
 Asking X's timeline requests for profile details makes them larger but sends nothing new
-about you; turn off "Use profile details" to keep X's requests unchanged.
+about you; turn off "Use profile details" to keep X's requests unchanged. That setting also
+turns off the account sheet's activity counts, which come from data X already loaded.
+
+Opening the account sheet asks X's "About this account" once per account and session when
+the sheet lacks the account's history, as X's own "About this account" page does. The sheet
+loads profile pictures and affiliation badges from X's image server (`pbs.twimg.com`) and
+keeps them in memory only. Card images are made on the device. Copy and Share hand them to
+other apps through X's own file provider; Save adds them to Pictures/X-Posed.
+
+Post cards use only what X already loaded for the post. The photos on them load from X's
+image server. "Open in X" opens X's own composer and posts nothing by itself.
 
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v4.3.1](https://github.com/Sylonin/xposed-newx-patches/releases/tag/v4.3.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
+> **[v4.5.2](https://github.com/Sylonin/xposed-newx-patches/releases/tag/v4.5.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
 <details open>
 <summary>📦 NewX&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Account location badges](#account-location-badges) | Shows X-Posed style country badges next to names and highlights or hides posts from chosen countries, without reporting passive engagement with them. Data comes from the X-Posed community cache, falling back to X's "About this account". Tap a badge for account details and settings. |  |
+| [Account location badges](#account-location-badges) | Shows X-Posed style country badges next to names, in profile and chat headers, and highlights or hides posts from chosen countries, without reporting passive engagement with them. Data comes from the X-Posed community cache, falling back to X's "About this account". Tap a badge for account details and settings. Posts can be shared as images. |  |
 
 </details>
 

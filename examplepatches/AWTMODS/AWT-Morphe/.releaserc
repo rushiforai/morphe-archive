@@ -84,13 +84,6 @@
           && git pull --rebase --autostash origin ${branch.name} \
           && git push origin HEAD:${branch.name}"
       }
-    ],
-    [
-      "@cleyrop-org/semantic-release-backmerge",
-      {
-        "backmergeBranches": [{"from": "main", "to": "dev"}],
-        "clearWorkspace": true
-      }
     ]
   ]
 }

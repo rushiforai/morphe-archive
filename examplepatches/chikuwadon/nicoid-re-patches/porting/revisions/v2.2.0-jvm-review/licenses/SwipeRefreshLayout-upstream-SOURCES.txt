@@ -1,0 +1,15 @@
+documentfile-1.1.0.aar https://dl.google.com/dl/android/maven2/androidx/documentfile/documentfile/1.1.0/documentfile-1.1.0.aar
+documentfile-1.1.0.pom https://dl.google.com/dl/android/maven2/androidx/documentfile/documentfile/1.1.0/documentfile-1.1.0.pom
+documentfile-1.1.0-sources.jar https://dl.google.com/dl/android/maven2/androidx/documentfile/documentfile/1.1.0/documentfile-1.1.0-sources.jar
+documentfile-1.0.0.aar https://dl.google.com/dl/android/maven2/androidx/documentfile/documentfile/1.0.0/documentfile-1.0.0.aar
+documentfile-1.0.0.pom https://dl.google.com/dl/android/maven2/androidx/documentfile/documentfile/1.0.0/documentfile-1.0.0.pom
+documentfile-1.0.0-sources.jar https://dl.google.com/dl/android/maven2/androidx/documentfile/documentfile/1.0.0/documentfile-1.0.0-sources.jar
+swiperefreshlayout-1.0.0.aar https://dl.google.com/dl/android/maven2/androidx/swiperefreshlayout/swiperefreshlayout/1.0.0/swiperefreshlayout-1.0.0.aar
+swiperefreshlayout-1.0.0.pom https://dl.google.com/dl/android/maven2/androidx/swiperefreshlayout/swiperefreshlayout/1.0.0/swiperefreshlayout-1.0.0.pom
+swiperefreshlayout-1.0.0-sources.jar https://dl.google.com/dl/android/maven2/androidx/swiperefreshlayout/swiperefreshlayout/1.0.0/swiperefreshlayout-1.0.0-sources.jar
+swiperefreshlayout-1.2.0.aar https://dl.google.com/dl/android/maven2/androidx/swiperefreshlayout/swiperefreshlayout/1.2.0/swiperefreshlayout-1.2.0.aar
+swiperefreshlayout-1.2.0.pom https://dl.google.com/dl/android/maven2/androidx/swiperefreshlayout/swiperefreshlayout/1.2.0/swiperefreshlayout-1.2.0.pom
+swiperefreshlayout-1.2.0-sources.jar https://dl.google.com/dl/android/maven2/androidx/swiperefreshlayout/swiperefreshlayout/1.2.0/swiperefreshlayout-1.2.0-sources.jar
+viewpager-1.1.0.aar https://dl.google.com/dl/android/maven2/androidx/viewpager/viewpager/1.1.0/viewpager-1.1.0.aar
+viewpager-1.1.0.pom https://dl.google.com/dl/android/maven2/androidx/viewpager/viewpager/1.1.0/viewpager-1.1.0.pom
+viewpager-1.1.0-sources.jar https://dl.google.com/dl/android/maven2/androidx/viewpager/viewpager/1.1.0/viewpager-1.1.0-sources.jar

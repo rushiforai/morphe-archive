@@ -34,6 +34,8 @@ private const val CUSTOM_TAB_ROOT_UI_CLASS =
     "Lcom/sec/android/app/sbrowser/customtabs/CustomTabRootUiCoordinator;"
 private const val MENU_SETTINGS_HELPER_CLASS =
     "Lcom/sec/android/app/sbrowser/main_view/menu/MenuSettingsHelper;"
+private const val TOOLBAR_EXTENSIONS_MANAGER_CLASS =
+    "Lcom/sec/android/app/sbrowser/common/customize_toolbar/ToolbarExtensionsManager;"
 
 @Suppress("unused")
 val googleTranslatePatch = bytecodePatch(
@@ -544,6 +546,71 @@ val googleTranslatePatch = bytecodePatch(
                 if-eqz v0, :sbrowserx_def_ext_stock
                 return-void
                 :sbrowserx_def_ext_stock
+                nop
+            """.trimIndent(),
+        )
+
+        // 25a. ToolbarExtensionsManager.executeAction(String)V -> route bottom/top toolbar Translate button to SBrowserXDomTranslator
+        // instead of Samsung's legacy webtrans.crx (which splits text nodes and causes literal translations like "steal" -> "кража").
+        findMethodOrThrow(
+            classType = TOOLBAR_EXTENSIONS_MANAGER_CLASS,
+            methodName = "executeAction",
+            parameterTypes = listOf("Ljava/lang/String;"),
+            returnType = "V",
+        ).addInstructions(
+            0,
+            """
+                invoke-static {p1}, Ldev/vortexnode/sbrowserx/extension/SBrowserXHooks;->tryInterceptToolbarExtensionAction(Ljava/lang/String;)Z
+                move-result p0
+                if-eqz p0, :sbrowserx_exec_ext_stock
+                return-void
+                :sbrowserx_exec_ext_stock
+                nop
+            """.trimIndent(),
+        )
+
+        // 25b. ExtensionActionItem.isFirstParty -> always treat built-in Translate extension (khmmfcceknncifmkiimjnnjldibgajpl) as first-party monochrome
+        // so ToolbarExtensionsManager.getIcon() ALWAYS tints it cleanly in Dark Mode across Bottombar, More Menu, and Customize Menu on any package name.
+        findMethodOrThrow(
+            classType = "Lcom/sec/terrace/browser/extensions/TerraceExtensionsManager\$ExtensionActionItem;",
+            methodName = "isFirstParty",
+            parameterTypes = emptyList(),
+            returnType = "Z",
+        ).addInstructions(
+            0,
+            """
+                iget-object v0, p0, Lcom/sec/terrace/browser/extensions/TerraceExtensionsManager${'$'}ExtensionActionItem;->mId:Ljava/lang/String;
+                const-string v1, "khmmfcceknncifmkiimjnnjldibgajpl"
+                invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                move-result v0
+                if-eqz v0, :sbrowserx_fp_stock
+                const/4 v0, 0x1
+                return v0
+                :sbrowserx_fp_stock
+                nop
+            """.trimIndent(),
+        )
+
+        // 26. ToolbarExtensionsManager.getIconColor -> keep Translate (first-party extension) icon white on dark bottom/top bars even on light websites
+        findMethodOrThrow(
+            classType = TOOLBAR_EXTENSIONS_MANAGER_CLASS,
+            methodName = "getIconColor",
+            parameterTypes = listOf(
+                "Landroid/content/Context;",
+                "Lcom/sec/android/app/sbrowser/common/model/tab/TabDelegate;",
+                "Z",
+                "Z",
+                "Z",
+            ),
+            returnType = "I",
+        ).addInstructions(
+            0,
+            """
+                invoke-static {p1, p4, p5}, Ldev/vortexnode/sbrowserx/extension/SBrowserXHooks;->getExtensionToolbarIconColorOverride(Landroid/content/Context;ZZ)I
+                move-result v0
+                if-eqz v0, :sbrowserx_ext_icon_stock
+                return v0
+                :sbrowserx_ext_icon_stock
                 nop
             """.trimIndent(),
         )

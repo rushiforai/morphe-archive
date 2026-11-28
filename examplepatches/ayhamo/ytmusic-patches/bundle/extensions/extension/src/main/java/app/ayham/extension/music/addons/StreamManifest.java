@@ -130,10 +130,16 @@ public final class StreamManifest {
         check(t.url, allowLocalHttp);
         String head = stripBom(t.body).trim();
         Plan p;
-        if (head.startsWith("#EXTM3U")) p = hls(t.url, t.body, texts, allowLocalHttp, dolby);
-        else if (StreamCache.isManifest(head.substring(0, Math.min(head.length(), 4096)).getBytes(StandardCharsets.UTF_8), null))
-            p = dash(t.url, t.body, dolby);
-        else throw new Refused("not an HLS playlist or a DASH manifest");
+        try {
+            if (head.startsWith("#EXTM3U")) p = hls(t.url, t.body, texts, allowLocalHttp, dolby);
+            else if (StreamCache.isManifest(head.substring(0, Math.min(head.length(), 4096)).getBytes(StandardCharsets.UTF_8), null))
+                p = dash(t.url, t.body, dolby);
+            else throw new Refused("not an HLS playlist or a DASH manifest");
+        } catch (RuntimeException e) {
+            // a malformed playlist or manifest is refused, never failed: a failure would end the
+            // song's rows, a refusal tries the next (protocol.md 8.1.5, 2026-11-27)
+            throw new Refused("a playlist or manifest that doesn't read (" + e.getClass().getSimpleName() + ")");
+        }
         if (p.init != null) check(p.init.url, allowLocalHttp);
         for (Part s : p.segments) check(s.url, allowLocalHttp);
         return p;
@@ -349,6 +355,7 @@ public final class StreamManifest {
                 long from = -1, to = -1;
                 if (range != null) {
                     from = range[0] >= 0 ? range[0] : nextAt.containsKey(u) ? nextAt.get(u) : 0;
+                    if (from > Long.MAX_VALUE - range[1]) throw new Refused("HLS: a bad byte range");
                     to = from + range[1] - 1;
                     nextAt.put(u, to + 1);
                 }
@@ -368,6 +375,9 @@ public final class StreamManifest {
         long n = parseLong(at < 0 ? v : v.substring(0, at), -1);
         long o = at < 0 ? (defaultOffset != null ? defaultOffset : -1) : parseLong(v.substring(at + 1), -1);
         if (n <= 0 || (at >= 0 && o < 0)) throw new Refused("HLS: a bad byte range");
+        // a range is one request held in memory: no longer than a part, and no end past 2^63
+        if (n > MAX_PART) throw new Refused("HLS: a byte range over " + (MAX_PART >> 20) + " MB");
+        if (o > Long.MAX_VALUE - n) throw new Refused("HLS: a bad byte range");
         if (defaultOffset != null) return new long[]{o, o + n - 1};
         return new long[]{o, n};
     }
@@ -501,7 +511,7 @@ public final class StreamManifest {
                     else throw new Refused("DASH: no length");
                     r = (end - t + d - 1) / d - 1;
                 }
-                if (p.segments.size() + r + 1 > MAX_SEGMENTS) throw new Refused("over " + MAX_SEGMENTS + " segments");
+                if (r >= MAX_SEGMENTS - p.segments.size()) throw new Refused("over " + MAX_SEGMENTS + " segments");   // (no long overflow at r near 2^63)
                 for (long k = 0; k <= r; k++) {
                     p.add(new Part(resolveUrl(base, fill(media, repId, number, t, bw)), -1, -1, d / (double) timescale));
                     t += d;
@@ -550,10 +560,13 @@ public final class StreamManifest {
         String[] ab = v.trim().split("-");
         long a = ab.length == 2 ? parseLong(ab[0], -1) : -1, b = ab.length == 2 ? parseLong(ab[1], -1) : -1;
         if (a < 0 || b < a) throw new Refused("DASH: a bad byte range");
+        if (b - a >= MAX_PART) throw new Refused("DASH: a byte range over " + (MAX_PART >> 20) + " MB");
         return new long[]{a, b};
     }
 
     private static final Pattern TOKEN_FORMAT = Pattern.compile("%0?(\\d*)d");
+    /** The widest %0Nd padding taken from a template. */
+    static final int MAX_WIDTH = 32;
 
     /** A SegmentTemplate's $RepresentationID$, $Number$, $Time$, $Bandwidth$ (with %0Nd widths) and $$. */
     static String fill(String template, String repId, long number, long time, long bandwidth) {
@@ -598,7 +611,10 @@ public final class StreamManifest {
     private static String number(long v, String fmt) {
         Matcher m = fmt == null ? null : TOKEN_FORMAT.matcher(fmt);
         if (m == null || !m.matches() || m.group(1).isEmpty()) return String.valueOf(v);
-        return String.format(Locale.ROOT, "%0" + Integer.parseInt(m.group(1)) + "d", v);
+        // a width past MAX_WIDTH (a hostile file's 1 GB string), or 0, pads nothing
+        String w = m.group(1).replaceFirst("^0+", "");
+        if (w.isEmpty() || w.length() > 2 || Integer.parseInt(w) > MAX_WIDTH) return String.valueOf(v);
+        return String.format(Locale.ROOT, "%0" + Integer.parseInt(w) + "d", v);
     }
 
     private static String baseUrl(String base, Element e) {
@@ -759,8 +775,9 @@ public final class StreamManifest {
     /** The phone's own requests: the row's headers (Protocol.audio) on every playlist, manifest and segment. */
     static Texts httpTexts(Map<String, String> headers) {
         return url -> {
-            HttpURLConnection h = HttpTransport.open(Protocol.audio(url, headers, null));
-            h.setReadTimeout(30_000);
+            // within one request's time, each redirect checked before it is asked (audit B2-04)
+            HttpURLConnection h = request(Protocol.audio(url, headers, null));
+            long until = System.nanoTime() / 1_000_000 + REQUEST_MS;
             try {
                 int code = h.getResponseCode();
                 if (code != 200) throw new IOException("manifest: HTTP " + code);
@@ -770,6 +787,7 @@ public final class StreamManifest {
                     for (int n; (n = in.read(b)) > 0; ) {
                         out.write(b, 0, n);
                         if (out.size() > MAX_TEXT) throw new Refused("a manifest over 2 MB");
+                        if (System.nanoTime() / 1_000_000 > until) throw new IOException("manifest: over the time allowed");
                     }
                 }
                 return new Text(h.getURL().toString(), new String(out.toByteArray(), StandardCharsets.UTF_8));
@@ -783,13 +801,19 @@ public final class StreamManifest {
         return httpBytes(headers, false);
     }
 
+    /** The answer to [q] within REQUEST_MS for the connect and each read, its redirects each checked first. */
+    private static HttpURLConnection request(Protocol.Request q) throws IOException {
+        HttpURLConnection h = HttpTransport.open(q);
+        h.setConnectTimeout((int) REQUEST_MS);
+        h.setReadTimeout((int) REQUEST_MS);
+        return HttpTransport.follow(h, q);
+    }
+
     /** Every segment's link after redirects is checked too (off https or to this machine: refused). */
     static Bytes httpBytes(Map<String, String> headers, boolean allowLocalHttp) {
         return (url, from, to) -> {
             check(url, allowLocalHttp);
-            HttpURLConnection h = HttpTransport.open(Protocol.audio(url, headers, from >= 0 ? "bytes=" + from + "-" + to : null));
-            h.setConnectTimeout((int) REQUEST_MS);
-            h.setReadTimeout((int) REQUEST_MS);
+            HttpURLConnection h = request(Protocol.audio(url, headers, from >= 0 ? "bytes=" + from + "-" + to : null));
             int code;
             InputStream in;
             try {
@@ -837,16 +861,21 @@ public final class StreamManifest {
     }
 
     private static InputStream slice(InputStream in, long skip, long len) throws IOException {
-        for (long left = skip; left > 0; ) {
-            long n = in.skip(left);
-            if (n <= 0) {
-                if (in.read() < 0) {
-                    in.close();
-                    throw new IOException("segment ended early");
+        // the bytes before the range read past within one request's time, and the connection closed on any failure
+        long until = System.nanoTime() / 1_000_000 + REQUEST_MS;
+        try {
+            for (long left = skip; left > 0; ) {
+                long n = in.skip(left);
+                if (n <= 0) {
+                    if (in.read() < 0) throw new IOException("segment ended early");
+                    n = 1;
                 }
-                n = 1;
+                left -= n;
+                if (System.nanoTime() / 1_000_000 > until) throw new IOException("skipping to the range took over the time allowed");
             }
-            left -= n;
+        } catch (Throwable t) {
+            in.close();
+            throw t;
         }
         return new FilterInputStream(in) {
             long left = len;
@@ -985,11 +1014,14 @@ public final class StreamManifest {
     private static byte[] readOnce(Part p, Bytes bytes, long until) throws IOException {
         // this request's own limit, inside the whole stream's
         until = Math.min(until, System.nanoTime() / 1_000_000 + REQUEST_MS);
-        ByteArrayOutputStream buf = new ByteArrayOutputStream(p.from >= 0 ? (int) Math.min(MAX_PART, p.to - p.from + 1) : 1 << 20);
+        // grown as the bytes come: a range's stated size is the manifest's word, not yet bytes
+        ByteArrayOutputStream buf = new ByteArrayOutputStream(p.from >= 0 ? (int) Math.min(1 << 20, p.to - p.from + 1) : 1 << 20);
         try (InputStream in = bytes.open(p.url, p.from, p.to)) {
             byte[] b = new byte[1 << 16];
             for (int n; (n = in.read(b)) > 0; ) {
                 buf.write(b, 0, n);
+                // a segment that failed stops the others in flight (the pool's shutdownNow), not each at its own limit
+                if (Thread.currentThread().isInterrupted()) throw new java.io.InterruptedIOException("segment fetch stopped");
                 if (buf.size() > MAX_PART) throw new Refused("a segment over " + (MAX_PART >> 20) + " MB");
                 if (System.nanoTime() / 1_000_000 > until) throw new IOException("fetch over the time allowed");
             }
@@ -1117,6 +1149,8 @@ public final class StreamManifest {
                 sizes[kept++] = seg.length;
                 out.write(seg);
             }
+            // every segment without a moof: a file of headers only, no audio
+            if (fmp4 && kept == 0) throw new Refused("no audio fragments in the stream");
         } finally {
             if (pool != null) pool.shutdownNow();
         }
@@ -1187,12 +1221,14 @@ public final class StreamManifest {
     /** A box's size from at (to its end), or -1 when it doesn't fit in [at, end). */
     private static long boxSize(byte[] b, int at, int end) {
         if (at + 8 > end) return -1;
-        long size = u32(b, at);
+        long size = u32(b, at), min = 8;
         if (size == 1) {
             if (at + 16 > end) return -1;
             size = u32(b, at + 8) << 32 | u32(b, at + 12);
+            min = 16;   // a 64-bit size has a 16-byte header
         } else if (size == 0) size = end - at;
-        return size < 8 || at + size > end ? -1 : size;
+        // (end - at, not at + size: a size near 2^63 from a hostile file would wrap round)
+        return size < min || size > end - at ? -1 : size;
     }
 
     /** The first box of type inside [from, end) at that level; -1 when none. */
@@ -1312,23 +1348,26 @@ public final class StreamManifest {
 
     /** The file's extension from its first bytes. */
     static String extOf(byte[] b, int n) {
-        if (n >= 8) {
-            for (String t : new String[]{"ftyp", "styp", "moof", "sidx", "moov"}) if (b[4] == t.charAt(0) && b[5] == t.charAt(1) && b[6] == t.charAt(2) && b[7] == t.charAt(3)) return "m4a";
+        // ID3 tags in front (each with its footer when flagged): skipped in place, not copied
+        int o = 0;
+        while (o + 3 <= n && b[o] == 'I' && b[o + 1] == 'D' && b[o + 2] == '3') {
+            if (o + 10 > n) return "mp3";
+            int len = 10 + ((b[o + 6] & 0x7f) << 21 | (b[o + 7] & 0x7f) << 14 | (b[o + 8] & 0x7f) << 7 | (b[o + 9] & 0x7f));
+            if ((b[o + 5] & 0x10) != 0) len += 10;
+            if (o + len + 4 > n) return "mp3";
+            o += len;
         }
-        if (n >= 1 && (b[0] & 0xff) == 0x47) return "ts";
-        if (n >= 4 && b[0] == 'f' && b[1] == 'L' && b[2] == 'a' && b[3] == 'C') return "flac";
-        if (n >= 4 && b[0] == 'O' && b[1] == 'g' && b[2] == 'g' && b[3] == 'S') return "ogg";
-        if (n >= 12 && b[0] == 'R' && b[1] == 'I' && b[2] == 'F' && b[3] == 'F') return "wav";
-        if (n >= 3 && b[0] == 'I' && b[1] == 'D' && b[2] == '3') {
-            if (n >= 10) {
-                int at = 10 + ((b[6] & 0x7f) << 21 | (b[7] & 0x7f) << 14 | (b[8] & 0x7f) << 7 | (b[9] & 0x7f));
-                if (at + 4 <= n) return extOf(java.util.Arrays.copyOfRange(b, at, n), n - at);
-            }
-            return "mp3";
+        int m = n - o;
+        if (m >= 8) {
+            for (String t : new String[]{"ftyp", "styp", "moof", "sidx", "moov"}) if (b[o + 4] == t.charAt(0) && b[o + 5] == t.charAt(1) && b[o + 6] == t.charAt(2) && b[o + 7] == t.charAt(3)) return "m4a";
         }
-        if (n >= 2 && (b[0] & 0xff) == 0xff && (b[1] & 0xf6) == 0xf0) return "aac";
-        if (n >= 2 && (b[0] & 0xff) == 0xff && (b[1] & 0xe0) == 0xe0) return "mp3";
-        if (n >= 2 && (b[0] & 0xff) == 0x0b && (b[1] & 0xff) == 0x77) return "ac3";
-        return "audio";
+        if (m >= 1 && (b[o] & 0xff) == 0x47) return "ts";
+        if (m >= 4 && b[o] == 'f' && b[o + 1] == 'L' && b[o + 2] == 'a' && b[o + 3] == 'C') return "flac";
+        if (m >= 4 && b[o] == 'O' && b[o + 1] == 'g' && b[o + 2] == 'g' && b[o + 3] == 'S') return "ogg";
+        if (m >= 12 && b[o] == 'R' && b[o + 1] == 'I' && b[o + 2] == 'F' && b[o + 3] == 'F') return "wav";
+        if (m >= 2 && (b[o] & 0xff) == 0xff && (b[o + 1] & 0xf6) == 0xf0) return "aac";
+        if (m >= 2 && (b[o] & 0xff) == 0xff && (b[o + 1] & 0xe0) == 0xe0) return "mp3";
+        if (m >= 2 && (b[o] & 0xff) == 0x0b && (b[o + 1] & 0xff) == 0x77) return "ac3";
+        return o > 0 ? "mp3" : "audio";
     }
 }

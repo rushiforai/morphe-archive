@@ -4,7 +4,9 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.methodCall
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 /**
  * Feed-only zero-flicker handle patch fingerprints for TikTok 47.0.3.
@@ -23,20 +25,21 @@ object UserGetNicknameFingerprint : Fingerprint(
 )
 
 /**
- * Binder bridge: FeedBaseViewModel.paramSync2StateAccept(LX/06iX, VideoItemParams)
+ * Binder bridge: FeedBaseViewModel.paramSync2StateAccept(state, VideoItemParams)
  * Verified in 47.0.3 dexdump: VideoAuthorInfoVM inherits from FeedBaseViewModel,
  * the real bind entry is the base class with 2 params (p1=state, p2=VideoItemParams).
  * Hooking the base covers all feed assems including VideoAuthorInfoVM.
+ *
+ * The state type renames with every build (`X.08Ee` on 47.7.1, `X.04rr` on 47.9.1), so it is
+ * matched as any reference type; the real-named parameter and the return shape are what pin the
+ * overload. The name is unique in the class on 47.7.1 through 47.9.1.
  */
 object VideoAuthorInfoVMBinderFingerprint : Fingerprint(
     definingClass = "Lcom/ss/android/ugc/aweme/feed/assem/base/FeedBaseViewModel;",
     name = "paramSync2StateAccept",
-    custom = { method, _ ->
-        method.parameterTypes.size == 2 &&
-            method.parameterTypes[1].toString().contains("VideoItemParams") &&
-            method.implementation != null &&
-            (method.implementation?.registerCount ?: 99) < 16
-    },
+    returnType = "L",
+    parameters = listOf("L", "Lcom/ss/android/ugc/aweme/feed/model/VideoItemParams;"),
+    custom = { method, _ -> method.implementation != null },
 )
 
 /** Aweme region capture for CC — DexKit verified: Aweme.getRegion() real-named, 2 regs, safe */
@@ -110,8 +113,83 @@ object CommentListDateFingerprint : Fingerprint(
     },
 )
 
+/**
+ * The poll row's own date write: `(PollInfo) -> void` reads the poll's `createTime` and hands the
+ * formatted string to a `TextView`. The row is real-named; the method name is obfuscated and moves
+ * (`H6` on 47.9.1, `Z6` on 47.7.1), so the two calls are the anchor.
+ */
+object PollDateFingerprint : Fingerprint(
+    definingClass = POLL_CELL,
+    returnType = "V",
+    parameters = listOf(POLL_INFO),
+    custom = { method, _ ->
+        val instructions = method.implementation?.instructions ?: emptyList()
+        val readsCreateTime = instructions.any { instruction ->
+            instruction.opcode == Opcode.IGET_OBJECT &&
+                instruction.getReference<FieldReference>()?.let {
+                    it.definingClass == POLL_INFO && it.name == "createTime"
+                } == true
+        }
+        val writesText = instructions.any { instruction ->
+            instruction.getReference<MethodReference>()?.let {
+                it.definingClass == TEXT_VIEW && it.name == "setText"
+            } == true
+        }
+        readsCreateTime && writesText
+    },
+)
+
+/**
+ * The feed cell's root touch dispatch. It owns the long-press speed-up gesture, so a touch that
+ * started on the name has to be taken around it rather than merely consumed by the child.
+ */
+object VideoViewCellRootTouchFingerprint : Fingerprint(
+    definingClass = "Lcom/ss/android/ugc/aweme/feed/VideoViewCellRootView;",
+    name = "dispatchTouchEvent",
+    returnType = "Z",
+    parameters = listOf("Landroid/view/MotionEvent;"),
+)
+
+/**
+ * The comment composer's mention insert: `(int, name, uid, secUid, tako) -> boolean`.
+ *
+ * The name it inserts is appended to a literal "@" by the method itself. `HandleDelegate` already
+ * stamps names with their own "@", so the duplicate is dropped here before the app adds its one.
+ * The signature is unique in the APK on 47.7.1 through 47.9.1; the class is obfuscated and is
+ * therefore not part of the match.
+ */
+object CommentMentionFingerprint : Fingerprint(
+    returnType = "Z",
+    parameters = listOf(
+        "I",
+        "Ljava/lang/String;",
+        "Ljava/lang/String;",
+        "Ljava/lang/String;",
+        "Z",
+    ),
+    custom = { method, _ ->
+        val instructions = method.implementation?.instructions ?: emptyList()
+        val prefixed = instructions.any { instruction ->
+            (instruction.opcode == Opcode.CONST_STRING ||
+                instruction.opcode == Opcode.CONST_STRING_JUMBO) &&
+                instruction.getReference<StringReference>()?.string == "@"
+        }
+        val buildsSpan = instructions.any { instruction ->
+            instruction.getReference<MethodReference>()?.let {
+                it.definingClass == MENTION_SPAN && it.name == "<init>"
+            } == true
+        }
+        prefixed && buildsSpan
+    },
+)
+
+private const val MENTION_SPAN = "Lcom/ss/android/ugc/aweme/comment/widgets/MentionSpan;"
+
 private const val USER_MODEL = "Lcom/ss/android/ugc/aweme/profile/model/User;"
 private const val COMMENT_MODEL = "Lcom/ss/android/ugc/aweme/comment/model/Comment;"
+private const val POLL_CELL =
+    "Lcom/ss/android/ugc/aweme/commentv2/commentlist/powercell/PollCell;"
+private const val POLL_INFO = "Lcom/ss/android/ugc/aweme/comment/model/PollInfo;"
 private const val TEXT_VIEW = "Landroid/widget/TextView;"
 
 private const val ITEM = "Lcom/ss/android/ugc/aweme/feed/model/Aweme;"
@@ -122,3 +200,15 @@ private const val ITEM = "Lcom/ss/android/ugc/aweme/feed/model/Aweme;"
  * future build bypasses getNickname via direct iget, add a TextView.setText
  * fingerprint here. Kept minimal for feed-only stability.
  */
+
+/**
+ * The comment cell's bind: `BaseCommentCell#onBindItemView`, real-named in the app. Hooked only to
+ * mark the surface for the duration of the bind, so the name renderer does not walk the stack for
+ * every comment cell.
+ */
+object CommentCellBindFingerprint : Fingerprint(
+    definingClass = "Lcom/ss/android/ugc/aweme/commentv2/commentlist/powercell/BaseCommentCell;",
+    name = "onBindItemView",
+    returnType = "V",
+    custom = { method, _ -> method.implementation != null },
+)

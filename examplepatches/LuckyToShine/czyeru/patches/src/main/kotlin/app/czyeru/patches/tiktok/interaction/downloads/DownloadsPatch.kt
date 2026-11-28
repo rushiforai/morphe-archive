@@ -11,12 +11,16 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.czyeru.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.czyeru.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
+import app.czyeru.patches.tiktok.shared.requireLocals
 import app.czyeru.util.findInstructionIndicesReversedOrThrow
 import app.czyeru.util.getFreeRegisterProvider
 import app.czyeru.util.getReference
+import app.czyeru.util.numberOfParameterRegisters
 import app.czyeru.util.returnEarly
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -124,7 +128,7 @@ val downloadsPatch = bytecodePatch(
 
         // Preserve the full StickerItem behind TikTok's reduced preview model for media detection.
         val stickerBinder = StickerPreviewBinderFingerprint.originalMethod
-        StickerPreviewSourceFingerprint.method.apply {
+        fun MutableMethod.injectStickerSources(sourceLoad: (Int) -> String) {
             val bindCallIndices = implementation!!.instructions.withIndex()
                 .filter { (_, instruction) ->
                     instruction.getReference<MethodReference>()?.let { reference ->
@@ -137,9 +141,7 @@ val downloadsPatch = bytecodePatch(
                 .toList()
 
             if (bindCallIndices.isEmpty()) {
-                throw app.morphe.patcher.patch.PatchException(
-                    "Downloads: could not find the sticker preview bind calls.",
-                )
+                throw PatchException("Downloads: could not find the sticker preview bind calls.")
             }
 
             bindCallIndices.asReversed().forEach { bindCallIndex ->
@@ -147,33 +149,48 @@ val downloadsPatch = bytecodePatch(
                 val previewRegister = when (bindInstruction) {
                     is FiveRegisterInstruction -> bindInstruction.registerD
                     is RegisterRangeInstruction -> bindInstruction.startRegister + 1
-                    else -> throw app.morphe.patcher.patch.PatchException(
-                        "Downloads: unsupported sticker preview bind instruction.",
-                    )
+                    else -> throw PatchException("Downloads: unsupported sticker preview bind instruction.")
                 }
                 val registerProvider = getFreeRegisterProvider(bindCallIndex, 2, previewRegister)
                 val previewTempRegister = registerProvider.getFreeRegister()
                 val sourceTempRegister = registerProvider.getFreeRegister()
 
                 if (previewTempRegister > 15 || sourceTempRegister > 15) {
-                    throw app.morphe.patcher.patch.PatchException(
-                        "Downloads: could not allocate low registers for sticker source association.",
-                    )
+                    throw PatchException("Downloads: could not allocate low registers for sticker source association.")
                 }
 
                 addInstructions(
                     bindCallIndex,
                     """
                         move-object/from16 v$previewTempRegister, v$previewRegister
-                        move-object/from16 v$sourceTempRegister, p2
+                        ${sourceLoad(sourceTempRegister)}
                         invoke-static {v$previewTempRegister, v$sourceTempRegister}, $STICKER_EXTENSION_CLASS_DESCRIPTOR->registerStickerSource(Ljava/lang/Object;Ljava/lang/Object;)V
                     """,
                 )
             }
         }
 
+        val legacyStickerSource = StickerPreviewSourceFingerprint.methodOrNull
+        if (legacyStickerSource != null) {
+            legacyStickerSource.injectStickerSources { reg -> "move-object/from16 v$reg, p2" }
+        } else {
+            StickerPreviewCoroutineSourceFingerprint.method.apply {
+                val source = stickerPreviewSource()
+                    ?: throw PatchException("Downloads: the sticker preview source builds no StickerItem from its struct.")
+                injectStickerSources { reg ->
+                    """
+                        move-object/from16 v$reg, p0
+                        iget-object v$reg, v$reg, ${source.struct}
+                        invoke-static {v$reg}, ${source.convert}
+                        move-result-object v$reg
+                    """.trimIndent()
+                }
+            }
+        }
+
         // Prepare the public filename without renaming TikTok's private staging file.
         DownloadSuccessCoroutineFingerprint.method.apply {
+            requireLocals("Downloads", 2)
             val fieldReferences = implementation!!.instructions.mapNotNull {
                 it.getReference<FieldReference>()
             }
@@ -184,12 +201,16 @@ val downloadsPatch = bytecodePatch(
                 it.definingClass == definingClass &&
                     it.type == "Lcom/ss/android/ugc/aweme/feed/model/Aweme;"
             }
+            val locals = implementation!!.registerCount - numberOfParameterRegisters
+            val receiver = if (locals <= 15) "p0" else "v1"
+            val copy = if (receiver == "p0") "" else "move-object/from16 v1, p0"
 
             addInstructions(
                 0,
                 """
-                    iget-object v0, p0, $pathField
-                    iget-object v1, p0, $awemeField
+                    $copy
+                    iget-object v0, $receiver, $pathField
+                    iget-object v1, $receiver, $awemeField
                     invoke-static {v0, v1}, $FILENAME_FORMATTER_CLASS_DESCRIPTOR->registerDownloadedMediaName(Ljava/lang/String;Ljava/lang/Object;)V
                 """,
             )

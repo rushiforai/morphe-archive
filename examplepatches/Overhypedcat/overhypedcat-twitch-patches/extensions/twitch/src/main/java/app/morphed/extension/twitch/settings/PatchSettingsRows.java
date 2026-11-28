@@ -47,7 +47,7 @@ public final class PatchSettingsRows {
             return context == null ? "" : DebugMode.rowText(DebugMode.isOn(context), DebugMode.windowClosed(context));
         } catch (Throwable t) {
             Log.e(App.TAG, "Settings row text failed", t);
-            return "";
+            return "Couldn't be read: " + app.morphed.extension.twitch.Messages.of(t);
         }
     }
 

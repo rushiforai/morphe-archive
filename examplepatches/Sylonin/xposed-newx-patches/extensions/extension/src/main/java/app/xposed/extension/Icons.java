@@ -94,6 +94,46 @@ final class Icons {
 
     static final Glyphs.Glyph CHECK = lines("M20 6 9 17l-5-5");
 
+    /** copy.svg */
+    static final Glyphs.Glyph COPY = new Glyphs.Glyph(
+            rect(9, 9, 13, 13, 2),
+            path("M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"));
+
+    /** download.svg */
+    static final Glyphs.Glyph DOWNLOAD = lines("M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4", "m7 10 5 5 5-5", "M12 15V3");
+
+    /** share-2.svg */
+    static final Glyphs.Glyph SHARE = new Glyphs.Glyph(
+            circle(18, 5, 3),
+            circle(6, 12, 3),
+            circle(18, 19, 3),
+            path("M8.59 13.51 15.42 17.49"),
+            path("M15.41 6.51 8.59 10.49"));
+
+    /** message-circle.svg */
+    static final Glyphs.Glyph REPLIES = lines("M7.9 20A9 9 0 1 0 4 16.1L2 22Z");
+
+    /** repeat-2.svg */
+    static final Glyphs.Glyph REPOSTS = lines(
+            "m2 9 3-3 3 3", "M13 18H7a2 2 0 0 1-2-2V6", "m22 15-3 3-3-3", "M11 6h6a2 2 0 0 1 2 2v10");
+
+    /** heart.svg */
+    static final Glyphs.Glyph LIKES = lines(
+            "M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5"
+                    + "c0 2.3 1.5 4.05 3 5.5l7 7Z");
+
+    /** eye.svg */
+    static final Glyphs.Glyph VIEWS = new Glyphs.Glyph(
+            path("M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"),
+            circle(12, 12, 3));
+
+    /** triangle-alert.svg */
+    static final Glyphs.Glyph WARNING = lines(
+            "m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3", "M12 9v4", "M12 17h.01");
+
+    /** X-Posed's own badge share glyph (icons.js "share"), not Lucide's. */
+    static final Glyphs.Glyph CAPTURE = lines("M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7", "M16 6l-4-4-4 4M12 2v13");
+
     /** chevron-down.svg */
     static final Glyphs.Glyph EXPAND = lines("m6 9 6 6 6-6");
 

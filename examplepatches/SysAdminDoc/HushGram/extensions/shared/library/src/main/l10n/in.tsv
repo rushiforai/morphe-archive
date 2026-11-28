@@ -380,7 +380,7 @@ Removes the summary, Sources and Ask Meta AI box from a reel's more menu. In you
 Hide Ask Meta AI in About this reel	Sembunyikan Tanya Meta AI di Tentang reel ini
 About this reel keeps its summary and Sources, and only the Ask Meta AI box under them goes.	Tentang reel ini tetap menampilkan ringkasan dan Sumber, hanya kotak Tanya Meta AI di bawahnya yang hilang.
 Hide Meta AI in the share sheet	Sembunyikan Meta AI di lembar berbagi
-Removes Meta AI from the row at the bottom of the share sheet. Some accounts see it as Muse.	Menghapus Meta AI dari baris di bagian bawah lembar bagikan. Beberapa akun melihatnya sebagai Muse.
+Removes Meta AI from the share sheet, both from the people you can send to and from the row at the bottom. Some accounts see it as Muse.	Menghapus Meta AI dari lembar bagikan, baik dari orang yang bisa kamu kirimi maupun dari baris di bagian bawah. Beberapa akun melihatnya sebagai Muse.
 Hide the Muse card	Sembunyikan kartu Muse
 Removes the Meet Muse card, with its Try Muse button, from Home and your profile. Your other cards stay.	Menghapus kartu Meet Muse, beserta tombol Try Muse, dari Beranda dan profilmu. Kartu lainnya tetap ada.
 Hide the Muse button on your profile	Sembunyikan tombol Muse di profilmu
@@ -605,6 +605,9 @@ Adds an eye button to the top of each story while you view anonymously. Tap it t
 Mark as seen	Tandai sudah dilihat
 Marked as seen. Tap again to undo.	Ditandai sudah dilihat. Ketuk lagi untuk membatalkan.
 Marked as seen and sent	Ditandai sudah dilihat dan dikirim
+# context: View stories anonymously's third switch, after Mark as seen button. A like is the heart under a story, a quick reaction is an emoji from the row above a story's reply box
+Mark a story seen when you like or reply	Tandai cerita sudah dilihat saat kamu menyukai atau membalas
+While you view anonymously, liking a story, replying to it or sending it a quick reaction puts you on that story's viewer list first. The other stories stay hidden.	Saat kamu melihat secara anonim, menyukai cerita, membalasnya, atau mengirim reaksi cepat ke cerita itu akan lebih dulu memasukkanmu ke daftar penonton cerita tersebut. Cerita lainnya tetap tersembunyi.
 View DM photos and videos anonymously	Lihat foto dan video di pesan secara anonim
 Stops people seeing that you opened their view once photos and videos. They still disappear after you view them. This is a test feature and starts off.	Mencegah orang tahu bahwa kamu membuka foto dan video sekali lihat mereka. Foto dan video itu tetap hilang setelah kamu melihatnya. Ini fitur uji coba dan awalnya nonaktif.
 Restored %1$d settings. Kept %2$d newer choices.	%1$d pengaturan dipulihkan. %2$d pilihan yang lebih baru dipertahankan.
@@ -1582,6 +1585,14 @@ All of them. Tap to leave some out, and Ghost mode leaves those as you set them.
 %1$s. The others stay as you set them.	%1$s. Yang lain tetap seperti yang kamu atur.
 Switches Ghost mode turns	Sakelar yang diubah Mode hantu
 Ghost mode needs at least one switch to turn.	Mode hantu perlu setidaknya satu sakelar untuk diubah.
+# context: Ghost mode: the switch under its rows in Ads and privacy that holds likes, story replies, comments, share links and new stories and posts back while Ghost mode is on (#876). A like is the heart under a post, a reel, a story or a comment, a share link is what Copy link and sharing a post out make, and posting is sharing a new story, post or reel from Instagram's camera; the five short ones are toasts shown when a tap is held back
+Block likes, replies and posts in Ghost mode	Blokir suka, balasan, dan postingan di mode hantu
+While Ghost mode is on, liking, commenting, replying to a story, posting a story or post and copying or sharing a link do nothing, and a message says why. Nothing is sent.	Saat mode hantu aktif, menyukai, berkomentar, membalas cerita, memposting cerita atau postingan, serta menyalin atau membagikan tautan tidak melakukan apa pun, dan sebuah pesan memberi tahu alasannya. Tidak ada yang dikirim.
+Likes are off in Ghost mode.	Suka dinonaktifkan di mode hantu.
+Replies are off in Ghost mode.	Balasan dinonaktifkan di mode hantu.
+Comments are off in Ghost mode.	Komentar dinonaktifkan di mode hantu.
+Share links are off in Ghost mode.	Tautan dinonaktifkan di mode hantu.
+Posting is off in Ghost mode.	Memposting dinonaktifkan di mode hantu.
 # context: Ghost mode: turning it on or off with a long press on a tab (#255). %1$s is a tab's name
 Turn Ghost mode on or off with a tab long press	Nyalakan atau matikan Mode hantu dengan menekan lama tab
 Tab long presses keep Instagram's own action. Choose one to turn Ghost mode on or off instead.	Menekan lama tab tetap menjalankan tindakan Instagram. Pilih satu tab untuk menyalakan atau mematikan Mode hantu sebagai gantinya.
@@ -1822,7 +1833,7 @@ Previous page	Halaman sebelumnya
 Next page	Halaman berikutnya
 # context: Feed settings: the Page dots on a pill switch, right under Carousel arrows (#419). A pill is a small bar with round ends that holds the dots.
 Page dots on a pill	Titik halaman di pil
-Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue. Hold the pill and slide left or right to move through the pages.	Memindahkan titik halaman kiriman carousel ke pil bulat di bagian bawah foto atau videonya, dengan halaman yang sedang dibuka berwarna biru. Tahan pil lalu geser ke kiri atau kanan untuk berpindah halaman.
+Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue, or your accent color when Accent color is on. Hold the pill and slide left or right to move through the pages.	Memindahkan titik halaman kiriman carousel ke pil bulat di bagian bawah foto atau videonya, dengan halaman yang sedang dibuka berwarna biru, atau berwarna aksen saat Warna aksen aktif. Tahan pil lalu geser ke kiri atau kanan untuk berpindah halaman.
 # context: Feed settings: the Hide page number switch, under Carousel arrows (#581). The number is the 3/5 in the corner of a carousel post.
 Hide page number	Sembunyikan nomor halaman
 Takes the number like 3/5 off the corner of a carousel post's photo or video.	Menghapus angka seperti 3/5 dari sudut foto atau video pada postingan carousel.
@@ -1958,6 +1969,10 @@ Hide the Map bubble	Sembunyikan gelembung Peta
 Takes only the Map bubble out of the row of notes. Your notes stay.	Hanya menghapus gelembung Peta dari baris catatan. Catatanmu tetap ada.
 Split the notes row	Pisahkan baris catatan
 Splits the row of notes into three stacks, Instants, Notes and Stories, the layout Instagram is trying out. Restart Instagram to see the change.	Memisahkan baris catatan menjadi tiga tumpukan, Instants, Catatan, dan Cerita, tata letak yang sedang dicoba Instagram. Mulai ulang Instagram untuk melihat perubahannya.
+# context: Messages: a switch under Split the notes row (#832). Primary and General are the two tabs Instagram shows professional accounts at the top of their messages. Use the names Instagram's own messages page gives them in this language.
+Primary and General tabs	Tab Utama dan Umum
+# context: the summary under Primary and General tabs; Primary is the tab's name again
+Experimental. Adds the Primary and General tabs that professional accounts get to your messages. Instagram may put every chat in Primary at first. Starts off. Restart Instagram to see the change.	Eksperimental. Menambahkan tab Utama dan Umum yang dimiliki akun profesional ke pesanmu. Awalnya Instagram mungkin menaruh semua chat di Utama. Mulai dalam keadaan mati. Mulai ulang Instagram untuk melihat perubahannya.
 Hide Saved in the plus menu	Sembunyikan Tersimpan di menu plus
 Takes Saved off the menu the plus button opens in a chat's message bar.	Menghapus Tersimpan dari menu yang dibuka tombol plus di bilah pesan chat.
 Hide AI images in the plus menu	Sembunyikan gambar AI di menu plus
@@ -2141,9 +2156,11 @@ Solid	Padat
 See-through	Tembus pandang
 # context: a look for the page-dots pill and the seek bars: blurs what's under it
 Frosted glass	Kaca buram
+Dots only	Hanya titik
 A light pill with dark dots, as it's always been.	Pil terang dengan titik gelap, seperti biasanya.
 A see-through dark pill with white dots, so more of the photo shows.	Pil gelap tembus pandang dengan titik putih, agar foto lebih terlihat.
 A frosted glass pill that blurs the photo under it. Before Android 12 it's see-through instead.	Pil kaca buram yang mengaburkan foto di bawahnya. Sebelum Android 12, pil ini tembus pandang.
+Just the white dots with no pill behind them. A soft shadow keeps them clear on a bright photo.	Hanya titik putih tanpa pil di belakangnya. Bayangan lembut membuatnya tetap jelas di foto yang terang.
 Turn on Page dots on a pill to use this choice.	Aktifkan Titik halaman di pil untuk menggunakan pilihan ini.
 Turn on Seek bar on feed videos or its button to use this choice.	Aktifkan Bilah geser di video feed atau tombolnya untuk menggunakan pilihan ini.
 Turn on Seek bar on stories to use this choice.	Aktifkan Bilah geser di cerita untuk menggunakan pilihan ini.

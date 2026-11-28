@@ -42,4 +42,5 @@ public class Level {
 	public String tilesTex() { throw new RuntimeException("Stub"); }
 	public String waterTex() { throw new RuntimeException("Stub"); }
 	public static void set(int cell, int terrain) { throw new RuntimeException("Stub"); }
+	public int viewDistance;
 }

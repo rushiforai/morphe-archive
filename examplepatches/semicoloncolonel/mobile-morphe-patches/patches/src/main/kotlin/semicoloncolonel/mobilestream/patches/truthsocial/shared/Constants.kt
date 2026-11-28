@@ -3,6 +3,7 @@ package semicoloncolonel.mobilestream.patches.truthsocial.shared
 import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
+import semicoloncolonel.mobilestream.patches.shared.misc.devTarget
 
 object Constants {
     val COMPATIBILITY = Compatibility(
@@ -11,6 +12,6 @@ object Constants {
         description = "The Truth Social phone app.",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x5448EE,
-        targets = listOf(AppTarget(version = "1.28.3", versionCode = 1279)),
+        targets = listOf(AppTarget(version = "1.28.3", versionCode = 1279), devTarget("1.28.4", versionCode = 1281)),
     )
 }

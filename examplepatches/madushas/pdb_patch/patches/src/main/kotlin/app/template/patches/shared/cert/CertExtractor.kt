@@ -9,6 +9,7 @@ import java.security.MessageDigest
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 import java.util.Base64
+import app.morphe.patcher.apk.ApkSignatureScheme
 import java.util.logging.Logger
 import java.util.zip.ZipInputStream
 
@@ -69,7 +70,101 @@ private fun certFromApkBytes(apkBytes: ByteArray): ByteArray? {
     return null
 }
 
+/**
+ * Reads a signing certificate out of the APK Signing Block.
+ *
+ * **Scheme order matters.** An app that has had its Play signing key **rotated** carries
+ * *two* signers: the current key (APK Signature Scheme v3, used on API 33+) and the
+ * rotated/legacy key (v2, kept for API 24-32). Picking the wrong one breaks anything that
+ * must present the app's *current* certificate — e.g. MicroG's
+ * `SPOOFED_PACKAGE_SIGNATURE` for Google sign-in, which must be the current signer
+ * (verified against Fitbit, whose v3 cert is `2cc914da…` while v2 is `fa6a1988…`).
+ *
+ * So: prefer **v3** and only fall back to v2. Within one scheme the first signer's first
+ * certificate is the signer Android uses.
+ */
 private fun extractFromSigningBlock(apkBytes: ByteArray): ByteArray? {
+    // Scheme preference, in order of "most current signer":
+    //   v3.1 (0x1b93ad61) — APK Signature Scheme v3.1, added *for* signing-key rotation:
+    //      it carries the NEW key for API 33+, while v3 keeps the legacy key for 24-32.
+    //      On a rotated app (e.g. Fitbit) this is the certificate Android/GMS actually
+    //      present on modern devices, and therefore the one MicroG must be told to spoof.
+    //   v3   (0xf05368c0) — the current signer when there is no rotation (or the legacy
+    //      signer when there is) — pick the highest minSdkVersion within the scheme.
+    //   v2   (0x7109871a) — older apps without v3/v3.1.
+    v3SignerCert(apkBytes, 0x1b93ad61.toInt())?.let { return it }
+    v3SignerCert(apkBytes, 0xf05368c0.toInt())?.let { return it }
+    return certFromSigningBlockScheme(apkBytes, 0x7109871a.toInt())
+}
+
+/** Slice of the APK Signing Block value for the first pair with [wantedPairId], or null. */
+private fun signingBlockPairValue(apkBytes: ByteArray, wantedPairId: Int): ByteArray? {
+    val buf = java.nio.ByteBuffer.wrap(apkBytes).order(java.nio.ByteOrder.LITTLE_ENDIAN)
+    var eocdOffset = -1
+    for (i in apkBytes.size - 22 downTo maxOf(0, apkBytes.size - 65557)) {
+        if (buf.getInt(i) == 0x06054b50.toInt()) { eocdOffset = i; break }
+    }
+    if (eocdOffset < 0) return null
+    val blockEnd = buf.getInt(eocdOffset + 16)
+    if (blockEnd < 32) return null
+    val magic = byteArrayOf(0x41,0x50,0x4b,0x20,0x53,0x69,0x67,0x20,0x42,0x6c,0x6f,0x63,0x6b,0x20,0x34,0x32)
+    if (!apkBytes.copyOfRange(blockEnd - 16, blockEnd).contentEquals(magic)) return null
+    val blockSize = buf.getLong(blockEnd - 24)
+    var pos = blockEnd - blockSize.toInt() - 8 + 8
+    val pairsEnd = blockEnd - 24
+    while (pos < pairsEnd - 12) {
+        val pairLen = buf.getLong(pos).toInt()
+        val pairId = buf.getInt(pos + 8)
+        val valueStart = pos + 12
+        if (pairId == wantedPairId) return apkBytes.copyOfRange(valueStart, pos + 8 + pairLen)
+        if (pairLen <= 4) break
+        pos = valueStart + pairLen - 4
+    }
+    return null
+}
+
+/**
+ * Parse the APK Signature Scheme **v3** signers and return the certificate of the signer
+ * with the **highest minSdkVersion** — i.e. the current signing key when Play has rotated
+ * the key (older signers are kept for legacy platform ranges).
+ */
+private fun v3SignerCert(apkBytes: ByteArray, pairId: Int): ByteArray? {
+    val value = signingBlockPairValue(apkBytes, pairId) ?: return null
+    return try {
+        val v = java.nio.ByteBuffer.wrap(value).order(java.nio.ByteOrder.LITTLE_ENDIAN)
+        val signersLen = v.int
+        val signersEnd = v.position() + signersLen
+        var best: Pair<Int, ByteArray>? = null
+        while (v.position() + 4 <= signersEnd) {
+            val signerLen = v.int
+            val signerEnd = v.position() + signerLen
+            // signed data: digests, certificates, [minSdk, maxSdk, attrs]
+            val signedDataLen = v.int
+            val signedDataEnd = v.position() + signedDataLen
+            val digestsLen = v.int
+            v.position(v.position() + digestsLen)
+            val certsLen = v.int
+            val certsEnd = v.position() + certsLen
+            val certLen = v.int
+            val cert = if (certLen in 1 until value.size) {
+                ByteArray(certLen).also { v.get(it) }
+            } else null
+            v.position(certsEnd)
+            // signed data ends with minSdk(4) maxSdk(4) attrs(len-prefixed) when present
+            v.position(signedDataEnd)
+            // outside the signed data: minSdk(4), maxSdk(4), signatures, public key
+            val minSdk = v.int
+            if (cert != null && (best == null || minSdk > best!!.first)) best = minSdk to cert
+            v.position(signerEnd)
+            if (signerLen <= 0) break
+        }
+        best?.second
+    } catch (_: Exception) {
+        null
+    }
+}
+
+private fun certFromSigningBlockScheme(apkBytes: ByteArray, wantedPairId: Int): ByteArray? {
     val buf = java.nio.ByteBuffer.wrap(apkBytes).order(java.nio.ByteOrder.LITTLE_ENDIAN)
     var eocdOffset = -1
     for (i in apkBytes.size - 22 downTo maxOf(0, apkBytes.size - 65557)) {
@@ -91,7 +186,7 @@ private fun extractFromSigningBlock(apkBytes: ByteArray): ByteArray? {
         val pairId   = buf.getInt(pos + 8)
         val valueStart = pos + 12
         val valueEnd   = pos + 8 + pairLen
-        if (pairId == 0x7109871a.toInt() || pairId == 0xf05368c0.toInt()) {
+        if (pairId == wantedPairId) {
             if (valueEnd > valueStart + 28) {
                 try {
                     val v = java.nio.ByteBuffer.wrap(apkBytes, valueStart, valueEnd - valueStart)
@@ -199,10 +294,18 @@ val extractApkCertificatePatch = rawResourcePatch(
         // Morphe extracts base.apk from split bundles before constructing the patch context.
         // Zero config, zero file I/O, zero reflection. Most reliable source.
         try {
-            val cert = packageMetadata.signingCertificates.values.flatten().firstOrNull()
+            val byScheme = packageMetadata.signingCertificates
+            // Prefer the newest signature scheme. On an app whose Play signing key was
+            // **rotated** (Fitbit, and any app that used Play App Signing rotation), the
+            // legacy key lives in v2/v3 for API 24-32 while the CURRENT key lives in
+            // **v3.1** for API 33+. Everything that must present the app's *current*
+            // certificate — MicroG's SPOOFED_PACKAGE_SIGNATURE for Google sign-in in
+            // particular — needs v3.1, so scheme order matters here.
+            val cert = listOf(ApkSignatureScheme.V31, ApkSignatureScheme.V3, ApkSignatureScheme.V2)
+                .firstNotNullOfOrNull { scheme -> byScheme[scheme]?.firstOrNull() }
             if (cert != null) {
                 populateFromEncoded(cert.encoded, "input-apk-signing-block")
-                log.info("Cert auto-extracted from input APK signing block (v2/v3) via packageMetadata")
+                log.info("Cert auto-extracted from input APK signing block (preferred scheme)")
                 return@execute
             }
         } catch (e: Exception) {

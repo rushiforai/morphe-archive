@@ -1,0 +1,219 @@
+0 Unreachable
+1 NewObjectWithBuffer Reg8 UInt16 UInt16
+2 NewObjectWithBufferLong Reg8 UInt32 UInt32
+3 NewObjectWithBufferAndParent Reg8 Reg8 UInt32 UInt32
+4 NewObject Reg8
+5 NewObjectWithParent Reg8 Reg8
+6 NewArrayWithBuffer Reg8 UInt16 UInt16 UInt16
+7 NewArrayWithBufferLong Reg8 UInt16 UInt16 UInt32
+8 NewArray Reg8 UInt16
+9 NewFastArray Reg8 UInt16
+10 FastArrayLength Reg8 Reg8
+11 FastArrayLoad Reg8 Reg8 Reg8
+12 FastArrayStore Reg8 Reg8 Reg8
+13 FastArrayPush Reg8 Reg8
+14 FastArrayAppend Reg8 Reg8
+15 CacheNewObject Reg8 Reg8 UInt32 UInt8
+16 Mov Reg8 Reg8
+17 MovLong Reg32 Reg32
+18 Negate Reg8 Reg8
+19 Not Reg8 Reg8
+20 BitNot Reg8 Reg8
+21 TypeOf Reg8 Reg8
+22 Eq Reg8 Reg8 Reg8
+23 StrictEq Reg8 Reg8 Reg8
+24 Neq Reg8 Reg8 Reg8
+25 StrictNeq Reg8 Reg8 Reg8
+26 Less Reg8 Reg8 Reg8
+27 LessEq Reg8 Reg8 Reg8
+28 Greater Reg8 Reg8 Reg8
+29 GreaterEq Reg8 Reg8 Reg8
+30 Add Reg8 Reg8 Reg8
+31 AddN Reg8 Reg8 Reg8
+32 AddS Reg8 Reg8 Reg8
+33 Mul Reg8 Reg8 Reg8
+34 MulN Reg8 Reg8 Reg8
+35 Div Reg8 Reg8 Reg8
+36 DivN Reg8 Reg8 Reg8
+37 Mod Reg8 Reg8 Reg8
+38 Sub Reg8 Reg8 Reg8
+39 SubN Reg8 Reg8 Reg8
+40 LShift Reg8 Reg8 Reg8
+41 RShift Reg8 Reg8 Reg8
+42 URshift Reg8 Reg8 Reg8
+43 BitAnd Reg8 Reg8 Reg8
+44 BitXor Reg8 Reg8 Reg8
+45 BitOr Reg8 Reg8 Reg8
+46 Inc Reg8 Reg8
+47 Dec Reg8 Reg8
+48 InstanceOf Reg8 Reg8 Reg8
+49 IsIn Reg8 Reg8 Reg8
+50 PrivateIsIn Reg8 Reg8 Reg8 Reg8
+51 TypeOfIs Reg8 Reg8 UInt16
+52 GetParentEnvironment Reg8 UInt8
+53 GetEnvironment Reg8 Reg8 UInt8
+54 GetClosureEnvironment Reg8 Reg8
+55 StoreToEnvironment Reg8 UInt8 Reg8
+56 StoreToEnvironmentL Reg8 UInt16 Reg8
+57 StoreNPToEnvironment Reg8 UInt8 Reg8
+58 StoreNPToEnvironmentL Reg8 UInt16 Reg8
+59 LoadFromEnvironment Reg8 Reg8 UInt8
+60 LoadFromEnvironmentL Reg8 Reg8 UInt16
+61 GetGlobalObject Reg8
+62 GetNewTarget Reg8
+63 LoadParentNoTraps Reg8 Reg8
+64 CreateFunctionEnvironment Reg8 UInt8
+65 CreateTopLevelEnvironment Reg8 UInt32
+66 CreateEnvironment Reg8 Reg8 UInt32
+67 DeclareGlobalVar UInt32
+68 GetByIdShort Reg8 Reg8 UInt8 UInt8
+69 GetById Reg8 Reg8 UInt8 UInt16
+70 GetByIdLong Reg8 Reg8 UInt8 UInt32
+71 GetByIdWithReceiverLong Reg8 Reg8 UInt8 Reg8 UInt32
+72 TryGetById Reg8 Reg8 UInt8 UInt16
+73 TryGetByIdLong Reg8 Reg8 UInt8 UInt32
+74 PutByIdLoose Reg8 Reg8 UInt8 UInt16
+75 PutByIdStrict Reg8 Reg8 UInt8 UInt16
+76 PutByIdLooseLong Reg8 Reg8 UInt8 UInt32
+77 PutByIdStrictLong Reg8 Reg8 UInt8 UInt32
+78 TryPutByIdLoose Reg8 Reg8 UInt8 UInt16
+79 TryPutByIdStrict Reg8 Reg8 UInt8 UInt16
+80 TryPutByIdLooseLong Reg8 Reg8 UInt8 UInt32
+81 TryPutByIdStrictLong Reg8 Reg8 UInt8 UInt32
+82 PutOwnBySlotIdx Reg8 Reg8 UInt8
+83 PutOwnBySlotIdxLong Reg8 Reg8 UInt32
+84 GetOwnBySlotIdx Reg8 Reg8 UInt8
+85 GetOwnBySlotIdxLong Reg8 Reg8 UInt32
+86 DefineOwnById Reg8 Reg8 UInt8 UInt16
+87 DefineOwnByIdLong Reg8 Reg8 UInt8 UInt32
+88 DefineOwnByIndex Reg8 Reg8 UInt8
+89 DefineOwnByIndexL Reg8 Reg8 UInt32
+90 DefineOwnInDenseArray Reg8 Reg8 UInt8
+91 DefineOwnInDenseArrayL Reg8 Reg8 UInt16
+92 DefineOwnByVal Reg8 Reg8 Reg8 UInt8
+93 GetByVal Reg8 Reg8 Reg8
+94 GetByIndex Reg8 Reg8 UInt8
+95 GetByValWithReceiver Reg8 Reg8 Reg8 Reg8
+96 PutByValLoose Reg8 Reg8 Reg8
+97 PutByValStrict Reg8 Reg8 Reg8
+98 PutByValWithReceiver Reg8 Reg8 Reg8 Reg8 UInt8
+99 DelByVal Reg8 Reg8 Reg8 UInt8
+100 AddOwnPrivateBySym Reg8 Reg8 Reg8
+101 GetOwnPrivateBySym Reg8 Reg8 UInt8 Reg8
+102 PutOwnPrivateBySym Reg8 Reg8 UInt8 Reg8
+103 DefineOwnGetterSetterByVal Reg8 Reg8 Reg8 Reg8 UInt8
+104 GetPNameList Reg8 Reg8 Reg8 Reg8
+105 GetNextPName Reg8 Reg8 Reg8 Reg8 Reg8
+106 Call Reg8 Reg8 UInt8
+107 Construct Reg8 Reg8 UInt8
+108 Call1 Reg8 Reg8 Reg8
+109 CallWithNewTarget Reg8 Reg8 Reg8 UInt8
+110 Call2 Reg8 Reg8 Reg8 Reg8
+111 Call3 Reg8 Reg8 Reg8 Reg8 Reg8
+112 Call4 Reg8 Reg8 Reg8 Reg8 Reg8 Reg8
+113 CallWithNewTargetLong Reg8 Reg8 Reg8 Reg8
+114 CallRequire Reg8 Reg8 UInt32
+115 CallBuiltin Reg8 UInt8 UInt8
+116 CallBuiltinLong Reg8 UInt8 UInt32
+117 GetBuiltinClosure Reg8 UInt8
+118 Ret Reg8
+119 Catch Reg8
+120 DirectEval Reg8 Reg8 UInt8
+121 Throw Reg8
+122 ThrowIfEmpty Reg8 Reg8
+123 ThrowIfUndefined Reg8 Reg8
+124 ThrowIfThisInitialized Reg8
+125 Debugger
+126 AsyncBreakCheck
+127 ProfilePoint UInt16
+128 CreateBaseClass Reg8 Reg8 Reg8 UInt16
+129 CreateBaseClassLongIndex Reg8 Reg8 Reg8 UInt32
+130 CreateDerivedClass Reg8 Reg8 Reg8 Reg8 UInt16
+131 CreateDerivedClassLongIndex Reg8 Reg8 Reg8 Reg8 UInt32
+132 CreateClosure Reg8 Reg8 UInt16
+133 CreateClosureLongIndex Reg8 Reg8 UInt32
+134 CreateThisForNew Reg8 Reg8 UInt8
+135 CreateThisForSuper Reg8 Reg8 Reg8 UInt8
+136 SelectObject Reg8 Reg8 Reg8
+137 LoadParam Reg8 UInt8
+138 LoadParamLong Reg8 UInt32
+139 LoadConstUInt8 Reg8 UInt8
+140 LoadConstInt Reg8 Imm32
+141 LoadConstDouble Reg8 Double
+142 LoadConstBigInt Reg8 UInt16
+143 LoadConstBigIntLongIndex Reg8 UInt32
+144 LoadConstString Reg8 UInt16
+145 LoadConstStringLongIndex Reg8 UInt32
+146 LoadConstEmpty Reg8
+147 LoadConstUndefined Reg8
+148 LoadConstNull Reg8
+149 LoadConstTrue Reg8
+150 LoadConstFalse Reg8
+151 LoadConstZero Reg8
+152 CoerceThisNS Reg8 Reg8
+153 LoadThisNS Reg8
+154 ToNumber Reg8 Reg8
+155 ToNumeric Reg8 Reg8
+156 ToInt32 Reg8 Reg8
+157 AddEmptyString Reg8 Reg8
+158 CreatePrivateName Reg8 UInt32
+159 GetArgumentsPropByValLoose Reg8 Reg8 Reg8
+160 GetArgumentsPropByValStrict Reg8 Reg8 Reg8
+161 GetArgumentsLength Reg8 Reg8
+162 ReifyArgumentsStrict Reg8
+163 ReifyArgumentsLoose Reg8
+164 ToPropertyKey Reg8 Reg8
+165 CreateRegExp Reg8 UInt32 UInt32 UInt32
+166 UIntSwitchImm Reg8 UInt32 Addr32 UInt32 UInt32
+167 StringSwitchImm Reg8 UInt32 UInt32 Addr32 UInt32
+168 CreateGenerator Reg8 Reg8 UInt16
+169 CreateGeneratorLongIndex Reg8 Reg8 UInt32
+170 IteratorBegin Reg8 Reg8
+171 IteratorNext Reg8 Reg8 Reg8
+172 IteratorClose Reg8 UInt8
+173 TypedLoadParent Reg8 Reg8
+174 Jmp Addr8
+175 JmpLong Addr32
+176 JmpTrue Addr8 Reg8
+177 JmpTrueLong Addr32 Reg8
+178 JmpFalse Addr8 Reg8
+179 JmpFalseLong Addr32 Reg8
+180 JmpUndefined Addr8 Reg8
+181 JmpUndefinedLong Addr32 Reg8
+182 JmpTypeOfIs Addr32 Reg8 UInt16
+183 JLess Addr8 Reg8 Reg8
+184 JLessLong Addr32 Reg8 Reg8
+185 JNotLess Addr8 Reg8 Reg8
+186 JNotLessLong Addr32 Reg8 Reg8
+187 JLessN Addr8 Reg8 Reg8
+188 JLessNLong Addr32 Reg8 Reg8
+189 JNotLessN Addr8 Reg8 Reg8
+190 JNotLessNLong Addr32 Reg8 Reg8
+191 JLessEqual Addr8 Reg8 Reg8
+192 JLessEqualLong Addr32 Reg8 Reg8
+193 JNotLessEqual Addr8 Reg8 Reg8
+194 JNotLessEqualLong Addr32 Reg8 Reg8
+195 JLessEqualN Addr8 Reg8 Reg8
+196 JLessEqualNLong Addr32 Reg8 Reg8
+197 JNotLessEqualN Addr8 Reg8 Reg8
+198 JNotLessEqualNLong Addr32 Reg8 Reg8
+199 JGreater Addr8 Reg8 Reg8
+200 JGreaterLong Addr32 Reg8 Reg8
+201 JNotGreater Addr8 Reg8 Reg8
+202 JNotGreaterLong Addr32 Reg8 Reg8
+203 JGreaterEqual Addr8 Reg8 Reg8
+204 JGreaterEqualLong Addr32 Reg8 Reg8
+205 JNotGreaterEqual Addr8 Reg8 Reg8
+206 JNotGreaterEqualLong Addr32 Reg8 Reg8
+207 JEqual Addr8 Reg8 Reg8
+208 JEqualLong Addr32 Reg8 Reg8
+209 JNotEqual Addr8 Reg8 Reg8
+210 JNotEqualLong Addr32 Reg8 Reg8
+211 JStrictEqual Addr8 Reg8 Reg8
+212 JStrictEqualLong Addr32 Reg8 Reg8
+213 JStrictNotEqual Addr8 Reg8 Reg8
+214 JStrictNotEqualLong Addr32 Reg8 Reg8
+215 JmpBuiltinIs Addr8 UInt8 Reg8
+216 JmpBuiltinIsLong Addr32 UInt8 Reg8
+217 JmpBuiltinIsNot Addr8 UInt8 Reg8
+218 JmpBuiltinIsNotLong Addr32 UInt8 Reg8

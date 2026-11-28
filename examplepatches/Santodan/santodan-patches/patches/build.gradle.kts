@@ -55,6 +55,56 @@ tasks.register<JavaExec>("verifyMonet111") {
         "La/ov5;->a()Z", "La/u60;", "b")
 }
 
+// Peafowl GMS_27.5.2: VerifyPatch reads the base APK's classes.dex from the original XAPK.
+tasks.register<JavaExec>("verifyPeafowl") {
+    dependsOn("testClasses")
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("santodan.patches.VerifyPatch")
+    val xapk = file("../../OriginalApps/Peafowl+Theme+Maker+for+EMUI_GMS_27.5.2.xapk")
+    val outDir = layout.buildDirectory.dir("verification/peafowl-27.5.2").get().asFile
+    val inputDex = File(outDir, "classes.dex")
+    doFirst {
+        outDir.mkdirs()
+        val baseApk = File(outDir, "base.apk")
+        ZipFile(xapk).use { zip ->
+            zip.getInputStream(zip.getEntry("h7.hamzio.emuithemeotg.apk")).use { input ->
+                baseApk.outputStream().use { input.copyTo(it) }
+            }
+        }
+        ZipFile(baseApk).use { zip ->
+            zip.getInputStream(zip.getEntry("classes.dex")).use { input ->
+                inputDex.outputStream().use { input.copyTo(it) }
+            }
+        }
+    }
+    args(inputDex.absolutePath, File(outDir, "patched-classes.dex").absolutePath)
+}
+
+// Peafowl GMS_27.5.2: neutralize the app's own launch signing-certificate check.
+tasks.register<JavaExec>("verifyPeafowlSignature") {
+    dependsOn("testClasses")
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("santodan.patches.VerifySignaturePatch")
+    val xapk = file("../../OriginalApps/Peafowl+Theme+Maker+for+EMUI_GMS_27.5.2.xapk")
+    val outDir = layout.buildDirectory.dir("verification/peafowl-signature-27.5.2").get().asFile
+    val inputDex = File(outDir, "classes.dex")
+    doFirst {
+        outDir.mkdirs()
+        val baseApk = File(outDir, "base.apk")
+        ZipFile(xapk).use { zip ->
+            zip.getInputStream(zip.getEntry("h7.hamzio.emuithemeotg.apk")).use { input ->
+                baseApk.outputStream().use { input.copyTo(it) }
+            }
+        }
+        ZipFile(baseApk).use { zip ->
+            zip.getInputStream(zip.getEntry("classes.dex")).use { input ->
+                inputDex.outputStream().use { input.copyTo(it) }
+            }
+        }
+    }
+    args(inputDex.absolutePath, File(outDir, "patched-classes.dex").absolutePath)
+}
+
 tasks.register<JavaExec>("verifyMonetBundle") {
     dependsOn("testClasses", "buildAndroid")
     classpath = sourceSets["test"].runtimeClasspath

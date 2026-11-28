@@ -78,8 +78,14 @@ public final class MebukiCatalogContractTest {
             catalogData=actual;
             c.getSharedPreferences(MebukiSession.STORE,0).edit().putString(MebukiSession.KEY,COOKIE).commit();
             JSONObject actualShape=adapter.threadsJson();
-            check(!actualShape.getBoolean("trial")&&actualShape.getJSONArray("threads").length()==45,"actual public schema maps to latest 45");
-            System.out.println("PASS actual public catalog schema maps through synthetic authenticated route: 45 rows");
+            int visible=0;
+            java.util.Set<Object> seen=new java.util.HashSet<>();
+            for(Object item:entries){
+                java.util.Map<?,?> row=(java.util.Map<?,?>)item;
+                if(!Boolean.TRUE.equals(row.get("isHidden"))&&seen.add(row.get("slug")))visible++;
+            }
+            check(!actualShape.getBoolean("trial")&&actualShape.getJSONArray("threads").length()==Math.min(visible,MebukiAdapter.CATALOG_LIMIT),"actual public schema maps to full visible catalog");
+            System.out.println("PASS actual public catalog schema maps through synthetic authenticated route: "+actualShape.getJSONArray("threads").length()+" rows");
         }
     }
 }

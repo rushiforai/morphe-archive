@@ -1,0 +1,60 @@
+name: Signing key
+
+# Keeps the published signing key fingerprint in step with morphe-signing.pub.
+# When the key file changes on dev, this rewrites the "Signed by" box, the
+# signer blocks in README.md and docs/signing-key.md, and adds the new key to
+# the key history table, which never drops a row. See
+# .github/scripts/signing_key.py. The change reaches main with the next
+# release pull request, where CI checks that it is up to date.
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - morphe-signing.pub
+      - .github/scripts/signing_key.py
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: signing-key
+  cancel-in-progress: false
+
+jobs:
+  update:
+    name: Update the published fingerprint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout dev
+        uses: actions/checkout@v7
+        with:
+          ref: dev
+          # The history table records the commit that last changed the key.
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Update and push
+        run: |
+          python .github/scripts/signing_key.py
+          if git diff --quiet; then
+            echo "The published fingerprint is up to date." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -a -m "docs: Update the signing key fingerprint [skip ci]"
+          # The release workflow can push to dev at the same time.
+          for attempt in 1 2 3; do
+            git pull --rebase origin dev && git push origin HEAD:dev && break
+            sleep 15
+          done
+          git diff HEAD~1 --stat >> "$GITHUB_STEP_SUMMARY"

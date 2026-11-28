@@ -18,6 +18,5 @@ import semicoloncolonel.mobilestream.patches.shared.links.stripAffiliateLinksPat
 @Suppress("unused")
 val stripAffiliateLinksPatch = stripAffiliateLinksPatch(
     Constants.COMPATIBILITY,
-    category = "Privacy",
     description = "Opens listings at eBay's own page, without eBay Partner Network affiliate tags or click tracking.",
 )

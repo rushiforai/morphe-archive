@@ -7,6 +7,8 @@ import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21c
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c
@@ -39,6 +41,46 @@ val deviceInfoVersionPatch = bytecodePatch(
             ?: throw PatchException("futatabi: missing bundle version resource")
         if (!Regex("[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?").matches(version))
             throw PatchException("futatabi: invalid bundle version")
+        // Stock PackageInfo.appName is the original APK label, ふたったー.
+        // Restore just the plugin value, not the launcher/manifest label.
+        val packageClass = mutableClassDefByOrNull("LD5/e;")
+            ?: throw PatchException("futatabi: package-info plugin class missing")
+        val packageMethod = packageClass.methods.singleOrNull {
+            it.name == "onMethodCall" && it.parameterTypes.map { p -> p.toString() } ==
+                listOf("LR5/j;", "LR5/k\$d;") && it.returnType == "V"
+        } ?: throw PatchException("futatabi: package-info method missing")
+        val packageImpl = packageMethod.implementation ?: throw PatchException("futatabi: package-info method has no code")
+        val packageCode = packageImpl.instructions.toList()
+        val names = packageCode.indices.filter { n ->
+            val insn = packageCode[n]
+            insn.opcode == Opcode.CONST_STRING &&
+                (insn as? OneRegisterInstruction)?.registerA == 8 &&
+                ((insn as? ReferenceInstruction)?.reference as? StringReference)?.string == "appName"
+        }
+        if (packageImpl.registerCount != 14 || names.size != 1)
+            throw PatchException("futatabi: package-info name site mismatch")
+        val nameAt = names.single()
+        val namePut = (nameAt + 1 until packageCode.size).firstOrNull { n ->
+            val insn = packageCode[n] as? Instruction35c
+            val ref = insn?.reference as? MethodReference
+            insn?.opcode == Opcode.INVOKE_VIRTUAL && ref?.definingClass == "Ljava/util/HashMap;" && ref.name == "put"
+        } ?: throw PatchException("futatabi: appName Map.put missing")
+        val putName = packageCode[namePut] as Instruction35c
+        val putRef = putName.reference as MethodReference
+        if (putName.registerCount != 3 || putName.registerC != 7 || putName.registerD != 8 || putName.registerE != 12 ||
+            putRef.parameterTypes.map { it.toString() } != listOf("Ljava/lang/Object;", "Ljava/lang/Object;") ||
+            putRef.returnType != "Ljava/lang/Object;" ||
+            packageCode.getOrNull(namePut + 1)?.opcode != Opcode.CONST_STRING ||
+            (packageCode[namePut + 1] as? OneRegisterInstruction)?.registerA != 12 ||
+            ((packageCode[namePut + 1] as? ReferenceInstruction)?.reference as? StringReference)?.string != "packageName")
+            throw PatchException("futatabi: appName Map.put mismatch")
+        // Replace the call location so both original branches pass through.
+        packageImpl.replaceInstruction(namePut, BuilderInstruction21c(
+            Opcode.CONST_STRING, 12, ImmutableStringReference("ふたったー")))
+        packageMethod.addInstructions(namePut + 1, """
+            invoke-virtual {v7, v8, v12}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+        """)
+
         val clazz = mutableClassDefByOrNull("LC5/c;")
             ?: throw PatchException("futatabi: device-info plugin class missing")
         val method = clazz.methods.singleOrNull {

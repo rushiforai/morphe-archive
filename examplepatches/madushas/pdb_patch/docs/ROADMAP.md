@@ -77,11 +77,32 @@ Official: 183 files use `SwitchPreference`/`ListPreference`/`StringResource`, pl
 hardcoded English. Adopting the declarative model removes bespoke UI code, makes
 switches translatable, and keeps Manager options for rebuild-time choices only.
 
-### 7. Universal patches + borrowed wins
-Port kveld's `universal/` set (`ApkJunkCleaner`, `BackgroundSyncPurge`,
-`DpiResourceSlimmer`) — they serve "every app strips ads+telemetry" and the Teams
-"unbloat" goal, once, for all apps. Then look at `rushiranpise` (our exact
-`app/template/patches/…` skeleton, 172 fingerprints) for new targets.
+### 7. Universal patches + borrowed wins — **STARTED 2026-11-16**
+Ported from kveld's `universal/` set into `patches/…/universal/` (all `default = false`,
+no `compatibleWith` → they appear in the README 🌐 Universal block; bundle now 80 patches, 10
+universal). Each carries a kveld/GPLv3 provenance header:
+
+| Ported | What it does |
+|---|---|
+| `pinning/OverrideCertificatePinningPatch` | user-CA trust + pin-set `overridePins`; appends a `base-config` when the NSC declares none; reports changed / already-present / added |
+| `root/DisableRootChecksPatch` | RootBeer + RootBeerNative `()Z` detection methods → `false` |
+| `privacy/PrivacyPermissionsPatch` | 10 capability-permission groups, each an off-by-default switch |
+
+**Evidence:** applies cleanly on hutch (RootBeer: 1 method neutralised; pinning "already present"
+because the per-app SSL patch had done it; privacy: none selected) and strava (pinning enabled in
+1 section; RootBeer absent; privacy: none) — plus a **device regression test**: hutch + all three
+patched, installs, boots to `MainActivity`, 0 fatals, 0 root/jail/pin errors, RN JS API calls
+succeeding. Lesson recorded in the skill: **a fail-closed count guard must not fire on an
+already-satisfied precondition** (my first version aborted hutch's build for exactly that reason).
+
+**Remaining candidates (highest value first):** `UniversalRemoveAdsPatch` (registry over
+AppLovin/Meta/Unity/ironSource/Pangle/Vungle/InMobi/Mintegral/Chartboost/AdMob load+show entry
+points), `UniversalTelemetryNeutralizerPatch` (531 lines), `UniversalHostsBlockerPatch` +
+`RemoveTrackingLibraries`, `UniversalBypassPlayLicensePatch` (a general licence-check bypass — may
+replace per-app premium logic), `UniversalSdkBlockerPatch`; then the unbloat group
+(`ApkJunkCleaner`, `BackgroundSyncPurge`, `DpiResourceSlimmer`, `LocaleResourceSlimmer`,
+`PngOptimizer`). Also still worth mining: `rushiranpise` (our exact `app/template/patches/…`
+skeleton, 172 fingerprints) for new targets.
 
 ### 8. Release engineering
 A CI matrix that patches **every declared target** per app (we have been bitten twice

@@ -29,9 +29,13 @@ import java.util.WeakHashMap;
  * Auto support in its manifest -- joins them: Poweramp and the like.
  */
 public final class MediaApps {
-    /** Maps' partners: Spotify has a connection of its own; the others Maps lists itself, in their colours. */
+    /** Maps' partners, which Maps lists itself in their colours (Spotify only where its own connection works). */
     private static final Set<String> PARTNERS = new HashSet<>(Arrays.asList(
-            "com.spotify.music", "com.google.android.music", "com.google.android.apps.youtube.music", "com.pandora.android"));
+            "com.google.android.music", "com.google.android.apps.youtube.music", "com.pandora.android"));
+    private static final String SPOTIFY = "com.spotify.music";
+    /** Stock Maps' legacy signing certificate, SHA-1. */
+    private static final String GOOGLE_CERT = "38918a453d07199354f8b19af05ec6562ced5788";
+    private static Boolean googleSigned;
     /**
      * The partners Maps lists itself only when its server says so (issue #78): added after Maps' own list when
      * installed and not already there. Spotify is not one: Maps reaches it through Spotify's own connection.
@@ -45,6 +49,47 @@ public final class MediaApps {
 
     private MediaApps() {}
 
+    /**
+     * Called by the patch with Maps' Spotify integration each time Maps reads it (issue #217). Maps reaches Spotify
+     * through Spotify's own App Remote connection, which Spotify grants only to Maps signed by Google: a re-signed Maps
+     * flashed Spotify's loading screen and gave up. There Maps is told it has no such integration, as on a phone without
+     * it, and Spotify is connected through its media browser like every other app. Kept on a root mount install.
+     */
+    public static Object spotify(Object integration) {
+        return integration != null && googleSigned() ? integration : null;
+    }
+
+    private static boolean googleSigned() {
+        if (googleSigned != null) return googleSigned;
+        boolean found = false;
+        try {
+            Context c = (Context) Class.forName("android.app.ActivityThread").getMethod("currentApplication").invoke(null);
+            if (c == null) return false;
+            android.content.pm.SigningInfo info = c.getPackageManager()
+                    .getPackageInfo(c.getPackageName(), PackageManager.GET_SIGNING_CERTIFICATES).signingInfo;
+            android.content.pm.Signature[] certs = info.hasMultipleSigners()
+                    ? info.getApkContentsSigners() : info.getSigningCertificateHistory();
+            java.security.MessageDigest sha1 = java.security.MessageDigest.getInstance("SHA-1");
+            for (android.content.pm.Signature cert : certs) {
+                StringBuilder hex = new StringBuilder();
+                for (byte b : sha1.digest(cert.toByteArray())) hex.append(String.format("%02x", b));
+                if (GOOGLE_CERT.contentEquals(hex)) found = true;
+            }
+        } catch (Throwable t) {
+            android.util.Log.w("UA", "media apps: signature", t);
+        }
+        return googleSigned = found;
+    }
+
+    /** Whether Maps lists the app whatever is chosen: an Android Auto app or a partner. */
+    static boolean listedAnyway(Context c, String pkg) {
+        return partner(pkg) || androidAuto(c.getPackageManager(), pkg);
+    }
+
+    private static boolean partner(String pkg) {
+        return PARTNERS.contains(pkg) || SPOTIFY.equals(pkg) && googleSigned();
+    }
+
     /** Rewritten by the patch: Maps' media app entry class, and its list builder's add method. */
     static String entryClass() { return ""; }
     static String addMethod() { return ""; }
@@ -52,6 +97,62 @@ public final class MediaApps {
     static String failedMethod() { return ""; }
     /** Rewritten by the patch: the media panel's "which app" getter (its package). */
     static String panelAppMethod() { return ""; }
+    /** Rewritten by the patch: the listener Maps asks each media app's browser with, taking only its first answer. */
+    static String probeClass() { return ""; }
+
+    // ---- the answers of the media apps' browsers, kept (issue #78) ----
+
+    /** How long an app's answer is kept: navigation coming back to the front asks every app again. */
+    private static final long KEEP_MS = 10 * 60 * 1000;
+    /** Per app: when it answered and whether it connected (1) or refused (0). */
+    private static final Map<String, long[]> ANSWERS = new java.util.concurrent.ConcurrentHashMap<>();
+    /** The listeners asking an app now, by package. */
+    private static final Map<Object, String> ASKING = Collections.synchronizedMap(new WeakHashMap<>());
+
+    /**
+     * Maps is about to ask an app's media browser whether it connects, with this listener: an answer the app gave
+     * in the last ten minutes is given again at once (true: Maps does not connect). Navigation coming back to the front
+     * (from the power saving screen, another app, the screen turning on) asks every listed app again, and showed its
+     * media panel -- the button too -- only once the slowest had answered.
+     */
+    public static boolean probe(Object connection, Object listener) {
+        try {
+            if (listener == null || !listener.getClass().getName().equals(probeClass())) return false;
+            String pkg = PlayingMedia.servicePackage(connection);
+            if (pkg == null) return false;
+            long[] known = ANSWERS.get(pkg);
+            if (known == null || android.os.SystemClock.elapsedRealtime() - known[0] > KEEP_MS) {
+                ASKING.put(listener, pkg);
+                return false;
+            }
+            int params = known[1] == 1 ? 1 : 0;
+            for (Method m : listener.getClass().getDeclaredMethods()) {
+                if (java.lang.reflect.Modifier.isStatic(m.getModifiers()) || m.getReturnType() != void.class
+                        || m.getParameterTypes().length != params) continue;
+                m.setAccessible(true);
+                m.invoke(listener, params == 1 ? new Object[] {null} : new Object[0]);
+                return true;
+            }
+        } catch (Throwable t) {
+            android.util.Log.w("UA", "media answer", t);
+        }
+        return false;
+    }
+
+    /** The app's browser connected (or its session was put in): kept. */
+    public static void probeConnected(Object listener) {
+        kept(listener, 1);
+    }
+
+    /** The app's browser refused: kept. */
+    public static void probeRefused(Object listener) {
+        kept(listener, 0);
+    }
+
+    private static void kept(Object listener, int connected) {
+        String pkg = ASKING.remove(listener);
+        if (pkg != null) ANSWERS.put(pkg, new long[] {android.os.SystemClock.elapsedRealtime(), connected});
+    }
 
     // ---- the media panel's row of other apps (issue #78) ----
 
@@ -72,7 +173,10 @@ public final class MediaApps {
         c.getSharedPreferences(Shapes.PREFS, Context.MODE_PRIVATE).edit().putString(KEY_ROW, String.join(",", packages)).commit();
     }
 
-    /** The apps Maps can offer in navigation now, by name: Android Auto media apps, open sessions, Maps' partners. */
+    /**
+     * The apps Maps can offer in navigation now, by name: media apps with Android Auto support or a launcher icon, open
+     * sessions, Maps' partners.
+     */
     public static List<String> candidates(Context c) {
         PackageManager pm = c.getPackageManager();
         Set<String> open = PlayingMedia.sessionPackages(c);
@@ -82,7 +186,9 @@ public final class MediaApps {
             if (r.serviceInfo == null) continue;
             String pkg = r.serviceInfo.packageName;
             if (pkg.equals(c.getPackageName()) || !seen.add(pkg)) continue;
-            if (PARTNERS.contains(pkg) || androidAuto(pm, pkg) || open.contains(pkg)) out.add(pkg);
+            // Also every app of the user's own with a media browser (issue #78: YouTube Morphe has no Android Auto
+            // support, so it was offered only while playing or once picked as the default media app).
+            if (partner(pkg) || androidAuto(pm, pkg) || open.contains(pkg) || pm.getLaunchIntentForPackage(pkg) != null) out.add(pkg);
         }
         Collections.sort(out, (a, b) -> label(c, a).compareToIgnoreCase(label(c, b)));
         return out;
@@ -210,11 +316,13 @@ public final class MediaApps {
             // playing media). Every app listed is connected to at each navigation start; one already playing is
             // already running, the rest would all be started for it.
             Set<String> open = PlayingMedia.sessionPackages(c);
+            // The apps chosen in Customization > Media apps in navigation join too, whatever they support.
+            Set<String> picked = new HashSet<>(chosen(c));
             for (ResolveInfo r : pm.queryIntentServices(new Intent("android.media.browse.MediaBrowserService"), 0)) {
                 if (r.serviceInfo == null) continue;
                 String pkg = r.serviceInfo.packageName;
-                if (PARTNERS.contains(pkg) || pkg.equals(c.getPackageName()) || !seen.add(pkg)) continue;
-                if (!androidAuto(pm, pkg) && !open.contains(pkg)) continue;
+                if (partner(pkg) || pkg.equals(c.getPackageName()) || !seen.add(pkg)) continue;
+                if (!androidAuto(pm, pkg) && !open.contains(pkg) && !picked.contains(pkg)) continue;
                 add.invoke(builder, entry.newInstance(pkg, COLOR, TOUCH_COLOR));
             }
         } catch (Throwable t) {

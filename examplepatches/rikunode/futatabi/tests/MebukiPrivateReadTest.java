@@ -34,6 +34,23 @@ public final class MebukiPrivateReadTest {
             return "1234567890124";
         }),java.nio.charset.Charset.forName("Shift_JIS"));
         check(nativeHtml.contains("/mebuki/src/1234567890124.jpg")&&nativeHtml.contains("/mebuki/thumb/1234567890124s.jpg"),"native original and inline paths");
+        check(nativeHtml.contains("width=280 height=280"),"unknown dimensions retain numeric fallback");
+        String dimensions=fixture.replace("\"fileType\":\"image/jpeg\"", "\"width\":1280,\"height\":720,\"fileType\":\"image/jpeg\"");
+        String realSize=new String(MebukiThreadData.convert(dimensions).nativeHtml("1234567890123",url->"1234567890124"),java.nio.charset.Charset.forName("Shift_JIS"));
+        check(realSize.equals(nativeHtml.replace("width=280 height=280","width=280 height=158")),"only width/height change for landscape original");
+        String portrait=dimensions.replace("\"width\":1280,\"height\":720","\"width\":728,\"height\":1000");
+        check(new String(MebukiThreadData.convert(portrait).nativeHtml("1234567890123",url->"1234567890124"),java.nio.charset.Charset.forName("Shift_JIS")).contains("width=204 height=280"),"portrait dimensions preserve aspect ratio");
+        for(String bad:new String[]{"\"width\":null,\"height\":720","\"width\":0,\"height\":720","\"width\":-1,\"height\":720","\"width\":16001,\"height\":720","\"width\":16000,\"height\":16000","\"width\":\"1280\",\"height\":720"}){
+            String invalid=dimensions.replace("\"width\":1280,\"height\":720",bad);
+            check(new String(MebukiThreadData.convert(invalid).nativeHtml("1234567890123",url->"1234567890124"),java.nio.charset.Charset.forName("Shift_JIS")).equals(nativeHtml),"invalid dimensions retain safe fallback");
+        }
+        String replyDimensions=dimensions.replace("\"fileType\":\"image/png\"","\"width\":400,\"height\":399,\"fileType\":\"image/png\"").replace("\"spoiler\":true","\"spoiler\":false");
+        String withReply=new String(MebukiThreadData.convert(replyDimensions).nativeHtml("1234567890123",url->url.endsWith("fixture.jpg")?"1234567890124":"1234567890125"),java.nio.charset.Charset.forName("Shift_JIS"));
+        check(withReply.contains("1234567890124s.jpg' width=280 height=158")&&withReply.contains("1234567890125s.jpg' width=280 height=279"),"OP and reply retain their own image dimensions");
+        check(ThreadImageSize.attributes(600,600).equals("width=280 height=280"),"Aimoge numeric JSON dimensions");
+        check(ThreadImageSize.attributes(50,100).equals("width=140 height=280"),"small portrait normalized");
+        check(ThreadImageSize.attributes(null,null).equals("width=280 height=280"),"unknown Animanch dimensions");
+        check(ThreadImageSize.attributes(16001,1).equals("width=280 height=280"),"reject out of range");
         java.util.Map<String,Object> attachment=new java.util.HashMap<>();
         attachment.put("filePath",data.images.get(0));attachment.put("fileType","image/jpeg");attachment.put("createdAt","2026-11-25T15:00:00Z");
         for(String flag:new String[]{"spoiler","nsfw","gore","other"})attachment.put(flag,false);

@@ -1,5 +1,6 @@
 package io.github.sabopura.morphe.patches.twitch.notifications
 
+import io.github.sabopura.morphe.patches.twitch.support.TWITCH_MOVED_NOTE
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
@@ -30,7 +31,7 @@ private fun headerWrite(instruction: Instruction): String? {
 @Suppress("unused")
 val fixNotificationsPatch = bytecodePatch(
     name = "Fix notifications",
-    description = "Repair push registration after re-signing. Adjusts the certificate and package name headers only for HTTPS Firebase Installations requests.",
+    description = TWITCH_MOVED_NOTE + "Repair push registration after re-signing. Adjusts the certificate and package name headers only for HTTPS Firebase Installations requests.",
     default = true,
 ) {
     compatibleWith(TWITCH_SUPPORTED)

@@ -1,0 +1,72 @@
+name: UI tests
+
+# Renders eppy's views on the JVM (Paparazzi / layoutlib), checks their geometry, and uploads
+# the images as an artifact for review. Doesn't publish anything.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - dev
+    paths:
+      - extensions/**
+      - ui-tests/**
+      - .github/workflows/ui-tests.yml
+
+permissions:
+  contents: write
+
+jobs:
+  render:
+    name: Render and check components
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Record snapshots and run geometry checks
+        run: |
+          chmod +x gradlew
+          set -o pipefail
+          mkdir -p ui-tests/build
+          bash ./gradlew -p ui-tests recordPaparazziDebug --no-daemon --stacktrace 2>&1 | tee ui-tests/build/gradle.log
+
+      # Artifacts and logs are served from blob storage that some tools can't reach, so the
+      # results are also pushed to the ui-results branch (images, test XML, Gradle log).
+      - name: Publish results to the ui-results branch
+        if: always()
+        run: |
+          OUT=$(mktemp -d)
+          mkdir -p "$OUT/images" "$OUT/test-results"
+          cp -r ui-tests/src/test/snapshots/images/. "$OUT/images/" 2>/dev/null || true
+          cp -r ui-tests/build/test-results/. "$OUT/test-results/" 2>/dev/null || true
+          tail -c 400000 ui-tests/build/gradle.log > "$OUT/gradle.log" 2>/dev/null || true
+          echo "${GITHUB_SHA} ${GITHUB_REF_NAME} $(date -u +%FT%TZ)" > "$OUT/SOURCE"
+          cd "$OUT"
+          git init -q -b ui-results
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -qm "UI test results for ${GITHUB_SHA}"
+          git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" ui-results
+
+      - name: Upload images
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eppy-ui-snapshots
+          path: |
+            ui-tests/src/test/snapshots/images
+            ui-tests/build/reports/tests
+            ui-tests/build/test-results
+          if-no-files-found: warn

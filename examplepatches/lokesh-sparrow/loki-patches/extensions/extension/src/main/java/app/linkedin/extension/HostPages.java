@@ -31,6 +31,7 @@ final class HostPages {
         boolean mx = pkg.startsWith("com.mxtech.videoplayer");
         boolean tasker = pkg.startsWith("net.dinglisch.android.taskerm");
         boolean photos = pkg.startsWith("com.google.android.apps.photos");
+        boolean imo = pkg.startsWith("com.imo.android.imoimhd");
 
         if (on(context, "app.loki.menu.premium")) pages.add(premium(splitwise, truecaller, docScanner, tasker));
         if (splitwise && on(context, "app.loki.menu.amoled")) pages.add(appearance(context));
@@ -41,12 +42,67 @@ final class HostPages {
         }
         if (on(context, "app.loki.menu.ads") || on(context, "app.loki.menu.analytics")
                 || on(context, "app.loki.menu.adid") || on(context, "app.loki.menu.proads")
-                || on(context, "app.loki.menu.hideads")
+                || on(context, "app.loki.menu.hideads") || (imo && on(context, "app.loki.menu.screenshots"))
                 || (truecaller && on(context, "app.loki.menu.anonview"))) {
             pages.add(privacy(context));
         }
+        if (imo) {
+            // Same topics as the other apps: what the screen looks like, what you send, calls. Screenshots sit in Privacy.
+            for (SettingsActivity.Page page : new SettingsActivity.Page[] {
+                    imoAppearance(context), imoChats(context), imoCalls(context)}) {
+                if (page != null) pages.add(page);
+            }
+        }
         if (on(context, "app.loki.menu.gmscore")) pages.add(signIn(truecaller));
         if (on(context, "app.loki.menu.clone")) pages.add(clone(context));
+    }
+
+    /** One IMO switch: shown only when its patch is in this install, stored where the patched code reads it. */
+    private static void imoToggle(Context context, SettingsActivity.Page page, String flag, String title, String note,
+                                  String key, boolean byDefault) {
+        if (!on(context, flag)) return;
+        page.toggle(title, note, new SettingsActivity.Toggle() {
+            public boolean get() {
+                return LokiSwitches.imo(key, byDefault);
+            }
+
+            public void set(boolean on) {
+                LokiSwitches.set(context, key, on);
+            }
+        }, true); // IMO reads these when it starts, so the screen offers a restart after a change.
+    }
+
+    /** What IMO's screens show. A switch that is off puts IMO back to how it behaves unpatched. */
+    private static SettingsActivity.Page imoAppearance(Context context) {
+        SettingsActivity.Page page = new SettingsActivity.Page("Appearance", IconDrawable.PALETTE);
+        imoToggle(context, page, "app.loki.menu.hidevoice", "Hide voice rooms tab",
+                "Removes the voice rooms tab from the top bar, so only Chats and Contacts are left. Off: the tab "
+                        + "comes back.", "imo_hide_voice", true);
+        imoToggle(context, page, "app.loki.menu.hidepremium", "Hide Premium on Me page",
+                "Removes the paid Premium entry from the Me page. Off: it comes back.", "imo_hide_premium", false);
+        return page.rows.isEmpty() ? null : page;
+    }
+
+    private static SettingsActivity.Page imoChats(Context context) {
+        SettingsActivity.Page page = new SettingsActivity.Page("Chats", IconDrawable.CHAT);
+        imoToggle(context, page, "app.loki.menu.hidesuggest", "Hide emoji suggestions",
+                "Removes the row of emojis (dice, lips, rose...) above the chat box, so a stray tap no longer sends "
+                        + "one. Off: the row comes back.", "imo_hide_suggestions", true);
+        imoToggle(context, page, "app.loki.menu.sendapk", "Allow sending apps",
+                "Shows the Apps option in the chat attachment menu. Off: IMO decides, as usual.",
+                "imo_send_apk", true);
+        imoToggle(context, page, "app.loki.menu.burn", "Disappearing messages",
+                "Turns on IMO's own disappearing-message option when you send in private and group chats. "
+                        + "IMO's servers decide whether the other person gets it.", "imo_burn", false);
+        return page.rows.isEmpty() ? null : page;
+    }
+
+    private static SettingsActivity.Page imoCalls(Context context) {
+        SettingsActivity.Page page = new SettingsActivity.Page("Calls", IconDrawable.PHONE);
+        imoToggle(context, page, "app.loki.menu.storycall", "Allow story recording during calls",
+                "Lets you record and post a story while a call is going on. Off: IMO decides, as usual.",
+                "imo_story_call", true);
+        return page.rows.isEmpty() ? null : page;
     }
 
     private static SettingsActivity.Page premium(boolean splitwise, boolean truecaller, boolean docScanner,
@@ -189,6 +245,11 @@ final class HostPages {
         SettingsActivity.Page page = new SettingsActivity.Page("Privacy", IconDrawable.SHIELD);
         if (context.getPackageName().startsWith("com.truecaller") && on(context, "app.loki.menu.anonview")) {
             profileRows(context, page);
+        }
+        if (context.getPackageName().startsWith("com.imo.android.imoimhd")) {
+            imoToggle(context, page, "app.loki.menu.screenshots", "Allow screenshots",
+                    "Screenshots and screen recording work everywhere in IMO, including protected chat media and "
+                            + "profile photos. Off: IMO blocks them where it normally does.", "imo_screenshots", true);
         }
         if (on(context, "app.loki.menu.proads")) page.info("Pro ads and upsells", () -> "Hidden");
         // An app's own Hide ads patch (Truecaller, Doc Scanner) or the universal one: either removes them.

@@ -292,6 +292,8 @@ Blocked %1$s	บล็อก %1$s แล้ว
 Blocked %1$s. Unblock	บล็อก %1$s แล้ว เลิกบล็อก
 Couldn't confirm blocking %1$s. Check their profile.	ไม่สามารถยืนยันการบล็อก %1$s ได้ โปรดตรวจสอบโปรไฟล์ของพวกเขา
 Blocked caption words	คำที่ถูกบล็อกในคำบรรยาย
+Only show videos with these words	แสดงเฉพาะวิดีโอที่มีคำเหล่านี้
+For You only. Separate words or phrases with commas, like #recipe, cooking. A video stays only when its caption or hashtags match one, with the same rules as Blocked caption words. A batch with no match keeps one video so the feed keeps moving. Leave it empty to show everything.	เฉพาะสำหรับคุณ คั่นคำหรือวลีด้วยจุลภาค เช่น #recipe, cooking วิดีโอจะยังอยู่ก็ต่อเมื่อคำบรรยายหรือแฮชแท็กตรงกับคำใดคำหนึ่ง โดยใช้กฎเดียวกับคำที่ถูกบล็อกในคำบรรยาย ชุดที่ไม่มีวิดีโอตรงเลยจะเก็บไว้หนึ่งวิดีโอเพื่อให้ฟีดเลื่อนต่อได้ เว้นว่างไว้เพื่อแสดงทุกอย่าง
 Blocked comment words	คำที่ถูกบล็อกในความคิดเห็น
 Blocked creators	ครีเอเตอร์ที่ถูกบล็อก
 Blocked sound ids	ID เสียงที่ถูกบล็อก
@@ -3026,6 +3028,8 @@ Crop and stretch to fill the screen	ครอปและยืดวิดี�
 Cover the whole window with half the crop of Fill and half the stretch of Stretch, so neither is easy to spot. A video far from the screen's shape keeps TikTok's size.	แสดงวิดีโอเต็มทั้งหน้าต่าง โดยครอปเพียงครึ่งหนึ่งของแบบเต็มหน้าจอและยืดเพียงครึ่งหนึ่งของแบบยืด จึงแทบไม่สังเกตเห็นทั้งสองอย่าง วิดีโอที่มีรูปทรงต่างจากหน้าจอมากจะคงขนาดของ TikTok
 Watch LIVEs unseen	ดู LIVE โดยไม่มีใครเห็น
 You stay off the viewer list of LIVEs you open. Tap the eye in a LIVE to let that host see you. Needs Ghost mode on.	คุณจะไม่ปรากฏในรายชื่อผู้ชมของ LIVE ที่คุณเปิด แตะรูปตาใน LIVE เพื่อให้โฮสต์เห็นคุณ ต้องเปิดใช้งานโหมด Ghost
+Double tap to let the host see you	แตะสองครั้งเพื่อให้โฮสต์เห็นคุณ
+No eye on the video. Double tap a LIVE to let that host see you, and the next LIVE you open hides you again. Needs Watch LIVEs unseen on.	ไม่มีรูปตาบนวิดีโอ แตะ LIVE สองครั้งเพื่อให้โฮสต์เห็นคุณ และ LIVE ถัดไปที่คุณเปิดจะซ่อนคุณอีกครั้ง ต้องเปิดดู LIVE โดยไม่มีใครเห็น
 Keep likes on this phone	เก็บการถูกใจไว้บนโทรศัพท์เครื่องนี้
 A like you give a video stays on this phone. The heart turns red, but TikTok isn't told, so the creator never sees it and it isn't on your profile. Needs Ghost mode on.	การถูกใจที่คุณให้กับวิดีโอจะอยู่บนโทรศัพท์เครื่องนี้เท่านั้น หัวใจจะเป็นสีแดง แต่ TikTok จะไม่รู้ ผู้สร้างจึงไม่เห็น และจะไม่แสดงในโปรไฟล์ของคุณ ต้องเปิดใช้งานโหมด Ghost
 My likes on this phone	การถูกใจของฉันบนโทรศัพท์เครื่องนี้
@@ -3155,8 +3159,8 @@ Sort pinned videos with the rest	เรียงวิดีโอที่ป�
 Pinned videos take their place in the order instead of staying at the top, so Newest first puts them at the date they were posted.	วิดีโอที่ปักหมุดจะอยู่ตามลำดับแทนที่จะค้างอยู่ด้านบน ดังนั้น ใหม่ล่าสุดก่อน จะวางไว้ตามวันที่โพสต์
 Hide or reorder profile tabs	ซ่อนหรือจัดลำดับแท็บในโปรไฟล์
 Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos, and use the arrows to put the rest in your order. One tab always stays. Restart TikTok to apply this.	เลือกแท็บที่จะซ่อนจากแถบเหนือวิดีโอของโปรไฟล์ เช่น รีโพสต์ หรือ วิดีโอที่ถูกใจ และใช้ลูกศรจัดลำดับแท็บที่เหลือตามที่ต้องการ จะเหลือแท็บไว้อย่างน้อยหนึ่งแท็บเสมอ รีสตาร์ท TikTok เพื่อนำการเปลี่ยนแปลงนี้ไปใช้
-Hide Add bio	ซ่อนเพิ่มประวัติ
-Hide the Add bio prompt TikTok shows on your own profile while it has no bio. You can still add one from Edit profile.	ซ่อนข้อความชวนเพิ่มประวัติที่ TikTok แสดงบนโปรไฟล์ของคุณเมื่อยังไม่มีประวัติ คุณยังเพิ่มประวัติได้จากแก้ไขโปรไฟล์
+Hide tips on your profile	ซ่อนคำแนะนำบนโปรไฟล์ของคุณ
+Hide the Add bio prompt and the tip bubbles TikTok points at things on your own profile. You can still add a bio from Edit profile.	ซ่อนข้อความชวนเพิ่มประวัติและบับเบิลคำแนะนำที่ TikTok ชี้ไปยังส่วนต่างๆ บนโปรไฟล์ของคุณ คุณยังเพิ่มประวัติได้จากแก้ไขโปรไฟล์
 Show the picture before saving	แสดงรูปก่อนบันทึก
 With the long press save on, holding a profile picture opens it full screen at full size, with a Save button under it.	เมื่อเปิดการบันทึกด้วยการกดค้าง การกดรูปโปรไฟล์ค้างไว้จะเปิดรูปเต็มหน้าจอในขนาดเต็ม พร้อมปุ่มบันทึกอยู่ด้านล่าง
 The profile picture couldn't be loaded. Try again.	ไม่สามารถโหลดรูปโปรไฟล์ได้ โปรดลองอีกครั้ง
@@ -3174,7 +3178,6 @@ Gives each video on profile grids rounded corners, on your own profile and on Li
 Gifter level	ระดับผู้ให้ของขวัญ
 SecUID	SecUID
 Unknown (TikTok didn't send it)	ไม่ทราบ (TikTok ไม่ได้ส่งมา)
-A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, how many posts, liked videos, favorites and reposts it has, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.	แผ่นเมนูแชร์ของโปรไฟล์จะมีปุ่ม "ข้อมูลบัญชี" เพิ่มเข้ามา ซึ่งจะแสดงสิ่งที่ TikTok ส่งมาเกี่ยวกับบัญชีอยู่แล้ว ได้แก่ วันที่เข้าร่วม ภูมิภาคและภาษา ระดับผู้ให้ของขวัญและ SecUID จำนวนโพสต์ วิดีโอที่ถูกใจ รายการโปรด และรีโพสต์ เวลาที่ชื่อผู้ใช้และชื่อที่แสดงเปลี่ยนแปลงล่าสุด บัญชีเป็นแบบส่วนตัวหรือไม่ และวิดีโอที่ถูกใจเป็นสาธารณะหรือไม่ ไม่มีการดึงข้อมูลเพิ่มเติมใดๆ
 # context: LIVE controls: a small line in a LIVE room with the room ID and the viewer's own connection (ping, latency, download speed) from TikTok's player; a tap copies the room ID
 Show the room ID and your connection	แสดง ID ห้องและการเชื่อมต่อของคุณ
 Show the room line	แสดงบรรทัดห้อง
@@ -3280,3 +3283,76 @@ Unavailable saved video	วิดีโอที่บันทึกไว้�
 Posted %1$s	โพสต์เมื่อ %1$s
 Remembered %1$s	จำไว้เมื่อ %1$s
 Unavailable since %1$s	ไม่พร้อมใช้งานตั้งแต่ %1$s
+# context: Number row under Round the corners on profile grids; how big the rounded corners are, in dp
+Corner size on profile grids	ขนาดมุมโค้งบนตารางโปรไฟล์
+# context: Summary of Corner size on profile grids; dp is the screen unit shown next to the number
+How round the corners are, in dp. TikTok's own cards use about 8.	ความโค้งของมุม หน่วยเป็น dp การ์ดของ TikTok เองใช้ประมาณ 8
+# context: Number row in the profile grid settings; extra space between the videos, in dp
+Gap between videos on profile grids	ระยะห่างระหว่างวิดีโอบนตารางโปรไฟล์
+# context: Summary of Gap between videos on profile grids; 0 keeps the spacing TikTok draws itself
+Adds space between the videos on profile grids, on top of TikTok's own thin line. Use 0 for TikTok's spacing.	เพิ่มระยะห่างระหว่างวิดีโอบนตารางโปรไฟล์ นอกเหนือจากเส้นบางๆ ของ TikTok เอง ใช้ 0 เพื่อใช้ระยะห่างของ TikTok
+# context: Account facts line: the gifter points TikTok sent for the account (pay_grade now_diamond), shown beside Gifter level
+Gifter points	คะแนนผู้ให้ของขวัญ
+# context: Account facts line: the points figure TikTok sent for the next gifter level (pay_grade next_diamond)
+Gifter points for the next level	คะแนนผู้ให้ของขวัญสำหรับระดับถัดไป
+# context: Account facts line: all the gifter points TikTok counted for the account (pay_grade total_diamond_count)
+Gifter points in total	คะแนนผู้ให้ของขวัญทั้งหมด
+# context: Account facts line: web link to the account's profile picture at its smallest size
+Profile picture (small)	รูปโปรไฟล์ (เล็ก)
+# context: Account facts line: web link to the account's profile picture at its middle size
+Profile picture (medium)	รูปโปรไฟล์ (กลาง)
+# context: Account facts line: web link to the account's profile picture at its largest size
+Profile picture (large)	รูปโปรไฟล์ (ใหญ่)
+# context: Account facts line: web link to the cover picture TikTok keeps for the profile (cover_url)
+Profile cover	ภาพปกโปรไฟล์
+# context: Toast after tapping one value in the Account facts sheet, which copies just that value
+Copied to the clipboard	คัดลอกไปยังคลิปบอร์ดแล้ว
+# context: Summary of Account facts on profiles; the sheet lists what TikTok sent, and a tap on one value copies only that value
+A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, how many posts, liked videos, favorites and reposts it has, when its username and display name last changed, whether it's private and whether its liked videos are public. Links to its profile picture and cover come last. Tap a value to copy just that one. Nothing extra is fetched.	แผ่นเมนูแชร์ของโปรไฟล์จะมีปุ่ม "ข้อมูลบัญชี" เพิ่มเข้ามา ซึ่งจะแสดงสิ่งที่ TikTok ส่งมาเกี่ยวกับบัญชีอยู่แล้ว ได้แก่ วันที่เข้าร่วม ภูมิภาคและภาษา ระดับผู้ให้ของขวัญและ SecUID จำนวนโพสต์ วิดีโอที่ถูกใจ รายการโปรด และรีโพสต์ เวลาที่ชื่อผู้ใช้และชื่อที่แสดงเปลี่ยนแปลงล่าสุด บัญชีเป็นแบบส่วนตัวหรือไม่ และวิดีโอที่ถูกใจเป็นสาธารณะหรือไม่ ลิงก์รูปโปรไฟล์และภาพปกอยู่ท้ายสุด แตะค่าใดค่าหนึ่งเพื่อคัดลอกเฉพาะค่านั้น ไม่มีการดึงข้อมูลเพิ่มเติมใดๆ
+# context: Settings toggle title: a profile's Followers or Following count shows in yellow when that list is private
+Yellow counts for private lists	ตัวเลขสีเหลืองสำหรับรายชื่อส่วนตัว
+# context: Settings toggle summary for Yellow counts for private lists; it also applies to your own profile
+On a profile that keeps its followers or following list private, that count shows in yellow, so you can tell it's private before you tap it. Yours too.	ในโปรไฟล์ที่ตั้งรายชื่อผู้ติดตามหรือกำลังติดตามเป็นส่วนตัว ตัวเลขนั้นจะเป็นสีเหลือง คุณจึงรู้ว่าเป็นส่วนตัวก่อนแตะ รวมถึงของคุณด้วย
+# context: Settings toggle title: another app's username in a profile bio (IG, Snap, YT, X, Twitch, Threads, FB) becomes a tappable pill that opens its public page
+Links to other apps in bios	ลิงก์ไปยังแอปอื่นในประวัติ
+# context: Settings toggle summary for Links to other apps in bios; IG, Snap, YT, X, Twitch, Threads and FB are the short names people type in bios and stay as written
+A username named after IG, Snap, YT, X, Twitch, Threads or FB in a bio turns into a pill in that app's color. Tapping it opens that account's public page in the app or your browser. Nothing is looked up before you tap.	ชื่อผู้ใช้ที่เขียนต่อจาก IG, Snap, YT, X, Twitch, Threads หรือ FB ในประวัติจะกลายเป็นป้ายสีของแอปนั้น แตะแล้วหน้าสาธารณะของบัญชีนั้นจะเปิดในแอปหรือเบราว์เซอร์ของคุณ ไม่มีการค้นหาอะไรก่อนที่คุณจะแตะ
+# context: Settings row title: pick a picture that stands in for the blue verified check beside your own name on your own profile, on this phone only
+Badge picture	รูปตราสัญลักษณ์
+# context: Settings row title: deletes the picked badge picture so the blue check comes back
+Remove the badge picture	ลบรูปตราสัญลักษณ์
+# context: Summary of the Badge picture row; Local verified badge is the name of the switch just above it
+Pick a picture to show in place of the blue check while Local verified badge is on. It's kept on this phone only and nobody else sees it.	เลือกรูปที่จะแสดงแทนเครื่องหมายถูกสีน้ำเงินขณะที่ตราสัญลักษณ์ยืนยันตัวตนในเครื่องเปิดอยู่ รูปนี้เก็บไว้ในโทรศัพท์เครื่องนี้เท่านั้นและไม่มีใครเห็น
+# context: Summary of the Badge picture row while the picked file is being read
+Reading the picture	กำลังอ่านรูป
+# context: Summary of the Remove the badge picture row
+Deletes the picture, and the blue check comes back.	ลบรูปออกและเครื่องหมายถูกสีน้ำเงินจะกลับมา
+# context: Summary of the Remove the badge picture row when there is none
+No badge picture is kept	ไม่มีรูปตราสัญลักษณ์ที่เก็บไว้
+# context: Banner after a badge picture was picked while Local verified badge is on
+Badge picture saved. Open your profile to see it.	บันทึกรูปตราสัญลักษณ์แล้ว เปิดโปรไฟล์ของคุณเพื่อดู
+# context: Banner after a badge picture was picked while Local verified badge is off; Local verified badge is the switch's name
+Badge picture saved. Turn on Local verified badge to see it.	บันทึกรูปตราสัญลักษณ์แล้ว เปิดตราสัญลักษณ์ยืนยันตัวตนในเครื่องเพื่อดู
+# context: Banner when the picked badge picture could not be written to TikTok's private storage
+Couldn't save the picture in TikTok's storage. Free up some space and try again.	บันทึกรูปลงในพื้นที่เก็บข้อมูลของ TikTok ไม่ได้ ลองเพิ่มพื้นที่ว่างแล้วลองอีกครั้ง
+# context: Banner when the picked badge picture file is too big; %1$s is the size limit in megabytes
+That picture is larger than %1$s MB. Choose a smaller one.	รูปนี้ใหญ่กว่า %1$s MB เลือกรูปที่เล็กกว่านี้
+# context: Banner when the picked badge file is not an image; PNG, JPEG and WebP are file formats and stay as written
+That file isn't a picture this phone can open. Choose a PNG, JPEG or WebP.	ไฟล์นี้ไม่ใช่รูปที่โทรศัพท์เครื่องนี้เปิดได้ เลือกไฟล์ PNG, JPEG หรือ WebP
+# context: Banner after the badge picture was deleted
+Badge picture removed. Your profile shows the blue check again.	ลบรูปตราสัญลักษณ์แล้ว โปรไฟล์ของคุณจะแสดงเครื่องหมายถูกสีน้ำเงินอีกครั้ง
+# context: Banner when deleting the badge picture failed
+Couldn't remove the badge picture. Try again.	ลบรูปตราสัญลักษณ์ไม่ได้ ลองอีกครั้ง
+Keep the letters after the flag	แสดงตัวอักษรต่อจากธง
+Shows the country's two letters next to its flag, so a flag you don't recognize still tells you where it is.	แสดงตัวอักษรสองตัวของประเทศข้างธง เพื่อให้ธงที่คุณไม่รู้จักยังบอกได้ว่ามาจากที่ไหน
+Write grid dates the way TikTok does	เขียนวันที่บนตารางแบบ TikTok
+Profile grids show the date the way TikTok writes it by the creator's name, like 2d ago or 10-12, in place of Oct 12. Day before month, Write the month as a word and Date instead of age change it the same way.	ตารางโปรไฟล์จะแสดงวันที่แบบที่ TikTok เขียนไว้ข้างชื่อครีเอเตอร์ เช่น 2 วันที่แล้ว หรือ 10-12 แทน Oct 12 วันก่อนเดือน เขียนเดือนเป็นคำ และ วันที่แทนอายุ จะเปลี่ยนรูปแบบในแบบเดียวกัน
+Where the date goes on grids	ตำแหน่งวันที่บนตาราง
+Under the view count	ใต้จำนวนการดู
+After the view count	ต่อจากจำนวนการดู
+Above the view count	เหนือจำนวนการดู
+Above the view count takes the video length along with the date.	เหนือจำนวนการดู จะย้ายความยาววิดีโอไปพร้อมกับวันที่ด้วย
+Show notices at the top	แสดงการแจ้งเตือนด้านบน
+Put Hushfeed's notices, like a finished save or a block's Undo, just under the status bar instead of above the tab bar. Swipe a notice left or right to close it.	วางการแจ้งเตือนของ Hushfeed เช่น การบันทึกที่เสร็จแล้วหรือปุ่มเลิกทำหลังการบล็อก ไว้ใต้แถบสถานะแทนที่จะอยู่เหนือแถบแท็บ ปัดการแจ้งเตือนไปทางซ้ายหรือขวาเพื่อปิด
+Blur behind notices	เบลอด้านหลังการแจ้งเตือน
+Blur the video behind Hushfeed's notices so they look like frosted glass. Needs Android 12 and up. Away from a video they keep the plain dark look.	เบลอวิดีโอด้านหลังการแจ้งเตือนของ Hushfeed ให้ดูเหมือนกระจกฝ้า ต้องใช้ Android 12 ขึ้นไป เมื่อไม่ได้อยู่บนวิดีโอจะยังคงเป็นสีเข้มแบบปกติ

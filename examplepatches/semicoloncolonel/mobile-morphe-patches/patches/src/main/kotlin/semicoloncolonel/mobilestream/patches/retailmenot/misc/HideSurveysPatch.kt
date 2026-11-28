@@ -1,9 +1,9 @@
 package semicoloncolonel.mobilestream.patches.retailmenot.misc
 
+import semicoloncolonel.mobilestream.patches.shared.misc.isOptionOn
 import app.morphe.patcher.patch.rawResourcePatch
 import app.morphe.patcher.patch.resourcePatch
 import semicoloncolonel.mobilestream.patches.shared.misc.disableExpoUpdatesPatch
-import semicoloncolonel.mobilestream.patches.retailmenot.shared.Constants
 import semicoloncolonel.mobilestream.patches.shared.misc.HERMES_BUNDLE
 import semicoloncolonel.mobilestream.patches.shared.misc.HermesBundle
 
@@ -23,6 +23,7 @@ import semicoloncolonel.mobilestream.patches.shared.misc.HermesBundle
 
 private val hideSurveysInBundlePatch = rawResourcePatch {
     execute {
+        if (!isOptionOn(hidePromptsAndPopupsPatch, "surveys")) return@execute
         val file = get(HERMES_BUNDLE)
         val bundle = HermesBundle(file.readBytes())
         bundle.returnAtStart("SurveyLayer", HermesBundle.Value.NULL)
@@ -30,13 +31,7 @@ private val hideSurveysInBundlePatch = rawResourcePatch {
     }
 }
 
-@Suppress("unused")
-val hideSurveysPatch = resourcePatch(
-    name = "Hide surveys",
-    description = "Removes the in-app survey card.",
-) {
-    category("Interface")
-    compatibleWith(Constants.COMPATIBILITY)
-
+// Part of hidePromptsAndPopupsPatch: runs only when its "surveys" option is on.
+internal val hideSurveysPatch = resourcePatch {
     dependsOn(hideSurveysInBundlePatch, disableExpoUpdatesPatch)
 }

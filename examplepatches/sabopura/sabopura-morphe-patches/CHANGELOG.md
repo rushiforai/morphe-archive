@@ -1,5 +1,25 @@
 # 変更履歴
 
+## 1.20.0
+
+> **Twitch has moved to [ViolaTV](https://github.com/sabopura/violatv-morphe-patches)** (Android 12L or newer). Every Twitch patch's description now says so.
+
+### お知らせ
+
+- **Twitch は [ViolaTV](https://github.com/sabopura/violatv-morphe-patches) に移りました。** Android 12L 以上の端末では、ViolaTV を使ってください。別のアプリとして入るので、ログインと設定はやり直しになります。両方の出どころを入れた場合は、Sabopura の「Apps」で Twitch のチェックを外してください。Android 12 以下向けの Twitch 30.7.2 は残します。31.9.0・32.0.0 への対応は、次の版で外す予定です。
+- **YouTube の Ambient light は、Morphe 公式のパッチ（Ambient mode の Enhanced Ambient mode）に移りました。** 次の版で外す予定です。Danmaku comments は残します。
+- **新しい版への対応を続けるのは SmartNews だけです。** ほかのアプリのパッチは、README の表の版の上では今も使えます。
+- Twitch のすべてのパッチと YouTube の Ambient light の説明の先頭に、移った先を書きました。パッチの名前と動きは変えていないので、選んでいるパッチはそのままです。
+
+### 対応バージョン
+
+- 追加：SmartNews 26.11.40（APK 版と Google Play 版の APKM のどちらも可）
+- 追加：SmartNews 26.11.30（Google Play 版の APKM のみ。APK 版を使う場合は 26.11.40 にしてください）
+- 外した版：SmartNews 26.10.30、26.10.41（新しい版に置き換えた版です）
+
+SmartNews のパッチの中身は変えていません。
+26.10.30 や 26.10.41 を使っている場合は、アプリを README の表の版に入れ替えてください。
+
 ## 1.19.0
 
 ### 対応バージョン

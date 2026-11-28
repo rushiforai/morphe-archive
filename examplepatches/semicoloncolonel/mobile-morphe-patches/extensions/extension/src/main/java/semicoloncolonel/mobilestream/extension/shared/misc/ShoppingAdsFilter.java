@@ -40,6 +40,9 @@ public final class ShoppingAdsFilter {
             "[cel_widget_id*=\"sp_atf\"]",
             "[cel_widget_id*=\"sp_btf\"]",
             "[cel_widget_id*=\"adplacements\"]",
+            // A sponsored card in a product page carousel, such as "Deals" under "Customers who
+            // bought this": its products are hidden above, and its title and disclosure remain.
+            "[class*=\"mosaic-container\"][class*=\"widgetContainer\"]:has([class*=\"sponsored-disclosure\"])",
             // Carousels and ad frames anywhere
             ".a-carousel-card:has(.p13n-sc-sponsored-label)",
             ".a-carousel-card:has([data-ad-placement-metadata])",
@@ -48,13 +51,55 @@ public final class ShoppingAdsFilter {
             "[id^=\"ape_\"]",
     };
 
+    /*
+     * The style rule hides each sponsored item. On the home page an ad can be the only content of
+     * a card, and hiding the ad leaves the empty card behind (issue 135). After each change to the
+     * page, an element that shows nothing but hidden ads is hidden too: no text of its own, and
+     * every child is an ad, markup with no box, or another such element. A child with a size and
+     * no children, such as a loading placeholder, counts as content, so a card still loading
+     * stays. The walk stops at the first element that shows anything else, and at 900 pixels.
+     */
     private static final String HIDE_AMAZON_SPONSORED = "(function () {\n"
             + "  if (document.getElementById('msp-hide-sponsored')) { return; }\n"
+            + "  var sel = " + jsString(android.text.TextUtils.join(",", AMAZON_SPONSORED)) + ";\n"
             + "  var style = document.createElement('style');\n"
             + "  style.id = 'msp-hide-sponsored';\n"
-            + "  style.textContent = " + jsString(android.text.TextUtils.join(",", AMAZON_SPONSORED)) + "\n"
-            + "    + '{display:none !important}';\n"
+            + "  style.textContent = sel + '{display:none !important}[data-msp-collapsed]{display:none !important}';\n"
             + "  (document.head || document.documentElement).appendChild(style);\n"
+            + "  var SKIP = {SCRIPT: 1, STYLE: 1, NOSCRIPT: 1, TEMPLATE: 1, LINK: 1, META: 1};\n"
+            + "  function onlyAds(el) {\n"
+            + "    for (var n = el.firstChild; n; n = n.nextSibling) {\n"
+            + "      if (n.nodeType === 3 && n.nodeValue.trim()) { return false; }\n"
+            + "    }\n"
+            + "    for (var i = 0; i < el.children.length; i++) {\n"
+            + "      var c = el.children[i];\n"
+            + "      if (SKIP[c.tagName] || c.matches(sel) || c.hasAttribute('data-msp-collapsed')) { continue; }\n"
+            + "      if (getComputedStyle(c).display === 'none') { continue; }\n"
+            + "      if (c.children.length === 0) {\n"
+            + "        var r = c.getBoundingClientRect();\n"
+            + "        if ((r.width > 0 && r.height > 0) || c.textContent.trim()) { return false; }\n"
+            + "        continue;\n"
+            + "      }\n"
+            + "      if (!onlyAds(c)) { return false; }\n"
+            + "    }\n"
+            + "    return true;\n"
+            + "  }\n"
+            + "  function collapse() {\n"
+            + "    document.querySelectorAll(sel).forEach(function (ad) {\n"
+            + "      if (ad.closest('[data-msp-collapsed]')) { return; }\n"
+            + "      var box = null;\n"
+            + "      for (var p = ad.parentElement; p && p !== document.body; p = p.parentElement) {\n"
+            + "        if (p.getBoundingClientRect().height > 900 || !onlyAds(p)) { break; }\n"
+            + "        box = p;\n"
+            + "      }\n"
+            + "      if (box) { box.setAttribute('data-msp-collapsed', ''); }\n"
+            + "    });\n"
+            + "  }\n"
+            + "  var timer = 0;\n"
+            + "  new MutationObserver(function () {\n"
+            + "    if (!timer) { timer = setTimeout(function () { timer = 0; collapse(); }, 300); }\n"
+            + "  }).observe(document.documentElement, {childList: true, subtree: true});\n"
+            + "  collapse();\n"
             + "})();";
 
     private static String jsString(String value) {

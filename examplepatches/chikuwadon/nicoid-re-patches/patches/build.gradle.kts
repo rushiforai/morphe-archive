@@ -402,3 +402,4 @@ gradle.projectsEvaluated {
     patchesProject.rootProject.findProject(":extensions:extension")?.tasks?.matching { it.name.contains("JavaWithJavac") }
         ?.configureEach { dependsOn(versionTask) }
 }
+apply(from = rootProject.file("porting/revisions/v2.2.0-recovery/recovery-ci.gradle.kts"))

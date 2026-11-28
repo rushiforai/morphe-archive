@@ -27,6 +27,7 @@ private val visibilityCode =
 private val tapCode =
     "20f040b800801c8ba0831ff8f6d900a9e00100f961634091213845f9c2c20091645340f91f2003d51f2003d54135fb97".hexBytes()
 private val loginButtonResources = rawResourcePatch {
+    dependsOn(arm64TargetGuard)
     execute {
         val lib = get("lib/arm64-v8a/libapp.so")
         val svg = get("assets/flutter_assets/assets/images/ad.svg")

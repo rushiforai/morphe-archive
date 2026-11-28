@@ -1,3 +1,9 @@
+## [1.1.1](https://github.com/Parideboy/macrofactor-patches/compare/v1.1.0...v1.1.1) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **macrofactor:** resolve the signature spoof by shape and merge the duplicate premium patches ([9177518](https://github.com/Parideboy/macrofactor-patches/commit/9177518c9b1bf384d83b712b1706a3d29cdee50e))
+
 ## [1.1.0](https://github.com/Parideboy/macrofactor-patches/compare/v1.0.1...v1.1.0) (2026-11-27)
 
 ### 🐛 Bug Fixes

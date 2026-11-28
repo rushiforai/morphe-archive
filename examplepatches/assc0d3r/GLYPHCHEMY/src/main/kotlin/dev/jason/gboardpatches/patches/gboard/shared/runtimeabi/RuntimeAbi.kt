@@ -88,6 +88,7 @@ internal enum class RuntimeCallId(internal val encodedAbi: String) {
     FEATURE_FLAGS_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE("Ldev/jason/gboardpatches/extension/featureflags/GboardFeatureFlagsRuntime;->applyOverriddenFlagValue(Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;"),
     GRAMMAR_CHECKER_RUNTIME_APPLY_FLAG_VALUE("Ldev/jason/gboardpatches/extension/featureflags/GboardFeatureFlagsRuntime;->applyGrammarCheckerFlagValue(Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;"),
     INLINE_SUGGESTIONS_RUNTIME_APPLY_FLAG_VALUE("Ldev/jason/gboardpatches/extension/featureflags/GboardFeatureFlagsRuntime;->applyInlineSuggestionsFlagValue(Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;"),
+    DATA_BACKUP_RUNTIME_APPLY_FLAG_VALUE("Ldev/jason/gboardpatches/extension/backuprestore/GboardDataBackupFlagRuntime;->applyFlagValue(Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;"),
     KEY_SHAPE_SELECTION_RUNTIME_APPLY_FLAG_VALUE("Ldev/jason/gboardpatches/extension/featureflags/GboardFeatureFlagsRuntime;->applyKeyShapeSelectionFlagValue(Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;"),
     ENGLISH_UPPERCASE_TOGGLE_RUNTIME_CACHE_PATCHED_METADATA("Ldev/jason/gboardpatches/extension/keyboard/GboardEnglishUppercaseToggleRuntime;->cachePatchedMetadata(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"),
     ENGLISH_UPPERCASE_TOGGLE_RUNTIME_GET_CACHED_PATCHED_METADATA("Ldev/jason/gboardpatches/extension/keyboard/GboardEnglishUppercaseToggleRuntime;->getCachedPatchedMetadata(Ljava/lang/Object;)Ljava/lang/Object;"),

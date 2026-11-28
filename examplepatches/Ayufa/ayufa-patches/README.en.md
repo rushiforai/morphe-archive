@@ -43,7 +43,7 @@ This collection adds the small things the official patches ([MorpheApp/morphe-pa
 
 | App | Supported versions | Patches |
 |---|---|---|
-| Simeji | 20.7 | 11 |
+| Simeji | 22.5 | 13 |
 | Yahoo! Transit | 8.5.8 | 2 |
 
 </details>
@@ -58,7 +58,7 @@ Use the button above to add this repository as a patch source in Morphe, then se
 
 ⚠️ **Match the target versions exactly** (each patch is verified per version, and cannot be applied to other versions).
 
-- All Simeji patches → **20.7** (do not apply them to 23.7)
+- All Simeji patches → **22.5** (do not apply them to 23.7)
 
 ## Patch details
 
@@ -67,7 +67,7 @@ Use the button above to add this repository as a patch source in Morphe, then se
 <details>
 <summary>Simeji patch details</summary>
 
-All patches target Simeji **20.7**. Every patch can be toggled in the in-app "Ayufaパッチ設定" screen without re-patching.
+All patches target Simeji **22.5**. Every patch can be toggled in the in-app "Ayufaパッチ設定" screen without re-patching.
 
 | Patch | What it does |
 |---|---|
@@ -82,6 +82,8 @@ All patches target Simeji **20.7**. Every patch can be toggled in the in-app "Ay
 | AIアシスタントのアイコンを非表示 | Hides the robot (AI assistant) icon at the top right of the keyboard and its speech-bubble messages. The top strip the icon lived in is collapsed too, so no empty band remains. Input and conversion are not affected |
 | VIPを偽装 | Turns on only the on-device VIP checks. Features that complete entirely on the device, such as toolbar customization and VIP parts in custom skins, become usable (off by default) |
 | アプリ内設定画面を追加 | Adds an "Ayufaパッチ設定" entry at the bottom of Simeji's Settings tab. This patch is required to toggle the other Simeji patches |
+| コントロールパネルにカーソル移動を追加 | Adds a "カーソル移動" item to the control panel's toolbar customization, like the cursor key in Simeji for iPhone. Place it from the toolbar settings and reorder it like any other item; hold it and slide left or right to move the text cursor |
+| カーソル移動パッド用リソース | The string and icon the cursor-move patch needs to appear in the toolbar settings. Does nothing on its own |
 
 #### Simeji notes
 

@@ -22,14 +22,17 @@ final class MebukiAdapter {
     private final SharedPreferences index;
     private final Context context;
     private static final int MAX_ORIGINAL_BYTES=12_000_000;
+    static final int CATALOG_LIMIT=2048;
+    // A complete catalog must fit without evicting its own thread/image IDs.
+    private static final int PRIVATE_INDEX_LIMIT=4096;
     private static final class PrivateImage {
         final String url; final boolean original;
         PrivateImage(String url,boolean original){this.url=url;this.original=original;}
     }
-    private final java.util.LinkedHashMap<String,PrivateImage> privateImages = new java.util.LinkedHashMap<>();
+    private final java.util.LinkedHashMap<String,PrivateImage> privateImages = new java.util.LinkedHashMap<>(16,0.75f,true);
     private String imageSession = "";
     // Shared by in-process reader/reply adapters; never persisted or returned to external peers.
-    private static final java.util.LinkedHashMap<String,String> privateThreads = new java.util.LinkedHashMap<>();
+    private static final java.util.LinkedHashMap<String,String> privateThreads = new java.util.LinkedHashMap<>(16,0.75f,true);
     private static String threadSession = "";
     private static synchronized void syncThreadSession(String cookie){
         if(!cookie.equals(threadSession)){privateThreads.clear();threadSession=cookie;}
@@ -45,7 +48,7 @@ final class MebukiAdapter {
             String publicSlug=index.getString("thread."+id,null);
             if((existing!=null&&!existing.equals(slug))||(publicSlug!=null&&!publicSlug.equals(slug)))
                 throw new IllegalStateException("ID collision");
-            if(privateThreads.size()>=512&&existing==null)privateThreads.remove(privateThreads.keySet().iterator().next());
+            if(privateThreads.size()>=PRIVATE_INDEX_LIMIT&&existing==null)privateThreads.remove(privateThreads.keySet().iterator().next());
             privateThreads.put(id,slug);
         }
         return id;
@@ -62,7 +65,7 @@ final class MebukiAdapter {
             String path = rawPath.split("\\?", 2)[0];
             if ("/mebuki/".equals(path) || ("/mebuki/futaba.php".equals(path) &&
                     BridgeServer.hasCatalogMode(rawPath)))
-                return BridgeServer.BridgeResponse.html(BridgePalette.decorate(context,catalog(internal)));
+                return BridgeServer.BridgeResponse.html(BridgePalette.decorate(context,catalog(internal,CatalogOrder.fromPath(rawPath))));
             if (path.matches("/mebuki/res/[0-9]{13}\\.htm")) {
                 String id = path.substring("/mebuki/res/".length(), path.length() - 4);
                 if (internal && MebukiSession.safeCookie(MebukiSession.saved(context))) {
@@ -110,7 +113,7 @@ final class MebukiAdapter {
             if(index.contains("img."+id))return null;
             PrivateImage existing=privateImages.get(id);
             if(existing!=null&&(!existing.url.equals(url)||existing.original!=original))return null;
-            if(privateImages.size()>=512&&existing==null)privateImages.remove(privateImages.keySet().iterator().next());
+            if(privateImages.size()>=PRIVATE_INDEX_LIMIT&&existing==null)privateImages.remove(privateImages.keySet().iterator().next());
             privateImages.put(id,new PrivateImage(url,original));return id;
         }catch(Exception ex){return null;}
     }
@@ -148,14 +151,14 @@ final class MebukiAdapter {
     }
 
     JSONObject threadsJson() throws Exception {
-        return threadsJson(true);
+        return threadsJson(true,0);
     }
 
-    private JSONObject threadsJson(boolean internal) throws Exception {
+    private JSONObject threadsJson(boolean internal,int sort) throws Exception {
         String cookie=MebukiSession.saved(context);
         if(internal && MebukiSession.safeCookie(cookie)){
             try{
-                JSONArray items=authenticatedCatalog(MebukiSession.readCatalog(cookie),cookie);
+                JSONArray items=authenticatedCatalog(MebukiSession.readCatalog(cookie),cookie,sort);
                 if(!cookie.equals(MebukiSession.saved(context)))throw new IllegalStateException("Session changed");
                 return new JSONObject().put("threads",items).put("trial",false).put("delayed",false)
                         .put("threadReadingAvailable",true);
@@ -164,7 +167,7 @@ final class MebukiAdapter {
         byte[] response = download(HOST + "/api/trial/trending", 250_000, false);
         JSONArray raw = new JSONObject(new String(response, StandardCharsets.UTF_8)).getJSONArray("threads");
         JSONArray threads = new JSONArray();
-        for (int i = 0; i < raw.length() && i < 45; i++) {
+        for (int i = 0; i < raw.length() && i < CATALOG_LIMIT; i++) {
             JSONObject entry = raw.getJSONObject(i);
             String slug = entry.getString("slug");
             if (!slug.matches("[A-Za-z0-9_-]{8,24}")) continue;
@@ -179,14 +182,14 @@ final class MebukiAdapter {
         }
         if (threads.length() == 0) throw new IllegalStateException("No trial entries");
         JSONObject result = new JSONObject();
-        result.put("threads", threads);
+        result.put("threads", CatalogOrder.replies(threads,sort));
         result.put("trial", true);
         result.put("delayed", true);
         result.put("threadReadingAvailable", false);
         return result;
     }
 
-    private JSONArray authenticatedCatalog(String stream,String cookie)throws Exception{
+    private JSONArray authenticatedCatalog(String stream,String cookie,int sort)throws Exception{
         Object root=MebukiTurboStream.decode(stream);
         if(!(root instanceof java.util.Map))throw new IllegalArgumentException("Catalog root");
         Object raw=((java.util.Map<?,?>)root).get("threads");
@@ -203,9 +206,19 @@ final class MebukiAdapter {
         }
         // Official default: latest-update, with creation time for zero-reply threads.
         ordered.sort((a,b)->Long.compare(catalogTime(b),catalogTime(a)));
+        long now=System.currentTimeMillis();
+        switch(sort){
+            case 1:ordered.sort((a,b)->Long.compare(createdTime(b),createdTime(a)));break;
+            case 2:ordered.sort((a,b)->Long.compare(createdTime(a),createdTime(b)));break;
+            case 3:ordered.sort((a,b)->Long.compare((Long)b.get("messageCount"),(Long)a.get("messageCount")));break;
+            case 4:ordered.sort((a,b)->Long.compare((Long)a.get("messageCount"),(Long)b.get("messageCount")));break;
+            case 6:ordered.sort((a,b)->Double.compare(momentum(b,now),momentum(a,now)));break;
+        }
         JSONArray items=new JSONArray();
+        java.util.Set<String> seen=new java.util.HashSet<>();
         for(java.util.Map<?,?> row:ordered){
-            if(items.length()>=45)break;
+            if(items.length()>=CATALOG_LIMIT)break;
+            if(!seen.add((String)row.get("slug")))continue;
             String slug=(String)row.get("slug");
             String id=rememberPrivateThread(cookie,slug);
             String title=row.get("name") instanceof String?(String)row.get("name"):"";
@@ -220,6 +233,14 @@ final class MebukiAdapter {
         }
         return items;
     }
+    private static long createdTime(java.util.Map<?,?> row){
+        Object date=row.get("createdAt");
+        if(!(date instanceof String))throw new IllegalArgumentException("Catalog creation time");
+        return MebukiTurboStream.dateMillis((String)date);
+    }
+    private static double momentum(java.util.Map<?,?> row,long now){
+        return ((Long)row.get("messageCount")).doubleValue()/Math.max(60000L,now-createdTime(row));
+    }
     private static long catalogTime(java.util.Map<?,?> row){
         Object date=row.get("lastMessageAt");
         if(date==null)date=row.get("createdAt");
@@ -227,13 +248,13 @@ final class MebukiAdapter {
         return MebukiTurboStream.dateMillis((String)date);
     }
 
-    private byte[] catalog(boolean internal) throws Exception {
-        JSONObject result=threadsJson(internal);
+    private byte[] catalog(boolean internal,int sort) throws Exception {
+        JSONObject result=threadsJson(internal,sort);
         JSONArray items = result.getJSONArray("threads");
         StringBuilder html = new StringBuilder("<html><head><meta charset='Shift_JIS'></head><body>");
         html.append(result.optBoolean("trial")?
                 "<small>めぶきちゃんねる おためし（5分遅延／認証済み一覧を取得できません）</small>":
-                "<small>めぶきちゃんねる（認証済み／最新更新順）</small>");
+                (sort==0||sort==8?"<small>めぶきちゃんねる（認証済み／最新更新順）</small>":"<small>めぶきちゃんねる（認証済み）</small>"));
         html.append("<table id='cattable'><tr>");
         for (int i = 0; i < items.length(); i++) {
             JSONObject item = items.getJSONObject(i);

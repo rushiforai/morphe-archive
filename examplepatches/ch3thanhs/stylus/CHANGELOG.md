@@ -1,3 +1,23 @@
+## [1.12.1](https://github.com/ch3thanhs/stylus/compare/v1.12.0...v1.12.1) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **GitHub:** disambiguate Compose paragraph fingerprint ([e02eaf3](https://github.com/ch3thanhs/stylus/commit/e02eaf35cf99ed480c1be855181482e7a27717bc))
+
+### 🚀 Updated App Support
+
+* **GitHub:** Update app support to 1.285.0 ([841071c](https://github.com/ch3thanhs/stylus/commit/841071c2b9affd1dc1e7c8046589552b8fd6aa3c))
+
+## [1.12.1-dev.1](https://github.com/ch3thanhs/stylus/compare/v1.12.0...v1.12.1-dev.1) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **GitHub:** disambiguate Compose paragraph fingerprint ([e02eaf3](https://github.com/ch3thanhs/stylus/commit/e02eaf35cf99ed480c1be855181482e7a27717bc))
+
+### 🚀 Updated App Support
+
+* **GitHub:** Update app support to 1.285.0 ([841071c](https://github.com/ch3thanhs/stylus/commit/841071c2b9affd1dc1e7c8046589552b8fd6aa3c))
+
 ## [1.12.0](https://github.com/ch3thanhs/stylus/compare/v1.11.0...v1.12.0) (2026-11-21)
 
 ### ✨ New Features

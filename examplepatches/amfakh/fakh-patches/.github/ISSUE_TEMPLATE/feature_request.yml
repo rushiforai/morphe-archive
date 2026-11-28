@@ -1,5 +1,5 @@
 name: Feature request
-description: Suggest a new patch, a new app, or a change to an existing patch
+description: Suggest a new patch or a change to an existing patch
 title: "feat: "
 labels: [enhancement]
 body:
@@ -10,11 +10,39 @@ body:
         > **Before you request**
         > - [Search existing issues](https://github.com/amfakh/fakh-patches/issues?q=is%3Aissue) to see if it was already requested.
         > - Something that is broken belongs in a bug report, not here.
-  - type: input
+        > - To request a new app, use [morphe-patches.software/requests](https://morphe-patches.software/requests).
+  - type: dropdown
     id: app
     attributes:
       label: App
-      placeholder: GitHub
+      options:
+        - BARDI Smart Home
+        - CNN Indonesia
+        - Confluence
+        - CoverScreen OS
+        - detikcom
+        - DoDo Music
+        - Facer
+        - Facer (Wear OS)
+        - FlipSide
+        - FOMO Indonesia
+        - Genius
+        - GitHub
+        - IDN
+        - Jira
+        - KOMPAS.com
+        - LinkedIn
+        - "Mazii: Japanese Dictionary"
+        - Muslim Pro
+        - Radio Indonesia
+        - Smart Life
+        - SYNC by Krisbow
+        - Todaii Super
+        - "Todaii: Learn German A1-C1"
+        - "Todaii: Learn Japanese N5-N1"
+        - Tuya Smart
+        - Warung Life Simulator
+        - Windy
     validations:
       required: true
   - type: input

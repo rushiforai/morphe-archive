@@ -417,24 +417,39 @@ public final class SBrowserXBackupActivity extends Activity {
         Uri uri = data.getData();
 
         if (requestCode == REQ_LOCAL_EXPORT || requestCode == REQ_DRIVE_EXPORT) {
-            try {
-                SBrowserXBackupManager.writeBackupToUri(this, uri);
-                long now = System.currentTimeMillis();
-                if (requestCode == REQ_LOCAL_EXPORT) SBrowserXPrefs.setLocalBackupLastTs(this, now);
-                else SBrowserXPrefs.setDriveBackupLastTs(this, now);
-                Toast.makeText(this, SBrowserXStrings.get(SBrowserXStrings.BACKUP_EXPORT_OK), Toast.LENGTH_SHORT).show();
-                refreshState();
-            } catch (Throwable t) {
-                Toast.makeText(this, SBrowserXStrings.get(SBrowserXStrings.BACKUP_ERR) + ": " + t.getMessage(), Toast.LENGTH_LONG).show();
-            }
+            final int req = requestCode;
+            new Thread(() -> {
+                try {
+                    SBrowserXBackupManager.writeBackupToUri(this, uri);
+                    long now = System.currentTimeMillis();
+                    if (req == REQ_LOCAL_EXPORT) SBrowserXPrefs.setLocalBackupLastTs(this, now);
+                    else SBrowserXPrefs.setDriveBackupLastTs(this, now);
+                    runOnUiThread(() -> {
+                        Toast.makeText(this, SBrowserXStrings.get(SBrowserXStrings.BACKUP_EXPORT_OK), Toast.LENGTH_SHORT).show();
+                        refreshState();
+                    });
+                } catch (Throwable t) {
+                    runOnUiThread(() -> Toast.makeText(this,
+                            SBrowserXStrings.get(SBrowserXStrings.BACKUP_ERR) + ": " + t.getMessage(),
+                            Toast.LENGTH_LONG).show());
+                }
+            }, "SBrowserX-FullExport").start();
         } else if (requestCode == REQ_LOCAL_IMPORT || requestCode == REQ_DRIVE_IMPORT) {
-            try {
-                int count = SBrowserXBackupManager.readBackupFromUri(this, uri);
-                Toast.makeText(this, SBrowserXStrings.get(SBrowserXStrings.BACKUP_IMPORT_OK) + " (" + count + ")", Toast.LENGTH_SHORT).show();
-                promptRestart();
-            } catch (Throwable t) {
-                Toast.makeText(this, SBrowserXStrings.get(SBrowserXStrings.BACKUP_ERR) + ": " + t.getMessage(), Toast.LENGTH_LONG).show();
-            }
+            new Thread(() -> {
+                try {
+                    int count = SBrowserXBackupManager.readBackupFromUri(this, uri);
+                    runOnUiThread(() -> {
+                        Toast.makeText(this,
+                                SBrowserXStrings.get(SBrowserXStrings.BACKUP_IMPORT_OK) + " (" + count + ")",
+                                Toast.LENGTH_SHORT).show();
+                        promptRestart();
+                    });
+                } catch (Throwable t) {
+                    runOnUiThread(() -> Toast.makeText(this,
+                            SBrowserXStrings.get(SBrowserXStrings.BACKUP_ERR) + ": " + t.getMessage(),
+                            Toast.LENGTH_LONG).show());
+                }
+            }, "SBrowserX-FullImport").start();
         } else if (requestCode == REQ_LOCAL_TREE || requestCode == REQ_DRIVE_TREE) {
             try {
                 getContentResolver().takePersistableUriPermission(

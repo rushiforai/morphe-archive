@@ -6,9 +6,13 @@
 package app.fakh.patches.github
 
 import app.fakh.patches.shared.register
-import app.fakh.patches.github.shared.Constants.COLLAPSE_BOTS
+import app.fakh.patches.github.shared.Constants.COLLAPSE_BOTS_AND_AGENTS
 import app.fakh.patches.github.shared.Constants.HIDE_LOW_QUALITY
 import app.fakh.patches.github.shared.Constants.COMPATIBILITY_GITHUB
+import app.fakh.patches.github.shared.Constants.PREVIEW_HIDDEN
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.immutable.ImmutableField
+import app.morphe.patcher.util.proxy.mutableTypes.MutableField.Companion.toMutable
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
@@ -312,9 +316,125 @@ private fun hideFromTimelines() {
         }
 }
 
+/**
+ * Keeps the HTML of each timeline and review comment on its minimized state, and has every header that words why a
+ * comment is hidden add the start of it.
+ */
+private fun previewHidden() {
+    var state: String? = null
+    classDefForEach { classDef ->
+        if (classDef.methods.any { method ->
+                method.name == "toString" &&
+                    method.instructions.any { it.string?.startsWith("MinimizedState(isMinimized=") == true }
+            }
+        ) state = classDef.type
+    }
+    val stateType = state ?: throw PatchException("Minimized state not found")
+    mutableClassDefBy(stateType).fields.add(
+        ImmutableField(stateType, "fakhBody", STRING, AccessFlags.PUBLIC.value, null, null, null).toMutable(),
+    )
+
+    // The items that hold both a comment and its minimized state.
+    val items = mutableListOf<String>()
+    classDefForEach { classDef ->
+        val types = classDef.fields.filter { it.accessFlags and AccessFlags.STATIC.value == 0 }.map { it.type }
+        if (types.count { it == stateType } == 1 && types.count { it in htmlGetters } == 1) items += classDef.type
+    }
+    if (items.isEmpty()) throw PatchException("Comment items with a minimized state not found")
+    items.forEach { type ->
+        val item = mutableClassDefBy(type)
+        val stateField = item.fields.single { it.type == stateType && it.accessFlags and AccessFlags.STATIC.value == 0 }
+        val comment = item.fields.single { it.type in htmlGetters && it.accessFlags and AccessFlags.STATIC.value == 0 }
+        item.methods.add(
+            ImmutableMethod(
+                type,
+                "fakhRemember",
+                listOf(ImmutableMethodParameter(type, null, null)),
+                "V",
+                AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
+                null,
+                null,
+                MutableMethodImplementation(3),
+            ).toMutable().apply {
+                addInstructions(
+                    0,
+                    """
+                        iget-object v0, p0, $type->${stateField.name}:$stateType
+                        iget-object v1, p0, $type->${comment.name}:${comment.type}
+                        invoke-interface { v1 }, ${comment.type}->${htmlGetters[comment.type]}()$STRING
+                        move-result-object v1
+                        invoke-static { v0, v1 }, $COMMENTS->remember($OBJECT$STRING)V
+                        return-void
+                    """,
+                )
+            },
+        )
+        item.methods.filter { it.name == "<init>" }.forEach { constructor ->
+            constructor.instructions.indices
+                .filter { constructor.instructions[it].opcode == Opcode.RETURN_VOID }.asReversed()
+                .forEach { index ->
+                    // A jump to the return lands on the replaced instruction, so the call goes there.
+                    constructor.replaceInstruction(index, "invoke-static/range { p0 .. p0 }, $type->fakhRemember($type)V")
+                    constructor.addInstructions(index + 1, "return-void")
+                }
+        }
+    }
+
+    // Each place that turns the state into the text of a header: the reason's resource, then setText with it.
+    val headers = mutableListOf<Pair<String, String>>()
+    var reason: String? = null
+    classDefForEach { classDef ->
+        classDef.methods.forEach { method ->
+            method.instructions.forEach instructions@{
+                val call = it.method ?: return@instructions
+                if (it.opcode == Opcode.INVOKE_STATIC && call.returnType == "I" && call.types == listOf(stateType)) {
+                    headers += classDef.type to method.name
+                    reason = call.smali
+                }
+            }
+        }
+    }
+    var previews = 0
+    headers.distinct().forEach { (type, name) ->
+        mutableClassDefBy(type).methods.filter { it.name == name }.forEach { method ->
+            val instructions = method.instructions
+            instructions.indices.reversed().forEach { index ->
+                val setText = instructions.getOrNull(index + 2)
+                if (instructions[index].method?.smali != reason || setText?.method?.name != "setText" ||
+                    setText.method?.types != listOf("I")
+                ) return@forEach
+                val header = (setText as FiveRegisterInstruction).registerC
+                val minimized = (instructions[index] as FiveRegisterInstruction).registerC
+                method.addInstructions(index + 3, "invoke-static/range { v$header .. v$header }, " +
+                    "$COMMENTS->preview(Landroid/widget/TextView;)V")
+                method.addInstructions(index, "invoke-static/range { v$minimized .. v$minimized }, " +
+                    "$COMMENTS->hiding($OBJECT)V")
+                previews++
+            }
+        }
+    }
+    if (previews == 0) throw PatchException("Hidden comment headers not found")
+}
+
 @Suppress("unused")
-val collapseBotCommentsPatch = patch(
-    name = "Collapse bot comments",
+val previewHiddenCommentsPatch = patch(
+    name = "Preview hidden comments",
+    description = "Shows the start of a hidden comment under the reason it is hidden.",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_GITHUB)
+    category("Feature")
+    dependsOn(commentBodyPatch, githubSettingsPatch)
+
+    execute {
+        register(PREVIEW_HIDDEN)
+        previewHidden()
+    }
+}
+
+@Suppress("unused")
+val collapseBotAndAgentCommentsPatch = patch(
+    name = "Collapse bot and agent comments",
     description = "Comments by bots and agents such as Copilot start collapsed. Descriptions stay open.",
     default = true,
 ) {
@@ -323,7 +443,7 @@ val collapseBotCommentsPatch = patch(
     dependsOn(commentBodyPatch, githubSettingsPatch)
 
     execute {
-        register(COLLAPSE_BOTS)
+        register(COLLAPSE_BOTS_AND_AGENTS)
     }
 }
 

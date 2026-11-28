@@ -15,6 +15,10 @@ private const val AMOLED_RUNTIME = "Ldev/custom/gboardpatches/ui/AmoledSettingsR
  * In 18.6.3 `PreferenceViewHolder` is R8-renamed to `Lcew;` and its `itemView` field along
  * with it, so the hook is pinned to the verified `Preference.a(Lcew;)V` bind method and the
  * runtime locates the row view by field type instead of by name.
+ *
+ * 18.8.0 renames that holder again (`Leha;`) but keeps the shape: exactly one `Preference.a(<obj>)V`
+ * with eleven registers, which is what the selector below is written against. Only the target list
+ * changes for that release.
  */
 val amoledSettingsPatch = bytecodePatch(
     name = "AMOLED Gboard Settings",
@@ -28,6 +32,8 @@ val amoledSettingsPatch = bytecodePatch(
             targets = listOf(
                 AppTarget(version = "18.6.3.1002251336-release-arm64-v8a"),
                 AppTarget(version = "18.5.4.993608717-release-arm64-v8a"),
+                AppTarget(version = "18.8.0.1022711984-beta-arm64-v8a"),
+                AppTarget(version = "18.8.1.1022711984-beta-arm64-v8a"),
                 AppTarget(version = null, isExperimental = true)
             )
         )

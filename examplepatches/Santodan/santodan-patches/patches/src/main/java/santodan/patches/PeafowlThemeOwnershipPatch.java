@@ -22,7 +22,9 @@ import kotlin.Unit;
 public final class PeafowlThemeOwnershipPatch {
     public static final String NAME = "Peafowl - Unlock Theme Ownership (Experimental)";
     static final String PACKAGE = "h7.hamzio.emuithemeotg";
-    static final String VERSION = "GMS_27.5.1";
+    static final String VERSION = "GMS_27.5.2";
+    /** Previously supported release; its layout is retained, not extended. */
+    static final String PREVIOUS_VERSION = "GMS_27.5.1";
     static final String PREVIEW = "Lh7/hamzio7/peafowl/activities/ThemePreviewActivity;";
     private static final Logger LOG = Logger.getLogger("app.morphe.patches.santodan");
 
@@ -37,15 +39,17 @@ public final class PeafowlThemeOwnershipPatch {
                     PACKAGE,
                     "Peafowl Theme Maker for EMUI",
                     null,
-                    ApkFileType.APK,
+                    ApkFileType.XAPK,
                     null,
                     null,
-                    Collections.singletonList(new AppTarget(VERSION, null, false, null, null)),
+                    List.of(new AppTarget(VERSION, null, false, null, null),
+                        new AppTarget(PREVIOUS_VERSION, null, false, null, null)),
                     app.morphe.patcher.patch.FormFactor.MOBILE, false
                 ));
                 builder.execute(context -> {
+                    String version = context.getPackageMetadata().getVersionName();
                     if (!PACKAGE.equals(context.getPackageMetadata().getPackageName())
-                        || !VERSION.equals(context.getPackageMetadata().getVersionName()))
+                        || !(VERSION.equals(version) || PREVIOUS_VERSION.equals(version)))
                         throw unsupported("Expected " + PACKAGE + " " + VERSION);
                     List<ClassDef> classes = new ArrayList<>();
                     context.classDefForEach(c -> { classes.add(c); return Unit.INSTANCE; });
@@ -55,7 +59,7 @@ public final class PeafowlThemeOwnershipPatch {
                         if (m.equals(match.method)) { target = m; break; }
                     if (target == null) throw unsupported("Matched theme initialization cannot be made mutable");
                     apply(target, match);
-                    LOG.info("SantoDan 0.1.1: routed theme initialization through the existing free-theme path in "
+                    LOG.info("SantoDan: routed theme initialization through the existing free-theme path in "
                         + target + "; the theme offerings/customer-info preflight is skipped.");
                     return Unit.INSTANCE;
                 });
@@ -65,18 +69,20 @@ public final class PeafowlThemeOwnershipPatch {
 
     static final class Match {
         final Method method;
-        final int resultIndex, freeIndex, offeringsIndex;
-        Match(Method method, int resultIndex, int freeIndex, int offeringsIndex) {
+        final int resultIndex, branchIndex, freeIndex, offeringsIndex, postIndex;
+        Match(Method method, int resultIndex, int branchIndex, int freeIndex, int offeringsIndex, int postIndex) {
             this.method = method;
             this.resultIndex = resultIndex;
+            this.branchIndex = branchIndex;
             this.freeIndex = freeIndex;
             this.offeringsIndex = offeringsIndex;
+            this.postIndex = postIndex;
         }
     }
 
     static IllegalStateException unsupported(String reason) {
         return new IllegalStateException("Unsupported Peafowl bytecode: " + reason
-            + ". No fallback patch was applied. Use the original GMS_27.5.1 APK.");
+            + ". No fallback patch was applied. Use the original " + VERSION + " APK.");
     }
 
     static List<Instruction> instructions(Method method) {
@@ -127,15 +133,24 @@ public final class PeafowlThemeOwnershipPatch {
                 List<Instruction> ins = instructions(m);
                 if (ins.size() != 97 || !ins.stream().anyMatch(i -> string(i, "sku"))
                     || !ins.stream().anyMatch(i -> string(i, "getThemeData: "))) continue;
-                for (int index = 2; index + 3 < ins.size(); index++) {
+                for (int index = 2; index + 4 < ins.size(); index++) {
                     if (!string(ins.get(index - 2), "free")
                         || ins.get(index - 1).getOpcode() != Opcode.INVOKE_VIRTUAL
                         || !calls(ins.get(index - 1), "Ljava/lang/String;", "equals", "Z", "Ljava/lang/Object;")
                         || ins.get(index).getOpcode() != Opcode.MOVE_RESULT
                         || ins.get(index + 1).getOpcode() != Opcode.XOR_INT_LIT8
-                        || ins.get(index + 2).getOpcode() != Opcode.IPUT_BOOLEAN
-                        || ins.get(index + 3).getOpcode() != Opcode.IF_NEZ) continue;
+                        || ins.get(index + 2).getOpcode() != Opcode.IPUT_BOOLEAN) continue;
                     int result = ((OneRegisterInstruction) ins.get(index)).getRegisterA();
+                    // GMS_27.5.2 hoists the free path's `const/4 vN, 0` Runnable selector above the
+                    // branch; GMS_27.5.1 keeps it inside the free path.
+                    int hoisted = -1, branch = index + 3;
+                    if (ins.get(branch).getOpcode() == Opcode.CONST_4) {
+                        if (((NarrowLiteralInstruction) ins.get(branch)).getNarrowLiteral() != 0) continue;
+                        hoisted = ((OneRegisterInstruction) ins.get(branch)).getRegisterA();
+                        if (hoisted == result) continue;
+                        branch++;
+                    }
+                    if (ins.get(branch).getOpcode() != Opcode.IF_NEZ) continue;
                     FiveRegisterInstruction equals = (FiveRegisterInstruction) ins.get(index - 1);
                     if (result > 15 || equals.getRegisterCount() != 2
                         || equals.getRegisterD() != ((OneRegisterInstruction) ins.get(index - 2)).getRegisterA()) continue;
@@ -146,24 +161,28 @@ public final class PeafowlThemeOwnershipPatch {
                         || ((NarrowLiteralInstruction) ins.get(index + 1)).getNarrowLiteral() != 1
                         || store.getRegisterA() != xor.getRegisterA()
                         || !PREVIEW.equals(field.getDefiningClass()) || !"Z".equals(field.getType())
-                        || ((OneRegisterInstruction) ins.get(index + 3)).getRegisterA() != result) continue;
-                    int free = branchTarget(ins, index + 3);
-                    if (free <= index + 4 || free + 5 >= ins.size()) continue;
+                        || ((OneRegisterInstruction) ins.get(branch)).getRegisterA() != result) continue;
+                    int free = branchTarget(ins, branch);
+                    int post = hoisted < 0 ? free + 4 : free + 3;
+                    if (free <= branch + 1 || post + 1 >= ins.size()) continue;
                     // The paid path requests offerings, then jumps over Handler.post on the free path.
                     int offerings = free - 2;
                     if (ins.get(offerings).getOpcode() != Opcode.INVOKE_VIRTUAL
                         || !calls(ins.get(offerings), "Lcom/revenuecat/purchases/Purchases;", "getOfferings", "V",
                             "Lcom/revenuecat/purchases/interfaces/ReceiveOfferingsCallback;")
                         || ins.get(free - 1).getOpcode() != Opcode.GOTO
-                        || branchTarget(ins, free - 1) != free + 5
+                        || branchTarget(ins, free - 1) != post + 1
                         || ins.get(free).getOpcode() != Opcode.IGET_OBJECT
                         || ins.get(free + 1).getOpcode() != Opcode.NEW_INSTANCE
-                        || ins.get(free + 2).getOpcode() != Opcode.CONST_4
-                        || ((NarrowLiteralInstruction) ins.get(free + 2)).getNarrowLiteral() != 0
-                        || ins.get(free + 3).getOpcode() != Opcode.INVOKE_DIRECT
-                        || !calls(ins.get(free + 4), "Landroid/os/Handler;", "post", "Z", "Ljava/lang/Runnable;")
-                        || !string(ins.get(free + 5), "contents")) continue;
-                    matches.add(new Match(m, index, free, offerings));
+                        || ins.get(post - 1).getOpcode() != Opcode.INVOKE_DIRECT
+                        || !calls(ins.get(post), "Landroid/os/Handler;", "post", "Z", "Ljava/lang/Runnable;")
+                        || !string(ins.get(post + 1), "contents")) continue;
+                    FiveRegisterInstruction runnable = (FiveRegisterInstruction) ins.get(post - 1);
+                    if (hoisted < 0) {
+                        if (ins.get(free + 2).getOpcode() != Opcode.CONST_4
+                            || ((NarrowLiteralInstruction) ins.get(free + 2)).getNarrowLiteral() != 0) continue;
+                    } else if (runnable.getRegisterCount() != 3 || runnable.getRegisterE() != hoisted) continue;
+                    matches.add(new Match(m, index, branch, free, offerings, post));
                 }
             }
         }

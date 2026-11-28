@@ -53,6 +53,13 @@ public final class RowView extends LinearLayout {
                     new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
             params.leftMargin = Tokens.dp(context, Tokens.SPACE_4);
             addView(trailing, params);
+            // The whole row is the target: a tap anywhere does what the control on the right does.
+            // A row with its own action replaces this listener when it is built.
+            setClickable(true);
+            setFocusable(true);
+            setOnClickListener(view -> {
+                if (trailing.isEnabled()) trailing.performClick();
+            });
         }
     }
 

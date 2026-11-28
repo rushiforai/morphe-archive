@@ -389,7 +389,7 @@ public final class AdBlocker {
             }
             return output;
         }
-        if (session.endLeftBreaks(clock.getAsLong())) {
+        if (session.endLeftBreaks(clock.getAsLong(), url)) {
             // The player switched to this (clean) quality during the break and left the other one.
             logger.log("Ad break over on " + session.channel + " (quality changed)");
             breaks.onBreakOver();

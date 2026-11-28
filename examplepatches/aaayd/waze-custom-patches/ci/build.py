@@ -6,8 +6,11 @@ import os
 import re
 import shutil
 import subprocess
+import time
 import zipfile
+from http.client import IncompleteRead
 from pathlib import Path
+from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 from release_config import BUNDLE_SERIES, RELEASE_NOTES
 from alignment import normalise_native_alignment
@@ -24,6 +27,35 @@ OPTIONS = {"Selectable map themes", "Detailed report icons at normal sizes",
 def sha(path):
     with Path(path).open("rb") as source:
         return hashlib.file_digest(source, "sha256").hexdigest()
+
+
+def fetch_fixture(fixture, destination):
+    """Fetch a pinned release asset without caching partial or unverified bytes."""
+    version = fixture["version"]
+    if destination.exists():
+        if sha(destination) != fixture["sha256"]:
+            raise ValueError(f"Compatibility fixture {version} checksum changed: {destination}")
+        return
+    url = fixture["url"]
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    temporary = destination.with_suffix(destination.suffix + ".partial")
+    for attempt in range(1, 4):
+        print(f"Downloading compatibility fixture {version} (attempt {attempt}/3): {url}", flush=True)
+        try:
+            with urlopen(url, timeout=120) as response, temporary.open("wb") as target:
+                shutil.copyfileobj(response, target)
+            if sha(temporary) != fixture["sha256"]:
+                raise ValueError(f"Compatibility fixture {version} checksum changed: {url}")
+            temporary.replace(destination)
+            return
+        except (URLError, TimeoutError, ConnectionError, IncompleteRead) as error:
+            # Retry transient transport failures, not access denials or missing assets.
+            retryable = not isinstance(error, HTTPError) or error.code in {429, 500, 502, 503, 504}
+            if not retryable or attempt == 3:
+                raise RuntimeError(f"Could not download compatibility fixture {version}: {url}") from error
+            time.sleep(2 ** attempt)
+        finally:
+            temporary.unlink(missing_ok=True)
 
 
 def run(*args, capture=False):
@@ -173,16 +205,7 @@ def main():
         if extension not in (".apk", ".apkm"):
             raise ValueError("Unsupported fixture package type")
         fixture_source = ROOT / "downloads" / f"waze-{fixture['version']}-original-arm64{extension}"
-        if not fixture_source.exists():
-            fixture_source.parent.mkdir(exist_ok=True)
-            if "url" in fixture:
-                with urlopen(fixture["url"], timeout=120) as response, fixture_source.open("wb") as target:
-                    shutil.copyfileobj(response, target)
-            else:
-                from upstream import download, requests
-                download(requests.Session(impersonate="chrome"), fixture, fixture_source)
-        if sha(fixture_source) != fixture["sha256"]:
-            raise ValueError("Compatibility fixture checksum changed")
+        fetch_fixture(fixture, fixture_source)
         fixture_work = work / fixture["version"]
         fixture_work.mkdir()
         inspect_original(fixture_source, fixture_work, aapt, signer, fixture)

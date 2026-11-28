@@ -906,7 +906,7 @@ final class VideoCanvas {
         long[] range = sidx.range(start, len, initEnd + 1);
         long initLen = Long.parseLong(ir.getString("end")) + 1;
         if (initLen <= 0 || initLen > head.length) throw new Exception("bad initRange");
-        if (range[1] < range[0] || range[1] - range[0] + 1 > MAX_CUT_BYTES) throw new Exception("part too big: " + (range[1] - range[0] + 1) + " bytes");
+        if (range[0] < 0 || range[1] < range[0] || range[1] - range[0] + 1 > MAX_CUT_BYTES) throw new Exception("part too big: " + (range[1] - range[0] + 1) + " bytes");
         File raw = new File(dir, out.getName() + ".part");
         try {
             // the fragments go straight to the file (a Full video is the whole stream: never held in memory)

@@ -47,6 +47,18 @@ Additional actions include shortening, summaries, replies, style examples and a 
 | **Inline grammar** | On Android 12 or later, select the patched Gboard as Android's spell checker and enable **Inline grammar** in **Writing preferences**. Gemma checks supported text fields on the device. Tap a blue underline to review and choose a correction. |
 | **Voice Edit** | Set up shared local speech as well as the text model, then open **Voice Edit** and follow the recording steps below. |
 
+Open **Grammar check** from the toolbar to check a draft directly with Local AI. It shows a preview only when it has a change to offer. Applying or cancelling a local edit, grammar check or translation returns to the regular keyboard. **Suggest Changes** offers editing instructions for you to choose before it generates a preview.
+
+## What Gemma 4 handles best
+
+Start with a short draft that has one clear purpose, such as a routine status update, a direct request or a simple translation. Review the preview before applying it. Check who does what, names, times, numbers, links, negation and conditions. A fluent result can change any of these details.
+
+Both Gemma 4 E2B and E4B can miss text or change meaning. Multi-step instructions, mixed-language drafts, ambiguous words, and passages with several commitments are harder to verify. For longer drafts, work in short sections that each make sense on their own. A short draft can still be mistranslated; there is no verified word limit that guarantees accuracy. The language picker lists destinations, and quality varies by source language, destination and task.
+
+In a small OnePlus CPU check, E4B preserved meaning on seven of eight routine French-to-Dutch drafts. E2B passed five of the same eight. These results apply to those examples. In another case, both models kept both lines but changed who made the coffee.
+
+With Local Model Host 0.1.155 or a later version, plain-text requests with an empty tool list skip an unnecessary decoding constraint that could end a multiline result after the first line. Check that the preview contains each line you expected. If the preview drops information or offers an unusable edit, close it and keep the original draft.
+
 ## Read text from an image
 
 With Local AI selected and the host’s text and image model **Ready**, open an editable field and tap **Scan Text** in the Gboard toolbar. Tap **Choose an image** to select an existing photo or screenshot, or tap the camera shutter to capture a new frame. Review the result. Select the text you want and tap **Insert** to put it in the active field.

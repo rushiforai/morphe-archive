@@ -323,6 +323,8 @@ public final class PlayerOptionsSection {
         TextView songStatus = status(activity, theme);
         TextView songDetail = status(activity, theme); // a problem's whole sentence, under its few words
         songDetail.setTextSize(12);
+        songDetail.setMaxLines(Integer.MAX_VALUE); // (a problem's whole sentence, to report: never cut short)
+        songDetail.setEllipsize(null);
         TextView retry = new TextView(activity);
         retry.setText("Retry");
         retry.setTextColor(theme.text);
@@ -358,10 +360,15 @@ public final class PlayerOptionsSection {
             boolean on = PatchSettings.songRemoval();
             SongRemoval.Status s = SongRemoval.status();
             // (a past broadcast's switch is its own: switching it on doesn't switch on its channel)
-            songName.setText(PatchSettings.watchingVideo() ? "Song removal for this video" : "Song removal");
+            // (it's set per stream: the switch says for which, so another stream's Off doesn't look like a reset)
+            String channel = PatchSettings.watchingChannel();
+            songName.setText(PatchSettings.watchingVideo() ? "Song removal for this video"
+                    : channel != null ? "Song removal for " + channel : "Song removal");
             long now = SystemClock.elapsedRealtime();
             SongLines lines = SongLines.of(s, now);
-            show(songStatus, on ? lines.status : null, on && s.problem != null, theme);
+            // (nothing under way: listening, as the song pill says)
+            show(songStatus, on ? (lines.status != null ? lines.status : StatusWords.LISTENING) : null,
+                    on && s.problem != null, theme);
             show(songDetail, on ? lines.detail : null, false, theme);
             // a countdown: shown again at its next number
             section.removeCallbacks(tick[0]);
@@ -369,6 +376,8 @@ public final class PlayerOptionsSection {
             // Retry: only when there's a song to forget or a problem to try past
             boolean retryable = on && Included.songRemoval() && (s.filtering || s.problem != null);
             retryLine.setVisibility(retryable ? View.VISIBLE : View.GONE);
+            // (removing a song: the button forgets it and starts over; after a problem: it tries again)
+            retry.setText(s.problem == null && s.filtering ? "Restart" : "Retry");
             if (!ticking[0]) relayout(section);
         };
         Runnable showUnlock = () -> {

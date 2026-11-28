@@ -39,8 +39,7 @@ public final class DebugMode {
     public static void closeWindow(Activity activity) {
         Context app = activity.getApplicationContext();
         PatchSettings.preferences(app).edit().putBoolean(KEY_WINDOW_CLOSED, true).apply();
-        LogWindow.hide();
-        Toast.makeText(app, "Log window closed, still logging to " + DebugLog.folder(), Toast.LENGTH_LONG).show();
+        LogWindow.hide(); // (the Settings row says it: "On, log window closed"; no toast over the stream)
         Screens.refreshSettingsRows();
     }
 

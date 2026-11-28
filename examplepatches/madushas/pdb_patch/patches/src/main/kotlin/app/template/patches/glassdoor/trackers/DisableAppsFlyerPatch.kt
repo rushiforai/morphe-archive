@@ -1,5 +1,6 @@
 package app.template.patches.glassdoor.trackers
 
+import app.morphe.patcher.patch.PatchException
 import app.template.patches.shared.requireProgress
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
@@ -41,7 +42,14 @@ val glassdoorDisableAppsFlyerPatch = bytecodePatch(
             m.addInstructions(0, "return-void")
         }
 
-        val methods = cls?.methods ?: return@execute
+        // Fail closed on a missing class too: the compat targets are version-pinned, so a
+        // Glassdoor build we support must contain AppsFlyer. A silent skip here would ship
+        // a build whose "Disable trackers" patch did nothing at all.
+        val methods = cls?.methods
+            ?: throw PatchException(
+                "Glassdoor Disable trackers: AppsFlyer class Lcom/appsflyer/internal/AFa1uSDK; " +
+                    "not found — re-audit (fail-closed).",
+            )
         var matched = 0
         var noOped = 0
         for (m in methods) {

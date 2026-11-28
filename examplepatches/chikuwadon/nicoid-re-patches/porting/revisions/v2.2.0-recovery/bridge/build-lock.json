@@ -1,0 +1,108 @@
+[
+  {
+    "path": "tools/ecj.jar",
+    "url": "https://repo.maven.apache.org/maven2/org/eclipse/jdt/ecj/3.46.100/ecj-3.46.100.jar",
+    "sha256": "74c93172475fee0cd4e6eefb44233516dd40525642da35d009146d97ea598229"
+  },
+  {
+    "path": "tools/morphe.jar",
+    "url": "https://github.com/MorpheApp/morphe-desktop/releases/download/v1.18.1/morphe-desktop-1.18.1-all.jar",
+    "sha256": "1b506ab5f03d16a2f65026d5e0e1910d01fc1e2152f21eaeb44ed2f30856597b"
+  },
+  {
+    "path": "tools/assemble/baksmali.jar",
+    "url": "https://repo.maven.apache.org/maven2/org/smali/baksmali/2.5.2/baksmali-2.5.2.jar",
+    "sha256": "1ed236266d7dc4907aade0b19a34f77efac25342b63c8ace52e579039941b389"
+  },
+  {
+    "path": "tools/assemble/smali.jar",
+    "url": "https://repo.maven.apache.org/maven2/org/smali/smali/2.5.2/smali-2.5.2.jar",
+    "sha256": "136c5c4653d6531bd7b6f10f35f8691cb96432e727d30b4d5579826ee01e9419"
+  },
+  {
+    "path": "tools/assemble/util.jar",
+    "url": "https://repo.maven.apache.org/maven2/org/smali/util/2.5.2/util-2.5.2.jar",
+    "sha256": "4f580a9cff3ebb83cb3fd20bec88e37e4f183796ca652732992611620282daea"
+  },
+  {
+    "path": "tools/assemble/jcommander.jar",
+    "url": "https://repo.maven.apache.org/maven2/com/beust/jcommander/1.64/jcommander-1.64.jar",
+    "sha256": "156be736199c990321d9ff77090b199629cfc9865e2d6c13f7cd291bb1641817"
+  },
+  {
+    "path": "tools/assemble/antlr.jar",
+    "url": "https://repo.maven.apache.org/maven2/org/antlr/antlr/3.5.2/antlr-3.5.2.jar",
+    "sha256": "5ac36c2acfb0a0f3d37dafe20b5b570f2643e2d000c648d44503c2738be643df"
+  },
+  {
+    "path": "tools/assemble/antlr-runtime.jar",
+    "url": "https://repo.maven.apache.org/maven2/org/antlr/antlr-runtime/3.5.2/antlr-runtime-3.5.2.jar",
+    "sha256": "ce3fc8ecb10f39e9a3cddcbb2ce350d272d9cd3d0b1e18e6fe73c3b9389c8734"
+  },
+  {
+    "path": "tools/assemble/stringtemplate.jar",
+    "url": "https://repo.maven.apache.org/maven2/org/antlr/stringtemplate/3.2.1/stringtemplate-3.2.1.jar",
+    "sha256": "f66ce72e965e5301cb0f020e54d2ba6ad76feb91b3cbfc30dbbf00c06a6df6d7"
+  },
+  {
+    "path": "tools/dexlib2.jar",
+    "url": "https://repo.maven.apache.org/maven2/org/smali/dexlib2/2.5.2/dexlib2-2.5.2.jar",
+    "sha256": "5a5c8982d8bd7d6e3bb1a0713049e3c78b719ec32b20f6b619885cec30a0dd61"
+  },
+  {
+    "path": "tools/android-all-16-robolectric-13921718.jar",
+    "url": "https://repo.maven.apache.org/maven2/org/robolectric/android-all/16-robolectric-13921718/android-all-16-robolectric-13921718.jar",
+    "sha256": "8b74a0a137330658d2f33f0dc715d42734f74ba8b2d7014fc2e95aa40d3f682d"
+  },
+  {
+    "path": "libs/guava-new.jar",
+    "url": "https://repo.maven.apache.org/maven2/com/google/guava/guava/33.8.0-android/guava-33.8.0-android.jar",
+    "sha256": "c88b3bd93382316b00a387b629d2cc2620119e16c46554b07fa14e9aa07f990e"
+  },
+  {
+    "path": "libs/failureaccess-new.jar",
+    "url": "https://repo.maven.apache.org/maven2/com/google/guava/failureaccess/1.0.3/failureaccess-1.0.3.jar",
+    "sha256": "cbfc3906b19b8f55dd7cfd6dfe0aa4532e834250d7f080bd8d211a3e246b59cb"
+  },
+  {
+    "path": "libs/r8.jar",
+    "url": "https://dl.google.com/dl/android/maven2/com/android/tools/r8/9.5.29/r8-9.5.29.jar",
+    "sha256": "f8c762ff84640b10083b934a47278758a7665977e618fab0c927fff00521dea3"
+  },
+  {
+    "path": "upstream/swiperefreshlayout-1.0.0.aar",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/swiperefreshlayout/swiperefreshlayout/1.0.0/swiperefreshlayout-1.0.0.aar",
+    "sha256": "9761b3a809c9b093fd06a3c4bbc645756dec0e95b5c9da419bc9f2a3f3026e8d"
+  },
+  {
+    "path": "upstream/swiperefreshlayout-1.0.0.pom",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/swiperefreshlayout/swiperefreshlayout/1.0.0/swiperefreshlayout-1.0.0.pom",
+    "sha256": "8fe4b5db332af33cde899ba571ee866ad977be38114d3ab600edaca454ea8299"
+  },
+  {
+    "path": "upstream/swiperefreshlayout-1.0.0-sources.jar",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/swiperefreshlayout/swiperefreshlayout/1.0.0/swiperefreshlayout-1.0.0-sources.jar",
+    "sha256": "c63fdf41a4cfd9ae1f17a619951f395432af43842f684eaadbc2584df4a048d5"
+  },
+  {
+    "path": "upstream/swiperefreshlayout-1.2.0.aar",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/swiperefreshlayout/swiperefreshlayout/1.2.0/swiperefreshlayout-1.2.0.aar",
+    "sha256": "1de8aee6173d2ca251a1126fe18d4ca7d5c0dbc7a80fb9e6ff74a3ba5e9c9b92"
+  },
+  {
+    "path": "upstream/swiperefreshlayout-1.2.0.pom",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/swiperefreshlayout/swiperefreshlayout/1.2.0/swiperefreshlayout-1.2.0.pom",
+    "sha256": "da180c92503aaf60bce2fae997bb294f1e5e6827961d5bcbdf8600200e91c178"
+  },
+  {
+    "path": "upstream/swiperefreshlayout-1.2.0-sources.jar",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/swiperefreshlayout/swiperefreshlayout/1.2.0/swiperefreshlayout-1.2.0-sources.jar",
+    "sha256": "ce13978340df4d19d148509bbb63674f1ef63a4699bd09f12b69f0f620884ddd"
+  },
+  {
+    "path": "libs/android.jar",
+    "sha256": "2507cf762abe2171a8cb3c289837fc71f2e66e598f396f1cc10bb7dc10020329",
+    "size_bytes": 44042952,
+    "provenance": "Existing recovered fixed build input; upstream URL not established"
+  }
+]

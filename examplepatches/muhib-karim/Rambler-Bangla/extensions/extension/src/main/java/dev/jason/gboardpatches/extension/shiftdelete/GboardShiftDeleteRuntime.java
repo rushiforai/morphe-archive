@@ -5,10 +5,12 @@ import android.os.SystemClock;
 import android.view.MotionEvent;
 
 import dev.jason.gboardpatches.extension.settings.GboardPatchesSettings;
+import dev.jason.gboardpatches.extension.swiftkey.GboardSwiftKeyRuntime;
 
 /**
- * Entry points for the Shift + Backspace forward-delete adapter. Every method runs on
- * the keyboard's UI thread and holds no keyboard-specific type, view or editor reference.
+ * Entry points for the Shift + Backspace forward-delete adapter and SwiftKey Mode soft-key
+ * observers. Every method runs on the keyboard's UI thread and holds no keyboard-specific type,
+ * view or editor reference.
  *
  * <p>The two host-facing entries, {@link #remapInput} and {@link #onTouchEvent}, never throw.
  * A failed remap switches the feature off for the rest of the process, so a shape change
@@ -24,16 +26,24 @@ public final class GboardShiftDeleteRuntime {
     private GboardShiftDeleteRuntime() {}
 
     /**
-     * Input event entry: returns the event to deliver, a copy with Delete turned into Forward
-     * Delete while Shift is held, or the same event for everything else. The result always has
-     * the type of {@code event}.
+     * Input event entry: runs SwiftKey Mode soft-key handlers (Shift word-case cycling and smart
+     * space trim before punctuation) and, when Shift+Delete is enabled, turns Delete into Forward
+     * Delete while Shift is held. The result always has the type of {@code event}.
      */
     public static Object remapInput(Object service, Object event) {
         if (event == null || failure != null || !(service instanceof Context context)) return event;
         try {
-            if (!isEnabled(context)) return event;
-            Object mapped = bindingFor(event.getClass()).remap(event, SESSION::key);
-            return mapped != null && mapped.getClass() == event.getClass() ? mapped : event;
+            GboardShiftDeleteEventBinding resolved = bindingFor(event.getClass());
+            Object current = resolved.observeSoftKey(
+                    event,
+                    (action, code, payload) -> GboardSwiftKeyRuntime.onSoftKeyEvent(
+                            service, action, code, payload));
+            if (current == null || current.getClass() != event.getClass()) {
+                current = event;
+            }
+            if (!isEnabled(context)) return current;
+            Object mapped = resolved.remap(current, SESSION::key);
+            return mapped != null && mapped.getClass() == event.getClass() ? mapped : current;
         } catch (Throwable error) {
             disable(error);
             return event;
@@ -44,7 +54,9 @@ public final class GboardShiftDeleteRuntime {
     public static void onTouchEvent(MotionEvent event) {
         if (event == null || failure != null) return;
         try {
-            onTouch(event.getActionMasked());
+            int actionMasked = event.getActionMasked();
+            onTouch(actionMasked);
+            GboardSwiftKeyRuntime.onTouch(actionMasked);
         } catch (Throwable error) {
             disable(error);
         }

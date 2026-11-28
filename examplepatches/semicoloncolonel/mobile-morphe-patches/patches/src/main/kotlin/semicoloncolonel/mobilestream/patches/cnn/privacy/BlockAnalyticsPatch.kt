@@ -1,5 +1,9 @@
 package semicoloncolonel.mobilestream.patches.cnn.privacy
 
+import semicoloncolonel.mobilestream.patches.shared.privacy.gatedAnalyticsKillSwitchesPatch
+import semicoloncolonel.mobilestream.patches.shared.misc.isOptionOn
+import app.morphe.patcher.patch.booleanOption
+import app.morphe.patcher.patch.BytecodePatch
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
@@ -11,7 +15,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import semicoloncolonel.mobilestream.patches.cnn.shared.Constants
-import semicoloncolonel.mobilestream.patches.shared.privacy.analyticsKillSwitchesPatch
 import semicoloncolonel.mobilestream.patches.shared.privacy.blockTrackers
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -68,19 +71,33 @@ private fun MutableMethod.signalsStartup(): Boolean = implementation?.instructio
 } == true
 
 @Suppress("unused")
-val blockAnalyticsPatch = bytecodePatch(
+val blockAnalyticsPatch: BytecodePatch = bytecodePatch(
     name = "Block analytics & tracking",
-    description = "Stops the app's analytics, ad measurement, and marketing services.",
-    default = false,
+    description = "Blocks the tracking you choose in the patch options.",
 ) {
     category("Privacy")
     compatibleWith(Constants.COMPATIBILITY)
+    dependsOn(optOutOfDataSalePatch)
 
-    dependsOn(analyticsKillSwitchesPatch)
+    dependsOn(gatedAnalyticsKillSwitchesPatch { isOptionOn(blockAnalyticsPatch, "analytics") })
 
     extendWith("extensions/extension.mpe")
 
+    booleanOption(
+        key = "analytics",
+        default = false,
+        title = "Analytics and tracking services",
+        description = "Stops the app's analytics, ad measurement, and marketing services.",
+    )
+    booleanOption(
+        key = "dataSale",
+        default = true,
+        title = "Opt out of data sale & sharing",
+        description = "Keeps the app opted out of the sale and sharing of your data.",
+    )
+
     execute {
+        if (!isOptionOn(blockAnalyticsPatch, "analytics")) return@execute
         // Several anchors can find the same merged method, so each is handled once.
         trackerStarts.mapNotNull { it.methodOrNull }
             .distinctBy { "${it.definingClass}->${it.name}" }

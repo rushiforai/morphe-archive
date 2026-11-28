@@ -11,6 +11,7 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.fieldAccess
+import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.patch
 import app.morphe.patcher.patch.document
@@ -18,14 +19,37 @@ import org.w3c.dom.Element
 
 private const val WEB_ADS = "Lapp/fakh/extension/detik/WebAds;"
 
-/** The screens that show detik.com HTML: the article body (two row types), the in-app browser, the feature pages and Milidetik. */
-private val WEB_SCREENS = listOf(
-    "Le8/l;",
-    "Le8/o;",
-    "Lt8/a;",
+/** The un-obfuscated activities that show detik.com HTML (in-app browser and feature pages). */
+private val WEB_ACTIVITIES = listOf(
     "Lorg/detikcom/rss/ui/in_app_browser/InAppBrowserDetikActivity;",
     "Lorg/detikcom/rss/ui/detik_feature/detail_feature/DetikFeatureDetailActivity;",
-    "LZ7/a;",
+)
+
+/** Primary article body row that binds the article HTML into a WebView. */
+private object ArticleBodyWebViewFingerprint : Fingerprint(
+    name = "onBind",
+    strings = listOf("/detiknetwork/detikcom/android %s", "text/html"),
+    filters = listOf(methodCall(definingClass = "Landroid/webkit/WebView;", name = "setWebViewClient")),
+)
+
+/** Secondary article body row that binds the live-counter HTML into a WebView. */
+private object ArticleCounterWebViewFingerprint : Fingerprint(
+    name = "onBind",
+    strings = listOf("android_id", "text/html"),
+    filters = listOf(methodCall(definingClass = "Landroid/webkit/WebView;", name = "setWebViewClient")),
+)
+
+/** Milidetik screen that loads mili.detik.com in a WebView. */
+private object MilidetikWebViewFingerprint : Fingerprint(
+    strings = listOf("https://mili.detik.com/"),
+    filters = listOf(methodCall(definingClass = "Landroid/webkit/WebView;", name = "setWebViewClient")),
+)
+
+/** WebView fragment opened for detik.com links inside the app. */
+private object WebFragmentWebViewFingerprint : Fingerprint(
+    name = "onViewCreated",
+    strings = listOf("/detiknetwork/detikcom/android %s", "<get-onBackPressedDispatcher>(...)"),
+    filters = listOf(methodCall(definingClass = "Landroid/webkit/WebView;", name = "setWebViewClient")),
 )
 
 /**
@@ -116,6 +140,14 @@ val hideAdsPatch = patch(
                 return-void
             """,
         )
-        wrapWebClients(WEB_SCREENS, WEB_ADS)
+        wrapWebClients(
+            WEB_ACTIVITIES + listOf(
+                ArticleBodyWebViewFingerprint.classDef.type,
+                ArticleCounterWebViewFingerprint.classDef.type,
+                MilidetikWebViewFingerprint.classDef.type,
+                WebFragmentWebViewFingerprint.classDef.type,
+            ),
+            WEB_ADS,
+        )
     }
 }

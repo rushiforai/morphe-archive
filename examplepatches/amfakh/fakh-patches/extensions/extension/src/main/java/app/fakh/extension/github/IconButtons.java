@@ -14,8 +14,8 @@ import app.fakh.extension.shared.AppRuntime;
 import app.fakh.extension.shared.Features;
 
 /**
- * The floating buttons that show only their icon. A button is known by its label, in the app's language, and keeps that
- * label for screen readers.
+ * The buttons that show only their icon: the floating ones, and a repository's Add to list button with its own switch. A
+ * floating button is known by its label, in the app's language. Every button keeps its label for screen readers.
  */
 @SuppressWarnings("unused")
 public final class IconButtons {
@@ -116,6 +116,41 @@ public final class IconButtons {
      */
     public static String reviewText(String label) {
         return on() ? "" : label;
+    }
+
+    /**
+     * The text a repository's Add to list button shows.
+     *
+     * @param label The app's text: Add to list, or the lists the repository is in.
+     * @return Nothing while the switch is on, otherwise the text.
+     */
+    public static String listText(String label) {
+        return listOn() ? "" : label;
+    }
+
+    /**
+     * The space between the icon and the text of a repository's Add to list button.
+     *
+     * @param gap The app's space.
+     * @return None while the switch is on, otherwise that space.
+     */
+    public static float listGap(float gap) {
+        return listOn() ? 0 : gap;
+    }
+
+    /**
+     * Whether a weight that holds the Add to list button stretches it over the room it gets.
+     *
+     * @param fill The app's choice.
+     * @return False while the switch is on, so the button is as wide as its icon needs, otherwise that choice.
+     */
+    public static boolean listFill(boolean fill) {
+        return fill && !listOn();
+    }
+
+    /** Whether the Add to list button shows only its icon. */
+    private static boolean listOn() {
+        return Features.on("fakh_icon_only_list_button");
     }
 
     /** Whether floating buttons show only their icon. */

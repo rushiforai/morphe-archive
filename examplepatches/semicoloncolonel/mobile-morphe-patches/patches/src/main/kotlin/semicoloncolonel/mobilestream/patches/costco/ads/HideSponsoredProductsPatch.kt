@@ -23,6 +23,7 @@ val hideSponsoredProductsPatch = bytecodePatch(
     name = "Hide sponsored products",
     description = "Removes the sponsored products and ads from the home page, search results, and category pages.",
 ) {
+    category("Ads")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

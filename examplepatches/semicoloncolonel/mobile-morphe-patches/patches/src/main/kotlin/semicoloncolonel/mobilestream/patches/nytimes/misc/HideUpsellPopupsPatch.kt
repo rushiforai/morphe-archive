@@ -58,6 +58,7 @@ val hideUpsellPopupsPatch = bytecodePatch(
     name = "Hide upsell pop-ups",
     description = "Stops the full-screen subscription takeover and the promo banner at the top.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

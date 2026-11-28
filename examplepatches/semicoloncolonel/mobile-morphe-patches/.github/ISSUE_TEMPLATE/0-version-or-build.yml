@@ -1,7 +1,7 @@
 name: 🔢 App version or build not accepted
 description: Morphe Manager says your app version or build is not supported. Please read the explanation at the top of the form first.
 title: "version: "
-labels: ["app version"]
+labels: ["status: version not accepted"]
 body:
   - type: markdown
     attributes:
@@ -20,6 +20,7 @@ body:
     id: before
     attributes:
       label: Before you submit
+      description: "New to this tracker? [Issue labels](https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/docs/issue-labels.md) explains how issues are sorted, tracked, and closed."
       options:
         - label: "I compared the version and the version code with [Supported apps](https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/docs/apps.md), and both are listed."
           required: true
@@ -34,16 +35,21 @@ body:
       description: The app you patched.
       options:
         - "ABC News"
+        - "Al Jazeera"
         - "Amazon Shopping"
         - "AMC+"
         - "AP News"
         - "Apple TV"
+        - "BBC: World News & Stories"
         - "Best Buy"
         - "C-SPAN Now"
         - "CBS News"
+        - "CGTN"
         - "Checkout 51"
+        - "CNA"
         - "CNBC"
         - "CNN"
+        - "Consumer Reports"
         - "Costco"
         - "CVS"
         - "DealNews"
@@ -52,6 +58,7 @@ body:
         - "eBay"
         - "ESPN"
         - "Fandango at Home"
+        - "Fawesome"
         - "FEMA"
         - "Flipp"
         - "Fox Local"
@@ -62,11 +69,13 @@ body:
         - "JustWatch"
         - "Kanopy"
         - "Koupon"
+        - "Libby"
         - "Lowe's"
         - "MGM+"
         - "Mint Mobile"
         - "MLB"
         - "Moviebase"
+        - "Movies Anywhere"
         - "MS NOW"
         - "My Verizon"
         - "myAT&T"
@@ -78,6 +87,8 @@ body:
         - "NewsBreak"
         - "NewsNation"
         - "NFL"
+        - "NHK WORLD-JAPAN"
+        - "Nikkei Asia"
         - "NPR"
         - "NPS"
         - "Paramount+"
@@ -93,6 +104,7 @@ body:
         - "Shudder"
         - "SiriusXM"
         - "Slickdeals"
+        - "South China Morning Post"
         - "Starz"
         - "Substack"
         - "Sundance Now"
@@ -102,20 +114,24 @@ body:
         - "The Daily Wire"
         - "The Home Depot"
         - "The New York Times"
+        - "The Straits Times"
         - "The Wall Street Journal"
         - "The Washington Post"
         - "theScore"
         - "Truth Social"
         - "Tubi"
         - "USA TODAY"
+        - "Viki"
         - "Visible"
         - "Walgreens"
         - "Walmart"
         - "White House"
         - "Xfinity"
+        - "Xinhua News"
         - "Xumo Play"
         - "Yahoo Finance"
         - "Yahoo News"
+        - "Yonhap News English"
         - "YouTube TV"
         - "Other (name it in the description)"
     validations:
@@ -126,6 +142,17 @@ body:
       label: App version
       description: The version you patched. In Morphe Manager it is shown when you select the APK.
       placeholder: "17.3.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: beta
+    attributes:
+      label: Are you enrolled as a beta tester for this app?
+      description: On Google Play, the app's page says "You're a beta tester" when you are. A beta tester can get a version that is not public yet, and I can only support a beta that I can install myself.
+      options:
+        - "No"
+        - "Yes"
+        - "I do not know"
     validations:
       required: true
   - type: input

@@ -42,10 +42,49 @@ public final class RamblerAtMentionStripRuntime {
     static final class NativeMentionTag {
         final String token;
         final boolean emailDomainContext;
+        final boolean isShortcut;
+        final String shortcutTrigger;
+        final boolean noTrailingSpace;
 
         NativeMentionTag(String token, boolean emailDomainContext) {
+            this(token, emailDomainContext, false, null, emailDomainContext);
+        }
+
+        NativeMentionTag(
+                String token,
+                boolean emailDomainContext,
+                boolean isShortcut,
+                String shortcutTrigger,
+                boolean noTrailingSpace) {
             this.token = token;
             this.emailDomainContext = emailDomainContext;
+            this.isShortcut = isShortcut;
+            this.shortcutTrigger = shortcutTrigger;
+            this.noTrailingSpace = noTrailingSpace;
+        }
+    }
+
+    private static final class ResolvedCandidates {
+        final String renderKey;
+        final int deleteCount;
+        final List<CandidateSpec> specs;
+
+        ResolvedCandidates(String renderKey, int deleteCount, List<CandidateSpec> specs) {
+            this.renderKey = renderKey;
+            this.deleteCount = deleteCount;
+            this.specs = specs;
+        }
+    }
+
+    private static final class CandidateSpec {
+        final String text;
+        final NativeMentionTag tag;
+        final boolean deletable;
+
+        CandidateSpec(String text, NativeMentionTag tag, boolean deletable) {
+            this.text = text;
+            this.tag = tag;
+            this.deletable = deletable;
         }
     }
 
@@ -80,7 +119,8 @@ public final class RamblerAtMentionStripRuntime {
                 return;
             }
             flushPendingToken(service);
-            boolean sensitive = RamblerTextPipeline.isSensitiveOrIncognitoField(info);
+            boolean sensitive = RamblerTextPipeline.isSensitiveOrIncognitoField(info)
+                    || isNumericOnlyField(info);
             synchronized (LOCK) {
                 activeService = new WeakReference<>(service);
                 sensitiveSession = sensitive;
@@ -116,7 +156,7 @@ public final class RamblerAtMentionStripRuntime {
                     return;
                 }
             }
-            if (!RamblerAtMentionStore.isEnabled(service)) {
+            if (!isStripFeatureActive(service)) {
                 synchronized (LOCK) {
                     if (nativeSuggestionsActive) {
                         nativeSuggestionsActive = false;
@@ -171,7 +211,7 @@ public final class RamblerAtMentionStripRuntime {
                 sensitive = sensitiveSession;
             }
             if (hasCandidates || sensitive || service == null
-                    || !RamblerAtMentionStore.isEnabled(service)) {
+                    || !isStripFeatureActive(service)) {
                 return hasCandidates;
             }
             if (hasActiveSuggestionsNow(service)) {
@@ -186,7 +226,8 @@ public final class RamblerAtMentionStripRuntime {
     /**
      * Hook at entry of {@code IKeyboardDelegate.requestCandidates(int, boolean)}
      * ({@code pbo.aa(IZ)V}). Feeds native Gboard {@code Candidate} ({@code owu}) objects
-     * directly into Gboard's own suggestion strip when an active {@code @prefix} matches.
+     * directly into Gboard's own suggestion strip when an active {@code @prefix}, digit prefix,
+     * email prefix, or SwiftKey text-expansion shortcut matches.
      */
     public static boolean trySupplyNativeCandidatesFromDelegate(
             Object keyboardDelegate, int maxCount) {
@@ -205,7 +246,7 @@ public final class RamblerAtMentionStripRuntime {
                 service = activeService.get();
                 sensitive = sensitiveSession;
             }
-            if (sensitive || service == null || !RamblerAtMentionStore.isEnabled(service)) {
+            if (sensitive || service == null || !isStripFeatureActive(service)) {
                 return false;
             }
             InputConnection ic = service.getCurrentInputConnection();
@@ -213,19 +254,9 @@ public final class RamblerAtMentionStripRuntime {
                 return false;
             }
             CharSequence before = ic.getTextBeforeCursor(TEXT_LOOKBACK, 0);
-            RamblerAtMentionStore.ActivePrefix active =
-                    RamblerAtMentionStore.extractActivePrefix(before);
-            if (active == null) {
-                synchronized (LOCK) {
-                    nativeSuggestionsActive = false;
-                    lastNativeRenderKey = null;
-                }
-                return false;
-            }
             int limit = Math.max(3, Math.min(maxCount > 0 ? maxCount : MAX_CANDIDATES, MAX_CANDIDATES));
-            List<String> suggestions =
-                    RamblerAtMentionStore.suggestForContext(service, active, limit);
-            if (suggestions.isEmpty()) {
+            ResolvedCandidates resolved = resolveCandidates(service, before, limit);
+            if (resolved == null || resolved.specs.isEmpty()) {
                 synchronized (LOCK) {
                     nativeSuggestionsActive = false;
                     lastNativeRenderKey = null;
@@ -250,10 +281,10 @@ public final class RamblerAtMentionStripRuntime {
                 return false;
             }
 
-            List<Object> nativeCandidates = new ArrayList<Object>(suggestions.size());
-            for (int i = 0; i < suggestions.size(); i++) {
-                String token = suggestions.get(i);
-                Object candidate = buildNativeCandidate(handles, token, i, active.emailDomainContext);
+            List<Object> nativeCandidates = new ArrayList<Object>(resolved.specs.size());
+            for (int i = 0; i < resolved.specs.size(); i++) {
+                CandidateSpec spec = resolved.specs.get(i);
+                Object candidate = buildNativeCandidate(handles, spec, i);
                 if (candidate != null) {
                     nativeCandidates.add(candidate);
                 }
@@ -265,7 +296,7 @@ public final class RamblerAtMentionStripRuntime {
             handles.controllerAppendMethod.invoke(controller, nativeCandidates, null, Boolean.FALSE);
             synchronized (LOCK) {
                 nativeSuggestionsActive = true;
-                lastNativeRenderKey = active.prefix + "|" + active.emailDomainContext + "|" + suggestions;
+                lastNativeRenderKey = resolved.renderKey;
             }
             return true;
         } catch (Throwable ignored) {
@@ -323,14 +354,25 @@ public final class RamblerAtMentionStripRuntime {
             InputConnection ic = service.getCurrentInputConnection();
             if (ic != null) {
                 CharSequence beforeCursor = ic.getTextBeforeCursor(TEXT_LOOKBACK, 0);
-                RamblerAtMentionStore.ActivePrefix current =
-                        RamblerAtMentionStore.extractActivePrefix(beforeCursor);
-                if (current != null) {
-                    boolean isEmailDomain = current.emailDomainContext || tag.emailDomainContext;
-                    String commit = isEmailDomain ? tag.token : (tag.token + " ");
+                int deleteCount = -1;
+                if (tag.isShortcut) {
+                    RamblerSwiftKeyShortcutsStore.ActiveMatch m =
+                            RamblerSwiftKeyShortcutsStore.matchBeforeCursor(service, beforeCursor, 1);
+                    if (m != null) {
+                        deleteCount = m.deleteCount;
+                    }
+                } else {
+                    RamblerAtMentionStore.ActivePrefix current =
+                            RamblerAtMentionStore.extractActivePrefix(beforeCursor);
+                    if (current != null) {
+                        deleteCount = current.deleteCount;
+                    }
+                }
+                if (deleteCount > 0) {
+                    String commit = tag.noTrailingSpace ? tag.token : (tag.token + " ");
                     ic.beginBatchEdit();
                     try {
-                        if (ic.deleteSurroundingText(current.deleteCount, 0)) {
+                        if (ic.deleteSurroundingText(deleteCount, 0)) {
                             ic.commitText(commit, 1);
                         }
                     } finally {
@@ -338,7 +380,9 @@ public final class RamblerAtMentionStripRuntime {
                     }
                 }
             }
-            RamblerAtMentionStore.recordToken(service, tag.token);
+            if (!tag.isShortcut) {
+                RamblerAtMentionStore.recordToken(service, tag.token);
+            }
         } finally {
             synchronized (LOCK) {
                 clearPendingLocked();
@@ -350,6 +394,9 @@ public final class RamblerAtMentionStripRuntime {
     }
 
     private static void handleNativeDelete(InputMethodService service, NativeMentionTag tag) {
+        if (tag.isShortcut) {
+            return;
+        }
         if (RamblerAtMentionStore.forgetToken(service, tag.token)) {
             try {
                 Toast.makeText(service, "Removed " + tag.token, Toast.LENGTH_SHORT).show();
@@ -374,7 +421,7 @@ public final class RamblerAtMentionStripRuntime {
                     return;
                 }
             }
-            if (!RamblerAtMentionStore.isEnabled(service)) {
+            if (!isStripFeatureActive(service)) {
                 return;
             }
             InputConnection ic = service.getCurrentInputConnection();
@@ -384,7 +431,7 @@ public final class RamblerAtMentionStripRuntime {
             CharSequence beforeCursor = ic.getTextBeforeCursor(TEXT_LOOKBACK, 0);
             String beforeStr = beforeCursor == null ? "" : beforeCursor.toString();
 
-            // Field cleared (e.g. Send/Enter right after "@grok"): flush pending token.
+            // Field cleared (e.g. Send/Enter right after "@grok" or "11muhib.karim@gmail.com"): flush pending token.
             if (beforeStr.isEmpty()) {
                 boolean shouldFlush;
                 boolean wasShowing;
@@ -408,52 +455,42 @@ public final class RamblerAtMentionStripRuntime {
                 return;
             }
 
-            // 1. Learn all newly completed @handles / @domains in the lookback window.
-            List<String> completed = RamblerAtMentionStore.extractCompletedTokens(beforeStr);
-            if (!completed.isEmpty()) {
-                int searchFrom = 0;
-                for (String token : completed) {
-                    int pos = beforeStr.indexOf(token, searchFrom);
-                    if (pos >= 0) {
-                        searchFrom = pos + token.length();
-                    }
-                    String learnedKey = token.toLowerCase(Locale.US) + "#" + pos;
-                    boolean isNew;
-                    synchronized (LOCK) {
-                        isNew = sessionLearnedKeys.add(learnedKey);
-                    }
-                    if (isNew) {
-                        RamblerAtMentionStore.recordToken(service, token);
+            // 1. Learn all newly completed @handles, @domains, full emails, and digit-starting IDs.
+            if (RamblerAtMentionStore.isEnabled(service)) {
+                List<String> completed = RamblerAtMentionStore.extractCompletedTokens(beforeStr);
+                if (!completed.isEmpty()) {
+                    int searchFrom = 0;
+                    for (String token : completed) {
+                        int pos = beforeStr.indexOf(token, searchFrom);
+                        if (pos >= 0) {
+                            searchFrom = pos + token.length();
+                        }
+                        String learnedKey = token.toLowerCase(Locale.US) + "#" + pos;
+                        boolean isNew;
+                        synchronized (LOCK) {
+                            isNew = sessionLearnedKeys.add(learnedKey);
+                        }
+                        if (isNew) {
+                            RamblerAtMentionStore.recordToken(service, token);
+                        }
                     }
                 }
-            }
-
-            // 2. Check for active @prefix right before cursor.
-            RamblerAtMentionStore.ActivePrefix active =
-                    RamblerAtMentionStore.extractActivePrefix(beforeStr);
-            if (active == null) {
-                boolean wasShowing;
+                RamblerAtMentionStore.ActivePrefix pending =
+                        RamblerAtMentionStore.extractActivePrefix(beforeStr);
                 synchronized (LOCK) {
-                    clearPendingLocked();
-                    wasShowing = nativeSuggestionsActive;
-                    nativeSuggestionsActive = false;
-                    lastNativeRenderKey = null;
+                    if (pending != null) {
+                        pendingToken = pending.prefix;
+                        pendingEmailContext = pending.emailDomainContext;
+                        pendingBeforeLen = beforeStr.length();
+                    } else {
+                        clearPendingLocked();
+                    }
                 }
-                if (wasShowing) {
-                    triggerNativeStripUpdate(service, false);
-                }
-                return;
             }
 
-            synchronized (LOCK) {
-                pendingToken = active.prefix;
-                pendingEmailContext = active.emailDomainContext;
-                pendingBeforeLen = beforeStr.length();
-            }
-
-            List<String> suggestions =
-                    RamblerAtMentionStore.suggestForContext(service, active, MAX_CANDIDATES);
-            if (suggestions.isEmpty()) {
+            // 2. Resolve SwiftKey text-expansion shortcuts + personalized @/email/digit candidates.
+            ResolvedCandidates resolved = resolveCandidates(service, beforeStr, MAX_CANDIDATES);
+            if (resolved == null || resolved.specs.isEmpty()) {
                 boolean wasShowing;
                 synchronized (LOCK) {
                     wasShowing = nativeSuggestionsActive;
@@ -466,10 +503,9 @@ public final class RamblerAtMentionStripRuntime {
                 return;
             }
 
-            String renderKey = active.prefix + "|" + active.emailDomainContext + "|" + suggestions;
             boolean alreadyRendered;
             synchronized (LOCK) {
-                alreadyRendered = nativeSuggestionsActive && renderKey.equals(lastNativeRenderKey);
+                alreadyRendered = nativeSuggestionsActive && resolved.renderKey.equals(lastNativeRenderKey);
             }
             if (!alreadyRendered) {
                 triggerNativeStripUpdate(service, true);
@@ -488,12 +524,72 @@ public final class RamblerAtMentionStripRuntime {
             return false;
         }
         CharSequence before = ic.getTextBeforeCursor(TEXT_LOOKBACK, 0);
-        RamblerAtMentionStore.ActivePrefix active =
-                RamblerAtMentionStore.extractActivePrefix(before);
-        if (active == null) {
+        ResolvedCandidates resolved = resolveCandidates(service, before, 1);
+        return resolved != null && !resolved.specs.isEmpty();
+    }
+
+    private static boolean isStripFeatureActive(Context context) {
+        return RamblerAtMentionStore.isEnabled(context)
+                || RamblerSwiftKeyShortcutsStore.isActive(context);
+    }
+
+    private static boolean isNumericOnlyField(EditorInfo info) {
+        if (info == null) {
             return false;
         }
-        return !RamblerAtMentionStore.suggestForContext(service, active, 1).isEmpty();
+        int cls = info.inputType & android.text.InputType.TYPE_MASK_CLASS;
+        return cls == android.text.InputType.TYPE_CLASS_NUMBER
+                || cls == android.text.InputType.TYPE_CLASS_PHONE;
+    }
+
+    private static ResolvedCandidates resolveCandidates(
+            Context context, CharSequence beforeCursor, int limit) {
+        if (context == null || beforeCursor == null || beforeCursor.length() == 0 || limit <= 0) {
+            return null;
+        }
+        // 1. SwiftKey Mode custom text-expansion shortcuts take top priority on trigger match.
+        RamblerSwiftKeyShortcutsStore.ActiveMatch shortcutMatch =
+                RamblerSwiftKeyShortcutsStore.matchBeforeCursor(context, beforeCursor, limit);
+        if (shortcutMatch != null && !shortcutMatch.matches.isEmpty()) {
+            List<CandidateSpec> specs = new ArrayList<CandidateSpec>(shortcutMatch.matches.size());
+            StringBuilder key = new StringBuilder("sk|").append(shortcutMatch.triggerPrefix);
+            for (RamblerSwiftKeyShortcutsStore.Shortcut sc : shortcutMatch.matches) {
+                boolean noSpace = RamblerAtMentionStore.isValidFullEmail(sc.expansion)
+                        || sc.expansion.contains("\n");
+                specs.add(new CandidateSpec(
+                        sc.expansion,
+                        new NativeMentionTag(sc.expansion, false, true, sc.trigger, noSpace),
+                        false));
+                key.append('|').append(sc.trigger);
+            }
+            return new ResolvedCandidates(key.toString(), shortcutMatch.deleteCount, specs);
+        }
+
+        // 2. Personalized @mention, @domain, full-email, and 1-digit prefix suggestions.
+        if (!RamblerAtMentionStore.isEnabled(context)) {
+            return null;
+        }
+        RamblerAtMentionStore.ActivePrefix active =
+                RamblerAtMentionStore.extractActivePrefix(beforeCursor);
+        if (active == null) {
+            return null;
+        }
+        List<String> suggestions =
+                RamblerAtMentionStore.suggestForContext(context, active, limit);
+        if (suggestions.isEmpty()) {
+            return null;
+        }
+        List<CandidateSpec> specs = new ArrayList<CandidateSpec>(suggestions.size());
+        for (String token : suggestions) {
+            boolean noSpace = active.emailDomainContext
+                    || RamblerAtMentionStore.isValidFullEmail(token);
+            specs.add(new CandidateSpec(
+                    token,
+                    new NativeMentionTag(token, active.emailDomainContext, false, null, noSpace),
+                    true));
+        }
+        String key = active.kind.name() + "|" + active.prefix + "|" + suggestions;
+        return new ResolvedCandidates(key, active.deleteCount, specs);
     }
 
     private static void triggerNativeStripUpdate(InputMethodService service, boolean hasCandidates) {
@@ -561,15 +657,15 @@ public final class RamblerAtMentionStripRuntime {
     }
 
     private static Object buildNativeCandidate(
-            NativeBridgeHandles handles, String token, int index, boolean emailDomainContext) {
+            NativeBridgeHandles handles, CandidateSpec spec, int index) {
         try {
             Object builder = handles.builderCtor.newInstance();
-            handles.builderTextField.set(builder, token);
-            handles.builderDescField.set(builder, token);
-            handles.builderDeletableField.setBoolean(builder, true);
+            handles.builderTextField.set(builder, spec.text);
+            handles.builderDescField.set(builder, spec.text);
+            handles.builderDeletableField.setBoolean(builder, spec.deletable);
             handles.builderRankField.setInt(builder, index);
             handles.builderPosField.setInt(builder, index);
-            handles.builderDataField.set(builder, new NativeMentionTag(token, emailDomainContext));
+            handles.builderDataField.set(builder, spec.tag);
             handles.builderRenderStyleField.setInt(builder, 1); // DEFAULT native suggestion style
             return handles.builderBuildMethod.invoke(builder);
         } catch (Throwable ignored) {

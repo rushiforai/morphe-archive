@@ -207,13 +207,11 @@ val saveManagementPatch = bytecodePatch(
 		DungeonDeleteGameFingerprint.method.addInstruction(0, "invoke-static { p0 }, $EXTENSION_PACKAGE/UndoHistory;->beforeDeleteGame(I)V")
 		GameSceneGameOverFingerprint.callBeforeEveryReturn("invoke-static { }, $EXTENSION_PACKAGE/UndoHistory;->afterGameOver()V")
 
-		if (LocalBackupRestoreConfirmedFingerprint.methodOrNull != null) {
-			LocalBackupRestoreConfirmedFingerprint.skipWhen("invoke-static/range { p0 .. p0 }, $EXTENSION_PACKAGE/BackupRestore;->beforeRestore(Ljava/lang/Object;)Z")
-			LocalBackupRestoreConfirmedFingerprint.replaceCalls(
-				"Lcom/shatteredpixel/shatteredpixeldungeon/Dungeon;->deleteGame(IZ)V",
-				"$EXTENSION_PACKAGE/BackupRestore;->deleteGame(IZ)V",
-			)
-		}
+		LocalBackupRestoreConfirmedFingerprint.skipWhen("invoke-static/range { p0 .. p0 }, $EXTENSION_PACKAGE/BackupRestore;->beforeRestore(Ljava/lang/Object;)Z")
+		LocalBackupRestoreConfirmedFingerprint.replaceCalls(
+			"Lcom/shatteredpixel/shatteredpixeldungeon/Dungeon;->deleteGame(IZ)V",
+			"$EXTENSION_PACKAGE/BackupRestore;->deleteGame(IZ)V",
+		)
 
 		val uncompressed by uncompressedSavesOption
 		if (uncompressed == true) BundleWriteFingerprint.method.addInstruction(0, "const/4 p2, 0x0")

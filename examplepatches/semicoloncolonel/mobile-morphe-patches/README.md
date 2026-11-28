@@ -1,6 +1,6 @@
 # Mobile Morphe Patches
 
-[![Latest release](https://img.shields.io/github/v/release/semicoloncolonel/mobile-morphe-patches?label=release&color=4f46e5)](https://github.com/semicoloncolonel/mobile-morphe-patches/releases/latest) [![84 supported apps](https://img.shields.io/badge/apps-84-0ea5e9)](docs/apps.md) [![20 apps on Android TV](https://img.shields.io/badge/Android_TV-20_apps-14b8a6)](docs/android-tv.md) [![License: GPL-3.0](https://img.shields.io/github/license/semicoloncolonel/mobile-morphe-patches?color=64748b)](LICENSE)
+[![Latest release](https://img.shields.io/github/v/release/semicoloncolonel/mobile-morphe-patches?label=release&color=4f46e5)](https://github.com/semicoloncolonel/mobile-morphe-patches/releases/latest) [![99 supported apps](https://img.shields.io/badge/apps-99-0ea5e9)](docs/apps.md) [![License: GPL-3.0](https://img.shields.io/github/license/semicoloncolonel/mobile-morphe-patches?color=64748b)](LICENSE)
 
 Morphe patches that remove ads and block tracking in the phone versions of streaming, news, social, shopping, carrier, and government apps.
 
@@ -11,6 +11,14 @@ Morphe patches that remove ads and block tracking in the phone versions of strea
   <br><br>
   <a href="https://morphe.software/add-source?github=semicoloncolonel/tv-morphe-patches"><img alt="Add the Android TV patches to Morphe Manager" src="https://img.shields.io/badge/%2B_Add_the-Android_TV_patches-14b8a6?style=flat-square"></a>
 </p>
+
+<!-- signer:start -->
+<p align="center">
+  <a href="docs/signing-key.md"><img alt="Signed by 4c2b a5d2 28d4 532f" src="docs/assets/signed-by.svg"></a>
+  <br>
+  <sub>Morphe Manager shows this signer on the source. If it shows a different one, check the <a href="docs/signing-key.md">signing key history</a> before you apply the patches.</sub>
+</p>
+<!-- signer:end -->
 
 <p align="center">
   <a href="#install">Install</a> ·
@@ -23,7 +31,7 @@ Morphe patches that remove ads and block tracking in the phone versions of strea
 </p>
 
 > [!NOTE]
-> **The Android TV patches have moved to their own source, [TV Morphe Patches](https://github.com/semicoloncolonel/tv-morphe-patches).** The pre-releases of this source no longer include them. Its 1.1.0 release is the last stable release that does: from 1.2.0, the Android TV patches are only in the TV source.
+> **The Android TV patches are in their own source, [TV Morphe Patches](https://github.com/semicoloncolonel/tv-morphe-patches).** Starting version 1.2.0, this source patches phone apps only. Version 1.1.0 is the last release that includes the Android TV apps.
 >
 > This project focuses on phone apps that no other patch source covers. The [Morphe patches site](https://morphe-patches.software/) lists the patches from every source, so search it to see what else exists before you request an app. If another source already patches the app you want, please ask its author for updates or new patches.
 >
@@ -37,17 +45,17 @@ Morphe patches that remove ads and block tracking in the phone versions of strea
 
 > YouTube TV and Moviebase sign in with Google through MicroG RE, so install it first. The patched YouTube TV installs beside the official app and asks to see MicroG RE's accounts, which Android lists under Contacts. It cannot read your contacts. The patched Moviebase replaces the official app unless you turn on the Clone app option.
 
-On a TV, patch the Android TV build of the app. [Android TV](docs/android-tv.md) explains how to get it.
+For an Android TV app, use the [TV patch source](docs/android-tv.md) instead.
 
 ## Apps
 
 | Category | Apps |
 |----------|------|
-| [Streaming](docs/apps.md#streaming) | 29 |
-| [News](docs/apps.md#news) | 23 |
+| [Streaming](docs/apps.md#streaming) | 33 |
+| [News](docs/apps.md#news) | 33 |
 | [Social](docs/apps.md#social) | 1 |
 | [Government](docs/apps.md#government) | 6 |
-| [Shopping](docs/apps.md#shopping) | 17 |
+| [Shopping](docs/apps.md#shopping) | 18 |
 | [Carriers](docs/apps.md#carriers) | 7 |
 | [Utilities](docs/apps.md#utilities) | 1 |
 
@@ -56,15 +64,15 @@ On a TV, patch the Android TV build of the app. [Android TV](docs/android-tv.md)
 | Kind | Examples |
 |------|----------|
 | [Ads](docs/patches.md#ads) | Skip ads, Block ads, Mask live ad breaks, Hide sponsored listings |
-| [Pop-ups and prompts](docs/patches.md#pop-ups-and-prompts) | Rating prompts, subscription upsells, surveys, and promo banners |
+| [Pop-ups and prompts](docs/patches.md#pop-ups-and-prompts) | Hide prompts and pop-ups, Hide rating prompt, subscription upsells |
 | [AI features](docs/patches.md#ai-features) | Disable AI, Disable Ask NBA AI, Hide AI summaries |
-| [Privacy](docs/patches.md#privacy) | Block analytics & tracking, Block session recording, Hide device identifiers |
+| [Privacy](docs/patches.md#privacy) | Block analytics & tracking, Hide device identifiers, Incognito reading |
 | [Playback](docs/patches.md#playback) | Auto-skip, Disable up next, Skip launch video, Start at high quality |
 | [Sign-in and startup](docs/patches.md#sign-in-and-startup) | GmsCore support, Remove social sign-in, Faster launch |
 | [Needed for the app to run](docs/patches.md#needed-for-the-app-to-run) | Disable Pairip license check, Disable signature check |
 | [Extra features](docs/patches.md#extra-features) | Show release times, Watchlist filters, Save videos, Show poll results |
 
-The patches do not currently remove paywalls or unlock paid content.
+The patches do not unlock paid content. For a few apps, a patch hides the paywall screen, and [What the patches do](docs/patches.md) lists them.
 
 ## Credits
 

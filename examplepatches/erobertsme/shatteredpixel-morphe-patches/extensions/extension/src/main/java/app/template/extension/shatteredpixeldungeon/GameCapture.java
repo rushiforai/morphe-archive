@@ -27,7 +27,9 @@ import java.util.concurrent.Executors;
 /**
  * Keeps a picture of the dungeon around the hero, taken from the game's own drawing as it happens. A marker sits in the game scene just
  * after the fog and spell effects, before the floating text, health bars and emote icons, so when it is drawn only the dungeon is on the
- * game's drawing surface: no damage numbers, status pane, toolbar, windows or margins, and nothing outside the game. The pixels are read back from the game's own surface, scaled back to one pixel per game pixel, and saved.
+ * game's drawing surface: no damage numbers, status pane, toolbar, windows or margins, and nothing outside the game. The pixels are read
+ * back from the game's own surface, scaled back to one pixel per game pixel, and saved. When the view is moved away from the hero, the
+ * dungeon is drawn once more centered on the hero for the picture, then drawn again as it was before the frame is shown.
  */
 public final class GameCapture {
 
@@ -66,7 +68,7 @@ public final class GameCapture {
 					if (pending.isEmpty()) return;
 					List<File> targets = new ArrayList<>(pending);
 					pending.clear();
-					capture(targets);
+					capture(group, this, targets);
 				}
 			};
 			group.add(marker);
@@ -84,9 +86,9 @@ public final class GameCapture {
 		pending.add(target);
 	}
 
-	private static void capture(List<File> targets) {
+	private static void capture(Group scene, Gizmo marker, List<File> targets) {
 		try {
-			int[] pixels = read();
+			int[] pixels = read(scene, marker);
 			if (pixels == null) return;
 			writer.execute(() -> write(pixels, targets));
 		} catch (Throwable e) {
@@ -95,9 +97,10 @@ public final class GameCapture {
 	}
 
 	/**
-	 * The dungeon around the hero as drawn so far this frame, one pixel per game pixel, black where it is off screen.
+	 * The dungeon around the hero, one pixel per game pixel. When part of it is off screen because the view was moved, it is drawn centered
+	 * on the hero first, and the view is drawn back as it was afterward.
 	 */
-	private static int[] read() {
+	private static int[] read(Group scene, Gizmo marker) throws ReflectiveOperationException {
 		Hero hero = Dungeon.hero;
 		Level level = Dungeon.level;
 		Camera camera = Camera.main;
@@ -105,6 +108,51 @@ public final class GameCapture {
 		int width = level.width();
 		float worldLeft = (hero.pos % width - AREA_TILES / 2) * TILE;
 		float worldTop = (hero.pos / width - AREA_TILES / 2) * TILE;
+		if (onScreen(camera, worldLeft, worldTop)) return readArea(camera, worldLeft, worldTop);
+		float scrollX = camera.scroll.x;
+		float scrollY = camera.scroll.y;
+		camera.scroll.set(worldLeft + SIZE / 2f - camera.width / 2f, worldTop + SIZE / 2f - camera.height / 2f);
+		try {
+			redraw(scene, marker, camera);
+			return readArea(camera, worldLeft, worldTop);
+		} finally {
+			camera.scroll.set(scrollX, scrollY);
+			redraw(scene, marker, camera);
+		}
+	}
+
+	private static boolean onScreen(Camera camera, float worldLeft, float worldTop) {
+		Point corner = camera.cameraToScreen(worldLeft, worldTop);
+		int screenSize = Math.round(SIZE * camera.zoom);
+		return corner.x >= 0 && corner.y >= 0 && corner.x + screenSize <= Game.width && corner.y + screenSize <= Game.height;
+	}
+
+	/**
+	 * Draws the dungeon again for where [camera] now looks: clears the game's drawing surface and draws everything in [scene] before
+	 * [marker], the dungeon without anything over it.
+	 */
+	private static void redraw(Group scene, Gizmo marker, Camera camera) throws ReflectiveOperationException {
+		Reflect.method(Camera.class, "updateMatrix").invoke(camera);
+		Object scripts = Reflect.getStatic(Reflect.require("com.watabou.glscripts.Script"), "all");
+		if (scripts instanceof java.util.Map) {
+			for (Object script : ((java.util.Map<?, ?>) scripts).values()) {
+				Class<?> noosa = Reflect.require("com.watabou.noosa.NoosaScript");
+				if (noosa.isInstance(script)) Reflect.method(noosa, "resetCamera").invoke(script);
+			}
+		}
+		GLES20.glDisable(GLES20.GL_SCISSOR_TEST);
+		GLES20.glClearColor(0, 0, 0, 0);
+		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+		for (Gizmo member : new ArrayList<>(Reflect.members(scene))) {
+			if (member == marker) break;
+			if (member != null && member.exists && member.isVisible()) member.draw();
+		}
+	}
+
+	/**
+	 * The square [SIZE] game pixels across from [worldLeft], [worldTop] as drawn so far this frame, black where it is off screen.
+	 */
+	private static int[] readArea(Camera camera, float worldLeft, float worldTop) {
 		Point corner = camera.cameraToScreen(worldLeft, worldTop);
 		float zoom = camera.zoom;
 		int screenSize = Math.round(SIZE * zoom);

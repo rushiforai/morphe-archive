@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <cstdlib>
 #include <cstring>
 #include <dlfcn.h>
 #include <sys/mman.h>
@@ -96,10 +97,17 @@ constexpr uintptr_t kTriggerGameOver   = 0x2fb658;
 constexpr uintptr_t kCheckCollisions   = 0x2fbeb0;
 constexpr uintptr_t kRenderWorld       = 0x305d20;
 constexpr uintptr_t kRenderHUD         = 0x30d6ac;
+constexpr uintptr_t kDrawSprite        = 0x34ca2c; // (sprite, w1, flipX, x, y): binds sprite+0 and draws one textured quad
 constexpr uintptr_t kCullOffscreen     = 0x30eeb4;
 constexpr uintptr_t kSetupScreen       = 0x33c83c;
+constexpr uintptr_t kAudioPlay         = 0x343920;
+constexpr uintptr_t kAudioStop         = 0x343994;
 constexpr uintptr_t kPlatformReset     = 0x343bec;
 constexpr uintptr_t kPlatformSetType   = 0x343cb8;
+constexpr uintptr_t kPlatformSetAttach = 0x344754; // (plat, item|nullptr): sets plat+0x40 and the item's owner
+constexpr uintptr_t kPlatformInit      = 0x343b08; // platform constructor body, called on a zeroed 0xb8 object
+constexpr uintptr_t kPlatformVtableGot = 0x7aad80; // GOT slot holding the platform vtable base (vptr = slot + 0x10)
+constexpr size_t    kPlatformObjSize   = 0xb8;     // game ctor 0x31d518 allocates 100 of these into the pool
 constexpr uintptr_t kSetScaleX         = 0x3465e0;
 constexpr uintptr_t kSetScaleY         = 0x3465ec;
 constexpr uintptr_t kGetTopInset       = 0x346604;
@@ -134,19 +142,30 @@ constexpr size_t kPlatformsEnd       = 0x74d8; // void**
 constexpr size_t kPlatformsCap       = 0x74e0; // void**
 constexpr size_t kPoolBegin          = 0x74e8; // void**
 constexpr size_t kPoolEnd            = 0x74f0; // void**
+constexpr size_t kPoolCap            = 0x74f8; // void**
 constexpr size_t kBonusesBegin       = 0x7500; // void** (item +0x1c = float y)
 constexpr size_t kBonusesEnd         = 0x7508; // void**
+constexpr size_t kBonusPoolBegin     = 0x7518; // void**
+constexpr size_t kBonusPoolEnd       = 0x7520; // void**
 constexpr size_t kBlackHolesBegin    = 0x7560; // void** (item +0x04 = float y)
 constexpr size_t kBlackHolesEnd      = 0x7568; // void**
+constexpr size_t kBlackHolePoolBegin = 0x7578; // void**
 constexpr size_t kBlackHolePoolEnd   = 0x7580; // void**
 constexpr size_t kBlackHolePoolCap   = 0x7588; // void**
 constexpr size_t kUFOsBegin          = 0x7590; // void** (item +0x20 = float y)
 constexpr size_t kUFOsEnd            = 0x7598; // void**
+constexpr size_t kUFOPoolBegin       = 0x75a8; // void**
+constexpr size_t kUFOPoolEnd         = 0x75b0; // void**
 constexpr size_t kMonstersBegin      = 0x75c0; // void** (item +0x44 = float y)
 constexpr size_t kMonstersEnd        = 0x75c8; // void**
+constexpr size_t kMonsterPoolBegin   = 0x75d8; // void**
+constexpr size_t kMonsterPoolEnd     = 0x75e0; // void**
 constexpr size_t kSpecialsBegin      = 0x7638; // void** (theme objects, e.g. Winter icicle platforms)
 constexpr size_t kSpecialsEnd        = 0x7640; // void**
 constexpr size_t kThemeId            = 0x2c0;  // int (0xd = Winter/Ice)
+constexpr size_t kUfoAudioTrack      = 0x6b40; // AudioTrack (+0x18 = uint8_t isPlaying)
+constexpr size_t kMonsterAudioTrack  = 0x6cc8; // AudioTrack (+0x18 = uint8_t isPlaying)
+constexpr size_t kSoundEnabled       = 0x98f0; // int (2 = sound enabled)
 constexpr size_t kActiveUFOCount     = 0x74c8; // int
 constexpr size_t kActiveMonsterCount = 0x74cc; // int
 constexpr size_t kProtectedPlatform  = 0x8580; // void*
@@ -196,6 +215,7 @@ struct Vec2 {
 
 // Endless Fall & 3-Lives state
 static std::vector<SavedPlatform> g_belowScreen;
+static const void* g_doodlerSprite = nullptr;  // sprite renderWorld last drew for the Doodler
 static int   g_lives             = kMaxLives;
 static float g_lifeRecoverTarget = 0.0f;
 static float g_peakScore         = 0.0f;
@@ -223,6 +243,8 @@ using SetFloatFn        = void (*)(float);
 using SetupScreenFn     = void (*)(int, int);
 using ConvertTouchFn    = Vec2 (*)(void*, const Vec2*);
 using GlOrthofFn        = void (*)(GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat);
+using AudioPlayFn       = void (*)(void*, float);
+using AudioStopFn       = void (*)(void*);
 
 static VoidGameFn        orig_resetLevel      = nullptr;
 static VoidGameFn        orig_updateGameplay  = nullptr;
@@ -242,6 +264,7 @@ static RecyclePlatformFn fn_recycleMonster    = nullptr;
 static RecyclePlatformFn fn_recycleUFO        = nullptr;
 static PlatformResetFn   fn_platformReset     = nullptr;
 static PlatformSetTypeFn fn_platformSetType   = nullptr;
+static RecyclePlatformFn fn_platformSetAttach = nullptr;
 static GetFloatFn        fn_getScreenHeight   = nullptr;
 static GetFloatFn        fn_getTopInset       = nullptr;
 static SetFloatFn        fn_setAspectRatio    = nullptr;
@@ -249,6 +272,8 @@ static SetFloatFn        fn_setLogicalWidth   = nullptr;
 static SetFloatFn        fn_setLogicalHeight  = nullptr;
 static SetFloatFn        fn_setScaleX         = nullptr;
 static SetFloatFn        fn_setScaleY         = nullptr;
+static AudioPlayFn       fn_audioPlay         = nullptr;
+static AudioStopFn       fn_audioStop         = nullptr;
 
 // ============================================================================
 // 4. Endless Fall & 3-Lives helpers + hooks
@@ -391,6 +416,72 @@ static float pick_non_overlapping_x(void* game, float target_y) {
     return best_x;
 }
 
+static bool list_contains(void* game, size_t begin_off, size_t end_off, const void* item) {
+    void** b = field<void**>(game, begin_off);
+    void** e = field<void**>(game, end_off);
+    for (void** it = b; it < e; ++it) if (*it == item) return true;
+    return false;
+}
+
+// The bonus riding `plat`, if it is a live entry of the bonus list (springs, propellers, ...).
+static void* platform_bonus(void* game, void* plat) {
+    void* att = field<void*>(plat, 0x40);
+    if (att && list_contains(game, offsets::kBonusesBegin, offsets::kBonusesEnd, att)) return att;
+    return nullptr;
+}
+
+// Remove `item` from the bonus list and return it to the game's bonus pool.
+static void drop_bonus(void* game, void* item) {
+    auto*& b = field<void**>(game, offsets::kBonusesBegin);
+    auto*& e = field<void**>(game, offsets::kBonusesEnd);
+    void** dst = b;
+    for (void** it = b; it < e; ++it) if (*it != item) *dst++ = *it;
+    if (dst == e) return;
+    e = dst;
+    fn_recycleBonus(game, item);
+}
+
+// Detach the bonus riding `plat` (so recyclePlatform cannot also pool it) and recycle it.
+static void strip_bonus(void* game, void* plat, void* item) {
+    fn_platformSetAttach(plat, nullptr);
+    drop_bonus(game, item);
+}
+
+// The game builds exactly 100 platforms at startup and its generator pops pool.back()
+// without an empty check, so recycling is about pool supply, not memory. Grow the pool
+// the same way the game does, so platforms carrying items can stay alive off-screen.
+static int g_extraPlatforms = 0;
+static constexpr int kMaxExtraPlatforms = 400;
+static void ensure_pool_headroom(void* game) {
+    auto*& b = field<void**>(game, offsets::kPoolBegin);
+    auto*& e = field<void**>(game, offsets::kPoolEnd);
+    auto*& c = field<void**>(game, offsets::kPoolCap);
+#ifndef DJ_POOL_MIN_FREE
+#define DJ_POOL_MIN_FREE 32  // diag builds raise this to exercise the growth path immediately
+#endif
+    if ((e - b) >= DJ_POOL_MIN_FREE || g_extraPlatforms >= kMaxExtraPlatforms) return;
+    using InitFn = void (*)(void*);
+    auto init = reinterpret_cast<InitFn>(g_base + offsets::kPlatformInit);
+    uintptr_t vptr = *reinterpret_cast<uintptr_t*>(g_base + offsets::kPlatformVtableGot) + 0x10;
+    for (int i = 0; i < 32 && g_extraPlatforms < kMaxExtraPlatforms; ++i) {
+        if (e == c) {  // grow like std::vector (game frees with operator delete == free)
+            size_t n = static_cast<size_t>(e - b), cap = n ? n * 2 : 64;
+            void** nb = static_cast<void**>(std::malloc(cap * sizeof(void*)));
+            if (!nb) return;
+            if (n) std::memcpy(nb, b, n * sizeof(void*));
+            std::free(b);
+            b = nb; e = nb + n; c = nb + cap;
+        }
+        void* p = std::calloc(1, offsets::kPlatformObjSize);
+        if (!p) return;
+        *reinterpret_cast<uintptr_t*>(p) = vptr;
+        init(p);
+        *e++ = p;
+        ++g_extraPlatforms;
+    }
+    __android_log_print(ANDROID_LOG_INFO, "DJMod", "pool grown: extra=%d free=%d", g_extraPlatforms, (int)(e - b));
+}
+
 static void* pop_platform_from_pool(void* game) {
     auto*& pool_begin = field<void**>(game, offsets::kPoolBegin);
     auto*& pool_end   = field<void**>(game, offsets::kPoolEnd);
@@ -522,6 +613,64 @@ static void ensure_reachable_gaps(void* game) {
     }
 }
 
+static constexpr float kPlatformParkMargin  = 1700.0f; // item sits above its platform, so it stays inside the 1800 shield
+static constexpr float kEntityPersistMargin = 1800.0f; // Keep bonuses/monsters/UFOs/black holes alive ~3 screens above & below
+
+// Keep looping Monster & UFO proximity sounds strictly synced to on-screen visibility
+// so off-screen hazards never keep making noise, and resume cleanly when they re-enter view.
+static void sync_ambient_hazard_sounds(void* game) {
+    if (!fn_audioStop || !fn_audioPlay) return;
+
+    float* rect = field<float*>(game, offsets::kScreenRectPtr);
+    float screen_top = rect ? (rect[1] + rect[3]) : 600.0f;
+    bool active_play = (field<int>(game, offsets::kPhase) == 6 &&
+                        field<int>(game, offsets::kIsPlaying) == 1 &&
+                        field<int>(game, offsets::kIsFallingDead) == 0 &&
+                        field<int>(game, offsets::kIsBlackHole) == 0 &&
+                        !g_gameOverArmed);
+    bool sound_enabled = active_play && (field<int>(game, offsets::kSoundEnabled) == 2);
+
+    bool monster_visible = false;
+    void** m_begin = field<void**>(game, offsets::kMonstersBegin);
+    void** m_end   = field<void**>(game, offsets::kMonstersEnd);
+    for (void** it = m_begin; it < m_end; ++it) {
+        void* m = *it;
+        if (!m || field<uint8_t>(m, 0x6d) == 0) continue;
+        float my = field<float>(m, 0x44);
+        if (my >= -40.0f && my <= screen_top + 40.0f) {
+            monster_visible = true;
+            break;
+        }
+    }
+    void* monster_track = static_cast<uint8_t*>(game) + offsets::kMonsterAudioTrack;
+    uint8_t monster_playing = field<uint8_t>(monster_track, 0x18);
+    if (!monster_visible && monster_playing != 0) {
+        fn_audioStop(monster_track);
+    } else if (monster_visible && sound_enabled && monster_playing == 0) {
+        fn_audioPlay(monster_track, 1.0f);
+    }
+
+    bool ufo_visible = false;
+    void** u_begin = field<void**>(game, offsets::kUFOsBegin);
+    void** u_end   = field<void**>(game, offsets::kUFOsEnd);
+    for (void** it = u_begin; it < u_end; ++it) {
+        void* u = *it;
+        if (!u) continue;
+        float uy = field<float>(u, 0x20);
+        if (uy >= -40.0f && uy <= screen_top + 40.0f) {
+            ufo_visible = true;
+            break;
+        }
+    }
+    void* ufo_track = static_cast<uint8_t*>(game) + offsets::kUfoAudioTrack;
+    uint8_t ufo_playing = field<uint8_t>(ufo_track, 0x18);
+    if (!ufo_visible && ufo_playing != 0) {
+        fn_audioStop(ufo_track);
+    } else if (ufo_visible && sound_enabled && ufo_playing == 0) {
+        fn_audioPlay(ufo_track, 1.0f);
+    }
+}
+
 static void scroll_down_with_history(void* game, float scroll_down) {
     g_scrollingDown = true;
 
@@ -534,29 +683,37 @@ static void scroll_down_with_history(void* game, float scroll_down) {
     auto*& end   = field<void**>(game, offsets::kPlatformsEnd);
     void* protected_plat = field<void*>(game, offsets::kProtectedPlatform);
 
+    // Keep platforms above the screen alive up to screen_top + 1200 unless pool headroom
+    // drops <= 16, so a short fall + climb back up preserves the platforms & attached items above.
     while ((end - begin) > 1) {
         void* top_plat = *(end - 1);
         if (!top_plat || top_plat == protected_plat) break;
         float py = field<float>(top_plat, offsets::kPlatY);
-        if (py > screen_top + 30.0f) {
+        ptrdiff_t pool_free = field<void**>(game, offsets::kPoolEnd) - field<void**>(game, offsets::kPoolBegin);
+        float plat_cull_y = (pool_free <= 16) ? (screen_top + 40.0f) : (screen_top + 1200.0f);
+        if (py > plat_cull_y) {
             end -= 1;
+            void* riding = platform_bonus(game, top_plat);
+            if (riding) strip_bonus(game, top_plat, riding);
             fn_recyclePlatform(game, top_plat);
         } else {
             break;
         }
     }
 
-    const float cull_top_y = screen_top + 30.0f;
+    // Only recycle non-platform entities far above the screen (screen_top + 1800) or if the
+    // active list grows unusually large, so falling briefly and climbing back up keeps them intact.
+    // Note: entity pools start empty (allocated on demand), so never gate on pool_free!
+    const float far_top_y = screen_top + kEntityPersistMargin;
 
-    // Recycle bonuses/springs/powerups that scrolled above the top of the screen
-    // (vanilla cullOffscreen only culls below y < -25, so without this the bonus pool leaks & crashes)
     {
         auto*& b_begin = field<void**>(game, offsets::kBonusesBegin);
         auto*& b_end   = field<void**>(game, offsets::kBonusesEnd);
+        float b_cull_y = ((b_end - b_begin) >= 24) ? (screen_top + 120.0f) : far_top_y;
         void** dst = b_begin;
         for (void** it = b_begin; it < b_end; ++it) {
             void* item = *it;
-            if (item && field<float>(item, 0x1c) > cull_top_y) {
+            if (item && field<float>(item, 0x1c) > b_cull_y) {
                 for (void** pit = begin; pit < end; ++pit) {
                     if (*pit && field<void*>(*pit, 0x40) == item) {
                         field<void*>(*pit, 0x40) = nullptr;
@@ -570,14 +727,14 @@ static void scroll_down_with_history(void* game, float scroll_down) {
         b_end = dst;
     }
 
-    // Recycle monsters above the top of the screen
     {
         auto*& m_begin = field<void**>(game, offsets::kMonstersBegin);
         auto*& m_end   = field<void**>(game, offsets::kMonstersEnd);
+        float m_cull_y = ((m_end - m_begin) >= 8) ? (screen_top + 120.0f) : far_top_y;
         void** dst = m_begin;
         for (void** it = m_begin; it < m_end; ++it) {
             void* item = *it;
-            if (item && field<float>(item, 0x44) > cull_top_y) {
+            if (item && field<float>(item, 0x44) > m_cull_y) {
                 if (field<uint8_t>(item, 0x6d) != 0) {
                     int& cnt = field<int>(game, offsets::kActiveMonsterCount);
                     if (cnt > 0) cnt -= 1;
@@ -590,14 +747,14 @@ static void scroll_down_with_history(void* game, float scroll_down) {
         m_end = dst;
     }
 
-    // Recycle UFOs above the top of the screen
     {
         auto*& u_begin = field<void**>(game, offsets::kUFOsBegin);
         auto*& u_end   = field<void**>(game, offsets::kUFOsEnd);
+        float u_cull_y = ((u_end - u_begin) >= 8) ? (screen_top + 120.0f) : far_top_y;
         void** dst = u_begin;
         for (void** it = u_begin; it < u_end; ++it) {
             void* item = *it;
-            if (item && field<float>(item, 0x20) > cull_top_y) {
+            if (item && field<float>(item, 0x20) > u_cull_y) {
                 int& cnt = field<int>(game, offsets::kActiveUFOCount);
                 if (cnt > 0) cnt -= 1;
                 fn_recycleUFO(game, item);
@@ -608,16 +765,16 @@ static void scroll_down_with_history(void* game, float scroll_down) {
         u_end = dst;
     }
 
-    // Recycle black holes above the top of the screen
     {
         auto*& bh_begin = field<void**>(game, offsets::kBlackHolesBegin);
         auto*& bh_end   = field<void**>(game, offsets::kBlackHolesEnd);
         auto*& bh_pend  = field<void**>(game, offsets::kBlackHolePoolEnd);
         auto*& bh_pcap  = field<void**>(game, offsets::kBlackHolePoolCap);
+        float bh_cull_y = ((bh_end - bh_begin) >= 8) ? (screen_top + 120.0f) : far_top_y;
         void** dst = bh_begin;
         for (void** it = bh_begin; it < bh_end; ++it) {
             void* item = *it;
-            if (item && field<float>(item, 0x04) > cull_top_y && bh_pend < bh_pcap) {
+            if (item && field<float>(item, 0x04) > bh_cull_y && bh_pend < bh_pcap) {
                 *bh_pend++ = item;
             } else {
                 *dst++ = item;
@@ -626,7 +783,10 @@ static void scroll_down_with_history(void* game, float scroll_down) {
         bh_end = dst;
     }
 
+    sync_ambient_hazard_sounds(game);
+
     float cur_world_y = field<float>(game, offsets::kWorldY);
+    ensure_pool_headroom(game);
     int restored = 0;
     while (!g_belowScreen.empty() && restored < 24) {
         const SavedPlatform& sp = g_belowScreen.back();
@@ -692,7 +852,8 @@ static void apply_fall_damage(void* game, int dmg) {
 }
 
 static void hook_resetLevel(void* game) {
-    g_belowScreen.clear();
+    g_doodlerSprite = nullptr;
+    g_belowScreen.clear();  // extra platforms persist: the game object (ctor at 0x33cc90) lives for the whole app session
     g_lives             = kMaxLives;
     g_lifeRecoverTarget = 0.0f;
     g_peakScore         = 0.0f;
@@ -710,11 +871,42 @@ static void hook_cullOffscreen(void* game) {
         return;
     }
 
-    void** begin = field<void**>(game, offsets::kPlatformsBegin);
-    void** end   = field<void**>(game, offsets::kPlatformsEnd);
+    ensure_pool_headroom(game);
+
     void* protected_plat = field<void*>(game, offsets::kProtectedPlatform);
     float cur_world_y = field<float>(game, offsets::kWorldY);
 
+    // Platforms carrying a bonus (spring, propeller, ...) stay alive below the screen together
+    // with their item, down to kPlatformParkMargin. Vanilla cull only inspects the lowest platform
+    // and stops at the first one on screen, so take them out of the list across orig_cullOffscreen
+    // and put them back afterwards. Past the margin, strip the item and save the bare platform.
+    void* parked[64];
+    int n_parked = 0;
+    {
+        auto*& pb = field<void**>(game, offsets::kPlatformsBegin);
+        auto*& pe = field<void**>(game, offsets::kPlatformsEnd);
+        ptrdiff_t n_bonus = field<void**>(game, offsets::kBonusesEnd) - field<void**>(game, offsets::kBonusesBegin);
+        void** dst = pb;
+        for (void** it = pb; it < pe; ++it) {
+            void* p = *it;
+            float py = p ? field<float>(p, offsets::kPlatY) : 0.0f;
+            void* riding = (p && p != protected_plat && py < -6.0f) ? platform_bonus(game, p) : nullptr;
+            if (riding) {
+                // Bonus shield below caps at 24 active bonuses; park only when the item is shielded too.
+                if (py >= -kPlatformParkMargin && n_bonus < 24 && n_parked < 64) {
+                    parked[n_parked++] = p;
+                    continue;
+                }
+                strip_bonus(game, p, riding);
+                n_bonus -= 1;
+            }
+            *dst++ = p;
+        }
+        pe = dst;
+    }
+
+    void** begin = field<void**>(game, offsets::kPlatformsBegin);
+    void** end   = field<void**>(game, offsets::kPlatformsEnd);
     for (void** it = begin; it < end; ++it) {
         void* p = *it;
         if (!p || p == protected_plat) continue;
@@ -755,7 +947,121 @@ static void hook_cullOffscreen(void* game) {
         }
     }
 
+    // Keep bonuses, alive monsters, UFOs, and black holes persistent below the screen
+    // (up to -kEntityPersistMargin) so they remain underneath if the player falls back down.
+    // Temporarily shift preserved items by +5000 across orig_cullOffscreen so vanilla skips them,
+    // and explicitly recycle items that have fallen past -kEntityPersistMargin.
+    // Note: entity pools start empty (allocated on demand), so cap by active count, never pool_free!
+    constexpr float kShieldShift = 5000.0f;
+    struct ShieldedY { float* ptr; };
+    ShieldedY shielded[128];
+    int n_shielded = 0;
+
+    auto shield_list = [&](size_t begin_off, size_t end_off, size_t y_off,
+                           ptrdiff_t max_active, bool check_alive_6d) {
+        void** b = field<void**>(game, begin_off);
+        void** e = field<void**>(game, end_off);
+        if ((e - b) >= max_active) return;
+        for (void** it = b; it < e && n_shielded < 128; ++it) {
+            void* item = *it;
+            if (!item) continue;
+            if (check_alive_6d && field<uint8_t>(item, 0x6d) == 0) continue;
+            float& y = field<float>(item, y_off);
+            if (y < 0.0f && y >= -kEntityPersistMargin) {
+                y += kShieldShift;
+                shielded[n_shielded++].ptr = &y;
+            }
+        }
+    };
+
+    shield_list(offsets::kBonusesBegin,    offsets::kBonusesEnd,    0x1c, 24, false);
+    shield_list(offsets::kMonstersBegin,   offsets::kMonstersEnd,   0x44, 8,  true);
+    shield_list(offsets::kUFOsBegin,       offsets::kUFOsEnd,       0x20, 8,  false);
+    shield_list(offsets::kBlackHolesBegin, offsets::kBlackHolesEnd, 0x04, 8,  false);
+
     orig_cullOffscreen(game);
+
+    for (int i = 0; i < n_shielded; ++i) {
+        *shielded[i].ptr -= kShieldShift;
+    }
+    for (int i = 0; i < n_parked; ++i) {
+        insert_platform_sorted(game, parked[i]);  // slots were freed above, so this never overflows
+    }
+#ifdef DJ_DIAG
+    static int s_lastParked = -1;
+    if (n_parked != s_lastParked) {
+        s_lastParked = n_parked;
+        __android_log_print(ANDROID_LOG_INFO, "DJDiag", "PARK n=%d poolfree=%d saved=%d", n_parked,
+                            (int)(field<void**>(game, offsets::kPoolEnd) - field<void**>(game, offsets::kPoolBegin)),
+                            (int)g_belowScreen.size());
+    }
+#endif
+
+    // Explicitly recycle any preserved entities that fell beyond -kEntityPersistMargin
+    {
+        auto*& b_begin = field<void**>(game, offsets::kBonusesBegin);
+        auto*& b_end   = field<void**>(game, offsets::kBonusesEnd);
+        void** dst = b_begin;
+        for (void** it = b_begin; it < b_end; ++it) {
+            void* item = *it;
+            if (item && field<float>(item, 0x1c) < -kEntityPersistMargin) {
+                fn_recycleBonus(game, item);
+            } else {
+                *dst++ = item;
+            }
+        }
+        b_end = dst;
+    }
+    {
+        auto*& m_begin = field<void**>(game, offsets::kMonstersBegin);
+        auto*& m_end   = field<void**>(game, offsets::kMonstersEnd);
+        void** dst = m_begin;
+        for (void** it = m_begin; it < m_end; ++it) {
+            void* item = *it;
+            if (item && field<float>(item, 0x44) < -kEntityPersistMargin) {
+                if (field<uint8_t>(item, 0x6d) != 0) {
+                    int& cnt = field<int>(game, offsets::kActiveMonsterCount);
+                    if (cnt > 0) cnt -= 1;
+                }
+                fn_recycleMonster(game, item);
+            } else {
+                *dst++ = item;
+            }
+        }
+        m_end = dst;
+    }
+    {
+        auto*& u_begin = field<void**>(game, offsets::kUFOsBegin);
+        auto*& u_end   = field<void**>(game, offsets::kUFOsEnd);
+        void** dst = u_begin;
+        for (void** it = u_begin; it < u_end; ++it) {
+            void* item = *it;
+            if (item && field<float>(item, 0x20) < -kEntityPersistMargin) {
+                int& cnt = field<int>(game, offsets::kActiveUFOCount);
+                if (cnt > 0) cnt -= 1;
+                fn_recycleUFO(game, item);
+            } else {
+                *dst++ = item;
+            }
+        }
+        u_end = dst;
+    }
+    {
+        auto*& bh_begin = field<void**>(game, offsets::kBlackHolesBegin);
+        auto*& bh_end   = field<void**>(game, offsets::kBlackHolesEnd);
+        auto*& bh_pend  = field<void**>(game, offsets::kBlackHolePoolEnd);
+        auto*& bh_pcap  = field<void**>(game, offsets::kBlackHolePoolCap);
+        void** dst = bh_begin;
+        for (void** it = bh_begin; it < bh_end; ++it) {
+            void* item = *it;
+            if (item && field<float>(item, 0x04) < -kEntityPersistMargin && bh_pend < bh_pcap) {
+                *bh_pend++ = item;
+            } else {
+                *dst++ = item;
+            }
+        }
+        bh_end = dst;
+    }
 }
 
 static void hook_updateGameplay(void* game) {
@@ -807,6 +1113,8 @@ static void hook_updateGameplay(void* game) {
     }
 
     orig_updateGameplay(game);
+
+    sync_ambient_hazard_sounds(game);
 
     if (field<int>(game, offsets::kPhase) == 6 &&
         field<int>(game, offsets::kIsPlaying) == 1 &&
@@ -934,6 +1242,36 @@ static void hook_triggerGameOver(void* game) {
     orig_triggerGameOver(game);
 }
 
+// The Doodler is drawn by renderWorld through drawSprite from a few call sites that pick the
+// sprite by theme, costume and pose (base set at game+0x70c0, costume table at game+0x9010).
+// Remember the sprite it actually drew so the lives HUD shows the same skin.
+using DrawSpriteFn = void (*)(const void*, int, int, float, float);
+static DrawSpriteFn orig_drawSprite = nullptr;
+static const uintptr_t kDoodlerDrawReturns[] = {0x308480, 0x3094ec, 0x309880, 0x30bc94, 0x30bce0};
+static void hook_drawSprite(const void* sprite, int a, int flip, float x, float y) {
+    uintptr_t rva = reinterpret_cast<uintptr_t>(__builtin_return_address(0)) - g_base;
+    for (uintptr_t r : kDoodlerDrawReturns) {
+        if (rva == r) { g_doodlerSprite = sprite; break; }
+    }
+#ifdef DJ_DIAG
+    if (rva >= 0x305d20 && rva < 0x30bebc) {
+        static uintptr_t seen[256];
+        static int n_seen = 0;
+        uintptr_t key = (rva << 24) ^ (reinterpret_cast<uintptr_t>(sprite) & 0xffffff);
+        bool found = false;
+        for (int i = 0; i < n_seen; ++i) if (seen[i] == key) { found = true; break; }
+        if (!found && n_seen < 256 && sprite) {
+            seen[n_seen++] = key;
+            const auto* p = static_cast<const uint8_t*>(sprite);
+            __android_log_print(ANDROID_LOG_INFO, "DJDiag", "DOODLER caller=0x%lx sprite=%p tex=%u hw=%.1f hh=%.1f",
+                                (unsigned long)rva, sprite, *reinterpret_cast<const unsigned*>(p),
+                                *reinterpret_cast<const float*>(p + 0x28), *reinterpret_cast<const float*>(p + 0x2c));
+        }
+    }
+#endif
+    orig_drawSprite(sprite, a, flip, x, y);
+}
+
 static void hook_renderHUD(void* game, int flag) {
     orig_renderHUD(game, flag);
 
@@ -952,6 +1290,7 @@ static void hook_renderHUD(void* game, int flag) {
             doodler_sprite = sprite_table[1] ? sprite_table[1] : sprite_table[0];
         }
         if (!doodler_sprite) doodler_sprite = field<void*>(game, 0x70c0);
+        if (g_doodlerSprite) doodler_sprite = g_doodlerSprite;  // what renderWorld actually drew this frame
 
         hud_draw::render_overlay(
             g_lives, kMaxLives, static_cast<int>(g_peakScore),
@@ -1129,6 +1468,7 @@ static void djmod_init() {
     fn_recycleMonster    = reinterpret_cast<RecyclePlatformFn>(g_base + offsets::kRecycleMonster);
     fn_recycleUFO        = reinterpret_cast<RecyclePlatformFn>(g_base + offsets::kRecycleUFO);
     fn_platformReset     = reinterpret_cast<PlatformResetFn>(g_base + offsets::kPlatformReset);
+    fn_platformSetAttach = reinterpret_cast<RecyclePlatformFn>(g_base + offsets::kPlatformSetAttach);
     fn_platformSetType   = reinterpret_cast<PlatformSetTypeFn>(g_base + offsets::kPlatformSetType);
     fn_getScreenHeight   = reinterpret_cast<GetFloatFn>(g_base + offsets::kGetScreenHeight);
     fn_getTopInset       = reinterpret_cast<GetFloatFn>(g_base + offsets::kGetTopInset);
@@ -1137,6 +1477,8 @@ static void djmod_init() {
     fn_setLogicalHeight  = reinterpret_cast<SetFloatFn>(g_base + offsets::kSetLogicalHeight);
     fn_setScaleX         = reinterpret_cast<SetFloatFn>(g_base + offsets::kSetScaleX);
     fn_setScaleY         = reinterpret_cast<SetFloatFn>(g_base + offsets::kSetScaleY);
+    fn_audioPlay         = reinterpret_cast<AudioPlayFn>(g_base + offsets::kAudioPlay);
+    fn_audioStop         = reinterpret_cast<AudioStopFn>(g_base + offsets::kAudioStop);
 
     bool ok = true;
     if (g_mod_cfg.endless_fall != 0) {
@@ -1145,6 +1487,7 @@ static void djmod_init() {
         ok &= arm64_hook::install(reinterpret_cast<void*>(g_base + offsets::kCullOffscreen),   hook_cullOffscreen,   &orig_cullOffscreen);
         ok &= arm64_hook::install(reinterpret_cast<void*>(g_base + offsets::kCheckCollisions), hook_checkCollisions, &orig_checkCollisions);
         ok &= arm64_hook::install(reinterpret_cast<void*>(g_base + offsets::kRenderHUD),       hook_renderHUD,       &orig_renderHUD);
+        ok &= arm64_hook::install(reinterpret_cast<void*>(g_base + offsets::kDrawSprite),      hook_drawSprite,      &orig_drawSprite);
         ok &= arm64_hook::install(reinterpret_cast<void*>(g_base + offsets::kTriggerGameOver), hook_triggerGameOver, &orig_triggerGameOver);
     }
 

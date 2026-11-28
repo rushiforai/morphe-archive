@@ -45,7 +45,9 @@ jobs:
         uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:
           distribution: 'temurin'
-          java-version: '25'
+          java-version: |
+            21
+            25
           check-latest: true
       - name: Verify patched Java 25 runtime
         run: python3 .github/scripts/verify-java25-cspu.py
@@ -62,7 +64,11 @@ jobs:
       - name: Check published source baseline and metadata
         run: |
           python3 porting/tests/VerifyReleaseBaseline.py
-          if grep -Eq '^version[[:space:]]*=[[:space:]]*2\.0\.1[[:space:]]*$' gradle.properties; then
+          if grep -Eq '^version[[:space:]]*=[[:space:]]*2[.]2[.]0[[:space:]]*$' gradle.properties; then
+            test -s porting/revisions/v2.2.0-recovery/build-ci.sh
+            test -s porting/revisions/v2.2.0-recovery/prepare-ci-inputs.py
+            grep -Fq 'v2.2.0-recovery/recovery-ci.gradle.kts' patches/build.gradle.kts
+          elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\.0\.1[[:space:]]*$' gradle.properties; then
             python3 porting/revisions/v2.0.1-release/test_release.py
           elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\.0\.2[[:space:]]*$' gradle.properties; then
             python3 porting/revisions/v2.0.2-release/test_release.py
@@ -236,8 +242,25 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          ./gradlew :patches:buildAndroid --no-daemon
-          if grep -Fq "version = 2.0.0" gradle.properties; then
+          if grep -Eq '^version[[:space:]]*=[[:space:]]*2[.]2[.]0[[:space:]]*$' gradle.properties; then
+            sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+            test -n "$sdk"
+            android="$sdk/platforms/android-37.2/android.jar"
+            if [[ ! -f "$android" ]]; then
+              sdkmanager --install 'platforms;android-37.2'
+            fi
+            test -f "$android"
+            test -x "${JAVA_HOME_21_X64:?Java 21 required}/bin/java"
+            python3 porting/revisions/v2.2.0-recovery/prepare-ci-inputs.py "$RUNNER_TEMP/v220-inputs" --android-jar "$android"
+            bash .github/scripts/prepare-v2.2.0-mpp.sh "$RUNNER_TEMP/v220-inputs" "$JAVA_HOME_21_X64"
+            python3 .github/scripts/verify-release-mpp.py record 2.2.0
+            python3 .github/scripts/verify-v2.2.0-prepared-release.py 2.2.0
+          else
+            ./gradlew :patches:buildAndroid --no-daemon
+          fi
+          if grep -Eq '^version[[:space:]]*=[[:space:]]*2[.]2[.]0[[:space:]]*$' gradle.properties; then
+            python3 .github/scripts/verify-v2.2.0-prepared-release.py 2.2.0
+          elif grep -Fq "version = 2.0.0" gradle.properties; then
             NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.0-mpp.sh
           elif grep -Fq "version = 2.0.1" gradle.properties; then
             NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.1-mpp.sh
@@ -345,7 +368,12 @@ jobs:
         if: steps.release.outputs.new_release_published != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew clean :patches:buildAndroid --no-daemon
+        run: |
+          if grep -Eq '^version[[:space:]]*=[[:space:]]*2[.]2[.]0[[:space:]]*$' gradle.properties; then
+            python3 .github/scripts/verify-v2.2.0-prepared-release.py 2.2.0
+          else
+            ./gradlew clean :patches:buildAndroid --no-daemon
+          fi
 
   sync-dev:
     name: Fast-forward dev after a published stable release

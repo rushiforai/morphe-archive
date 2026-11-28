@@ -5,9 +5,11 @@ Every anchor the patches depend on, why it was chosen, and what happens when it 
 a non-zero exit means an anchor is missing. `app` defaults to `tiktok`, and each app has its own set
 of checks inside the probe.
 
-Support is narrowed to **47.7.1, 47.7.2 and 47.7.3**. The per-feature dumps that used to sit beside this
+Support is narrowed to **47.9.1, 47.9.2, 47.9.3, 48.0.1 and 48.0.2**. The per-feature dumps that used to sit beside this
 file were retired with the older versions; the sections below carry the behaviour worth keeping, and
-the code that implements each hook is the source of truth for its shape.
+the code that implements each hook is the source of truth for its shape. Obfuscated names from
+47.7.x and 47.8.3 still appear in some notes as historical evidence; those versions are no longer
+supported.
 
 ## The rules behind the choices
 
@@ -39,7 +41,7 @@ the code that implements each hook is the source of truth for its shape.
 | `User#getNickname()Ljava/lang/String;` | replacing the displayed name | real-named model, signature unchanged | `HandlePatch` fails (`PatchException`) |
 | `User#getUniqueId()` | the source of `@handle` | same | same |
 | `Aweme#getRegion()` | the source of the country code | same | same |
-| `FeedBaseViewModel#paramSync2StateAccept` | entering the feed bind path | matched structurally: 2 params, the second a `VideoItemParams`, register count < 16 | patch fails |
+| `FeedBaseViewModel#paramSync2StateAccept` | entering the feed bind path | matched structurally: 2 params, the second a `VideoItemParams`, the state type obfuscated and matched as any reference; the name is unique in the class on 47.7.1 through 47.9.1 | patch fails |
 | `com.ss.android.ugc.now.interaction.assem.Comment*`, `com.ss.android.ugc.aweme.comment*`, `com.ss.android.ugc.aweme.commentv2*` (class names) | the comment surface | recognised from the **class on the stack** while a name is rendered, so it does not depend on which obfuscated method calls the getter | the comment surface stops (checked by `VerifyAnchors`) |
 | `AwemeHostApplication#onCreate` | the earliest Context for the extension, and the point where the refresh-rate lifecycle callback is installed | real-named, read from the manifest, framework `onCreate` | every switch other than the feed falls back to its default (the feature looks ON but does nothing), and the refresh-rate choice is not applied |
 | `VideoAuthorInfoRelationAssem#onViewCreated(View)` | the header's root view, where `tv_post_time` is found | the method is a library API | feed time and region stop |
@@ -47,37 +49,40 @@ the code that implements each hook is the source of truth for its shape.
 | id `tv_post_time` (resource) | finding the time TextView | the resource name is readable; the header's other ids are obfuscated | nothing is written, and it is logged |
 | `Aweme#getCreateTime()` | the source of the post time | real-named getter | the post time is not filled in when TikTok hides it |
 | `BaseCommentCell` (comment list), the method that reads `Comment#getCreateTime` and then writes text | the comment's time view, where the post time and the region are written; the comment is fetched again through the getter that filled the `getCreateTime` receiver register | the method name is obfuscated (`S8` on 47.7.1, `T8` on 47.7.3) and it writes the time twice, in two branches, so the pairs of calls are the anchor. 47.7.1 reuses the comment register for an unrelated check before the write, so the register is not treated as live across the pair | patch fails (`Comment: … writes no text after a create time`) |
+| `PollCell`, the `(PollInfo) -> void` method that reads `PollInfo#createTime` and then calls `TextView#setText` | the poll's date view, where the post time and the creator's region are written | both the row and the model are real-named; only the method name moves (`H6` on 47.9.1, `Z6` on 47.7.1), so the field read and the text write are the anchor | patch fails (`Poll date: … writes no poll time text`) |
+| `VideoViewCellRootView#dispatchTouchEvent(MotionEvent)` | letting a touch that starts on the @handle go straight to normal view dispatch, so the cell's long-press speed-up does not start the 2x playback | the cell root and the framework method are both real-named and do not move | the patch fails (`the feed cell root's touch dispatch was not found`) |
 | `VideoItemParams#getAweme` / `.mAweme` | getting the item at bind | read by the extension through reflection, so it is checked by `VerifyAnchors` | region falls back |
 | `Aweme#getAuthor` / `.author` | getting the item's author | same | region falls back |
 | `Aweme#getRegion` / `.region` | the video's country code | same | shown without a country code |
 | `User#getUniqueId` / `.uniqueId`, `User#getNickname` / `.nickname`, `User#getRegion` / `.region` | the region map keys and the displayed name | same | patch fails, or no country code |
 | `AdPersonalizationActivity#onCreate/onBackPressed` | the host of the Tweaks screen | real-named activity | patch fails |
 | `IFeedApi#fetchFeedList` (the class implementing it) | the feed filter's hook, at the page's return | structural: the one class implementing `com.ss.android.ugc.aweme.feed.cache.IFeedApi` whose single-parameter method returns the page and has a body. The names are real today (`feed.FeedApiService#fetchFeedList`) but are not the anchor | the patch fails (`expected one implementation …`) |
-| the pager's item model, and the storage behind its list contract | the feed filter's second hook, where the items the feed renders are kept | structural: the class carrying `getItems`/`getListCount`/`insertItemList`/`setItems` that no other such class sits above, then the contract its `getItems` calls, then that contract's implementations; no obfuscated name is written down. `FeedItemList#setItems`/`#clone` are also hooked, but with the **ad filter only**: that model is shared with the profile, search and repost lists, where a like-count range hides the profile owner's own posts | the patch fails, naming the candidates it found |
-| the pause item manager, and its list-returning method | the pause-image-search switch: an empty list hides the image-search entry while a video is paused | structural: the one constructor that asks the real-named `com.ss.android.ugc.aweme.vision.IPhotoSearchService` for its pause item, plus the class's single method returning `java.util.List`. The obfuscated names move (`X.1QhK` on 47.7.2, `X.1NRr` on 47.7.1, `X.1PB2` on 47.7.3), but the service call and the list shape do not | the patch fails hard when the constructor or the list method is gone; the switch alone does nothing |
+| the pager's item model, and the storage behind its list contract | the feed filter's second hook, where the items the feed renders are kept | structural: the class carrying `getItems`/`getListCount`/`insertItemList`/`setItems` that no other such class sits above, then the contract its `getItems` reads the list through (the owner of its `getList()` call through 47.7.x; the type of its non-collection field from 47.8.3, where the accessor copies that field's `ArrayList` instead), then that contract's implementations; no obfuscated name is written down. `FeedItemList#setItems`/`#clone` are also hooked, but with the **ad filter only**: that model is shared with the profile, search and repost lists, where a like-count range hides the profile owner's own posts | the patch fails, naming the candidates it found |
+| the feed panel's `loadCache([Object]) -> void` restore, and the adapter constructor that carries `BaseFeedPageParams` and the item-model field | filtering the cached page before it is copied, and upgrading the feed adapter and pager-list wrappers to the full filter; a single opened video still stays | structural: the cache method still has its name and calls the real-named `FeedItemList#setItems`; the adapter is the panel's item adapter, recognised by its event type (`homepage*`) at runtime | the patch fails (`the panel's cache restore was not found` / `the feed adapter's constructor`) |
+| the pause item manager, and its list-returning method | the pause-image-search switch: an empty list hides the image-search entry while a video is paused | structural: the one constructor carrying the manager's log tag `PausePanelItemManager` and calling the real-named `com.ss.android.ugc.aweme.vision.IPhotoSearchService`, plus the class's single method returning `java.util.List`. Both the class and the interface method name move (`X.1QhK` on 47.7.2, `X.1NRr` on 47.7.1, `X.1PB2` on 47.7.3, `X.1MXa` on 47.8.3, `X.1KwK` on 47.9.1; the item getter was `LJII` through 47.8.3 and `LJIIIIZZ` on 47.9.1), so neither is written down | the patch fails hard when the constructor or the list method is gone; the switch alone does nothing |
 | the visual search tag trigger, and its `(VideoItemParams) -> boolean` gate | the `Find similar` / `Search this image` pill on a paused video; returning false keeps the tag out of the interact area | structural: the real-named `SearchVisualTagComponentTrigger` and the real-named `VideoItemParams` parameter; the method itself moves (`lq` on 47.7.2, `tq` on 47.7.1, `qq` on 47.7.3), so the signature is what is matched | the patch fails hard; the pill keeps showing |
-| `PlayerController#onPlayProgressChange(String, long, long)` | resume playback's save hook: the tick that carries the position and duration | real-named feed controller and exact shape; the write to `lastPosition` and the read of `mCurrentAid` are checked too, so the empty single-float overload cannot match | the patch fails (`onPlayProgressChange … was not found`) |
-| `PlayerController#onPausePlay(String)` and `#onPausePlay(String, event)` | resume playback's exact save hook: the playhead is read here, after the progress tick has fallen behind | real-named controller and both pause overloads (source id alone, and source id plus event); the event type (`X.0AIw` on 47.7.1, `X.0AIt` on 47.7.2, `X.0AIx` on 47.7.3) is obfuscated, so only the shape is matched. The event overload is hooked first because it runs before the legacy callback forward; `onPlayStop` is not the main save because its position has already fallen back to the older `lastPosition` | the patch fails (`the feed player's pause callback was not found`) |
-| `PlayerController#onPreparePlay(String)` / `#onPreparePlay(String, event)` | resume playback's open boundary: reset the per-open flags before the first progress tick | real-named method; the one-string and event overloads share the source-id first parameter, and the event type is obfuscated | the patch fails (`onPreparePlay … was not found`) |
-| `PlayerController#onSeekStart(String, int, float)`, `#onSeekEnd(String, boolean)`, `#onRenderSeekComplete(String, boolean)` | resume playback's user-seek path, including a seek while paused and a seek to zero | exact real-named signatures; no obfuscated class is named | the patch fails (`onSeekStart` / `onSeekEnd` not found) |
-| `PlayerController#onPlayCompleted(String)` / `(String, int)` and `#onLoopPlay(String, int)` | resume playback's end/loop clears, so a finished or restarted video leaves no point | exact real-named signatures; both completion overloads are kept because one is a compatibility forward | the patch fails (`onPlayCompleted` / `onLoopPlay` not found) |
-| `PlayerController#onPlayRelease(String)` and `#onStopPlay(String)` | resume playback's final save when no pause callback arrives | exact real-named signatures; the position is read before it is reset | the patch fails (`no release or stop callback was found`) |
-| `PlayerController#onPlayFailed(...)`, `#onRetryOnError(...)`, `#onResolutionSwitchComplete(...)` | resume playback's recovery markers: a temporary zero must not erase a real point | the source-id first parameter and the arity are matched; the error/event/reason types are obfuscated and never written down | the marker is not set; a recovery zero can clear the point |
-| `PlayerController#onRenderFirstFrame(String, event)` and `#onRenderFirstFrameFromResume(String)` | resume playback's apply hook: the saved position is sought to on the item's first frame and after a background resume | real-named controller and method; the obfuscated event type (`X.0BKd` on 47.7.1, `X.0BKZ` on 47.7.2, `X.0BKb` on 47.7.3) is never written down, only the real-named source-id parameter and the two-parameter shape | the patch fails (`onRenderFirstFrame … was not found`); the resume callback is optional |
+| `FeedSearchBottomBarAssemTrigger` and `FeedSearchBottomBarAssemTriggerV2`, each with its `(VideoItemParams) -> boolean` gate | the `Search · <query>` suggestion bar under a feed video; returning false keeps the bar out of the bottom slot | structural: both trigger classes are real-named, the parameter is the real-named `VideoItemParams`, and only the gate's name moves (`tq` on 47.7.1, `Iq` on 47.9.1) | the patch fails hard; the bar keeps showing |
+| `PlayerController#onPlayProgressChange(String, long, long)` | resume playback's classification hook: a tick past the thresholds clears a finished mark, a tick inside the start or end threshold sets it | real-named feed controller and exact shape; the write to `lastPosition` and the read of `mCurrentAid` are checked too, so the empty single-float overload cannot match | the patch fails (`the feed player's progress tick was not found`) |
+| `PlayerController#onPlayCompleted(String)` / `(String, int)` | resume playback's finish mark: the native store must not hand a finished video back at its last second | exact real-named signatures; both completion overloads are kept because one is a compatibility forward | the patch fails (`onPlayCompleted was not found`) |
+| the lambda that reads `FeedPlayProgressContinueConfig.enable` | resume playback's first gate: the answer is forced to `true` while the switch is on | structural: the no-parameter lambda returning `Object` that reads the real-named config field; the lambda's class renames every build (`X.07tD` on 47.9.3) | the patch fails (`the continue gate was not found`) |
+| the method reading `FeedPlayProgressContinueConfig.event_type_list`, `(Aweme, String, String) -> long` | resume playback's second gate: the `event_type_list.contains(...)` answer is replaced, so feeds outside the app's allow list resume | structural: the only `long`-returning method that reads the real-named config field, with the real-named `Aweme` first parameter; the class renames every build (`X.07u7` on 48.0.2, `X.07t8` on 47.9.3) | the patch fails (`the resume-position method was not found`) |
+| the class carrying TikTok's six typed AB getters | the feature flags patch's hook set: one getter per type, each answer passed through the override helper | structural: one instance getter per type, `(int,String,Z,Z)->Z`, `(int,int,String,Z)->I`, `(int,J,String,Z)->J`, `(int,String,Z,F)->F`, `(D,int,String,Z)->D` and `(int,String,String,Z)->String`; every name renames each build (`X.09mi` on 48.0.2), so only the shapes are matched | the patch fails (`TikTok's AB class was not found`) |
+| each AB getter's `return` | the feature flags patch's override point: the app's own value is already in a register, so only the answer is replaced | the value register comes from the return instruction and the key register from the parameter widths; when either sits above v15 they are copied into low scratch registers, which a terminal return leaves free. The `String` getter's key is `v18` on 48.0.2, which is exactly that path | a getter with no return fails the patch; a register that cannot be placed in a four-bit invoke names the method in the error |
 | `Aweme#isAd`, `#isSoftAd`, `#isWithPromotionalMusic`, `#getAwemeRawAd` | what the ad filter drops | real-named flags and payload read by the extension through reflection, so checked here | that signal stops matching (the item is kept) |
 | `Aweme#getStatistics` → `AwemeStatistics#getPlayCount` / `#getDiggCount` | the view and like ranges | real-named getters, same reading | that count stops filtering (the item is kept, never dropped wrongly) |
 | `ACLCommonShare#getCode()` / `#getShowType()` / `#getTranscode()` | the app's download restriction and the watermark | real-named getters on the real-named model, two instructions each; the values are adapted from ReVanced's TikTok download patch | the download stays restricted and the file keeps its watermark |
 | `Video#getDownloadAddr()` | the address the app saves, redirected to the highest quality playback variant | real-named getter on the real-named model | the file is fetched from the watermarked address |
-| the profile-background gate holder, and its `(boolean) -> boolean` gate | the profile-background patch's hook, answered `true` | structural: the one class reading `profile_bg_in_allow_list` / `profile_bg_enable_consumption_group` that also carries a `(Z)→Z` method next to a `(Z)→V` setter. Class and method names are obfuscated and rename every build (`X.0O6G`/`LJFF` on 47.7.1, `X.0O6A`/`LJFF` on 47.7.2, `X.0O68`/`LJFF` on 47.7.3), so the shape is the anchor. 47.7.x also carries several unrelated no-arg boolean AB flags in the same class; only the gate is hooked | the patch fails (`expected one gate holder …`), or `VerifyAnchors` reports the shape missing |
-| the custom-font factory holder, and the static nine-parameter resolver on it | the custom-font patch's hook: the one method every face TikTok draws with passes through | structural: the class that reads a bundled face (`font/TikTok-Display-Regular.otf` or `font/TikTok-Text-Regular.otf`) in its factory method **and** carries a static `(F, I, F, F, Float, F, I, Map, I) → Typeface`. The class renames every build (`X.06tX` on 47.7.1, `X.06tY` on 47.7.3) and every other `Typeface` factory in the bundle takes fewer parameters, so the pair is unique | the patch fails, naming the classes it found; the app's own faces stay |
+| the profile-background gate holder, and its `(boolean) -> boolean` gate | the profile-background patch's hook, answered `true` | structural: the class of the one static no-arg accessor reading `profile_bg_in_allow_list` and returning the cached snapshot, then the class's single `(Z)→Z` method next to its `(Z)→V` setter. The key is unique in the bundle on 47.7.1 through 47.9.1, so the class scan is not needed. Class and method names are obfuscated and rename every build (`X.0O6G`/`LJFF` on 47.7.1, `X.0O68`/`LJFF` on 47.7.3, `X.0Nh8`/`LJFF` on 47.9.1). 47.7.x also carries several unrelated no-arg boolean AB flags in the same class; only the gate is hooked | the patch fails (`the gate holder's accessor … was not found`), or `VerifyAnchors` reports the shape missing |
+| the custom-font factory holder, and the static nine-parameter resolver on it | the custom-font patch's hook: the one method every face TikTok draws with passes through | structural: the one static `(F, I, F, F, Float, F, I, Map, I) → Typeface` method in the bundle. The class renames every build (`X.06tX` on 47.7.1, `X.06tY` on 47.7.3, `X.04G3` on 47.9.1), but every other `Typeface` factory takes fewer parameters, so the shape alone is unique and the bundled-font strings are not part of the anchor | the patch fails (`the one static nine-parameter Typeface factory was not found`); the app's own faces stay |
 | the Compose font loader holder, and its instance `(Context, request) → Typeface` method | the custom-font patch's second hook: where Jetpack Compose reaches the app's own faces, so the Settings and privacy screen (built with Compose) is covered | structural: the class that reads a bundled face **and** carries a non-static two-parameter `Typeface` method whose first parameter is `android.content.Context`. The class renames every build (`X.06lt` on 47.7.1, `X.06lu` on 47.7.3) and no other face-reading class takes that shape, so the pair is unique | the patch fails, naming the classes it found; every Compose surface keeps TikTok's own text |
-| the asset loader holder, and its static `(AssetManager, String) → Typeface` method | the custom-font patch's third hook: where Lynx's own `TypefaceCache` reads a bundled face | structural: the one static `(AssetManager, String) → Typeface` whose body calls `Typeface.createFromAsset`. Class and method rename every build (`X.00kC#C4` on 47.7.1, `X.00kD#x4` on 47.7.3) and no other method takes that shape, so it is unique. The bridge answers only a `font/TikTok…` path, because the same method also loads sticker and editor fonts | the patch fails, naming the candidates it found; Lynx pages keep TikTok's own text |
+| the asset loader holder, and its static `(AssetManager, String) → Typeface` or `(String) → Typeface` method | the custom-font patch's third hook: where Lynx's own `TypefaceCache` reads a bundled face | structural: the one static method creating a face with `Typeface.createFromAsset`, matched in both shapes. Through 47.7.x it takes `(AssetManager, String)`, so the path is `p1`; from 47.8.3 it takes `(String)` alone, reading the manager from a field, so the path is `p0`. Class and method rename every build (`X.00kC#C4` on 47.7.1, `X.00kD#x4` on 47.7.3, `X.04Hk#LJII` on 47.8.3) and no other method takes either shape, so it is unique. The bridge answers only a `font/TikTok…` path, because the same method also loads sticker and editor fonts | the patch fails, naming the candidates it found; Lynx pages keep TikTok's own text |
 | the WebView font interceptor holder, and its `shouldInterceptRequest(WebView, …) → WebResourceResponse` methods | the custom-font patch's fourth hook: where a hybrid (H5) page is served its font bytes (Activity Center, Manage posts, Creator Center) | structural: the class that reads a bundled `font/TikTok…` face **and** answers a `WebView` with a `WebResourceResponse`, both the deprecated `(WebView, String)` and the current `(WebView, WebResourceRequest)` overload. The class keeps its name (`FontLoadManager$init$1` on both checked builds), and the bridge answers only a font request (a font URL or content type) | the patch fails, naming the candidates it found; hybrid pages keep TikTok's own text |
 | `com.bytedance.ies.foundation.activity.BaseActivity#onActivityResult(I, I, Intent)` | where the font picker's answer comes back | a ByteDance foundation class name plus the framework's own signature, so neither half moves; every activity result in the app passes through it | the patch fails (the fingerprint has to match), so no font can be imported |
 | the comment-copy builder, and the plain clipboard helper | the copy-comment patch's two hooks: the static `(String, String, List) -> ClipData` builder the comment sheet's Copy flows through, and the `void (String, String, Context, Cert)` helper every other route calls | structural: the builder carries `"copy_label"` and builds with `ClipData.newPlainText`; the helper's signature is the framework's plus ByteDance's own cert type and it builds the same way. The menus that hand the helper a comment's text are found by `Comment#getText` + `Comment#getUser` beside that call, never by name. Class and method names rename every build (`X.18RD`/`X.1KSa` on 47.7.1, `X.1I0V`/`X.0kOI` on 47.7.2, `X.0sNn`/`X.1NDC` on 47.7.3) | the patch fails, naming the candidates it found; the username stays in the copied text |
 | `SecApiImpl#popCaptchaV2` / `#popCaptcha`, `LiveHostUser#popCaptchaV2` | the captcha patch's hooks: each entry point is guarded at its top, and the callback it was handed is told the puzzle is over | real-named ByteDance classes and method names that have not moved (`com.ss.android.ugc.aweme.sec.SecApiImpl`, `com.ss.android.ugc.aweme.live.livehostimpl.LiveHostUser`). The obfuscated callback type (parameter 3) is read off the match, and only the dismiss method name (`LIZJ` / `LIZIZ`) is written; the patch fails if the class declares no such method | the patch fails, naming the method or the callback; every puzzle stays |
 | `com.tts.oecverify.BdTuring#showVerifyDialog` (both shapes) | the captcha patch's second surface: the Turing (oecverify) dialog the `sec` entry points never carry, and the one behind a puzzle that appears while they stay silent | real-named class and method (`com.tts.oecverify.BdTuring`), with the real-named `com.tts.oecverify.BdTuringCallback` as the last parameter and the `Activity` as the first, so the obfuscated middle parameter is never written down. The callback is told the SDK's own close answer (`onFail(3, null)`), read off the callback's dismiss method; the patch fails unless it finds exactly the two shapes | the patch fails, naming the shapes found; the Turing dialog keeps showing |
 | `BaseActivity#onResume` and `#onPause` | the keep-screen patch's two hooks: set the window flag while a screen is in front, clear it when it leaves | real-named lifecycle overrides on the real-named ByteDance base (`com.bytedance.ies.foundation.activity.BaseActivity`), instance methods with no parameters and `V`; the activity is `p0`, so no register is assumed | the patch fails (the fingerprint has to match); the screen follows the system timeout |
+| `VideoViewCellRootView#dispatchTouchEvent(MotionEvent)`, and `EdgeSpeedupAssem`'s `(F, F) → Z` zone check with its digg and comment hit tests | the speed-up-only patch: the release the guard takes, and the two refusals it turns into a speed-up zone (and into the mark the long-press actions read) | structural: the real-named feed cell root, and the real-named speed-up component's only `(F, F) → Z` method; the two refusals are the `return` that follows a `(F, F) → Z` call on the real-named digg and comment abilities. The long-press actions are read off the `View.OnLongClickListener` classes that hold the real-named digg and comment components, so no obfuscated name is written down | the patch fails (`the speed-up zone check was not found`, or a long-press listener), and the buttons keep their own long press and release |
 
 ## Surfaces (where the stamp appears)
 
@@ -255,54 +260,44 @@ account is in the rollout.
 
 ## Feed filter
 
-See [feed-filter.md](feed-filter.md) for the full behaviour and the list-wrapper design.
+See [feed-filter.md](feed-filter.md) for the full behaviour.
 
-Six hooks, scoped by what each list is allowed to remove.
+Five hooks, scoped by what each list is allowed to remove.
 
-1. **The fetch's return**: `com.ss.android.ugc.aweme.feed.FeedApiService#fetchFeedList`.
-   The chain is `FeedApiService#fetchFeedList → FeedApi#LIZIZ → FeedApi#LIZ`, and `LIZIZ` is what
-   reads the page's `hasAd` and `preloadAds`. The hook also clears `preloadAds` before the page is
-   returned, so a slot the page carries on the side cannot be merged in during a later scroll.
+1. **The home presenter's page entry**, the `(FeedItemList) -> void` method on the class that carries
+   the pager model's methods (`getItems`, `getListCount`, `insertItemList`, `setItems`). The full
+   filter runs here, before any list holds the page, and it includes a one-item page: the page shown
+   at launch is exactly one item. It has to be that class and not the shared base: hooking the base
+   filtered every presenter in the app, and the log showed another screen losing every item of every
+   page to the drama filter.
 2. **`FeedItemList#setItems`**: the generic page model, shared with profile/search/repost. Only the
    **ad filter** runs here; a count, LIVE or drama filter would hide the profile owner's own posts.
 3. **`FeedItemList#clone`**: the same ad-only filter for the copy.
-4. **The feed panel's insert callback** (`yX2` on 47.7.1, `xX2` on 47.7.2, `zX2` on 47.7.3): the detail feed's
-   `DataLayerAbility` inserts an ad with a bare list here. Ads, survey cards, LIVE cards and drama
-   cards are selected by the batch's source string.
+4. **The feed panel's insert callback** (`yX2` on 47.7.1, `xX2` on 47.7.2, `zX2` on 47.7.3): the
+   detail feed's `DataLayerAbility` inserts an ad with a bare list here. Ads, survey cards, LIVE
+   cards and drama cards are selected by the batch's source string.
 5. **The direct survey insert** on the same panel: a `(int, Aweme)` method whose body carries the
    literal `"survey_card"`. It does not pass through the callback above; the hook returns early
    when the survey switch is on. The name is obfuscated, the literal and shape are the anchor.
-6. **The pager's list storage**: the list the feed renders from, full filter. Its own `ArrayList`
-   field is also replaced at construction with an `AdFreeList`, so a direct `add` from the ad SDK is
-   refused even when no insert callback runs. The wrapper is **ads-only**: the same storage and
-   adapter model are rebuilt for the detail feed and a profile's video list, where refusing the
-   opened LIVE or drama item leaves a black screen or the previous surface's video. The storage's
-   `getList` returns a copy, so the field is found by its declared `ArrayList` type, never through
-   that getter.
+6. **The adapter's item list**, wrapped at construction with an **ads-only** list (`AdFreeList`): an
+   ad can be added straight into the list, and the profile feed does it with no page or setter
+   before it. The adapter is found structurally (a panel field with `setData`, `getCount`,
+   `getItem`), then its item model (an `ArrayList` field plus a no-arg `List` getter). Only ads are
+   refused; the full filter never runs on a live list.
 
-The fetch hook alone did not hold. The page model's `getData` sets a page's items three times: the
-parsed list, the clone, then the model's own list, and the last overwrites everything the fetch
-removed. The items have to be stopped where they enter the model's storage.
-
-That storage is reached without writing an obfuscated name down. The pager model is the class
-carrying `getItems` / `getListCount` / `insertItemList` / `setItems` that no other such class sits
-above; its `getItems` calls exactly one method, and that method's owner is the list contract; the
-contract's implementations that take a list are the storage. Every void method there that takes a
-`java.util.List` is hooked, because the storage is filled by
-additions and not by the setter alone (the setter carried 2 of 200 calls in a session).
-
-`FeedItemList#setItems` and `#clone` are generic to every `AwemeList`, so they run the ad filter
-only. The profile/search/repost lists must never take a like/view range; the feed's own hooks carry
-those.
+No full filter touches a list the pager counts. Editing one shifts the positions it holds, and
+refusing the last item empties the feed, which the app draws as its own error view. Both failures
+were produced by earlier builds, along with a link that opened nothing when its video was outside
+the range.
 
 **Filtering the read is wrong, and was tried.** Removing from the list `getItems` returns shrinks
 what the pager counts, so its positions shift and it runs to *No more results* while items remain —
 the loading spinner after every few scrolls is that, not TikTok's paging. A drop only belongs where
 no position holds the item yet.
 
-A single-item batch is never filtered unless that item is an ad. That batch is the deep-link or
-current video being inserted; removing it leaves the surface with nothing to open. A lone ad still
-goes.
+A single-item batch is exempt from the page filter only on the ad-only sites (`setItems`/`clone`).
+The page entry has no exemption, because the page TikTok shows at launch is exactly one item; the
+list wrapper refuses ads only, so a link's video opens whatever its counts are.
 
 The census line says what happened: `ads=0` with `preload=` above zero means the ad came from a slot
 the page did not carry in `items`; `preload=N cleared` means it was removed before the merge.
@@ -321,7 +316,7 @@ A count filter carries its bound in the line, so a drop and the reason for it ar
 `dropped=[likes=17913]` under `likes[10000..MAX]` says the item was *kept* by that bound, and under
 `likes[50000..MAX]` says it was dropped by it. Without the bound the line records that something went
 and not why — which is the one thing a report has to settle. `unreadCounts` is how many items had no
-statistics at all; those are kept. If the tally says `no list seen this run` after scrolling, no hook
+statistics at all; those count as outside the range and are dropped. If the tally says `no list seen this run` after scrolling, no hook
 ran, which is a different fault from "it ran and matched nothing".
 
 **The log spends its lines on actions, not on arrival order.** A line is written for every call that
@@ -347,18 +342,31 @@ carried it (`ads=0`, look at `preload=` and the insert path), or it carried it a
 
 ## The trail on a device
 
-Everything goes through `Debug.print` — three channels (`System.out`, `Log.w`, and a file), prefix
-`TIKTOK_HANDLE`, so it can be grepped from logcat or from the log file. Each line type is capped so
+Everything goes through `Debug.print`: logcat via `Log.w`, plus the log file, prefix
+`TIKTOK_HANDLE`. `System.out` is not used, because a second channel per line was paid on every
+render. logcat stops at 2000 lines per process and the file at 600; a line identical to the one
+before it is dropped, because the loop that repeats it is exactly what costs.
+
+**Verbose diagnostics** (Tweaks, About section) owns every extension log line. Off, `Debug.print`
+returns before it writes anything, `Debug.by` answers an empty string, `Debug.caller` returns
+before taking a stack trace, the `via`/`surface miss`/`startup:` frames are not captured, and the
+bridge exception lines stay quiet. On, every line is written and the budgets are 20000 logcat /
+8000 file lines. The build marker lives in the About text, so it is readable with logging off. Each line type is capped so
 one session cannot flood the log:
 
 | line | meaning |
 |---|---|
 | `extension attached` | the extension is installed and the `Application#onCreate` hook fired |
 | `surface miss: ...` | a name render matched no surface, with the top 8 frames (max 8) |
-| `name render on <surface>: '<text>' via <frames>` | a name was stamped; 16 frames with method names, without the extension's own frames. A render goes through helpers, so the cell that drew it only appears a few frames down (max 8) |
+| `name render on <surface>: '<text>' via <frames>` | a name was stamped; 6 frames with method names, without the extension's own frames. A render goes through helpers, so the cell that drew it only appears a few frames down (max 8) |
 | `name region: @x model=... -> ID (from account\|bound\|nothing)` | the region for a surface other than the feed, the model's raw value (`'ID'`, `null (declared, unset)`, or `absent (no getter or field)`), and **where** the answer came from (max 12) |
 | `comment time: ...` | the outcome of writing a comment's time view: the written text, or no comment, no region, switches off (max 12) |
 | `header item: author=... createTime=... base='...' -> '...'` | one feed header render: the item's values against what was drawn (max 12) |
+| `feedfilter: list refused ad@user by=…` | an ad was refused at insertion, with six app frames. The ad paths that have no page or setter above them are named here (max 100) |
+| `feedfilter: launch preload skipped by the switch` | the preload gate answered `false`; the feed starts on a normal request (max 100) |
+| `feedfilter: cache items=N kept=K removed=R dropped=[…]` | the feed cache as it is written: what the copy kept and what it dropped, so the launch page's content is known before it is stored (max 100) |
+| `feedfilter: first feed insert @user by=…` | an item was accepted into an **empty** feed list, with the three frames that put it there. The launch video's path is named here instead of guessed; the first three only |
+| `feedfilter: feed storage refused item@user` | a filtered item was refused at a list insert. With the refusal absolute, this line means the item is gone, not kept |
 | `feedfilter: items=N removed=R ads=A likes[M..MAX]=L … dropped=[…]` | one list: how many items it held, how many each filter removed (each count filter with the bound it enforced), how many had no readable statistics, how many ad slots the page carried, and the reason for the first few drops. Written for every call that dropped something (max 100) and the first few that did not (6) |
 | `state: Build bN … Log: <path>` | the About block, written when it is tapped for copying |
 | `file sink: <path>` | where the log file went, once per process |

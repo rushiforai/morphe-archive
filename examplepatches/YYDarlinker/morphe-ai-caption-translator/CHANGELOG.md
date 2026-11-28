@@ -1,3 +1,13 @@
+## [2.0.0](https://github.com/YYDarlinker/morphe-ai-caption-translator/compare/v1.6.2...v2.0.0) (2026-11-28)
+
+### ⚠ BREAKING CHANGES
+
+* Patcher 2.6.0 requires Morphe Manager 2.8.0 or newer, or Morphe Desktop 2.4.0 or newer.
+
+### ✨ New Features
+
+* upgrade to Morphe Patcher 2.6.0 and refine caption controls ([2ea165a](https://github.com/YYDarlinker/morphe-ai-caption-translator/commit/2ea165ad14030f39c4b59d1cbed4c27610aed9de))
+
 ## [1.6.2](https://github.com/YYDarlinker/morphe-ai-caption-translator/compare/v1.6.1...v1.6.2) (2026-11-17)
 
 - Adapted to the latest Morphe Patches version.

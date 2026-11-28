@@ -76,6 +76,7 @@ val hideSubscriptionPromptsPatch = bytecodePatch(
     name = "Hide subscription prompts",
     description = "Removes the \"Sale\" bar in articles, the Subscribe links, and the subscription pop-ups.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

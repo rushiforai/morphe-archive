@@ -1,3 +1,69 @@
+## [1.5.0](https://github.com/southstar21dev/southstar21-patches/compare/v1.4.0...v1.5.0) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **Instagram:** Feed header stays readable over posts and the stories tray ([f652668](https://github.com/southstar21dev/southstar21-patches/commit/f652668488b68e55c736559c3a4e3ec142eff7b8))
+* **Instagram:** Glass no longer glows brighter than the app in HDR mode ([b3ca394](https://github.com/southstar21dev/southstar21-patches/commit/b3ca3946985d47034f050126bbc4c096c37f41a3))
+* **Instagram:** Reels caption and buttons no longer vanish after switching tabs ([548361f](https://github.com/southstar21dev/southstar21-patches/commit/548361f57ecc05c8964f6853aeefe49118aba54a))
+* **Instagram:** Reels shrink into a card above the comments and share sheets ([ad756f5](https://github.com/southstar21dev/southstar21-patches/commit/ad756f59181ecf7a268d498d978922e83e3c97f1))
+* **Instagram:** Reels strip no longer hides the caption and seek bar ([679300b](https://github.com/southstar21dev/southstar21-patches/commit/679300b21d61d524fcf6d1826d911b2f313b9bfb))
+* **Instagram:** Share and comments glass no longer breaks over SurfaceView videos ([8e28082](https://github.com/southstar21dev/southstar21-patches/commit/8e28082754957aed638327d943c15ffa08c4f427)), closes [#23](https://github.com/southstar21dev/southstar21-patches/issues/23)
+* **Instagram:** Sheets cover the gesture bar strip over pages behind the bar ([4182b63](https://github.com/southstar21dev/southstar21-patches/commit/4182b63051d4d8e625507a811478a441cddfd3a0))
+* **Spotify:** Patch description no longer mentions the green selected tab ([d12689b](https://github.com/southstar21dev/southstar21-patches/commit/d12689bf4486d368fa8df1675d421639325fc9c7))
+
+### ✨ New Features
+
+* **Instagram:** Full screen Reels, with switches for it and the white title ([ac9a5be](https://github.com/southstar21dev/southstar21-patches/commit/ac9a5be1934ffe0e00d3b97c899e06a22c1c6f94))
+* **Instagram:** Glass comments setting ([668c653](https://github.com/southstar21dev/southstar21-patches/commit/668c653caf149404ce8e620a84ce7de5f8352b8b))
+
+## [1.5.0-dev.6](https://github.com/southstar21dev/southstar21-patches/compare/v1.5.0-dev.5...v1.5.0-dev.6) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **Spotify:** Patch description no longer mentions the green selected tab ([d12689b](https://github.com/southstar21dev/southstar21-patches/commit/d12689bf4486d368fa8df1675d421639325fc9c7))
+
+## [1.5.0-dev.5](https://github.com/southstar21dev/southstar21-patches/compare/v1.5.0-dev.4...v1.5.0-dev.5) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **Instagram:** Reels shrink into a card above the comments and share sheets ([ad756f5](https://github.com/southstar21dev/southstar21-patches/commit/ad756f59181ecf7a268d498d978922e83e3c97f1))
+
+### ✨ New Features
+
+* **Instagram:** Full screen Reels, with switches for it and the white title ([ac9a5be](https://github.com/southstar21dev/southstar21-patches/commit/ac9a5be1934ffe0e00d3b97c899e06a22c1c6f94))
+
+## [1.5.0-dev.4](https://github.com/southstar21dev/southstar21-patches/compare/v1.5.0-dev.3...v1.5.0-dev.4) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **Instagram:** Feed header stays readable over posts and the stories tray ([f652668](https://github.com/southstar21dev/southstar21-patches/commit/f652668488b68e55c736559c3a4e3ec142eff7b8))
+* **Instagram:** Glass no longer glows brighter than the app in HDR mode ([b3ca394](https://github.com/southstar21dev/southstar21-patches/commit/b3ca3946985d47034f050126bbc4c096c37f41a3))
+
+## [1.5.0-dev.3](https://github.com/southstar21dev/southstar21-patches/compare/v1.5.0-dev.2...v1.5.0-dev.3) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **Instagram:** Reels caption and buttons no longer vanish after switching tabs ([548361f](https://github.com/southstar21dev/southstar21-patches/commit/548361f57ecc05c8964f6853aeefe49118aba54a))
+
+## [1.5.0-dev.2](https://github.com/southstar21dev/southstar21-patches/compare/v1.5.0-dev.1...v1.5.0-dev.2) (2026-11-26)
+
+### 🐛 Bug Fixes
+
+* **Instagram:** Share and comments glass no longer breaks over SurfaceView videos ([8e28082](https://github.com/southstar21dev/southstar21-patches/commit/8e28082754957aed638327d943c15ffa08c4f427)), closes [#23](https://github.com/southstar21dev/southstar21-patches/issues/23)
+
+## [1.5.0-dev.1](https://github.com/southstar21dev/southstar21-patches/compare/v1.4.1-dev.1...v1.5.0-dev.1) (2026-11-24)
+
+### ✨ New Features
+
+* **Instagram:** Glass comments setting ([668c653](https://github.com/southstar21dev/southstar21-patches/commit/668c653caf149404ce8e620a84ce7de5f8352b8b))
+
+## [1.4.1-dev.1](https://github.com/southstar21dev/southstar21-patches/compare/v1.4.0...v1.4.1-dev.1) (2026-11-24)
+
+### 🐛 Bug Fixes
+
+* **Instagram:** Reels strip no longer hides the caption and seek bar ([679300b](https://github.com/southstar21dev/southstar21-patches/commit/679300b21d61d524fcf6d1826d911b2f313b9bfb))
+* **Instagram:** Sheets cover the gesture bar strip over pages behind the bar ([4182b63](https://github.com/southstar21dev/southstar21-patches/commit/4182b63051d4d8e625507a811478a441cddfd3a0))
+
 ## [1.4.0](https://github.com/southstar21dev/southstar21-patches/compare/v1.3.0...v1.4.0) (2026-11-24)
 
 ### 🐛 Bug Fixes

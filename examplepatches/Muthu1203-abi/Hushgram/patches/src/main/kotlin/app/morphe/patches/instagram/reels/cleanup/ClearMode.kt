@@ -1,0 +1,1362 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.morphe.patches.instagram.reels.cleanup
+
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.instagram.misc.extension.classesAccessing
+import app.morphe.patches.instagram.misc.extension.classesLoadingString
+import app.morphe.patches.instagram.misc.extension.classesTouching
+import app.morphe.patches.instagram.misc.extension.freeLocalsAt
+import app.morphe.patches.instagram.misc.extension.jumpTargets
+import app.morphe.patches.instagram.misc.extension.loadsString
+import app.morphe.patches.instagram.misc.extension.localRegisterCount
+import app.morphe.patches.instagram.misc.extension.markers
+import app.morphe.patches.instagram.misc.extension.parameterRegisterNumber
+import app.morphe.patches.instagram.misc.extension.patchLog
+import app.morphe.patches.instagram.misc.extension.requireParameterIntact
+import app.morphe.patches.instagram.misc.extension.requireThisIntact
+import app.morphe.patches.instagram.misc.extension.stringLoadedAt
+import app.morphe.patches.instagram.misc.extension.typesMarked
+import app.morphe.util.ControlFlow
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Field
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import java.util.BitSet
+
+/** What every failure to place Keep clear mode on starts with, before ": " and the detail. */
+internal const val KEEP_CLEAR_MODE = "Clean up Reels: Keep clear mode on"
+private const val KEEP = KEEP_CLEAR_MODE
+
+internal const val CLEAR_MODE = "$EXTENSION_PACKAGE/reels/ReelClearMode;"
+internal const val CLEAR_MODE_ENTERED = "$CLEAR_MODE->entered(Ljava/lang/Object;Ljava/lang/Object;)V"
+internal const val CLEAR_MODE_LEFT = "$CLEAR_MODE->left(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V"
+internal const val CLEAR_MODE_CURRENT = "$CLEAR_MODE->current(Ljava/lang/Object;)Ljava/lang/Object;"
+internal const val CLEAR_MODE_PAGED = "$CLEAR_MODE->paged()V"
+internal const val CLEAR_MODE_BUILT = "$CLEAR_MODE->built(Ljava/lang/Object;)V"
+internal const val CLEAR_MODE_SCRUBBER = "$CLEAR_MODE->scrubber(II)Z"
+internal const val CLEAR_MODE_CHROME_ALPHA = "$CLEAR_MODE->chrome(Ljava/lang/Object;FF)F"
+internal const val CLEAR_MODE_SETTLED = "$CLEAR_MODE->settled(Ljava/lang/Object;Ljava/lang/Object;)V"
+internal const val CLEAR_MODE_READY = "$CLEAR_MODE->ready(Ljava/lang/Object;)V"
+internal const val CLEAR_MODE_QUIET = "$CLEAR_MODE->quiet()Z"
+internal const val CLEAR_MODE_ENTER_STUB = "enter"
+internal const val CLEAR_MODE_ID_STUB = "reelId"
+internal const val CLEAR_MODE_ACTION_STUB = "turnOnAction"
+internal const val CLEAR_MODE_SET_ACTION_STUB = "setTurnOnAction"
+internal const val CLEAR_MODE_CHROME_STUB = "setChrome"
+internal const val CLEAR_MODE_LEAVE_STUB = "leave"
+
+/**
+ * The markers, after Instagram's release prefix, of the methods Keep clear mode on changes.
+ * Instagram 450 calls clear mode its fullscreen view. The action handler's two methods turn it on
+ * and off, each through an action the Reels viewer hands it, and the viewer's turn-on action is the
+ * one that reads the reel the pager is on. The exit button a reel in clear mode draws is a
+ * component of its own, and the pager's listener reports each page it lands on. The seek bar row
+ * under a reel draws Instagram's scrubber on long reels, clear mode or not (#277). Every reel page
+ * writes the one alpha its buttons, author row and top bar share through its holder's setter,
+ * which clear mode's fade animates and Instagram resets to shown when it binds a page (#233). The
+ * pager's listener also handles each change of the pager's scroll state, and reads the pager on its
+ * way to rest, which is where a swipe that snapped back shows (#233). The Reels viewer's setup hands
+ * the handler its turn-on action, which is the first moment the handler can turn clear mode on (#138).
+ */
+internal const val CLEAR_MODE_ENABLE = "FullscreenViewActionHandler_handleFullscreenViewEnable"
+internal const val CLEAR_MODE_DISMISS = "FullscreenViewActionHandler_handleFullscreenViewDismiss"
+internal const val CLEAR_MODE_ENABLED = "ClipsViewerNavigatorProvider_handleFullscreenViewEnable"
+internal const val CLEAR_MODE_BUTTON = "ClipsFullscreenViewComponent_render"
+internal const val REEL_PAGE_SELECTED = "ClipsViewerViewPagerListener_onPageSelected"
+internal const val CLEAR_MODE_SCRUBBER_ROW = "ClipsScrubberRowComponent_render"
+internal const val CLEAR_MODE_CHROME = "LithoClipsItemDefinition_Holder_updateChromeAlpha"
+internal const val REEL_SCROLL_STATE = "ClipsViewerViewPagerListener_onScrollStateChanged"
+internal const val CLEAR_MODE_SETUP = "FullscreenViewActionHandler_setFullscreenViewEnableAction"
+
+internal val CLEAR_MODE_MARKERS = listOf(
+    CLEAR_MODE_ENABLE, CLEAR_MODE_DISMISS, CLEAR_MODE_ENABLED, CLEAR_MODE_BUTTON, REEL_PAGE_SELECTED, CLEAR_MODE_SCRUBBER_ROW,
+    CLEAR_MODE_CHROME, REEL_SCROLL_STATE, CLEAR_MODE_SETUP,
+)
+
+/** The reason Instagram turns clear mode off with when a reel leaves the screen, which its enum has to name. */
+internal const val CLEAR_MODE_SWIPED_AWAY = "REELS_VIEWER_SWIPE_OR_EXIT"
+
+/** What the pager's scroll state calls the pager at rest, which its enum has to name for the extension to tell. */
+internal const val REEL_AT_REST = "IDLE"
+
+/** The pager the scroll state change reads. */
+internal const val VIEW_PAGER = "Landroidx/viewpager2/widget/ViewPager2;"
+
+/** What the reel's state names its clear mode flag with in its toString, right before appending it. */
+internal const val CLEAR_MODE_FLAG_NAME = ", isFullscreenViewActive="
+
+/** What Instagram's haptics helper buzzes through (#480). */
+internal const val VIBRATOR = "Landroid/os/Vibrator;"
+
+/** The traces the pager's listener names its page report and its scroll state change with, which 456 keeps where it drops the markers. */
+internal const val REEL_PAGE_SELECTED_TRACE = "ClipsViewerViewPagerListener.onPageSelected"
+internal const val REEL_SCROLL_STATE_TRACE = "ClipsViewerViewPagerListener.onScrollStateChanged"
+
+/** What the handler's turn-on action is on 456, where its callers run it themselves. */
+internal const val FUNCTION1 = "Lkotlin/jvm/functions/Function1;"
+
+private const val OBJECT = "Ljava/lang/Object;"
+private const val STRING = "Ljava/lang/String;"
+
+/**
+ * Clear mode stays on from reel to reel. See the extension's ReelClearMode for the rule.
+ *
+ * The handler's turn-on and turn-off each tell the extension right after their action ran, with
+ * what they were handed. A handler with no action set branches past its call, and the hooks go in
+ * after the call, where that branch doesn't land, so they report only what happened. The viewer's
+ * turn-on passes the reel it read off the pager through the extension before testing it, so a
+ * turn-on the extension asked for can be held back by answering no reel, which Instagram's own test
+ * takes as nothing to do. The pager's listener tells the extension first thing about each page, and
+ * the exit button's render hands over its reel first thing. The seek bar row's render asks the
+ * extension at its test of whether to draw the scrubber, with the answer and the reel state's clear
+ * mode flag, and tests what comes back. The reel holder's chrome alpha setter passes itself and the
+ * alpha it was asked for through the extension, with the one it holds, right after reading that one,
+ * and stores what comes back. The extension's setChrome stub is filled with a call to that setter, so
+ * the pages it kept hidden get their buttons back once clear mode isn't wanted (#740). The pager
+ * listener's scroll state change hands the extension the pager and the state right after reading the
+ * pager. The viewer's setup hands the extension the handler right after setting its turn-on action.
+ * The exit button's render also buzzes as it draws, and the extension is asked right before that
+ * call whether to skip it (#480). The extension's enter and reelId stubs are filled with the
+ * handler's turn-on and the reel's getId.
+ *
+ * 456 has no turn-on method: each caller reads the handler's action and runs it itself. There the
+ * enter stub runs the action the same way, the action's two stubs let the extension wrap it once the
+ * setup has set it, and the wrapper tells the extension after each turn-on, where the turn-on's hook
+ * would have. 456 also draws the seek bar row inside the reel's render, so the scrubber's hook stays out.
+ *
+ * Everything is found by Instagram's own markers, or on 456 by the strings it keeps, and checked
+ * before anything changes, so a build that differs stops the patch saying what it couldn't find,
+ * and nothing is half done.
+ */
+internal fun BytecodePatchContext.keepClearMode() {
+    val found = findClearMode()
+    val stubs = clearModeStubs()
+    applyClearMode(found)
+    stubs.fill(found)
+}
+
+/**
+ * What [findClearMode] finds, or null with a warning when the build differs, so Clean up Reels goes
+ * in without Keep clear mode on rather than not at all. 455's armeabi-v7a build 386113922, an
+ * undeclared one, inlines the handler's turn-on into its three callers but keeps the markers, so
+ * the marker path finds no turn-on there.
+ */
+internal fun BytecodePatchContext.findClearModeWhereItFits(): ClearModeHooks? = try {
+    findClearMode()
+} catch (unknown: PatchException) {
+    patchLog.warning("${unknown.message}. Clean up Reels goes in without Keep clear mode on.")
+    null
+}
+
+/** Every place Keep clear mode on changes, by method and instruction index, and what the stubs reach. */
+internal class ClearModeHooks(
+    /**
+     * The handler's turn-on, and the index after its action's call, or null on a build whose callers
+     * run the turn-on action themselves (456). There the extension wraps the action instead.
+     */
+    val enable: Method?,
+    val entered: Int,
+    /** The handler's field holding its turn-on action, which the setup writes. */
+    val action: String,
+    /**
+     * The handler's turn-off, and the index after its action's call, or null and -1 on a build whose
+     * callers run the turn-off action themselves (457's armeabi-v7a), where [inlined] has those runs.
+     */
+    val dismiss: Method?,
+    val left: Int,
+    /** The viewer's turn-on, the index of its test of the pager's reel, and the register the reel is in. */
+    val enabled: Method,
+    val current: Int,
+    val reel: Int,
+    /** The pager listener's page report. */
+    val paged: Method,
+    /** The exit button's render, and the field of its class holding the reel. */
+    val button: Method,
+    val buttonReel: String,
+    /**
+     * The index of the render's buzz and the local the hook asks the extension into, or null where
+     * the render's buzz couldn't be told apart, which leaves Don't vibrate in clear mode out (#480).
+     */
+    val buzz: Int?,
+    val quiet: Int,
+    /** The handler, the reason's enum and the reel, as types. */
+    val handler: String,
+    val reason: String,
+    val item: String,
+    /**
+     * The seek bar row's hook, or null on a build that draws the row inside the reel's own render
+     * (456), which leaves the scrubber showing in clear mode.
+     */
+    val row: ClearModeRow?,
+    /** The reel holder's chrome alpha setter, the index after it read the alpha it holds, and the register that alpha is in. */
+    val chrome: Method,
+    val hold: Int,
+    val alpha: Int,
+    /** The pager listener's scroll state change, the index after it read the pager, and the registers of the pager and the state. */
+    val scrolled: Method,
+    val settle: Int,
+    val pager: Int,
+    val scrollState: Int,
+    /** The viewer's setup, the index after it set the handler's turn-on action, and the register the handler is in. */
+    val setup: Method,
+    val ready: Int,
+    val readyHandler: Int,
+    /**
+     * How many instructions the turn-on, the turn-off, the viewer's turn-on, the row, the chrome
+     * setter, the scroll state change, the viewer's setup and the exit button's render had when
+     * their places were found, leaving out the turn-on, the turn-off and the row where there are
+     * none, then each method of [inlined]'s runs.
+     */
+    val lengths: List<Int>,
+    /** The handler's turn-off where its callers run its action themselves, or null where it has its own. */
+    val inlined: InlinedTurnOff? = null,
+)
+
+/**
+ * The handler's turn-off on a build that inlines it into its callers (457's armeabi-v7a 386314340):
+ * the handler's field holding the turn-off action, the action's call, whether that call takes the
+ * reason ahead of the reel, and each caller's run of the action, where the turn-off's hook goes.
+ */
+internal class InlinedTurnOff(val action: String, val call: String, val reasonFirst: Boolean, val runs: List<TurnOffRun>)
+
+/**
+ * One caller's run of the turn-off action: [method], the index right after the action's call where
+ * the hook goes, and the registers it hands over there, the handler's, the reel's and the reason's.
+ * Where the action's read ([read]) writes over the handler, it's kept in the local [copy] from right
+ * before that read, out of [source].
+ */
+internal class TurnOffRun(
+    val method: Method,
+    val after: Int,
+    val handler: Int,
+    val reel: Int,
+    val reason: Int,
+    val read: Int,
+    val source: Int,
+    val copy: Int?,
+)
+
+/**
+ * The seek bar row's render, the index of its test of whether to draw the scrubber, the register
+ * tested, and the local the hook borrows to read the clear mode flag into. Then the row's field
+ * holding its state, that state's field holding the reel's, and the reel state's clear mode flag.
+ */
+internal class ClearModeRow(
+    val method: Method,
+    val scrubber: Int,
+    val shown: Int,
+    val borrowed: Int,
+    val rowState: String,
+    val reelState: String,
+    val flag: String,
+)
+
+/**
+ * Finds every place by Instagram's markers where the build has them, and by what 456 keeps where
+ * it drops them all: the reason's swipe away, the pager listener's traces and the reel state's
+ * clear mode flag.
+ */
+internal fun BytecodePatchContext.findClearMode(): ClearModeHooks {
+    val holders = typesMarked(*CLEAR_MODE_MARKERS.toTypedArray())
+    return if (holders.isEmpty()) findClearModeByAnchors() else findClearModeByMarkers(holders)
+}
+
+private fun BytecodePatchContext.findClearModeByMarkers(holders: Set<String>): ClearModeHooks {
+    val wanted = CLEAR_MODE_MARKERS.toSet()
+    val marked = mutableMapOf<String, MutableList<Method>>()
+    classDefForEach { classDef ->
+        if (classDef.type !in holders) return@classDefForEach
+        classDef.methods.forEach { method ->
+            method.markers().filter { it in wanted }.distinct().forEach { marked.getOrPut(it) { mutableListOf() } += method }
+        }
+    }
+    fun single(marker: String): Method {
+        val found = marked[marker].orEmpty()
+        return found.singleOrNull() ?: stop("expected one method marked $marker, found ${found.size}")
+    }
+
+    // The handler's turn-on: a public instance method taking the reason, which runs one action with it.
+    val enable = single(CLEAR_MODE_ENABLE)
+    val handler = enable.definingClass
+    val handlerClass = classDefByOrNull(handler) ?: stop("the handler $handler isn't in the app")
+    if (enable.isStatic() || !enable.isPublic() || enable.returnType != "V" || enable.parameterTypes.size != 1 ||
+        !AccessFlags.PUBLIC.isSet(handlerClass.accessFlags)
+    ) {
+        stop("${enable.describe()}, marked $CLEAR_MODE_ENABLE, isn't a public instance method of a public class taking the reason")
+    }
+    val reason = enable.parameterTypes.single().toString()
+    requireReason(classDefByOrNull(reason) ?: stop("the reason $reason isn't in the app"))
+    val entered = enable.afterAction(listOf(0))
+
+    // The handler's turn-off: the same class, taking the reel and the reason, which runs one action with both.
+    val dismiss = single(CLEAR_MODE_DISMISS)
+    if (dismiss.definingClass != handler) stop("$CLEAR_MODE_DISMISS isn't in $handler")
+    if (dismiss.isStatic() || dismiss.returnType != "V" || dismiss.parameterTypes.size != 2 ||
+        dismiss.parameterTypes[1].toString() != reason
+    ) {
+        stop("${dismiss.describe()}, marked $CLEAR_MODE_DISMISS, isn't an instance (reel, reason) method")
+    }
+    val item = dismiss.parameterTypes[0].toString()
+    requireReel(item)
+    val left = dismiss.afterAction(listOf(0, 1))
+
+    val enabled = single(CLEAR_MODE_ENABLED)
+    val (current, reel) = enabled.viewerTurnOn(item)
+
+    val paged = single(REEL_PAGE_SELECTED)
+    paged.requirePageReport("marked $REEL_PAGE_SELECTED")
+
+    val button = single(CLEAR_MODE_BUTTON)
+    val exit = exitButton(button, item, "marked $CLEAR_MODE_BUTTON")
+
+    // The seek bar row's render: an instance method taking the scope, in a class holding its state,
+    // whose state holds the reel's. The reel's state is the class whose toString names the clear mode flag.
+    val row = single(CLEAR_MODE_SCRUBBER_ROW)
+    if (row.isStatic() || row.parameterTypes.size != 1 || !row.returnType.startsWith("L") || row.implementation == null) {
+        stop("${row.describe()}, marked $CLEAR_MODE_SCRUBBER_ROW, isn't a render taking one scope and answering a component")
+    }
+    val flagged = reelStateNames()
+    val held = classDefBy(row.definingClass).instanceFields.flatMap { holder ->
+        classDefByOrNull(holder.type)?.instanceFields?.filter { it.type in flagged }?.map { holder to it }.orEmpty()
+    }
+    val (rowState, reelState) = held.singleOrNull()
+        ?: stop("the seek bar row ${row.definingClass} holds a reel state naming its clear mode flag through ${held.size} fields, expected one")
+    val flag = clearModeFlag(flagged.getValue(reelState.type))
+    listOf(rowState, reelState, flag).forEach { field ->
+        if (!readableFrom(field, row.definingClass)) stop("the seek bar row ${row.definingClass} can't read ${field.describe()}")
+    }
+
+    // What the row draws the scrubber from: everything it builds from both the reel and its state.
+    val rowCode = row.body()
+    val children = rowCode.indices.filter { at ->
+        val built = (rowCode[at] as? ReferenceInstruction)?.reference as? TypeReference
+        rowCode[at].opcode == Opcode.NEW_INSTANCE && built != null &&
+            classDefByOrNull(built.type)?.methods?.any { constructor ->
+                constructor.name == "<init>" && constructor.parameterTypes.map(Any::toString).let { item in it && reelState.type in it }
+            } == true
+    }
+    if (children.isEmpty()) stop("${row.describe()} builds nothing from the reel and its state, so there's no scrubber to hold back")
+
+    // The test of whether to draw the scrubber: the one test of an unboxed yes or no that skips
+    // everything the scrubber is built from when no, and leads to all of it when yes.
+    val flow = ControlFlow.of(row)
+    val tests = rowCode.indices.filter { at ->
+        val test = rowCode[at] as? OneRegisterInstruction
+        val kept = rowCode.getOrNull(at - 1) as? OneRegisterInstruction
+        val unboxed = rowCode.getOrNull(at - 2)?.methodReference()
+        test != null && kept != null && test.opcode == Opcode.IF_EQZ && kept.opcode == Opcode.MOVE_RESULT &&
+            kept.registerA == test.registerA && unboxed?.definingClass == "Ljava/lang/Boolean;" && unboxed.name == "booleanValue"
+    }.filter { at ->
+        val skipped = flow.reachedFrom(flow.normal[at].first())
+        val passed = flow.reachedFrom(at + 1)
+        children.none { skipped[it] } && children.all { passed[it] }
+    }
+    val scrubber = tests.singleOrNull() ?: stop("${row.describe()} tests whether to draw the scrubber ${tests.size} times, expected once")
+    val shown = (rowCode[scrubber] as OneRegisterInstruction).registerA
+    if (scrubber in row.jumpTargets()) stop("${row.describe()} jumps to its test of the scrubber, so the hook would be skipped")
+    if (shown > 15) stop("${row.describe()} tests the scrubber in v$shown, which the hook's call can't name")
+    row.requireThisIntact(KEEP, listOf(scrubber))
+    val borrowed = row.freeLocalsAt(KEEP, scrubber, 1, except = listOf(shown)).single()
+    val rowSite = ClearModeRow(row, scrubber, shown, borrowed, rowState.describe(), reelState.describe(), flag.describe())
+
+    val chrome = single(CLEAR_MODE_CHROME)
+    val (hold, alpha) = chromeSetter(chrome, "marked $CLEAR_MODE_CHROME")
+
+    val scrolled = single(REEL_SCROLL_STATE)
+    val (settle, pager, scrollState) = scrollStateChange(scrolled, "marked $REEL_SCROLL_STATE")
+
+    // The viewer's setup: the one write of the field the handler's turn-on reads its action from.
+    val actions = enable.body().filter { it.opcode == Opcode.IGET_OBJECT }
+        .map { (it as ReferenceInstruction).reference as FieldReference }.filter { it.definingClass == handler }
+    val action = actions.singleOrNull()
+        ?: stop("${enable.describe()} reads ${actions.size} fields of its own, expected its action alone")
+    val setup = single(CLEAR_MODE_SETUP)
+    val (ready, readyHandler) = afterSetting(setup, action)
+
+    val every = listOf(enable, dismiss, enabled, paged, button, row, chrome, scrolled, setup).map { it.describe() }
+    if (every.toSet().size != every.size) stop("two hooks would go in one method: $every")
+
+    return ClearModeHooks(
+        enable, entered, action.describe(), dismiss, left, enabled, current, reel, paged, button,
+        exit.reel.describe(), exit.buzz, exit.quiet, handler, reason, item,
+        rowSite,
+        chrome, hold, alpha,
+        scrolled, settle, pager, scrollState,
+        setup, ready, readyHandler,
+        listOf(enable, dismiss, enabled, row, chrome, scrolled, setup, button).map { it.body().size },
+    )
+}
+
+/**
+ * The anchor path, for 456, which drops all nine markers and runs the handler's turn-on action
+ * wherever it turns clear mode on, so there's no turn-on to hook or call. The reason is the enum
+ * naming the swipe away. The handler's turn-on action is the Function1 its callers read off the
+ * handler and run with one of the reason's constants, and the handler's turn-off is its method
+ * taking the reel and the reason. The setup is the one method writing the action, and the viewer's
+ * turn-on is the one method of the setup's class taking the reason and reading the reel off the
+ * pager once. The reel holder is the class the viewer's turn-on tells the page's tag by, the pager
+ * listener's two methods load their own traces, and the exit button is the class holding the reel,
+ * its state and the handler whose render reads the state's clear mode flag. The seek bar row has no
+ * method of its own here, so the scrubber stays out of it. 457's armeabi-v7a also inlines the
+ * turn-off into its callers, which read the turn-off action off the handler and run it with one of
+ * the reason's constants and the reel, so each of those runs gets the turn-off's hook.
+ */
+private fun BytecodePatchContext.findClearModeByAnchors(): ClearModeHooks {
+    val anchors = clearModeAnchors()
+    val reason = anchors.reason.type
+    val action = anchors.action
+    val handler = action.definingClass
+    val item = anchors.item
+    val dismiss = anchors.dismiss
+    val left = dismiss?.afterAction(listOf(0, 1)) ?: -1
+    val inlined = if (dismiss == null) inlinedTurnOff(handler, anchors.runs) else null
+
+    // The viewer's setup: the one method writing the action.
+    val setups = classesAccessing(handler, action.name, Opcode.IPUT_OBJECT).flatMap { it.methods }.filter { method ->
+        method.body().any { it.opcode == Opcode.IPUT_OBJECT && it.fieldReference()?.describe() == action.describe() }
+    }
+    val setup = setups.singleOrNull() ?: stop("expected one method setting ${action.describe()}, found ${setups.size}")
+    val (ready, readyHandler) = afterSetting(setup, action)
+
+    // The viewer's turn-on: the setup's class's one method taking the reason that reads the reel off the pager once.
+    val turnOns = classDefBy(setup.definingClass).methods.filter { method ->
+        method.returnType == "V" && reason in method.parameterTypes.map(Any::toString) && method.pagerReads(item).size == 1
+    }
+    val enabled = turnOns.singleOrNull()
+        ?: stop("${setup.definingClass} has ${turnOns.size} methods taking the reason and reading the reel once, expected one")
+    val (current, reel) = enabled.viewerTurnOn(item)
+
+    // The reel holder: what the viewer's turn-on tells the page's tag by, with one instance method taking the alpha.
+    val tagged = enabled.body().filter { it.opcode == Opcode.INSTANCE_OF }
+        .mapNotNull { ((it as ReferenceInstruction).reference as? TypeReference)?.type }.distinct()
+    val setters = tagged.flatMap { type ->
+        classDefByOrNull(type)?.methods?.filter { !it.isStatic() && it.returnType == "V" && it.parameterTypes.map(Any::toString) == listOf("F") }
+            ?: emptyList()
+    }
+    val chrome = setters.singleOrNull()
+        ?: stop("${enabled.describe()} tells reel holders with ${setters.size} alpha setters by type, expected one")
+    val (hold, alpha) = chromeSetter(chrome, "the holder ${enabled.describe()} tells by type")
+
+    val paged = traced(REEL_PAGE_SELECTED_TRACE)
+    paged.requirePageReport("loading \"$REEL_PAGE_SELECTED_TRACE\"")
+    val scrolled = traced(REEL_SCROLL_STATE_TRACE)
+    val (settle, pager, scrollState) = scrollStateChange(scrolled, "loading \"$REEL_SCROLL_STATE_TRACE\"")
+
+    val button = anchoredButton(anchors)
+    val exit = exitButton(button, item, "reading the reel state's clear mode flag")
+
+    patchLog.warning("$KEEP: this build draws the seek bar row inside the reel's render, so the scrubber shows in clear mode on long reels")
+
+    val runs = inlined?.runs.orEmpty().map { it.method }
+    val every = (listOfNotNull(dismiss, enabled, paged, button, chrome, scrolled, setup) + runs).map { it.describe() }
+    if (every.toSet().size != every.size) stop("two hooks would go in one method: $every")
+
+    return ClearModeHooks(
+        null, -1, action.describe(), dismiss, left, enabled, current, reel, paged, button,
+        exit.reel.describe(), exit.buzz, exit.quiet, handler, reason, item,
+        null,
+        chrome, hold, alpha,
+        scrolled, settle, pager, scrollState,
+        setup, ready, readyHandler,
+        (listOfNotNull(dismiss, enabled, chrome, scrolled, setup, button) + runs).map { it.body().size },
+        inlined,
+    )
+}
+
+/**
+ * What the anchor path reads first: the reason, the handler's turn-on action, its turn-off and the
+ * reel that takes, or where the turn-off is inlined, no turn-off and the callers' [runs] of its action.
+ */
+private class ClearModeAnchors(
+    val reason: ClassDef,
+    val action: FieldReference,
+    val dismiss: Method?,
+    val item: String,
+    val runs: List<TurnOffSite> = emptyList(),
+)
+
+/**
+ * A caller's run of the handler's turn-off action, found by what it reads and hands over: [method],
+ * the index of the action's [call], the handler's field holding the action ([action]), the registers
+ * of the handler it's read off, the reel and the reason, whether the call takes the reason first, and
+ * the reel's type where the register's last write before the call tells it.
+ */
+private class TurnOffSite(
+    val method: Method,
+    val call: Int,
+    val action: FieldReference,
+    val invoked: MethodReference,
+    val handler: Int,
+    val reel: Int,
+    val reason: Int,
+    val reasonFirst: Boolean,
+    val reelType: String?,
+)
+
+private fun BytecodePatchContext.clearModeAnchors(): ClearModeAnchors {
+    val reasons = classesLoadingString(CLEAR_MODE_SWIPED_AWAY).filter {
+        it.superclass == "Ljava/lang/Enum;" && CLEAR_MODE_SWIPED_AWAY in it.namedConstants()
+    }
+    val reason = reasons.singleOrNull() ?: stop("expected one enum naming $CLEAR_MODE_SWIPED_AWAY, found ${reasons.size}")
+    requireReason(reason)
+    fun turnOff(holder: String) = classDefByOrNull(holder)?.methods?.filter { method ->
+        !method.isStatic() && method.returnType == "V" && method.parameterTypes.size == 2 &&
+            method.parameterTypes[1].toString() == reason.type
+    } ?: emptyList()
+
+    // Every Function1 read off a class with a turn-off and run with one of the reason's constants. A
+    // class whose turn-off its callers inline (457's armeabi-v7a) has a field they run with a constant
+    // of the reason and the reel instead.
+    val constants = reason.fields.filter { AccessFlags.STATIC.isSet(it.accessFlags) && it.type == reason.type }
+    val callers = constants.flatMap { classesTouching(reason.type, it.name) }.distinctBy { it.type }
+    val inlined = callers.flatMap { it.methods }.flatMap { it.turnOffRuns(reason.type) }
+    fun turnsOff(holder: String) = turnOff(holder).isNotEmpty() || inlined.any { it.action.definingClass == holder }
+    val actions = callers.flatMap { it.methods }.flatMap { method ->
+        val code = method.body()
+        code.indices.mapNotNull { at ->
+            val call = code[at].methodReference()
+            val registers = code[at].registers()
+            if ((code[at].opcode != Opcode.INVOKE_INTERFACE && code[at].opcode != Opcode.INVOKE_INTERFACE_RANGE) || call == null ||
+                call.definingClass != FUNCTION1 || call.name != "invoke" || registers.size != 2
+            ) {
+                return@mapNotNull null
+            }
+            val constant = code.lastWrite(registers[1], at)?.takeIf { it.opcode == Opcode.SGET_OBJECT }?.fieldReference()
+            val read = code.lastWrite(registers[0], at)?.takeIf { it.opcode == Opcode.IGET_OBJECT }?.fieldReference()
+            read?.takeIf { constant?.definingClass == reason.type && it.type == FUNCTION1 && turnsOff(it.definingClass) }
+        }
+    }.distinctBy { it.describe() }
+    val action = actions.singleOrNull()
+        ?: stop("expected one Function1 run with a constant of ${reason.type}, found ${actions.map { it.describe() }}")
+    val handler = action.definingClass
+    val handlerClass = classDefBy(handler)
+    val field = handlerClass.instanceFields.singleOrNull { it.name == action.name && it.type == FUNCTION1 }
+        ?: stop("$handler has no instance field ${action.name}")
+    if (!AccessFlags.PUBLIC.isSet(handlerClass.accessFlags) || !AccessFlags.PUBLIC.isSet(field.accessFlags) ||
+        AccessFlags.FINAL.isSet(field.accessFlags)
+    ) {
+        stop("${action.describe()} isn't a public field of a public class the extension can set")
+    }
+
+    val turnOffs = turnOff(handler)
+    if (turnOffs.isEmpty()) {
+        val runs = inlined.filter { it.action.definingClass == handler }
+        val items = runs.mapNotNull { it.reelType }.distinct()
+        val item = items.singleOrNull()
+            ?: stop("$handler's turn-off action is run with reels of ${items.size} types, expected one: $items")
+        requireReel(item)
+        return ClearModeAnchors(reason, action, null, item, runs)
+    }
+    val dismiss = turnOffs.singleOrNull() ?: stop("$handler has ${turnOffs.size} instance (reel, reason) methods, expected one")
+    val item = dismiss.parameterTypes[0].toString()
+    requireReel(item)
+    return ClearModeAnchors(reason, action, dismiss, item)
+}
+
+/**
+ * Where [this] method runs a turn-off action itself: an interface call of an action taking two
+ * objects and answering one, read off a field of the handler right before and tested for null, handed
+ * a constant of the [reason] and the reel. 457's armeabi-v7a's callers of the inlined turn-off do just
+ * that (0BfQ.A03, 0Hiu.invoke, 0HhP.invoke and 0BgQ.A0A on 386314340).
+ */
+private fun Method.turnOffRuns(reason: String): List<TurnOffSite> {
+    val code = body()
+    return code.indices.mapNotNull { at ->
+        val call = code[at].methodReference() ?: return@mapNotNull null
+        val registers = code[at].registers()
+        if (code[at].opcode != Opcode.INVOKE_INTERFACE || call.name != "invoke" || call.returnType != OBJECT ||
+            call.parameterTypes.map(Any::toString) != listOf(OBJECT, OBJECT) || registers.size != 3
+        ) {
+            return@mapNotNull null
+        }
+        val test = code.getOrNull(at - 1) ?: return@mapNotNull null
+        val read = code.getOrNull(at - 2) ?: return@mapNotNull null
+        val action = read.fieldReference() ?: return@mapNotNull null
+        if (test.opcode != Opcode.IF_EQZ || (test as OneRegisterInstruction).registerA != registers[0] ||
+            read.opcode != Opcode.IGET_OBJECT || (read as TwoRegisterInstruction).registerA != registers[0] || action.type != call.definingClass
+        ) {
+            return@mapNotNull null
+        }
+        val constants = registers.drop(1).map { register ->
+            code.lastWrite(register, at)?.takeIf { it.opcode == Opcode.SGET_OBJECT }?.fieldReference()?.definingClass == reason
+        }
+        if (constants.count { it } != 1) return@mapNotNull null
+        val reasonFirst = constants[0]
+        val reel = if (reasonFirst) registers[2] else registers[1]
+        TurnOffSite(
+            this, at, action, call, read.registerB, reel, if (reasonFirst) registers[1] else registers[2], reasonFirst,
+            typeHeld(code, reel, at),
+        )
+    }
+}
+
+/**
+ * The type [register] holds at instruction [at], by its last write before it, read in order: the
+ * field it was read from, the type it was cast to, the answer of the call right before, or its
+ * parameter's type when nothing wrote it. Null when the write tells nothing.
+ */
+private fun Method.typeHeld(code: List<Instruction>, register: Int, at: Int): String? {
+    val write = (at - 1 downTo 0).firstOrNull { code[it].writes(register) } ?: return parameterTypeIn(register)
+    val written = code[write]
+    return when (written.opcode) {
+        Opcode.IGET_OBJECT, Opcode.SGET_OBJECT -> written.fieldReference()?.type
+        Opcode.CHECK_CAST -> ((written as ReferenceInstruction).reference as? TypeReference)?.type
+        Opcode.MOVE_RESULT_OBJECT -> code.getOrNull(write - 1)?.methodReference()?.returnType
+        else -> null
+    }
+}
+
+/** The declared type of the parameter (or `this`) [register] holds on entry, or null for a local. */
+private fun Method.parameterTypeIn(register: Int): String? {
+    var next = localRegisterCount()
+    if (!isStatic()) {
+        if (register == next) return definingClass
+        next++
+    }
+    for (type in parameterTypes.map(Any::toString)) {
+        if (register == next) return type
+        next += if (type == "J" || type == "D") 2 else 1
+    }
+    return null
+}
+
+/**
+ * The turn-off's [runs] on a build that inlines it, checked before anything changes: they read one
+ * public field of the [handler] and make one call, the extension can reach both, and the hook can go
+ * right after each call with the handler, the reel and the reason in hand. Where the action's read
+ * writes over the handler, a free local keeps it from right before that read.
+ */
+private fun BytecodePatchContext.inlinedTurnOff(handler: String, runs: List<TurnOffSite>): InlinedTurnOff {
+    if (runs.isEmpty()) stop("$handler has no turn-off, and nothing runs a turn-off action read off it")
+    val fields = runs.map { it.action.describe() }.distinct()
+    val action = runs.first().action.takeIf { fields.size == 1 } ?: stop("the turn-off's runs read ${fields.size} fields of $handler: $fields")
+    val calls = runs.map { it.invoked.toString() }.distinct()
+    val call = calls.singleOrNull() ?: stop("the turn-off's runs make ${calls.size} calls: $calls")
+    val orders = runs.map { it.reasonFirst }.distinct()
+    val reasonFirst = orders.singleOrNull() ?: stop("the turn-off's runs hand the reason and the reel over in both orders")
+    val field = classDefBy(handler).instanceFields.singleOrNull { it.name == action.name && it.type == action.type }
+        ?: stop("$handler has no instance field ${action.name}")
+    val actionClass = classDefByOrNull(action.type)
+    if (!AccessFlags.PUBLIC.isSet(field.accessFlags) || actionClass == null || !AccessFlags.PUBLIC.isSet(actionClass.accessFlags)) {
+        stop("${action.describe()} isn't a public field of a public type the extension can run")
+    }
+    return InlinedTurnOff(action.describe(), call, reasonFirst, runs.map { it.hooked() })
+}
+
+/** Where [this] run's hook goes, after checking it fits there. */
+private fun TurnOffSite.hooked(): TurnOffRun {
+    val code = method.body()
+    val after = call + 1
+    if (after >= code.size) stop("${method.describe()} ends at its turn-off action's call")
+    // A hook between a call and the move that keeps its result leaves a class that won't verify.
+    if (code[after].opcode == Opcode.MOVE_RESULT_OBJECT) {
+        stop("${method.describe()} keeps what the turn-off action answers, so no hook can go right after the call")
+    }
+    if (reel > 15 || reason > 15) stop("${method.describe()} runs the turn-off action with v$reel and v$reason, which the hook's call can't name")
+    val read = call - 2
+    val runner = code[call].registers()[0]
+    if (handler != runner && handler <= 15) return TurnOffRun(method, after, handler, reel, reason, read, handler, null)
+    // The action's read writes over the handler (0Hiu.invoke's iget-object v0, v0), so it's kept from right before.
+    if (read in method.jumpTargets()) stop("${method.describe()} jumps to its read of the turn-off action, so the handler can't be kept for the hook")
+    val copy = method.freeLocalsAt(KEEP, read, 1, except = listOf(runner, reel, reason)).single()
+    return TurnOffRun(method, after, copy, reel, reason, read, handler, copy)
+}
+
+/** The one method loading [trace] (one of the pager listener's), however the build keeps the string. */
+private fun BytecodePatchContext.traced(trace: String): Method {
+    val found = classesLoadingString(trace).flatMap { holder -> holder.methods.filter { loadsString(it, trace) } }
+    return found.singleOrNull() ?: stop("expected one method loading \"$trace\", found ${found.size}")
+}
+
+/**
+ * The exit button's render found by [anchors]: the one instance render taking one scope, in a class
+ * holding the reel, its state and the handler, that reads the reel state's clear mode flag.
+ */
+private fun BytecodePatchContext.anchoredButton(anchors: ClearModeAnchors): Method {
+    val flag = reelClearModeFlag()
+    val state = flag.definingClass
+    val wanted = setOf(anchors.item, state, anchors.action.definingClass)
+    val renders = classesAccessing(state, flag.name, Opcode.IGET_BOOLEAN)
+        .filter { holder -> holder.instanceFields.map { it.type }.containsAll(wanted) }
+        .flatMap { holder ->
+            holder.methods.filter { method ->
+                !method.isStatic() && method.parameterTypes.size == 1 && method.returnType.startsWith("L") &&
+                    method.body().any { it.opcode == Opcode.IGET_BOOLEAN && it.fieldReference()?.describe() == flag.describe() }
+            }
+        }
+    return renders.singleOrNull()
+        ?: stop("expected one render reading ${flag.describe()} in a class holding the reel, its state and the handler, found ${renders.size}")
+}
+
+/**
+ * The exit button's render on a build without its marker (456), for the speaker in clear mode, found
+ * the way Keep clear mode on finds it.
+ */
+internal fun BytecodePatchContext.findClearModeButtonByAnchors(): Method = anchoredButton(clearModeAnchors())
+
+/** Throws unless [reasonClass] is a public enum naming the swipe away, which is how the extension tells a swipe. */
+private fun requireReason(reasonClass: ClassDef) {
+    val reason = reasonClass.type
+    if (reasonClass.superclass != "Ljava/lang/Enum;" || !AccessFlags.PUBLIC.isSet(reasonClass.accessFlags)) {
+        stop("the reason $reason isn't a public enum, so the extension can't tell a swipe from your own way out")
+    }
+    if (CLEAR_MODE_SWIPED_AWAY !in reasonClass.namedConstants()) stop("the reason $reason doesn't name $CLEAR_MODE_SWIPED_AWAY")
+}
+
+/** Throws unless the reel [item] is public with one public getId answering a string, which the reelId stub calls. */
+private fun BytecodePatchContext.requireReel(item: String) {
+    val itemClass = classDefByOrNull(item) ?: stop("the reel $item isn't in the app")
+    if (!AccessFlags.PUBLIC.isSet(itemClass.accessFlags)) stop("the reel $item isn't public, so the extension can't reach it")
+    val ids = itemClass.methods.filter {
+        it.name == "getId" && it.parameterTypes.isEmpty() && it.returnType == STRING && it.isPublic() && !it.isStatic()
+    }
+    if (ids.size != 1) stop("the reel $item has ${ids.size} public getId() answering a string, expected one")
+}
+
+/**
+ * Where [this] method reads the reel the pager is on: a call answering the reel that asks the pager,
+ * or, where Redex folded the pager lookup into it (451's x86 385713117 has LX/03ST->A01), a static
+ * call handed the one thing the pager comes from.
+ */
+private fun Method.pagerReads(item: String): List<Int> {
+    val code = body()
+    return code.indices.filter { at ->
+        val call = code[at].methodReference() ?: return@filter false
+        call.returnType == item &&
+            if (code[at].isStaticCall()) call.parameterTypes.size == 1 else call.parameterTypes.isEmpty()
+    }
+}
+
+/**
+ * The viewer's turn-on: reads the reel the pager is on once, keeps it and tests it for null right
+ * away. Answers the index of the test and the register the reel is in.
+ */
+private fun Method.viewerTurnOn(item: String): Pair<Int, Int> {
+    val code = body()
+    val reads = pagerReads(item)
+    val read = reads.singleOrNull() ?: stop("${describe()} reads the reel the pager is on ${reads.size} times, expected once")
+    val kept = code.getOrNull(read + 1) as? OneRegisterInstruction
+    val test = code.getOrNull(read + 2) as? OneRegisterInstruction
+    if (kept == null || test == null || kept.opcode != Opcode.MOVE_RESULT_OBJECT || test.opcode != Opcode.IF_EQZ ||
+        test.registerA != kept.registerA
+    ) {
+        stop("${describe()} doesn't test the reel for null right after reading it off the pager")
+    }
+    val current = read + 2
+    if (current in jumpTargets()) stop("${describe()} jumps to its test of the reel, so the hook would be skipped")
+    requireNothingWithoutReel(current)
+    return current to kept.registerA
+}
+
+/** Throws unless [this] pager listener's page report, found [how], is an instance (int, int) method returning nothing. */
+private fun Method.requirePageReport(how: String) {
+    if (isStatic() || returnType != "V" || parameterTypes.map(Any::toString) != listOf("I", "I") || implementation == null) {
+        stop("${describe()}, $how, isn't an instance (int, int) method returning nothing")
+    }
+}
+
+/** The exit button's field holding the reel, and where its render buzzes with the local the check asks into. */
+private class ExitButton(val reel: Field, val buzz: Int?, val quiet: Int)
+
+/** The exit button's render, found [how]: an instance method taking the scope, in a class holding the reel once. */
+private fun BytecodePatchContext.exitButton(button: Method, item: String, how: String): ExitButton {
+    if (button.isStatic() || button.parameterTypes.size != 1 || !button.returnType.startsWith("L") || button.implementation == null) {
+        stop("${button.describe()}, $how, isn't a render taking one scope and answering a component")
+    }
+    val reels = classDefBy(button.definingClass).fields.filter { it.type == item && !AccessFlags.STATIC.isSet(it.accessFlags) }
+    val reel = reels.singleOrNull()
+        ?: stop("the exit button ${button.definingClass} holds the reel in ${reels.size} fields, expected one")
+    if (button.localRegisterCount() < 1) stop("${button.describe()} has no local register for the hook")
+    val (buzz, quiet) = clearModeBuzz(button) ?: (null to 0)
+    return ExitButton(reel, buzz, quiet)
+}
+
+/** The reel state's clear mode flag, from the one reel state whose toString names it. */
+internal fun BytecodePatchContext.reelClearModeFlag(): Field {
+    val states = reelStateNames().values.toList()
+    val toString = states.singleOrNull() ?: stop("expected one reel state naming its clear mode flag, found ${states.size}")
+    return clearModeFlag(toString)
+}
+
+/** Every reel state's toString naming its clear mode flag, by the state's type. */
+private fun BytecodePatchContext.reelStateNames(): Map<String, Method> =
+    classesLoadingString(CLEAR_MODE_FLAG_NAME).mapNotNull { state ->
+        state.methods.singleOrNull {
+            it.name == "toString" && it.parameterTypes.isEmpty() && it.returnType == STRING && loadsString(it, CLEAR_MODE_FLAG_NAME)
+        }
+    }.associateBy { it.definingClass }
+
+/**
+ * The reel holder's chrome alpha setter, found [how]: a public instance method of a public class,
+ * taking the alpha, which reads the alpha it holds once, compares and stores the asked one. The hook
+ * goes right after the read, where the holder and both alphas are in hand, and answers the alpha to
+ * store in the asked one's register. The extension calls the setter itself to give a holder its
+ * buttons back (#740), so it has to reach it. Answers that index and the register the held alpha is in.
+ */
+private fun BytecodePatchContext.chromeSetter(chrome: Method, how: String): Pair<Int, Int> {
+    if (chrome.isStatic() || chrome.returnType != "V" || chrome.parameterTypes.map(Any::toString) != listOf("F") ||
+        chrome.implementation == null
+    ) {
+        stop("${chrome.describe()}, $how, isn't an instance method taking the alpha")
+    }
+    val holder = classDefByOrNull(chrome.definingClass) ?: stop("${chrome.describe()}, $how, isn't in the app")
+    if (!AccessFlags.PUBLIC.isSet(holder.accessFlags) || !AccessFlags.PUBLIC.isSet(chrome.accessFlags)) {
+        stop("${chrome.describe()}, $how, isn't public, so the extension can't give a reel its buttons back")
+    }
+    val chromeCode = chrome.body()
+    val heldReads = chromeCode.indices.filter { at ->
+        val call = chromeCode[at].methodReference()
+        call?.definingClass == NUMBER && call.name == "floatValue" && call.parameterTypes.isEmpty() && call.returnType == "F"
+    }
+    val heldRead = heldReads.singleOrNull()
+        ?: stop("${chrome.describe()} reads the alpha it holds ${heldReads.size} times, expected once")
+    val heldKept = chromeCode.getOrNull(heldRead + 1) as? OneRegisterInstruction
+    if (heldKept == null || heldKept.opcode != Opcode.MOVE_RESULT) stop("${chrome.describe()} doesn't keep the alpha it holds")
+    val hold = heldRead + 2
+    if (hold >= chromeCode.size) stop("${chrome.describe()} ends at reading the alpha it holds")
+    if (hold in chrome.jumpTargets()) stop("${chrome.describe()} jumps past its read of the alpha it holds, so the hook would be skipped")
+    val asked = chrome.parameterRegisterNumber(0)
+    val alpha = heldKept.registerA
+    if (asked > 15 || alpha > 15) stop("${chrome.describe()} keeps the alphas in v$asked and v$alpha, which the hook's call can't name")
+    chrome.requireParameterIntact(KEEP, 0, listOf(hold))
+    chrome.requireThisIntact(KEEP, listOf(hold))
+    val stored = (hold until chromeCode.size).any { at ->
+        val call = chromeCode[at].methodReference()
+        call?.definingClass == FLOAT && call.name == "valueOf" && call.parameterTypes.map(Any::toString) == listOf("F") &&
+            chromeCode[at].registers() == listOf(asked)
+    }
+    if (!stored) stop("${chrome.describe()} doesn't store the alpha it was asked for")
+    return hold to alpha
+}
+
+/**
+ * The pager listener's scroll state change, found [how]: an instance method taking the state, an
+ * enum naming the pager at rest, which reads the pager once. On 452 that read sits on the way to
+ * rest only. The hook goes right after it, where the pager and the state are both in hand. Answers
+ * that index and the registers of the pager and the state.
+ */
+private fun BytecodePatchContext.scrollStateChange(scrolled: Method, how: String): Triple<Int, Int, Int> {
+    if (scrolled.isStatic() || scrolled.returnType != "V" || scrolled.parameterTypes.size != 1 || scrolled.implementation == null) {
+        stop("${scrolled.describe()}, $how, isn't an instance method taking the scroll state")
+    }
+    val state = scrolled.parameterTypes.single().toString()
+    val stateClass = classDefByOrNull(state) ?: stop("the scroll state $state isn't in the app")
+    if (stateClass.superclass != "Ljava/lang/Enum;") stop("the scroll state $state isn't an enum")
+    if (REEL_AT_REST !in stateClass.namedConstants()) stop("the scroll state $state doesn't name $REEL_AT_REST")
+    val scrolledCode = scrolled.body()
+    val pagerReads = scrolledCode.indices.filter { at ->
+        scrolledCode[at].opcode == Opcode.IGET_OBJECT &&
+            ((scrolledCode[at] as ReferenceInstruction).reference as FieldReference).type == VIEW_PAGER
+    }
+    val pagerRead = pagerReads.singleOrNull()
+        ?: stop("${scrolled.describe()} reads the pager ${pagerReads.size} times, expected once")
+    val settle = pagerRead + 1
+    if (settle >= scrolledCode.size) stop("${scrolled.describe()} ends at reading the pager")
+    if (settle in scrolled.jumpTargets()) stop("${scrolled.describe()} jumps past its read of the pager, so the hook would be skipped")
+    val pager = (scrolledCode[pagerRead] as TwoRegisterInstruction).registerA
+    val scrollState = scrolled.parameterRegisterNumber(0)
+    if (pager > 15 || scrollState > 15) {
+        stop("${scrolled.describe()} keeps the pager and the state in v$pager and v$scrollState, which the hook's call can't name")
+    }
+    scrolled.requireParameterIntact(KEEP, 0, listOf(settle))
+    return Triple(settle, pager, scrollState)
+}
+
+/**
+ * The viewer's [setup]: the one write of the handler's turn-on [action]. The hook goes right after
+ * it, where the register written through still holds the handler (#138). Answers that index and
+ * the handler's register.
+ */
+private fun afterSetting(setup: Method, action: FieldReference): Pair<Int, Int> {
+    val setupCode = setup.body()
+    val sets = setupCode.indices.filter { at ->
+        val written = (setupCode[at] as? ReferenceInstruction)?.reference as? FieldReference
+        setupCode[at].opcode == Opcode.IPUT_OBJECT && written != null &&
+            written.definingClass == action.definingClass && written.name == action.name && written.type == action.type
+    }
+    val set = sets.singleOrNull() ?: stop("${setup.describe()} sets the handler's turn-on action ${sets.size} times, expected once")
+    val ready = set + 1
+    if (ready >= setupCode.size) stop("${setup.describe()} ends at setting the handler's turn-on action")
+    if (ready in setup.jumpTargets()) stop("${setup.describe()} jumps past its setting of the turn-on action, so the hook would be skipped")
+    return ready to (setupCode[set] as TwoRegisterInstruction).registerB
+}
+
+/**
+ * Where the exit button's [render] buzzes (#480): the one call to a method answering nothing that
+ * runs Android's vibrate itself or through a method of its own class (Instagram 453's haptics
+ * helper buzzes for 30 ms through one more of its own methods), and the lowest local the hook may
+ * ask the extension into there. A build where that isn't one call, or the hook can't go in front of
+ * it, warns and leaves only Don't vibrate in clear mode out, so Keep clear mode on goes in all the same.
+ */
+private fun BytecodePatchContext.clearModeBuzz(render: Method): Pair<Int, Int>? {
+    fun leftOut(why: String): Nothing? {
+        patchLog.warning("$KEEP: ${render.describe()} $why. Don't vibrate in clear mode does nothing in this build.")
+        return null
+    }
+    val code = render.body()
+    val buzzes = code.indices.filter { at ->
+        val call = code[at].methodReference() ?: return@filter false
+        call.returnType == "V" && vibrates(call, 1)
+    }
+    val buzz = buzzes.singleOrNull() ?: return leftOut("buzzes ${buzzes.size} times, expected once")
+    if (buzz + 1 >= code.size) return leftOut("ends at its buzz")
+    if (buzz in render.jumpTargets()) return leftOut("jumps to its buzz, so the hook would be skipped")
+    val quiet = try {
+        render.freeLocalsAt(KEEP, buzz, 1, targets = listOf(buzz + 1), highest = 255).single()
+    } catch (busy: PatchException) {
+        return leftOut("has no local free at its buzz (${busy.message})")
+    }
+    return buzz to quiet
+}
+
+/**
+ * Whether [call] is Android's vibrate, or a method of the app whose code makes such a call, or
+ * makes a call to a method of its own class that does, up to [depth] calls further down.
+ */
+private fun BytecodePatchContext.vibrates(call: MethodReference, depth: Int): Boolean {
+    if (call.definingClass == VIBRATOR) return call.name == "vibrate"
+    val method = classDefByOrNull(call.definingClass)?.methods?.firstOrNull {
+        it.name == call.name && it.returnType == call.returnType &&
+            it.parameterTypes.map(Any::toString) == call.parameterTypes.map(Any::toString)
+    } ?: return false
+    return method.body().any { inner ->
+        val next = inner.methodReference() ?: return@any false
+        (next.definingClass == VIBRATOR && next.name == "vibrate") ||
+            (depth > 0 && next.definingClass == call.definingClass && vibrates(next, depth - 1))
+    }
+}
+
+/** The names an enum's initializer gives its constants, as the strings it loads. */
+private fun ClassDef.namedConstants(): List<String> = methods.filter { it.name == "<clinit>" }.flatMap { initializer ->
+    initializer.body().mapNotNull { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string }
+}
+
+/**
+ * The boolean field of its own class that [toString] appends right after naming the clear mode
+ * flag: the register handed to the first boolean append after the name, traced back through moves
+ * to the field read that filled it, with nothing jumping in between.
+ */
+private fun BytecodePatchContext.clearModeFlag(toString: Method): Field {
+    val code = toString.body()
+    val names = code.indices.filter { stringLoadedAt(code, it) == CLEAR_MODE_FLAG_NAME }
+    val name = names.singleOrNull() ?: stop("${toString.describe()} names the clear mode flag ${names.size} times, expected once")
+    val append = (name + 1 until code.size).firstOrNull { at ->
+        val call = code[at].methodReference()
+        call?.definingClass == BUILDER && call.name == "append" && call.parameterTypes.map(Any::toString) == listOf("Z")
+    } ?: stop("${toString.describe()} appends no yes or no after naming the clear mode flag")
+    if ((name + 1 until append).any { stringLoadedAt(code, it) != null }) {
+        stop("${toString.describe()} names something else before appending the clear mode flag")
+    }
+    var register = code[append].registers().getOrNull(1) ?: stop("${toString.describe()} appends the clear mode flag from no register")
+    var read = append
+    while (true) {
+        read = (read - 1 downTo 0).firstOrNull { code[it].writes(register) }
+            ?: stop("${toString.describe()} appends the clear mode flag from a register nothing filled")
+        val write = code[read]
+        when (write.opcode) {
+            Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16 -> register = (write as TwoRegisterInstruction).registerB
+            Opcode.IGET_BOOLEAN -> break
+            else -> stop("${toString.describe()} appends the clear mode flag from a ${write.opcode.name}, not a field it read") // opcode-name-ok
+        }
+    }
+    if (toString.jumpTargets().any { it in read + 1..append }) {
+        stop("${toString.describe()} jumps between reading the clear mode flag and appending it")
+    }
+    val field = (code[read] as ReferenceInstruction).reference as FieldReference
+    if (field.definingClass != toString.definingClass) stop("${toString.describe()} appends ${field.definingClass}'s flag, not its own")
+    return classDefBy(field.definingClass).instanceFields.singleOrNull { it.name == field.name && it.type == "Z" }
+        ?: stop("${field.definingClass} has no boolean field ${field.name}")
+}
+
+/** Whether code in [reader] may read [field]: it's [reader]'s own, or the field and its class are public, or same package and not private. */
+private fun BytecodePatchContext.readableFrom(field: Field, reader: String): Boolean {
+    if (field.definingClass == reader) return true
+    val owner = classDefByOrNull(field.definingClass) ?: return false
+    val near = field.definingClass.substringBeforeLast('/') == reader.substringBeforeLast('/')
+    fun open(flags: Int) = AccessFlags.PUBLIC.isSet(flags) || (near && !AccessFlags.PRIVATE.isSet(flags))
+    return open(owner.accessFlags) && open(field.accessFlags)
+}
+
+/** Every instruction a path from [start] can run, [start] included, over normal and exceptional edges. */
+private fun ControlFlow.reachedFrom(start: Int): BitSet {
+    val reached = BitSet()
+    val pending = ArrayDeque(listOf(start))
+    reached.set(start)
+    while (pending.isNotEmpty()) {
+        val at = pending.removeFirst()
+        (normal[at] + exceptional[at]).forEach { if (!reached[it]) { reached.set(it); pending += it } }
+    }
+    return reached
+}
+
+private const val BUILDER = "Ljava/lang/StringBuilder;"
+private const val NUMBER = "Ljava/lang/Number;"
+private const val FLOAT = "Ljava/lang/Float;"
+
+/**
+ * The index after the one action [this] handler method runs: an interface call named invoke that
+ * takes objects and is handed each of the method's [parameters], whose registers and `this` still
+ * hold what the method was called with there.
+ */
+private fun Method.afterAction(parameters: List<Int>): Int {
+    val code = body()
+    val actions = code.indices.filter { at ->
+        val call = code[at].methodReference() ?: return@filter false
+        (code[at].opcode == Opcode.INVOKE_INTERFACE || code[at].opcode == Opcode.INVOKE_INTERFACE_RANGE) &&
+            call.name == "invoke" && call.returnType == OBJECT && call.parameterTypes.size == parameters.size &&
+            call.parameterTypes.all { it.toString() == OBJECT }
+    }
+    val action = actions.singleOrNull() ?: stop("${describe()} runs ${actions.size} actions, expected one")
+    val handed = code[action].registers().drop(1).toSet()
+    if (handed != parameters.mapTo(HashSet()) { parameterRegisterNumber(it) }) {
+        stop("${describe()} doesn't hand its action what it was called with")
+    }
+    val after = action + 1
+    if (after >= code.size) stop("${describe()} ends at its action's call")
+    // A hook between a call and the move that keeps its result leaves a class that won't verify.
+    if (code[after].opcode == Opcode.MOVE_RESULT_OBJECT) {
+        stop("${describe()} keeps what its action answers, so no hook can go right after the call")
+    }
+    requireThisIntact(KEEP, listOf(after))
+    parameters.forEach { requireParameterIntact(KEEP, it, listOf(after)) }
+    return after
+}
+
+/**
+ * Throws unless the branch [this] takes at instruction [test] when there's no reel only returns:
+ * nothing is called and nothing branches on the way. That is what lets the extension hold a
+ * turn-on back by answering no reel.
+ */
+private fun Method.requireNothingWithoutReel(test: Int) {
+    val code = body()
+    var at = ControlFlow.of(this).normal[test].first()
+    while (at < code.size && code[at].opcode !in RETURNS) {
+        if (code[at].methodReference() != null || code[at] is OffsetInstruction || code[at].opcode in THROWS) {
+            stop("${describe()} does more than return when the pager has no reel, at instruction $at")
+        }
+        at++
+    }
+    if (at >= code.size) stop("${describe()} doesn't return when the pager has no reel")
+}
+
+private val RETURNS = setOf(Opcode.RETURN_VOID, Opcode.RETURN, Opcode.RETURN_OBJECT, Opcode.RETURN_WIDE)
+private val THROWS = setOf(Opcode.THROW)
+
+/**
+ * Each hook reads registers the find phase checked and borrows none but the exit button's, which
+ * goes in first where no local holds anything yet, the seek bar row's, a local nothing reads past
+ * its test, and the exit button's buzz check, a local nothing reads past the buzz. The two handler
+ * hooks and the viewer's go in with a plain insert on purpose: the handler's own branch around a
+ * missing action keeps landing past the hook. Those three, the row's, the chrome setter's, the
+ * scroll state change's, the setup's and the buzz check go in by the index the find phase read,
+ * which holds only while each method is as long as it was, so one that changed in between stops
+ * the patch before any hook is in. A build without the handler's turn-on or the row's own render
+ * (456) gets neither of those hooks. A build whose callers run the turn-off action themselves (457's
+ * armeabi-v7a) gets the turn-off's hook right after each run, with a plain insert as well, so a
+ * missing action's branch lands past it, and a copy of the handler right before the action's read
+ * where that read writes over it.
+ */
+internal fun BytecodePatchContext.applyClearMode(found: ClearModeHooks) {
+    val enable = found.enable?.let { changing(it) }
+    val dismiss = found.dismiss?.let { changing(it) }
+    val enabled = changing(found.enabled)
+    val rowSite = found.row
+    val row = rowSite?.let { changing(it.method) }
+    val chrome = changing(found.chrome)
+    val scrolled = changing(found.scrolled)
+    val setup = changing(found.setup)
+    val button = changing(found.button)
+    val runs = found.inlined?.runs.orEmpty().map { it to changing(it.method) }
+    val changed = listOfNotNull(enable, dismiss, enabled, row, chrome, scrolled, setup, button) + runs.map { it.second }
+    if (changed.size != found.lengths.size) stop("found ${found.lengths.size} methods to change but has ${changed.size}")
+    changed.forEachIndexed { at, method ->
+        if (method.body().size != found.lengths[at]) stop("${method.describe()} changed after its hook's place was found")
+    }
+    enable?.addInstructions(found.entered, "invoke-static/range { p0 .. p1 }, $CLEAR_MODE_ENTERED")
+    dismiss?.addInstructions(found.left, "invoke-static/range { p0 .. p2 }, $CLEAR_MODE_LEFT")
+    // The hook goes in after the call before the copy goes in front of the read, which comes first.
+    runs.forEach { (run, method) ->
+        method.addInstructions(run.after, "invoke-static { v${run.handler}, v${run.reel}, v${run.reason} }, $CLEAR_MODE_LEFT")
+        run.copy?.let { copy ->
+            method.addInstructions(run.read, "${if (run.source > 15) "move-object/from16" else "move-object"} v$copy, v${run.source}")
+        }
+    }
+    val reel = found.reel
+    enabled.addInstructions(
+        found.current,
+        """
+            invoke-static/range { v$reel .. v$reel }, $CLEAR_MODE_CURRENT
+            move-result-object v$reel
+            check-cast v$reel, ${found.item}
+        """,
+    )
+    changing(found.paged).addInstructions(0, "invoke-static { }, $CLEAR_MODE_PAGED")
+    // A yes skips the render's buzz to the instruction after it (#480). It goes in before the hook at
+    // the top, which would move it.
+    found.buzz?.let { buzz ->
+        val quiet = found.quiet
+        button.addInstructionsWithLabels(
+            buzz,
+            """
+                invoke-static { }, $CLEAR_MODE_QUIET
+                move-result v$quiet
+                if-nez v$quiet, :quiet
+            """,
+            ExternalLabel("quiet", button.getInstruction(buzz + 1)),
+        )
+    }
+    button.addInstructions(
+        0,
+        """
+            move-object/from16 v0, p0
+            iget-object v0, v0, ${found.buttonReel}
+            invoke-static { v0 }, $CLEAR_MODE_BUILT
+        """,
+    )
+    // A row or reel state that isn't there yet counts as clear mode off. The labels sit mid-method,
+    // so they go through addInstructionsWithLabels, which places them where the snippet lands.
+    if (rowSite != null && row != null) {
+        val shown = rowSite.shown
+        val flag = rowSite.borrowed
+        row.addInstructionsWithLabels(
+            rowSite.scrubber,
+            """
+                move-object/from16 v$flag, p0
+                iget-object v$flag, v$flag, ${rowSite.rowState}
+                if-eqz v$flag, :off
+                iget-object v$flag, v$flag, ${rowSite.reelState}
+                if-eqz v$flag, :off
+                iget-boolean v$flag, v$flag, ${rowSite.flag}
+                goto :ask
+                :off
+                const/4 v$flag, 0x0
+                :ask
+                invoke-static { v$shown, v$flag }, $CLEAR_MODE_SCRUBBER
+                move-result v$shown
+            """,
+        )
+    }
+    // The holder, the alpha asked for and the one held go in, and what comes back is what Instagram
+    // compares and stores.
+    chrome.addInstructions(
+        found.hold,
+        """
+            invoke-static { p0, p1, v${found.alpha} }, $CLEAR_MODE_CHROME_ALPHA
+            move-result p1
+        """,
+    )
+    // The pager just read and the state go in, and nothing comes back.
+    scrolled.addInstructions(found.settle, "invoke-static { v${found.pager}, v${found.scrollState} }, $CLEAR_MODE_SETTLED")
+    // The handler just handed its turn-on action goes in, by range since the setup's locals run past v15.
+    val handler = found.readyHandler
+    setup.addInstructions(found.ready, "invoke-static/range { v$handler .. v$handler }, $CLEAR_MODE_READY")
+}
+
+/**
+ * The extension's stubs, found before anything changes, and the step that fills them. Where the
+ * build has the handler's turn-on, enter calls it and the action's two stubs stay empty, which
+ * leaves the action as Instagram set it. Where it doesn't (456), enter runs the handler's action
+ * the way Instagram's callers do, and the action's stubs read and write it, so the extension can
+ * wrap it and hear each turn-on.
+ */
+internal class ClearModeStubs(
+    val enter: MutableMethod,
+    val reelId: MutableMethod,
+    val action: MutableMethod,
+    val setAction: MutableMethod,
+    val chrome: MutableMethod,
+    val leave: MutableMethod,
+    /** The extension's class, where the leave stub is swapped for one with a local of its own on a build that inlines the turn-off. */
+    val extension: MutableClass,
+) {
+    fun fill(found: ClearModeHooks) {
+        // The handler's own turn-off, which Pinch for clear mode takes a reel out of clear mode
+        // through (#744). The handler is public wherever it's found. A turn-off the extension can't
+        // reach leaves the stub empty, which turns nothing off.
+        val dismiss = found.dismiss
+        val inlined = found.inlined
+        if (dismiss != null && dismiss.isPublic()) {
+            leave.addInstructions(
+                0,
+                """
+                    check-cast p0, ${found.handler}
+                    check-cast p1, ${found.item}
+                    check-cast p2, ${found.reason}
+                    invoke-virtual { p0, p1, p2 }, ${found.handler}->${dismiss.name}(${found.item}${found.reason})V
+                    return-void
+                """,
+            )
+        } else if (dismiss == null && inlined != null) {
+            // 457's armeabi-v7a has no turn-off to call, so the stub does what its callers do: runs the
+            // action the handler holds, when it holds one, and then tells the extension the way the
+            // turn-off's hook would have. The stub needs a local for the action, so it's swapped for one with it.
+            val handed = if (inlined.reasonFirst) "p2, p1" else "p1, p2"
+            val replacement = ImmutableMethod(
+                leave.definingClass, leave.name, leave.parameters, leave.returnType, leave.accessFlags,
+                leave.annotations, leave.hiddenApiRestrictions,
+                ImmutableMethodImplementation(1 + leave.parameterTypes.size, emptyList(), null, null),
+            ).toMutable().apply {
+                addInstructionsWithLabels(
+                    0,
+                    """
+                        check-cast p0, ${found.handler}
+                        iget-object v0, p0, ${inlined.action}
+                        if-eqz v0, :none
+                        invoke-interface { v0, $handed }, ${inlined.call}
+                        invoke-static { p0, p1, p2 }, $CLEAR_MODE_LEFT
+                        :none
+                        return-void
+                    """,
+                )
+            }
+            extension.methods.remove(leave)
+            extension.methods.add(replacement)
+        }
+        // The reel holder's own alpha setter, which the hook in it hears, so a holder hidden for clear
+        // mode gets its buttons back the way Instagram would show them (#740).
+        val setter = found.chrome
+        chrome.addInstructions(
+            0,
+            """
+                check-cast p0, ${setter.definingClass}
+                invoke-virtual { p0, p1 }, ${setter.definingClass}->${setter.name}(F)V
+                return-void
+            """,
+        )
+        val enable = found.enable
+        if (enable != null) {
+            enter.addInstructions(
+                0,
+                """
+                    check-cast p0, ${found.handler}
+                    check-cast p1, ${found.reason}
+                    invoke-virtual { p0, p1 }, ${found.handler}->${enable.name}(${found.reason})V
+                    return-void
+                """,
+            )
+        } else {
+            // A handler with no action yet turns nothing on, as Instagram's own callers skip it.
+            enter.addInstructions(
+                0,
+                """
+                    check-cast p0, ${found.handler}
+                    iget-object p0, p0, ${found.action}
+                    if-eqz p0, :none
+                    invoke-interface { p0, p1 }, $FUNCTION1->invoke($OBJECT)$OBJECT
+                    :none
+                    return-void
+                """,
+            )
+            action.addInstructions(
+                0,
+                """
+                    check-cast p0, ${found.handler}
+                    iget-object p0, p0, ${found.action}
+                    return-object p0
+                """,
+            )
+            setAction.addInstructions(
+                0,
+                """
+                    check-cast p0, ${found.handler}
+                    check-cast p1, $FUNCTION1
+                    iput-object p1, p0, ${found.action}
+                    return-void
+                """,
+            )
+        }
+        reelId.addInstructions(
+            0,
+            """
+                check-cast p0, ${found.item}
+                invoke-virtual { p0 }, ${found.item}->getId()$STRING
+                move-result-object p0
+                return-object p0
+            """,
+        )
+    }
+}
+
+internal fun BytecodePatchContext.clearModeStubs(): ClearModeStubs {
+    val extension = mutableClassDefBy(CLEAR_MODE)
+    fun stub(name: String, parameters: List<String>, returns: String): MutableMethod = extension.methods.singleOrNull {
+        it.name == name && it.returnType == returns && AccessFlags.STATIC.isSet(it.accessFlags) &&
+            it.parameterTypes.map(Any::toString) == parameters
+    } ?: stop("$CLEAR_MODE has no static $returns $name(${parameters.joinToString("")})")
+    return ClearModeStubs(
+        enter = stub(CLEAR_MODE_ENTER_STUB, listOf(OBJECT, OBJECT), "V"),
+        reelId = stub(CLEAR_MODE_ID_STUB, listOf(OBJECT), STRING),
+        action = stub(CLEAR_MODE_ACTION_STUB, listOf(OBJECT), OBJECT),
+        setAction = stub(CLEAR_MODE_SET_ACTION_STUB, listOf(OBJECT, OBJECT), "V"),
+        chrome = stub(CLEAR_MODE_CHROME_STUB, listOf(OBJECT, "F"), "V"),
+        leave = stub(CLEAR_MODE_LEAVE_STUB, listOf(OBJECT, OBJECT, OBJECT), "V"),
+        extension = extension,
+    )
+}
+
+private fun stop(detail: String): Nothing = throw PatchException("$KEEP: $detail")
+
+private fun BytecodePatchContext.changing(method: Method): MutableMethod =
+    mutableClassDefBy(method.definingClass).methods.single {
+        it.name == method.name && it.parameterTypes.map(Any::toString) == method.parameterTypes.map(Any::toString) &&
+            it.returnType == method.returnType
+    }
+
+private fun Method.body(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
+
+private fun Method.isStatic(): Boolean = AccessFlags.STATIC.isSet(accessFlags)
+
+private fun Method.isPublic(): Boolean = AccessFlags.PUBLIC.isSet(accessFlags)
+
+private fun Method.describe(): String = "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
+
+private fun FieldReference.describe(): String = "$definingClass->$name:$type"
+
+private fun Instruction.fieldReference(): FieldReference? = (this as? ReferenceInstruction)?.reference as? FieldReference
+
+/** The last instruction before [before] that writes [register], read in order, not by flow. */
+private fun List<Instruction>.lastWrite(register: Int, before: Int): Instruction? =
+    (before - 1 downTo 0).firstOrNull { this[it].writes(register) }?.let { this[it] }
+
+/** Whether this instruction writes [register], or the pair starting just below it. */
+private fun Instruction.writes(register: Int): Boolean {
+    val written = (this as? OneRegisterInstruction)?.registerA ?: return false
+    return opcode.setsRegister() && (written == register || (opcode.setsWideRegister() && written + 1 == register))
+}
+
+private fun Instruction.methodReference(): MethodReference? = (this as? ReferenceInstruction)?.reference as? MethodReference
+
+private fun Instruction.isStaticCall(): Boolean = opcode == Opcode.INVOKE_STATIC || opcode == Opcode.INVOKE_STATIC_RANGE
+
+/** The registers an invoke names, in order. */
+private fun Instruction.registers(): List<Int> = when (this) {
+    is RegisterRangeInstruction -> (startRegister until startRegister + registerCount).toList()
+    is FiveRegisterInstruction -> listOf(registerC, registerD, registerE, registerF, registerG).take(registerCount)
+    else -> emptyList()
+}

@@ -1,0 +1,16 @@
+[project]
+name = "pc-transcribe"
+version = "0.1.0"
+description = "Transcribe audiobooks on the PC into transcript files eppy imports"
+requires-python = ">=3.11"
+dependencies = [
+    "faster-whisper>=1.1",
+    # CUDA 12 runtime for CTranslate2; transcribe.py adds their DLL folders on Windows.
+    "nvidia-cublas-cu12",
+    "nvidia-cudnn-cu12>=9,<10",
+]
+
+[tool.uv]
+package = false
+# Resolve to versions that ship Windows wheels (some nvidia-* releases are Linux-only).
+required-environments = ["sys_platform == 'win32' and platform_machine == 'AMD64'"]

@@ -380,7 +380,7 @@ Removes the summary, Sources and Ask Meta AI box from a reel's more menu. In you
 Hide Ask Meta AI in About this reel	Bu reel hakkında bölümünde Meta AI'a sor kutusunu gizle
 About this reel keeps its summary and Sources, and only the Ask Meta AI box under them goes.	Bu reels hakkında bölümü özetini ve Kaynakları korur, yalnızca altındaki Meta AI'a Sor kutusu kalkar.
 Hide Meta AI in the share sheet	Paylaşım sayfasında Meta AI'ı gizle
-Removes Meta AI from the row at the bottom of the share sheet. Some accounts see it as Muse.	Paylaşım sayfasının altındaki satırdan Meta AI'ı kaldırır. Bazı hesaplar bunu Muse olarak görür.
+Removes Meta AI from the share sheet, both from the people you can send to and from the row at the bottom. Some accounts see it as Muse.	Meta AI'ı paylaşım sayfasından, hem gönderebileceğin kişilerden hem de alttaki satırdan kaldırır. Bazı hesaplar bunu Muse olarak görür.
 Hide the Muse card	Muse kartını gizle
 Removes the Meet Muse card, with its Try Muse button, from Home and your profile. Your other cards stay.	Meet Muse kartını ve Try Muse düğmesini Ana Sayfa'dan ve profilinden kaldırır. Diğer kartların kalır.
 Hide the Muse button on your profile	Profilinde Muse düğmesini gizle
@@ -605,6 +605,9 @@ Adds an eye button to the top of each story while you view anonymously. Tap it t
 Mark as seen	Görüldü olarak işaretle
 Marked as seen. Tap again to undo.	Görüldü olarak işaretlendi. Geri almak için tekrar dokun.
 Marked as seen and sent	Görüldü olarak işaretlendi ve gönderildi
+# context: View stories anonymously's third switch, after Mark as seen button. A like is the heart under a story, a quick reaction is an emoji from the row above a story's reply box
+Mark a story seen when you like or reply	Beğendiğinde veya yanıtladığında hikayeyi görüldü olarak işaretle
+While you view anonymously, liking a story, replying to it or sending it a quick reaction puts you on that story's viewer list first. The other stories stay hidden.	Anonim izlerken bir hikayeyi beğenmek, ona yanıt vermek veya hızlı tepki göndermek seni önce o hikayenin izleyici listesine ekler. Diğer hikayeler gizli kalır.
 View DM photos and videos anonymously	Mesajlardaki fotoğraf ve videoları anonim görüntüle
 Stops people seeing that you opened their view once photos and videos. They still disappear after you view them. This is a test feature and starts off.	İnsanların tek seferlik fotoğraf ve videolarını açtığını görmelerini engeller. Baktıktan sonra yine kaybolurlar. Bu bir test özelliğidir ve kapalı başlar.
 Restored %1$d settings. Kept %2$d newer choices.	%1$d ayar geri yüklendi. Daha sonra yapılan %2$d seçim korundu.
@@ -1582,6 +1585,14 @@ All of them. Tap to leave some out, and Ghost mode leaves those as you set them.
 %1$s. The others stay as you set them.	%1$s. Diğerleri senin ayarladığın gibi kalır.
 Switches Ghost mode turns	Hayalet modunun değiştirdiği anahtarlar
 Ghost mode needs at least one switch to turn.	Hayalet modu için en az bir anahtar gerekli.
+# context: Ghost mode: the switch under its rows in Ads and privacy that holds likes, story replies, comments, share links and new stories and posts back while Ghost mode is on (#876). A like is the heart under a post, a reel, a story or a comment, a share link is what Copy link and sharing a post out make, and posting is sharing a new story, post or reel from Instagram's camera; the five short ones are toasts shown when a tap is held back
+Block likes, replies and posts in Ghost mode	Hayalet modunda beğenileri, yanıtları ve gönderileri engelle
+While Ghost mode is on, liking, commenting, replying to a story, posting a story or post and copying or sharing a link do nothing, and a message says why. Nothing is sent.	Hayalet modu açıkken beğenmek, yorum yapmak, bir hikayeye yanıt vermek, hikaye veya gönderi paylaşmak ve bir bağlantıyı kopyalamak veya paylaşmak hiçbir şey yapmaz, bir mesaj nedenini söyler. Hiçbir şey gönderilmez.
+Likes are off in Ghost mode.	Hayalet modunda beğeniler kapalı.
+Replies are off in Ghost mode.	Hayalet modunda yanıtlar kapalı.
+Comments are off in Ghost mode.	Hayalet modunda yorumlar kapalı.
+Share links are off in Ghost mode.	Hayalet modunda paylaşım bağlantıları kapalı.
+Posting is off in Ghost mode.	Hayalet modunda gönderi paylaşımı kapalı.
 # context: Ghost mode: turning it on or off with a long press on a tab (#255). %1$s is a tab's name
 Turn Ghost mode on or off with a tab long press	Sekmeye uzun basarak Hayalet modunu aç veya kapat
 Tab long presses keep Instagram's own action. Choose one to turn Ghost mode on or off instead.	Sekmelere uzun basmak Instagram işlemini korur. Bunun yerine Hayalet modunu açıp kapatmak için bir sekme seç.
@@ -1822,7 +1833,7 @@ Previous page	Önceki sayfa
 Next page	Sonraki sayfa
 # context: Feed settings: the Page dots on a pill switch, right under Carousel arrows (#419). A pill is a small bar with round ends that holds the dots.
 Page dots on a pill	Hap üzerinde sayfa noktaları
-Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue. Hold the pill and slide left or right to move through the pages.	Çoklu gönderinin sayfa noktalarını fotoğrafın veya videonun altındaki yuvarlak bir hapın üzerine taşır. Bulunduğun sayfa mavi görünür. Hapa basılı tutup sola veya sağa kaydırarak sayfa değiştirebilirsin.
+Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue, or your accent color when Accent color is on. Hold the pill and slide left or right to move through the pages.	Çoklu gönderinin sayfa noktalarını fotoğrafın veya videonun altındaki yuvarlak bir hapın üzerine taşır. Bulunduğun sayfa mavi, Vurgu rengi açıkken de vurgu renginde görünür. Hapa basılı tutup sola veya sağa kaydırarak sayfa değiştirebilirsin.
 # context: Feed settings: the Hide page number switch, under Carousel arrows (#581). The number is the 3/5 in the corner of a carousel post.
 Hide page number	Sayfa numarasını gizle
 Takes the number like 3/5 off the corner of a carousel post's photo or video.	Karusel gönderisinin fotoğraf veya videosunun köşesindeki 3/5 gibi sayıyı kaldırır.
@@ -1958,6 +1969,10 @@ Hide the Map bubble	Harita balonunu gizle
 Takes only the Map bubble out of the row of notes. Your notes stay.	Notlar satırından yalnızca Harita balonunu kaldırır. Notların kalır.
 Split the notes row	Notlar satırını böl
 Splits the row of notes into three stacks, Instants, Notes and Stories, the layout Instagram is trying out. Restart Instagram to see the change.	Notlar satırını Instants, Notlar ve Hikayeler olmak üzere üç yığına böler, Instagram'ın denediği düzen budur. Değişikliği görmek için Instagram'ı yeniden başlat.
+# context: Messages: a switch under Split the notes row (#832). Primary and General are the two tabs Instagram shows professional accounts at the top of their messages. Use the names Instagram's own messages page gives them in this language.
+Primary and General tabs	Birincil ve Genel sekmeleri
+# context: the summary under Primary and General tabs; Primary is the tab's name again
+Experimental. Adds the Primary and General tabs that professional accounts get to your messages. Instagram may put every chat in Primary at first. Starts off. Restart Instagram to see the change.	Deneysel. Profesyonel hesapların sahip olduğu Birincil ve Genel sekmelerini mesajlarına ekler. Instagram başta tüm sohbetleri Birincil'e koyabilir. Kapalı başlar. Değişikliği görmek için Instagram'ı yeniden başlat.
 Hide Saved in the plus menu	Artı menüsündeki Kaydedilenler'i gizle
 Takes Saved off the menu the plus button opens in a chat's message bar.	Bir sohbetin mesaj çubuğundaki artı düğmesinin açtığı menüden Kaydedilenler'i kaldırır.
 Hide AI images in the plus menu	Artı menüsündeki yapay zeka görsellerini gizle
@@ -2141,9 +2156,11 @@ Solid	Opak
 See-through	Saydam
 # context: a look for the page-dots pill and the seek bars: blurs what's under it
 Frosted glass	Buzlu cam
+Dots only	Yalnızca noktalar
 A light pill with dark dots, as it's always been.	Her zamanki gibi koyu noktalı açık renkli bir hap.
 A see-through dark pill with white dots, so more of the photo shows.	Fotoğrafın daha fazlası görünsün diye beyaz noktalı, saydam koyu bir hap.
 A frosted glass pill that blurs the photo under it. Before Android 12 it's see-through instead.	Altındaki fotoğrafı bulanıklaştıran buzlu camdan bir hap. Android 12 öncesinde bunun yerine saydam olur.
+Just the white dots with no pill behind them. A soft shadow keeps them clear on a bright photo.	Arkasında hap olmadan yalnızca beyaz noktalar. Hafif bir gölge, açık renkli fotoğraflarda da görünmelerini sağlar.
 Turn on Page dots on a pill to use this choice.	Bu seçimi kullanmak için Hap üzerinde sayfa noktaları seçeneğini açın.
 Turn on Seek bar on feed videos or its button to use this choice.	Bu seçimi kullanmak için Akış videolarında ilerleme çubuğu seçeneğini veya düğmesini açın.
 Turn on Seek bar on stories to use this choice.	Bu seçimi kullanmak için Hikayelerde ilerleme çubuğu seçeneğini açın.

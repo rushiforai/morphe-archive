@@ -1,12 +1,13 @@
 package semicoloncolonel.mobilestream.patches.mlb.ads
 
+import semicoloncolonel.mobilestream.patches.shared.misc.enableAdBreakTranslation
+import semicoloncolonel.mobilestream.patches.shared.misc.isOptionOn
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import semicoloncolonel.mobilestream.patches.mlb.shared.Constants
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MLB 26.21.0.49 — Mask live ad breaks (EXPERIMENTAL, OPT-IN, default OFF).
@@ -23,18 +24,13 @@ import semicoloncolonel.mobilestream.patches.mlb.shared.Constants
 
 private const val OVERLAY = "Lsemicoloncolonel/mobilestream/extension/mlb/AdBreakOverlayHelper;"
 
-@Suppress("unused")
-val maskLiveAdBreaksPatch = bytecodePatch(
-    name = "Mask live ad breaks",
-    description = "Covers live gambling-ad breaks with a notice.",
-    default = false,
-) {
-    category("Ads")
-    compatibleWith(Constants.COMPATIBILITY)
-
+// Part of skipAdsPatch: runs only when its "maskLiveAds" option is on.
+internal val maskLiveAdBreaksPatch = bytecodePatch {
     extendWith("extensions/extension.mpe")
 
     execute {
+        if (!isOptionOn(skipAdsPatch, "maskLiveAds")) return@execute
+        if (isOptionOn(skipAdsPatch, "translate")) enableAdBreakTranslation()
         // Register the SSAI ad view group so the cover has something to attach
         // to: it is the result of the getAdViewGroup() call right before
         // createStreamDisplayContainer(). Best-effort — if the player layout

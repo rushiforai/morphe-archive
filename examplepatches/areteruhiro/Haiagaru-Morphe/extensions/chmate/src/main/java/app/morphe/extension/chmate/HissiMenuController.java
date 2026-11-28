@@ -319,7 +319,7 @@ public final class HissiMenuController extends ToolScreenController {
             return false;
         });
         webView.setOnLongClickListener(view -> {
-            if(eddiArchiveMode){ArchiveResultActions.longPress(host,webView,lastTouchX,lastTouchY);return true;}
+            if(eddiArchiveMode||NukoArchive.accepts(webView.getUrl())){ArchiveResultActions.longPress(host,webView,lastTouchX,lastTouchY);return true;}
             float scale = Math.max(0.1f, webView.getScale());
             int x = Math.round(lastTouchX / scale);
             int y = Math.round(lastTouchY / scale);
@@ -423,7 +423,7 @@ public final class HissiMenuController extends ToolScreenController {
                     kyodemoAnalysisButton.setText("分析");
                 }
                 configureHissiTabs(view);
-                if(eddiArchiveMode)ArchiveResultActions.install(view);
+                if(eddiArchiveMode||NukoArchive.accepts(view.getUrl()))ArchiveResultActions.install(view);
                 if (url.equals(pendingAnalysisResult)
                         || ("wt".equals(Uri.parse(url).getFragment())
                                 && !url.equals(analysisAutoOpenedUrl))) {
@@ -1270,6 +1270,10 @@ public final class HissiMenuController extends ToolScreenController {
     /** Receives viewer events from the WebView. */
     private final class ViewerBridge {
         @JavascriptInterface public void openArchiveThread(String url){
+            if(NukoArchive.accepts(url)){
+                host.runOnUiThread(()->{if(viewerWebView!=null&&NukoArchive.accepts(viewerWebView.getUrl()))
+                    NukoArchive.resolve(host,url,nativeUrl->openThreadInChMate(nativeUrl));});return;
+            }
             if(!eddiArchiveMode||ArchiveResultActions.nativeUrl(url)==null)return;
             host.runOnUiThread(()->{if(viewerWebView!=null&&isEddiArchiveUri(Uri.parse(viewerWebView.getUrl()==null?"":viewerWebView.getUrl())))openThreadInChMate(url);});
         }

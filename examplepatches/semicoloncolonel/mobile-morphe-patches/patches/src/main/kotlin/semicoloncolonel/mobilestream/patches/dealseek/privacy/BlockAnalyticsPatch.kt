@@ -1,5 +1,7 @@
 package semicoloncolonel.mobilestream.patches.dealseek.privacy
 
+import app.morphe.patcher.patch.booleanOption
+import app.morphe.patcher.patch.BytecodePatch
 import app.morphe.patcher.patch.bytecodePatch
 import semicoloncolonel.mobilestream.patches.dealseek.shared.Constants
 import semicoloncolonel.mobilestream.patches.shared.misc.filterJsRequests
@@ -25,17 +27,26 @@ import semicoloncolonel.mobilestream.patches.shared.privacy.blockTrackers
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Suppress("unused")
-val blockAnalyticsPatch = bytecodePatch(
+val blockAnalyticsPatch: BytecodePatch = bytecodePatch(
     name = "Block analytics & tracking",
     description = "Stops the app's analytics, ad measurement, and marketing services.",
     default = false,
 ) {
     category("Privacy")
     compatibleWith(Constants.COMPATIBILITY)
+    dependsOn(stopBehaviorTrackingPatch)
 
     dependsOn(analyticsKillSwitchesPatch)
 
     extendWith("extensions/extension.mpe")
+
+    booleanOption(
+        key = "behavioralTracking",
+        default = false,
+        title = "Behavioral tracking",
+        description = "Stops the app from reporting the deals you view and click, which feeds " +
+        "personalized ranking and your viewed-deal history. Does not delete history already saved.",
+    )
 
     execute {
         filterJsRequests(TRACKER_BLOCKER)

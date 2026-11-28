@@ -50,6 +50,8 @@ public final class SBrowserXExtensionsActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         SBrowserXPrefs.init(this);
+        SBrowserXPrefs.markFeatureViewed(this, SBrowserXPrefs.FEATURE_EXT_PACK);
+        SBrowserXPrefs.markFeatureViewed(this, SBrowserXPrefs.FEATURE_EXT_INSTALLER);
 
         night = SBrowserXHooks.isBrowserNightMode(this);
         boolean amoled = night && SBrowserXPrefs.isAmoledBlackEnabled(this);
@@ -464,7 +466,7 @@ public final class SBrowserXExtensionsActivity extends Activity {
     }
 
     private boolean isRu() {
-        String l = Locale.getDefault().getLanguage();
+        String l = SBrowserXStrings.getAppLang();
         return "ru".equals(l) || "uk".equals(l);
     }
 

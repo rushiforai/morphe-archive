@@ -140,6 +140,6 @@ public final class CaptchaBridge {
     }
 
     private static void report(String message) {
-        if (logged++ < LOG_CAP) Debug.print("captcha: " + message);
+        if (logged++ < LOG_CAP) Debug.print("captcha: " + message + Debug.by(4));
     }
 }

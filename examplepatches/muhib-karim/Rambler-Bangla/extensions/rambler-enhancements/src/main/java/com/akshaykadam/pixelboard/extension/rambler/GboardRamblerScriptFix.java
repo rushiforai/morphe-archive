@@ -20,12 +20,108 @@ public final class GboardRamblerScriptFix {
     private static java.text.SimpleDateFormat diagSdf;
     public static int jvmLayoutKind;
     private static volatile java.lang.String activeGboardLocale;
+    private static volatile java.lang.String activeGboardLayout;
     private static volatile java.lang.String lastVoiceEngine;
 
     public static void setActiveGboardLocale(java.lang.String localeTag) {
+        setActiveGboardKeyboard(localeTag, null);
+    }
+
+    /**
+     * Records the active Gboard keyboard language tag (e.g. {@code bn-BD}, {@code bn-XU},
+     * {@code bn-XA}, {@code en-US}) and layout descriptor (e.g. {@code ime_bengali_bangladesh},
+     * {@code ime_bengali_india_transliteration}, {@code qwerty}) and immediately syncs the
+     * on-device Rambler Lite LLM prompt policy.
+     */
+    public static void setActiveGboardKeyboard(java.lang.String localeTag, java.lang.String layoutDescriptor) {
         activeGboardLocale = (localeTag == null || localeTag.trim().isEmpty())
                 ? null
                 : localeTag.trim();
+        activeGboardLayout = (layoutDescriptor == null || layoutDescriptor.trim().isEmpty())
+                ? null
+                : layoutDescriptor.trim();
+        syncLiteRuntimeMode();
+    }
+
+    private static void syncLiteRuntimeMode() {
+        try {
+            int k = classifyActiveKeyboard(activeGboardLocale, activeGboardLayout);
+            if (k == 1) {
+                com.akshaykadam.pixelboard.extension.ramblerlite.GboardRamblerLiteScriptRuntime
+                        .setActiveKeyboardMode(
+                                com.akshaykadam.pixelboard.extension.ramblerlite.GboardRamblerLiteScriptRuntime.ActiveKeyboardMode.ALL_BANGLA);
+            } else if (k == 2) {
+                com.akshaykadam.pixelboard.extension.ramblerlite.GboardRamblerLiteScriptRuntime
+                        .setActiveKeyboardMode(
+                                com.akshaykadam.pixelboard.extension.ramblerlite.GboardRamblerLiteScriptRuntime.ActiveKeyboardMode.MIXED_BN_EN);
+            } else if (k == 3) {
+                com.akshaykadam.pixelboard.extension.ramblerlite.GboardRamblerLiteScriptRuntime
+                        .setActiveKeyboardMode(
+                                com.akshaykadam.pixelboard.extension.ramblerlite.GboardRamblerLiteScriptRuntime.ActiveKeyboardMode.ENGLISH_LATIN);
+            } else {
+                com.akshaykadam.pixelboard.extension.ramblerlite.GboardRamblerLiteScriptRuntime
+                        .setActiveKeyboardMode(
+                                com.akshaykadam.pixelboard.extension.ramblerlite.GboardRamblerLiteScriptRuntime.ActiveKeyboardMode.UNSET);
+            }
+        } catch (java.lang.Throwable ignored) {
+        }
+    }
+
+    /**
+     * Classifies Gboard's active keyboard into the 3 Rambler Bangla dictation modes:
+     * <ul>
+     *   <li>{@code 1} — All Bangla ({@code bn-BD} / {@code bn-IN} / {@code bn-Beng} native layout)</li>
+     *   <li>{@code 2} — Mixed Bangla + English ({@code bn-XU} or {@code abc -> বাংলা} transliteration/phonetic layout)</li>
+     *   <li>{@code 3} — All English / Phonetic Latin ({@code en*}, {@code bn-XA}, {@code bn-Latn}, or other Latin layouts)</li>
+     *   <li>{@code 0} — Unknown (fall back to subtype inspection)</li>
+     * </ul>
+     */
+    public static int classifyActiveKeyboard(java.lang.String localeTag, java.lang.String layoutDescriptor) {
+        java.lang.String loc = localeTag == null ? "" : localeTag.trim().toLowerCase(java.util.Locale.US).replace('_', '-');
+        java.lang.String lay = layoutDescriptor == null ? "" : layoutDescriptor.trim().toLowerCase(java.util.Locale.US);
+        if (loc.isEmpty() && lay.isEmpty()) {
+            return 0;
+        }
+        // Explicit Latin Bangla (Gboard 18.5.4 uses bn-XA / ime_bengali_latin or bn-Latn)
+        if (loc.equals("bn-xa") || loc.startsWith("bn-xa-")
+                || loc.contains("-latn")
+                || lay.contains("bengali_latin") || lay.contains("bangla_latin")) {
+            return 3;
+        }
+        // Explicit Bangla transliteration / abc -> বাংলা (Gboard 18.5.4 uses bn-XU / ime_bengali_*_transliteration)
+        if (loc.equals("bn-xu") || loc.startsWith("bn-xu-")
+                || lay.contains("transliteration")
+                || lay.contains("translit")
+                || lay.contains("phonetic")) {
+            return 2;
+        }
+        // Native Bangla layout (bn-BD, bn-IN, bn-Beng) vs qwerty variant on bn*
+        if (loc.startsWith("bn") || lay.contains("bengali") || lay.contains("bangla")) {
+            if (lay.equals("qwerty") || lay.contains("|qwerty") || lay.contains("qwerty|")) {
+                return 2;
+            }
+            return 1;
+        }
+        // English or any non-Bengali layout -> pure English / phonetic Latin (unless legacy opt-in pair toggle is ON)
+        if (loc.startsWith("en")) {
+            return com.akshaykadam.pixelboard.extension.rambler.GboardRamblerLayoutPair.adjust(3, loc, loc);
+        }
+        return 3;
+    }
+
+    public static boolean hasExplicitActiveKeyboard() {
+        return (activeGboardLocale != null && !activeGboardLocale.isEmpty())
+                || (activeGboardLayout != null && !activeGboardLayout.isEmpty());
+    }
+
+    public static java.lang.String activeModeSummary() {
+        int k = currentLayout3();
+        java.lang.String mode = (k == 1) ? "All Bangla (বাংলা)"
+                : (k == 2) ? "Mixed Bangla + English (abc → বাংলা)"
+                : "English / Phonetic Latin";
+        java.lang.String loc = activeGboardLocale == null ? "auto" : activeGboardLocale;
+        java.lang.String lay = activeGboardLayout == null ? "" : (" / " + activeGboardLayout);
+        return mode + " [" + loc + lay + "]";
     }
 
     static void addDiag(java.lang.String str) {
@@ -281,19 +377,133 @@ public final class GboardRamblerScriptFix {
         java.util.HashMap hashMap = new java.util.HashMap();
         EXCEPTIONS = hashMap;
         hashMap.put("bhalo", "ভালো");
+        hashMap.put("valo", "ভালো");
+        hashMap.put("bhale", "ভালো");
+        hashMap.put("vale", "ভালো");
+        hashMap.put("bhaloi", "ভালোই");
+        hashMap.put("valoi", "ভালোই");
+        hashMap.put("bhalobhabe", "ভালোভাবে");
+        hashMap.put("bhalovabe", "ভালোভাবে");
+        hashMap.put("valobhabe", "ভালোভাবে");
+        hashMap.put("valovabe", "ভালোভাবে");
         hashMap.put("bohalo", "ভালো");
         hashMap.put("bhasha", "ভাষা");
         hashMap.put("bhalobasha", "ভালোবাসা");
+        hashMap.put("valobasha", "ভালোবাসা");
         hashMap.put("bhalobashi", "ভালোবাসি");
+        hashMap.put("valobashi", "ভালোবাসি");
         hashMap.put("bojho", "বোঝো");
+        hashMap.put("bojha", "বোঝা");
+        hashMap.put("bujha", "বোঝা");
+        hashMap.put("buja", "বোঝা");
+        hashMap.put("buza", "বোঝা");
+        hashMap.put("bujhe", "বুঝে");
+        hashMap.put("buje", "বুঝে");
+        hashMap.put("buze", "বুঝে");
+        hashMap.put("buzhe", "বুঝে");
+        hashMap.put("bujhi", "বুঝি");
+        hashMap.put("buji", "বুঝি");
+        hashMap.put("buzi", "বুঝি");
+        hashMap.put("buzhi", "বুঝি");
+        hashMap.put("bujhte", "বুঝতে");
+        hashMap.put("bujte", "বুঝতে");
+        hashMap.put("buzte", "বুঝতে");
+        hashMap.put("buzhte", "বুঝতে");
+        hashMap.put("bujhlam", "বুঝলাম");
+        hashMap.put("bujlam", "বুঝলাম");
+        hashMap.put("buzlam", "বুঝলাম");
+        hashMap.put("bujhbe", "বুঝবে");
+        hashMap.put("bujbe", "বুঝবে");
+        hashMap.put("buzbe", "বুঝবে");
+        hashMap.put("bujhbo", "বুঝব");
+        hashMap.put("bujbo", "বুঝব");
+        hashMap.put("buzbo", "বুঝব");
+        hashMap.put("bujhche", "বুঝছে");
+        hashMap.put("bujche", "বুঝছে");
+        hashMap.put("buzche", "বুঝছে");
+        hashMap.put("bujhtese", "বুঝতেছে");
+        hashMap.put("bujtese", "বুঝতেছে");
+        hashMap.put("buztese", "বুঝতেছে");
+        hashMap.put("bujhen", "বুঝেন");
+        hashMap.put("bujen", "বুঝেন");
+        hashMap.put("buzen", "বুঝেন");
+        hashMap.put("bujhechi", "বুঝেছি");
+        hashMap.put("bujechi", "বুঝেছি");
+        hashMap.put("bujheche", "বুঝেছে");
+        hashMap.put("bujeche", "বুঝেছে");
         hashMap.put("bhor", "ভোর");
         hashMap.put("shob", "সব");
+        hashMap.put("sob", "সব");
+        hashMap.put("shobi", "সবই");
+        hashMap.put("sobi", "সবই");
         hashMap.put("shobai", "সবাই");
-        hashMap.put("shomoy", "সময়");
+        hashMap.put("sobai", "সবাই");
+        hashMap.put("shobar", "সবার");
+        hashMap.put("sobar", "সবার");
+        hashMap.put("shobkichu", "সবকিছু");
+        hashMap.put("sobkichu", "সবকিছু");
+        hashMap.put("shobkisu", "সবকিছু");
+        hashMap.put("sobkisu", "সবকিছু");
+        hashMap.put("shobkichui", "সবকিছুই");
+        hashMap.put("sobkichui", "সবকিছুই");
+        hashMap.put("shobsomoy", "সবসময়");
+        hashMap.put("shobshomoy", "সবসময়");
+        hashMap.put("sobsomoy", "সবসময়");
+        hashMap.put("shobcheye", "সবচেয়ে");
+        hashMap.put("sobcheye", "সবচেয়ে");
+        hashMap.put("shobgulo", "সবগুলো");
+        hashMap.put("sobgulo", "সবগুলো");
+        hashMap.put("shobta", "সবটা");
+        hashMap.put("sobta", "সবটা");
+        hashMap.put("shundor", "সুন্দর");
+        hashMap.put("sundor", "সুন্দর");
+        hashMap.put("shundorbhabe", "সুন্দরভাবে");
+        hashMap.put("sundorbhabe", "সুন্দরভাবে");
+        hashMap.put("shundorvabe", "সুন্দরভাবে");
+        hashMap.put("sundorvabe", "সুন্দরভাবে");
+        hashMap.put("shomoy", "সময়");
+        hashMap.put("somoy", "সময়");
+        hashMap.put("hoitese", "হচ্ছে");
+        hashMap.put("hoiteche", "হচ্ছে");
+        hashMap.put("hocche", "হচ্ছে");
+        hashMap.put("hoitesilo", "হচ্ছিল");
+        hashMap.put("kortese", "করতেছে");
+        hashMap.put("kortesi", "করতেছি");
+        hashMap.put("boltesi", "বলতেছি");
+        hashMap.put("boltese", "বলতেছে");
+        hashMap.put("likhtese", "লিখতেছে");
+        hashMap.put("thikmoto", "ঠিকমতো");
+        hashMap.put("bananta", "বানানটা");
+        hashMap.put("shomoye", "সময়ে");
         hashMap.put("shathe", "সাথে");
+        hashMap.put("sathe", "সাথে");
         hashMap.put("shomossa", "সমস্যা");
+        hashMap.put("somossa", "সমস্যা");
         hashMap.put("shomosya", "সমস্যা");
+        hashMap.put("shomadhan", "সমাধান");
+        hashMap.put("somadhan", "সমাধান");
+        hashMap.put("shombhob", "সম্ভব");
+        hashMap.put("sombhob", "সম্ভব");
+        hashMap.put("shohoj", "সহজ");
+        hashMap.put("sohoj", "সহজ");
+        hashMap.put("shohoje", "সহজে");
+        hashMap.put("shompurno", "সম্পূর্ণ");
+        hashMap.put("sompurno", "সম্পূর্ণ");
+        hashMap.put("shomporke", "সম্পর্কে");
+        hashMap.put("somporke", "সম্পর্কে");
+        hashMap.put("shorasori", "সরাসরি");
+        hashMap.put("sorasori", "সরাসরি");
+        hashMap.put("shorkar", "সরকার");
+        hashMap.put("sorkar", "সরকার");
+        hashMap.put("shadharon", "সাধারণ");
+        hashMap.put("sadharon", "সাধারণ");
+        hashMap.put("shothik", "সঠিক");
+        hashMap.put("sothik", "সঠিক");
+        hashMap.put("shudhu", "শুধু");
+        hashMap.put("sudhu", "শুধু");
+        hashMap.put("shobdo", "শব্দ");
         hashMap.put("shotto", "সত্য");
+        hashMap.put("shotti", "সত্যি");
         hashMap.put("sotti", "সত্যি");
         hashMap.put("boi", "বই");
         hashMap.put("koi", "কই");
@@ -352,7 +562,7 @@ public final class GboardRamblerScriptFix {
         hashMap.put("jawa", "যাওয়া");
         hashMap.put("jawar", "যাওয়ার");
         hashMap.put("jeno", "যেন");
-        hashMap.put("jora", "জোড়়া");
+        hashMap.put("jora", "জোড়া");
         hashMap.put("jor", "জোর");
         hashMap.put("jore", "জোরে");
         hashMap.put("jog", "যোগ");
@@ -361,7 +571,7 @@ public final class GboardRamblerScriptFix {
         hashMap.put("jonne", "জন্য");
         hashMap.put("jothesto", "যথেষ্ট");
         hashMap.put("jagah", "জাগা");
-        hashMap.put("jatiyo", "জাতীয়");
+        hashMap.put("jatiyo", "জাতীয়");
         hashMap.put("soja", "সোজা");
         hashMap.put("sojha", "সোজা");
         hashMap.put("khoj", "খোঁজ");
@@ -374,8 +584,8 @@ public final class GboardRamblerScriptFix {
         hashMap.put("pathao", "পাঠাও");
         hashMap.put("patha", "পাঠা");
         hashMap.put("pathai", "পাঠাই");
-        hashMap.put("pathay", "পাঠায়");
-        hashMap.put("pathiye", "পাঠিয়ে");
+        hashMap.put("pathay", "পাঠায়");
+        hashMap.put("pathiye", "পাঠিয়ে");
         hashMap.put("pathan", "পাঠান");
         hashMap.put("pathano", "পাঠানো");
         hashMap.put("pathanor", "পাঠানোর");
@@ -389,15 +599,34 @@ public final class GboardRamblerScriptFix {
         hashMap.put("pathalen", "পাঠালেন");
         hashMap.put("pathale", "পাঠালে");
         hashMap.put("pathali", "পাঠালি");
-        hashMap.put("pathiechi", "পাঠিয়েছি");
+        hashMap.put("pathiechi", "পাঠিয়েছি");
         hashMap.put("thik", "ঠিক");
         hashMap.put("thikana", "ঠিকানা");
         hashMap.put("thanda", "ঠান্ডা");
         hashMap.put("thikthak", "ঠিকঠাক");
+        hashMap.put("thikmoto", "ঠিকমতো");
+        hashMap.put("byapar", "ব্যাপার");
+        hashMap.put("bapar", "ব্যাপার");
+        hashMap.put("fatafati", "ফাটাফাটি");
+        hashMap.put("fotafati", "ফাটাফাটি");
+        hashMap.put("soboi", "সবই");
+        hashMap.put("shoboi", "সবই");
+        hashMap.put("abostha", "অবস্থা");
+        hashMap.put("obostha", "অবস্থা");
+        hashMap.put("ekdam", "একদম");
+        hashMap.put("ekdom", "একদম");
+        hashMap.put("beshirbhag", "বেশিরভাগ");
+        hashMap.put("beshibhag", "বেশিরভাগ");
+        hashMap.put("purata", "পুরাটা");
+        hashMap.put("purota", "পুরোটা");
+        hashMap.put("likhtesi", "লিখতেছি");
+        hashMap.put("likhtechi", "লিখতেছি");
+        hashMap.put("boltesi", "বলতেছি");
+        hashMap.put("kortesi", "করতেছি");
         hashMap.put("kalke", "কালকে");
         hashMap.put("kintu", "কিন্তু");
         hashMap.put("monta", "মনটা");
-        hashMap.put("taratari", "তাড়়াতাড়়ি");
+        hashMap.put("taratari", "তাড়াতাড়ি");
         hashMap.put("dhonnobad", "ধন্যবাদ");
         hashMap.put("eita", "এটা");
         hashMap.put("eitar", "এটার");
@@ -419,20 +648,20 @@ public final class GboardRamblerScriptFix {
         hashMap.put("achi", "আছি");
         hashMap.put("chhele", "ছেলে");
         hashMap.put("chheler", "ছেলের");
-        hashMap.put("chhara", "ছাড়়া");
+        hashMap.put("chhara", "ছাড়া");
         hashMap.put("chhilo", "ছিল");
         hashMap.put("chilo", "ছিল");
         hashMap.put("chilam", "ছিলাম");
         hashMap.put("chilen", "ছিলেন");
         hashMap.put("chile", "ছিলে");
-        hashMap.put("diyeche", "দিয়েছে");
-        hashMap.put("diyechi", "দিয়েছি");
-        hashMap.put("nieche", "নিয়েছে");
-        hashMap.put("niechi", "নিয়েছি");
-        hashMap.put("giyeche", "গিয়েছে");
-        hashMap.put("giyechi", "গিয়েছি");
-        hashMap.put("hoyeche", "হয়েছে");
-        hashMap.put("hoyechi", "হয়েছি");
+        hashMap.put("diyeche", "দিয়েছে");
+        hashMap.put("diyechi", "দিয়েছি");
+        hashMap.put("nieche", "নিয়েছে");
+        hashMap.put("niechi", "নিয়েছি");
+        hashMap.put("giyeche", "গিয়েছে");
+        hashMap.put("giyechi", "গিয়েছি");
+        hashMap.put("hoyeche", "হয়েছে");
+        hashMap.put("hoyechi", "হয়েছি");
         hashMap.put("lagche", "লাগছে");
         hashMap.put("lagchhe", "লাগছে");
         hashMap.put("lagchi", "লাগছি");
@@ -440,7 +669,7 @@ public final class GboardRamblerScriptFix {
         hashMap.put("legechi", "লেগেছি");
         hashMap.put("dhaka", "ঢাকা");
         hashMap.put("dhakar", "ঢাকার");
-        hashMap.put("dhakay", "ঢাকায়");
+        hashMap.put("dhakay", "ঢাকায়");
         hashMap.put("office", "অফিস");
         hashMap.put("maja", "মজা");
         hashMap.put("majar", "মজার");
@@ -451,10 +680,10 @@ public final class GboardRamblerScriptFix {
         hashMap.put("bolchhe", "বলছে");
         hashMap.put("sunchi", "শুনছি");
         hashMap.put("sunche", "শুনছে");
-        hashMap.put("khachi", "খাছি");
-        hashMap.put("khache", "খাছে");
-        hashMap.put("pachi", "পাছি");
-        hashMap.put("pache", "পাছে");
+        hashMap.put("khachi", "খাচ্ছি");
+        hashMap.put("khache", "খাচ্ছে");
+        hashMap.put("pachi", "পাচ্ছি");
+        hashMap.put("pache", "পাচ্ছে");
         hashMap.put("dekhchi", "দেখছি");
         hashMap.put("dekhche", "দেখছে");
         hashMap.put("hoche", "হচ্ছে");
@@ -462,28 +691,60 @@ public final class GboardRamblerScriptFix {
         hashMap.put("hochhi", "হচ্ছি");
         hashMap.put("uthchi", "উঠছি");
         hashMap.put("uthche", "উঠছে");
-        hashMap.put("ghumachi", "ঘুমাছি");
-        hashMap.put("ghumache", "ঘুমাছে");
+        hashMap.put("ghumachi", "ঘুমাচ্ছি");
+        hashMap.put("ghumache", "ঘুমাচ্ছে");
         hashMap.put("keyboard", "কিবোর্ড");
-        hashMap.put("now", "নাউ");
+        hashMap.put("now", "নাও");
         hashMap.put("kisu", "কিছু");
+        hashMap.put("kichu", "কিছু");
+        hashMap.put("kichui", "কিছুই");
+        hashMap.put("kisui", "কিছুই");
         hashMap.put("okkhor", "অক্ষর");
         hashMap.put("asce", "আসছে");
         hashMap.put("asche", "আসছে");
-        hashMap.put("purota", "পুরাটা");
-        hashMap.put("purotai", "পুরাটাই");
+        hashMap.put("purota", "পুরোটা");
+        hashMap.put("purotai", "পুরোটাই");
+        hashMap.put("purata", "পুরাটা");
+        hashMap.put("puratai", "পুরাটাই");
         hashMap.put("jache", "যাচ্ছে");
         hashMap.put("jachhe", "যাচ্ছে");
-        hashMap.put("supposed", "সুপসেড");
+        hashMap.put("supposed", "সাপোজড");
         hashMap.put("typing", "টাইপিং");
-        JOIN_PAIRS = new java.util.HashSet<>(java.util.Arrays.asList("kk", "tt", "dd", "nn", "pp", "mm", "TT", "DD", "NN", "kr", "gr", "tr", "dr", "pr", "br", "sr", "Sr", "ky", "gy", "cy", "ty", "py", "by", "ny", "ly", "tn", "tv", "db", "nd", "ndh", "mp", "mb", "lp", "sk", "st", "sth", "sp", "sm", "sn", "ShT", "ShTh", "ShN", "pt", "ddh", "gdh", "Ngk", "Ngg", "NYc", "NYch", "NYjh", "NTh", "ND", "NDh", "rn", "rT", "rg"));
+        hashMap.put("tokhon", "তখন");
+        hashMap.put("ekhon", "এখন");
+        hashMap.put("ekhoni", "এখনই");
+        hashMap.put("ekdom", "একদম");
+        hashMap.put("ekdomi", "একদমই");
+        hashMap.put("deya", "দেওয়া");
+        hashMap.put("dewa", "দেওয়া");
+        hashMap.put("neya", "নেওয়া");
+        hashMap.put("newa", "নেওয়া");
+        hashMap.put("bhabe", "ভাবে");
+        hashMap.put("vabe", "ভাবে");
+        hashMap.put("kivabe", "কীভাবে");
+        hashMap.put("kibhabe", "কীভাবে");
+        hashMap.put("evabe", "এভাবে");
+        hashMap.put("ebhabe", "এভাবে");
+        hashMap.put("likhte", "লিখতে");
+        hashMap.put("dekhte", "দেখতে");
+        hashMap.put("ebong", "এবং");
+        hashMap.put("tahole", "তাহলে");
+        hashMap.put("karon", "কারণ");
+        hashMap.put("banglate", "বাংলাতে");
+        hashMap.put("banglay", "বাংলায়");
+        JOIN_PAIRS = new java.util.HashSet<>(java.util.Arrays.asList("kk", "tt", "dd", "nn", "pp", "mm", "bb", "gg", "jj", "ll", "ss", "cc", "TT", "DD", "NN", "chchh", "chch", "cchh", "chhchh", "kr", "gr", "tr", "dr", "pr", "br", "sr", "Sr", "ky", "gy", "cy", "ty", "py", "by", "ny", "ly", "tn", "tv", "db", "nd", "ndh", "nt", "nT", "nD", "nDh", "nk", "ng", "ns", "nsh", "mp", "mb", "lp", "sk", "st", "sth", "sT", "sTh", "sp", "sm", "sn", "ShT", "ShTh", "ShN", "kt", "pt", "bd", "ddh", "gd", "gdh", "Ngk", "Ngg", "NYc", "NYch", "NYjh", "NTh", "ND", "NDh", "rn", "rT", "rg"));
         JHA_WORDS = new java.util.HashSet<>(java.util.Arrays.asList("aj", "ajke", "ajker", "laj", "kaj", "kaje", "kajer", "kajta", "kajei", "kajgulo", "baje", "bajey", "bajano", "sahaj", "sahaje", "nijer", "nijei", "nije", "nij", "nijke", "nijeder", "nijera", "taja", "tajar", "sajano", "sajai", "sajiye", "sajan", "dujon", "dujone", "dujonke", "bijoy", "bijoyer", "gajor", "jamai", "jani", "jano", "jana", "jante", "jantam", "janen", "janbe", "janiye", "janiyechi", "janlam", "janlen", "janano", "janai", "januk", "janey", "jiniser", "jinishgulo", "jibon", "jibone", "jayga", "jaygay", "jol", "jole", "jal", "jala", "jobab", "jobabe", "jotil", "joruri", "jomi", "jomin", "jomir", "jama", "jamar", "janala", "janalay", "joy", "jago", "jaga", "jagte", "jagche", "jagiye", "jagchhe", "jaglam", "jorimana", "joriman"));
         KEEP_TOKENS = new java.util.HashSet<>(java.util.Arrays.asList("melbourne", "sydney", "australia", "london", "dubai", "singapore", "tokyo", "paris", "perth", "brisbane", "adelaide", "america", "canada", "victoria"));
         VOWELS = new java.lang.String[][]{new java.lang.String[]{"aa", "আ", "া"}, new java.lang.String[]{"a", "আ", "া"}, new java.lang.String[]{"ee", "ই", "ি"}, new java.lang.String[]{"ii", "ঈ", "ী"}, new java.lang.String[]{"I", "ঈ", "ী"}, new java.lang.String[]{"i", "ই", "ি"}, new java.lang.String[]{"uu", "ঊ", "ু"}, new java.lang.String[]{"oo", "উ", "ু"}, new java.lang.String[]{"U", "ঊ", "ূ"}, new java.lang.String[]{"u", "উ", "ু"}, new java.lang.String[]{"E", "এ", "ে"}, new java.lang.String[]{"e", "এ", "ে"}, new java.lang.String[]{"oi", "ঐ", "ৈ"}, new java.lang.String[]{"OI", "ঐ", "ৈ"}, new java.lang.String[]{"ou", "ঔ", "ৌ"}, new java.lang.String[]{"OU", "ঔ", "ৌ"}, new java.lang.String[]{"ow", "ঔ", "ৌ"}, new java.lang.String[]{"O", "ও", O_KAR}, new java.lang.String[]{"o", "অ", ""}};
         CONSONANTS = new java.lang.String[][]{new java.lang.String[]{"kSh", "ক্ষ"}, new java.lang.String[]{"chh", "ছ"}, new java.lang.String[]{"Ng", "ঙ"}, new java.lang.String[]{"kh", "খ"}, new java.lang.String[]{"k", "ক"}, new java.lang.String[]{"gh", "ঘ"}, new java.lang.String[]{"g", "গ"}, new java.lang.String[]{"sh", "শ"}, new java.lang.String[]{"ch", "চ"}, new java.lang.String[]{"jh", "ঝ"}, new java.lang.String[]{"j", "য"}, new java.lang.String[]{"NY", "ঞ"}, new java.lang.String[]{"Th", "ঠ"}, new java.lang.String[]{"T", "ট"}, new java.lang.String[]{"Dh", "ঢ"}, new java.lang.String[]{"D", "ড"}, new java.lang.String[]{"N", "ণ"}, new java.lang.String[]{"th", "থ"}, new java.lang.String[]{"t", "ত"}, new java.lang.String[]{"dh", "ধ"}, new java.lang.String[]{"d", "দ"}, new java.lang.String[]{"n", "ন"}, new java.lang.String[]{"ph", "ফ"}, new java.lang.String[]{"p", "প"}, new java.lang.String[]{"f", "ফ"}, new java.lang.String[]{"bh", "ভ"}, new java.lang.String[]{"b", "ব"}, new java.lang.String[]{"v", "ভ"}, new java.lang.String[]{"m", "ম"}, new java.lang.String[]{"z", "জ"}, new java.lang.String[]{"r", "র"}, new java.lang.String[]{"l", "ল"}, new java.lang.String[]{"Sh", "ষ"}, new java.lang.String[]{"S", "শ"}, new java.lang.String[]{"s", "স"}, new java.lang.String[]{"h", "হ"}, new java.lang.String[]{"Rh", "ঢ়"}, new java.lang.String[]{"R", "ড়"}, new java.lang.String[]{"Y", "য়"}, new java.lang.String[]{"y", "য়"}, new java.lang.String[]{"q", "ক"}, new java.lang.String[]{"w", "ও"}};
         URL_SPAN = java.util.regex.Pattern.compile("https?://\\S+|\\S+@\\S+\\.[A-Za-z]{2,}|(?:[A-Za-z0-9-]+\\.)+[A-Za-z]{2,}(?:[/?#]\\S*)?");
         jvmLayoutKind = 0;
-        PHRASE_JOINS = new java.lang.String[][]{new java.lang.String[]{"kal ke", "kalke"}};
+        PHRASE_JOINS = new java.lang.String[][]{
+                new java.lang.String[]{"kal ke", "kalke"},
+                new java.lang.String[]{"kal-ke", "kalke"},
+                new java.lang.String[]{"aj ke", "ajke"},
+                new java.lang.String[]{"aj-ke", "ajke"}
+        };
         lastVoiceEngine = null;
     }
 
@@ -542,8 +803,18 @@ public final class GboardRamblerScriptFix {
                 addDiag("gate:closed-typing");
                 return input;
             }
-            if (containsBengali(input)) {
-                addDiag("skip:has-bengali");
+            boolean banglaOnlyLayout = (layout == 1);
+            boolean voiceMultilingual = isVoice && (layout == 2);
+            if (!containsLatin(input)) {
+                if (containsBengali(input) && (banglaOnlyLayout || voiceMultilingual)) {
+                    java.lang.String normalizedBn = GboardRamblerBanglaNormalizer.normalize(input, banglaOnlyLayout);
+                    if (!normalizedBn.equals(input)) {
+                        addDiag2("out-bn-normalized", normalizedBn);
+                        GboardRamblerScriptFixSettings.incrementConverted();
+                    }
+                    return normalizedBn;
+                }
+                addDiag("skip:no-latin");
                 return input;
             }
             if (ensureDictionary() == 0) {
@@ -551,10 +822,8 @@ public final class GboardRamblerScriptFix {
                 return input;
             }
             text = joinSplitPhrases(input);
-            boolean banglaOnlyLayout = (layout == 1);
-            boolean voiceMultilingual = isVoice && (layout == 2);
             if (voiceMultilingual) {
-                return GboardRamblerSegmentLock.process(text);
+                return GboardRamblerBanglaNormalizer.normalize(GboardRamblerSegmentLock.process(text), false);
             }
 
             int len = text.length();
@@ -656,27 +925,46 @@ public final class GboardRamblerScriptFix {
                 java.lang.String outTok;
                 if (tok.length() == 1) {
                     java.lang.String lo = tok.toLowerCase(java.util.Locale.US);
+                    boolean afterHyphen = i > 0 && "-".equals(tokens.get(i - 1));
                     if (lo.equals("a")) {
                         outTok = "\u0986";
                     } else if (lo.equals("e")) {
                         outTok = "\u098f";
                     } else if (lo.equals("i")) {
-                        outTok = "\u0986\u0987";
+                        // Hyphenated "-i" is Bengali emphatic enclitic ই (e.g. সবকিছু-ই -> সবকিছুই), never English pronoun আই
+                        outTok = afterHyphen ? "\u0987" : "\u0986\u0987";
                     } else if (lo.equals("o")) {
                         outTok = "\u0993";
                     } else {
                         outTok = convertTokenLoan(tok, lo);
                     }
                 } else {
-                    outTok = mapped.get(i);
+                    java.lang.String lo = tok.toLowerCase(java.util.Locale.US);
+                    // Pure Bangla priority: curated Bengali EXCEPTIONS -> curated loan overrides -> LoanSpell OVERRIDE -> 2,265-word Avro Tier-1 -> mapped -> LoanTable/transliterator
+                    outTok = EXCEPTIONS.get(lo);
                     if (outTok == null) {
-                        outTok = convertTokenLoan(tok, tok.toLowerCase(java.util.Locale.US));
+                        outTok = com.akshaykadam.pixelboard.extension.rambler.GboardRamblerLoanSpell.CURATED_BANGLA_LOANS.get(lo);
+                    }
+                    if (outTok == null) {
+                        outTok = com.akshaykadam.pixelboard.extension.rambler.GboardRamblerLoanSpell.OVERRIDE.get(lo);
+                    }
+                    if (outTok == null) {
+                        outTok = com.akshaykadam.pixelboard.extension.rambler.GboardRamblerTier1.get(lo);
+                    }
+                    if (outTok == null) {
+                        outTok = mapped.get(i);
+                    }
+                    if (outTok == null) {
+                        outTok = convertTokenLoan(tok, lo);
                     }
                 }
                 if (outTok == null) {
                     java.lang.String normDisp = tok.replace("c", "k").replace("C", "K").replace("x", "ks").replace("X", "Ks");
                     java.lang.String normLo = tok.toLowerCase(java.util.Locale.US).replace("c", "k").replace("x", "ks");
                     outTok = convertTokenLoan(normDisp, normLo);
+                }
+                if (outTok != null && !com.akshaykadam.pixelboard.extension.rambler.GboardRamblerSentenceLang.wellFormed(outTok)) {
+                    outTok = com.akshaykadam.pixelboard.extension.rambler.GboardRamblerSentenceLang.repair(outTok);
                 }
                 if (outTok != null) {
                     sb.append(outTok);
@@ -689,10 +977,13 @@ public final class GboardRamblerScriptFix {
                 if (!text.equals(input)) {
                     GboardRamblerDiag.bump("diag_join_only");
                 }
+                if (containsBengali(input) && banglaOnlyLayout) {
+                    return GboardRamblerBanglaNormalizer.normalize(input, true);
+                }
                 addDiag("out-unchanged");
                 return input;
             }
-            java.lang.String result = sb.toString();
+            java.lang.String result = GboardRamblerBanglaNormalizer.normalize(sb.toString(), banglaOnlyLayout);
             logi("converted=" + convertedCount + " in=[" + abbrev(text) + "] out=[" + abbrev(result) + "]");
             addDiag2("out-converted", result);
             GboardRamblerScriptFixSettings.incrementConverted();
@@ -741,7 +1032,7 @@ public final class GboardRamblerScriptFix {
         return 2;
     }
 
-    private static int currentLayout3() {
+    public static int currentLayout3() {
         android.view.inputmethod.InputMethodManager inputMethodManager;
         android.view.inputmethod.InputMethodSubtype currentInputMethodSubtype;
         int i = 2;
@@ -750,18 +1041,9 @@ public final class GboardRamblerScriptFix {
             if (i2 != 0) {
                 return i2;
             }
-            java.lang.String gboardTag = activeGboardLocale;
-            if (gboardTag != null && !gboardTag.isEmpty()) {
-                java.lang.String lower = gboardTag.toLowerCase(java.util.Locale.US).replace('_', '-');
-                if (lower.startsWith("bn")) {
-                    if (lower.contains("-latn")) {
-                        return 2;
-                    }
-                    return 1;
-                }
-                if (lower.startsWith("en")) {
-                    return com.akshaykadam.pixelboard.extension.rambler.GboardRamblerLayoutPair.adjust(3, lower, lower);
-                }
+            int activeClassified = classifyActiveKeyboard(activeGboardLocale, activeGboardLayout);
+            if (activeClassified != 0) {
+                return activeClassified;
             }
             android.content.Context currentApplication = com.akshaykadam.pixelboard.extension.rambler.GboardRamblerScriptFixSettings.currentApplication();
             if (currentApplication == null || (inputMethodManager = (android.view.inputmethod.InputMethodManager) currentApplication.getSystemService("input_method")) == null || (currentInputMethodSubtype = inputMethodManager.getCurrentInputMethodSubtype()) == null) {
@@ -900,6 +1182,15 @@ public final class GboardRamblerScriptFix {
         return true;
     }
 
+    private static boolean containsLatin(java.lang.String str) {
+        for (int i = 0; i < str.length(); i++) {
+            if (isLatinLetter(str.charAt(i))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static boolean containsBengali(java.lang.String str) {
         for (int i = 0; i < str.length(); i++) {
             char charAt = str.charAt(i);
@@ -987,13 +1278,17 @@ public final class GboardRamblerScriptFix {
 
     static java.lang.String convertTokenOrig(java.lang.String str, java.lang.String str2) {
         java.lang.String str3 = EXCEPTIONS.get(str2);
-        if (str3 == null) {
-            if (JHA_WORDS.contains(str2)) {
-                str = str.replace('j', 'z').replace('J', 'Z');
-            }
-            return transliterate(str);
+        if (str3 != null) {
+            return str3;
         }
-        return str3;
+        java.lang.String bnDict = com.akshaykadam.pixelboard.extension.rambler.GboardRamblerLoanSpell.banglish(str2);
+        if (bnDict != null) {
+            return bnDict;
+        }
+        if (JHA_WORDS.contains(str2)) {
+            str = str.replace('j', 'z').replace('J', 'Z');
+        }
+        return transliterate(str);
     }
 
     private static java.lang.String transliterate(java.lang.String str) {
@@ -1064,10 +1359,12 @@ public final class GboardRamblerScriptFix {
                     if (matchConsonant == null) {
                         return null;
                     }
+                    boolean appendedHasanta = false;
                     if (z && str2 != null) {
                         if (!str2.equals("c") || !matchConsonant[0].equals("ch")) {
                             if (JOIN_PAIRS.contains(java.lang.String.valueOf(str2) + matchConsonant[0])) {
                                 sb.append(HASANTA);
+                                appendedHasanta = true;
                             }
                         } else {
                             sb.append("্ছ");
@@ -1076,7 +1373,12 @@ public final class GboardRamblerScriptFix {
                             str2 = "chh";
                         }
                     }
-                    sb.append(matchConsonant[1]);
+                    // Bengali jofola is ALWAYS ্ + য (\u09AF), NEVER ্ + য় (\u09DF) (fixes byapar -> ব্যাপার)
+                    java.lang.String consText = matchConsonant[1];
+                    if (appendedHasanta && ("\u09df".equals(consText) || "\u09af\u09bc".equals(consText))) {
+                        consText = "\u09af";
+                    }
+                    sb.append(consText);
                     str2 = matchConsonant[0];
                     i += str2.length();
                     z = true;

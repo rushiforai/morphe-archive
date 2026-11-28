@@ -1492,6 +1492,17 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_mark_stories_seen", FALSE);
 
     /**
+     * Under {@link #VIEW_STORIES_ANONYMOUSLY}: liking a story whose view is held back, replying to it
+     * or sending it a quick reaction lets that story's view go first, as Mark as seen would, so the
+     * like or reply doesn't come from someone Instagram never saw watch it
+     * ({@link app.hushgram.extension.instagram.stories.StoryAnswerSeen}, #876). Read each time a
+     * like, reply or reaction goes and each time a batch of views goes to be sent, so a change
+     * applies to the next one. Off to start.
+     */
+    public static final BooleanSetting MARK_STORY_SEEN_ON_LIKE_OR_REPLY =
+            new BooleanSetting("hushgram_mark_story_seen_on_like_or_reply", FALSE, parent(VIEW_STORIES_ANONYMOUSLY));
+
+    /**
      * Stories you watch while views are held back still turn gray on this phone
      * ({@link app.hushgram.extension.instagram.stories.StorySeenRings}). Off to start, so a watched
      * story keeps its colored ring and its place (#92). On, Instagram writes the story's seen time
@@ -1938,7 +1949,8 @@ public class Settings extends BaseSettings {
 
     /**
      * Meta AI's target ("hatch", shown as Muse on some accounts) in the row at the bottom of the
-     * share sheet. The row is built each time the sheet opens. Off to start.
+     * share sheet, and its cell in the sheet's grid of people (#879). Both are built each time the
+     * sheet opens, and the grid's cell again on each search. Off to start.
      */
     public static final BooleanSetting HIDE_META_AI_SHARE_TARGET =
             new BooleanSetting("hushgram_hide_meta_ai_share_target", FALSE);
@@ -2050,6 +2062,15 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting SPLIT_NOTES_ROW =
             new BooleanSetting("hushgram_split_notes_row", FALSE, true);
+
+    /**
+     * The Primary and General tabs at the top of your messages, the ones professional accounts get
+     * ({@link app.hushgram.extension.instagram.direct.InboxTabs}). Instagram reads its test when
+     * your messages are first set up and when the app starts, so a change takes a restart. Off to
+     * start.
+     */
+    public static final BooleanSetting INBOX_TABS =
+            new BooleanSetting("hushgram_inbox_tabs", FALSE, true);
 
     /**
      * The search bar at the top of your messages, the Meta AI one included
@@ -4479,6 +4500,14 @@ public class Settings extends BaseSettings {
      */
     public static final StringSetting GHOST_MODE_PICKS =
             new StringSetting("hushgram_ghost_mode_picks", "");
+
+    /**
+     * While Ghost mode is on, a like or a story reply does nothing and a toast says why (#876): a post's
+     * Like button and double tap, a story's heart and super like, a typed story reply and a quick
+     * reaction. It reads Ghost mode at each tap, so a change needs no restart. Off to start.
+     */
+    public static final BooleanSetting BLOCK_GHOST_ACTIONS =
+            new BooleanSetting("hushgram_block_ghost_actions", FALSE);
 
     /**
      * A Search button on Home's header that opens Instagram's own Search tab, or with Hide the Search tab

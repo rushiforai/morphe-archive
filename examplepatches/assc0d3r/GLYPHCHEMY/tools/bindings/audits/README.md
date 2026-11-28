@@ -5,6 +5,46 @@ rediscover the same obfuscated members. Nothing in this directory is compiled or
 tool parses the `val` declarations that build a `Gboard…Target(…)` out of a file and resolves each one
 against an APK, and `tools/bindings/MethodDump.java` prints the members those declarations came from.
 
+## Apply evidence
+
+`morphe-cli` reports success for a patch it never ran. If the APK in front of it is not in the
+patch's declared targets, the run prints
+
+```
+INFO: Skipping "English QWERTY Flick Case": incompatible with com.google.android.inputmethod.latin 18.8.0.1022711984-beta-arm64-v8a
+INFO: Applying 0 patches...
+INFO: Saved to …/out.apk
+```
+
+and **exits 0**, with a rebuilt APK at the output path. A port whose release gate was never added
+therefore looks exactly like a port that applied: same exit status, same output file. Checking the
+output APK's existence, or running `morphe-cli … && echo verified`, proves nothing.
+
+Only this line shows the patch executed:
+
+```
+INFO: Applied: <patch name>
+```
+
+So an apply is checked, never assumed:
+
+```bash
+JAVA="/c/Program Files/Eclipse Adoptium/jdk-25.0.4.101-hotspot/bin/java" \
+    ./tools/apply-patch.sh <input.apk> <output.apk> "English QWERTY Flick Case"
+```
+
+`tools/apply-patch.sh` runs morphe-cli, keeps the log next to the output, and fails unless
+`INFO: Applied:` names every patch it was handed — through `tools/check-apply-evidence.sh`, which
+names the reason when it does not (incompatible, failed, or never ran). Matching is exact on purpose:
+`Swipe Down` must not be satisfied by `Applied: Swipe Down to Dismiss Keyboard`, and several patch
+names in this bundle are prefixes of others.
+
+A patch can also apply and still not finish the run: an unrelated patch failing afterwards aborts
+it, and the output APK is then incomplete. `apply-patch.sh` reports that case separately — "applied"
+for the named patches, then a non-zero exit for the run. `EXTRA_MORPHE_ARGS=--continue-on-error`
+lets a run survive such a failure when only the applied patch is being inspected, but the exit status
+still has to be read.
+
 ## `frosted-and-flag-store-18.8.0.kt`
 
 The thirteen targets Frosted Glass and the shared flag family need on
@@ -175,6 +215,88 @@ fingerprint covers.
   loudly instead of guessing.
 - The footer reorder itself has not been checked on a device: the claim is that the patch applies
   and its own gates hold, not that the tab order looks right.
+
+## `settings-homepage-18.8.0.kt`
+
+The one member the settings homepage override hooks on **18.8.0.1022711984-beta-arm64-v8a** (same
+APK and sha256 as the sections above). It is the `18.8.0` row of `GboardSettingsHomepageTargets.kt`.
+
+### How the value was derived
+
+`SettingsActivity` is a manifest class, so it keeps its name across releases and the 18.6.3
+descriptor resolves unchanged. Running `BindingAudit` over the 18.8 APK resolves the method itself,
+and `MethodDump <apk> 'Lcom/google/android/apps/inputmethod/latin/preference/SettingsActivity;'
+onCreate` shows the same body the patch's stock gate asserts:
+
+- seven registers, the receiver at v5;
+- `invoke-virtual {v5} ...->getIntent()Landroid/content/Intent;` as instruction 0;
+- exactly one `invoke-super {v5, v6} ...->onCreate(Landroid/os/Bundle;)V`;
+- exactly one `return-void`, and it is the last instruction.
+
+The one difference is the declaration: 18.6.3 compiles it `protected final` (`0x14`) and 18.8.0
+compiles it `public final` (`0x11`). `BindingAudit` does not compare access flags, so the patch's own
+gate is what pins it: `SettingsHomepageTargets` carries the expected flags per release and selects
+the table whose flags the APK actually declares.
+
+### Re-checking
+
+```bash
+JAVA="/c/Program Files/Eclipse Adoptium/jdk-25.0.4.101-hotspot/bin/java"
+"$JAVA" -cp libs/morphe-cli.jar tools/bindings/BindingAudit.java     tools/bindings/audits/settings-homepage-18.8.0.kt     "<the 18.8 APK>"
+"$JAVA" -cp libs/morphe-cli.jar tools/bindings/MethodDump.java "<the 18.8 APK>"     'Lcom/google/android/apps/inputmethod/latin/preference/SettingsActivity;' onCreate | head -3
+```
+
+Expect `resolved: 1`, `unresolved: 0`, and `registers=7 access=0x11` on the dump.
+
+### Status and limits
+
+- **Resolved and applied** through the public Settings Homepage Override patch; see that commit for
+  the run.
+- Nothing was run on a device, so switching between the new and legacy settings pages is unverified.
+
+## `long-press-gesture-18.8.0.kt`
+
+The gesture dispatch boundary and the input-event entry the Long-Press Editing Shortcuts port needs
+on **18.8.0.1022711984-beta-arm64-v8a** (same APK and sha256 as the sections above). The first three
+are the `18.8.0` row of `GboardGestureTargets.kt`; the input-event method is the row that patch
+already carried.
+
+### How the values were derived
+
+1. 18.6.3's boundary is `Lqch;->f(...)V`, a three-instruction forward that reads its own stock
+   delegate (`Lqch;->n:Lqcf;`) and calls `Lqcf;->h(...)`. On 18.8.0 that shape is gone from the old
+   names: `Lqch;` does not exist, and the dispatcher became an interface — `Lagyx;` (`0x601`) with
+   `f(Lagyw;Lagkl;Lagmb;SoftKeyDef;JZZIZJI)V`, which the view holds in `Lagyw;->s:Lagyx;`.
+2. The boundary moved to the interface's sole implementor: `Lagyn;` is the only class listing
+   `Lagyx;` in its interfaces, and its `f` is still exactly three instructions (14 registers):
+   `iget-object v0, v0, Lagyn;->n:Lagyl;`, `invoke-interface/range {v0 .. v13}, Lagyl;->h(...)`,
+   `return-void`. The stock dispatch is the `Lagyl;` interface's `h` with the same prototype.
+3. The prototype renamed its first three parameters (`Lqck;` -> `Lagyw;`, `Lpuc;` -> `Lagkl;`,
+   `Lpva;` -> `Lagmb;`) but still costs thirteen parameter words, so the composer's register layout
+   and helper bodies carry over unchanged.
+4. `Lafae;->ay(Ladan;)Z` is the input-event dispatcher, 28 registers - receiver at v26, event at v27 -
+   which is what the input-event patch's register layout derives from its one-parameter prototype.
+5. Re-ran the audit against the file in this directory: **4 of 4 resolved**.
+
+### Re-checking
+
+```bash
+JAVA="/c/Program Files/Eclipse Adoptium/jdk-25.0.4.101-hotspot/bin/java"
+"$JAVA" -cp libs/morphe-cli.jar tools/bindings/BindingAudit.java     tools/bindings/audits/long-press-gesture-18.8.0.kt     "<the 18.8 APK>"
+"$JAVA" -cp libs/morphe-cli.jar tools/bindings/MethodDump.java "<the 18.8 APK>" 'Lagyn;' f
+"$JAVA" -cp libs/morphe-cli.jar tools/bindings/MethodDump.java "<the 18.8 APK>" 'Lafae;' ay | head -2
+```
+
+Expect `resolved: 4`, `unresolved: 0`, the three-instruction forward on `Lagyn;->f`, and
+`registers=28` on `Lafae;->ay`.
+
+### Status and limits
+
+- **Resolved and applied** through the public Long-Press Editing Shortcuts patch, together with its
+  soft-key, pointer and input-event units; see that commit for the run.
+- Top Row Swipe and the Zhuyin toggle share this composer and now read the same table, but their
+  other units have no 18.8 bindings yet, so their public patches stay 18.6.3-only.
+- Nothing was run on a device: the globe-drag shortcut itself is unverified.
 
 ## Proposing replacements
 

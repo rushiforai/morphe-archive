@@ -3,6 +3,7 @@ package semicoloncolonel.mobilestream.patches.walgreens.shared
 import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.AppTarget
+import semicoloncolonel.mobilestream.patches.shared.misc.devTarget
 
 object Constants {
     val COMPATIBILITY = Compatibility(
@@ -13,6 +14,7 @@ object Constants {
         appIconColor = 0xE31837,
         targets = listOf(
             AppTarget("118.1", versionCode = 729118110),
+            devTarget("119.0", versionCode = 729119004),
             AppTarget("118.0"),
         )
     )

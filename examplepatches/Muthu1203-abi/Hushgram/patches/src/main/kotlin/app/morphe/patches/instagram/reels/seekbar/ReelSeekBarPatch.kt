@@ -1,0 +1,1014 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.morphe.patches.instagram.reels.seekbar
+
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.instagram.misc.extension.classesCalling
+import app.morphe.patches.instagram.misc.extension.classesLoadingString
+import app.morphe.patches.instagram.misc.extension.enableStatus
+import app.morphe.patches.instagram.misc.extension.freeLocalsAt
+import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
+import app.morphe.patches.instagram.misc.extension.jumpTargets
+import app.morphe.patches.instagram.misc.extension.loadsString
+import app.morphe.patches.instagram.misc.extension.localRegisterCount
+import app.morphe.patches.instagram.misc.extension.parameterRegisterNumber
+import app.morphe.patches.instagram.misc.extension.requireParameterIntact
+import app.morphe.patches.instagram.misc.extension.requireStatusMethod
+import app.morphe.patches.instagram.misc.extension.stringLoadedAt
+import app.morphe.patches.instagram.misc.flags.FlagLoad
+import app.morphe.patches.instagram.misc.flags.answerFlagLoads
+import app.morphe.patches.instagram.misc.flags.findFlagLoads
+import app.morphe.patches.instagram.misc.settings.EXTENSION_ROOT
+import app.morphe.patches.instagram.misc.settings.settingsPatch
+import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.ControlFlow
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+
+private const val PATCH = "Keep a seek bar on Reels"
+internal const val REEL_SEEK_BAR = "$EXTENSION_PACKAGE/reels/ReelSeekBar;"
+internal const val MIN_SECONDS = "$REEL_SEEK_BAR->minSeconds(J)J"
+internal const val LAZY = "$REEL_SEEK_BAR->lazy(I)Z"
+internal const val PROGRESS = "$REEL_SEEK_BAR->progress(Landroid/widget/SeekBar;I)V"
+internal const val BIND = "$REEL_SEEK_BAR->bind(Ljava/lang/Object;I)V"
+internal const val BIND_REEL = "$REEL_SEEK_BAR->bindReel(Ljava/lang/Object;Ljava/lang/Object;)V"
+
+/** The extension's stub the patch fills with the reel item's getId, apart from ReelSeekBar. */
+internal const val REEL_ITEM_READER = "$EXTENSION_PACKAGE/reels/ReelItemReader;"
+internal const val REEL_ITEM_ID = "$REEL_ITEM_READER->id(Ljava/lang/Object;)Ljava/lang/String;"
+internal const val LISTEN = "$EXTENSION_PACKAGE/reels/ReelSeekTouch;->listen(Landroid/view/View;Landroid/view/View\$OnTouchListener;)V"
+
+/**
+ * The shortest ordinary reel, in seconds, that gets Instagram's attached seek bar: a parameter of
+ * the server setting ig_android_iv_video_scrubber. 450 reads it three times: in the check of
+ * whether a reel gets the bar, in the check of whether its bar is the hidden kind, and where the
+ * Reels progress controller keeps its limits. The first two read an ad's own minimum in the same
+ * place, picked in a branch.
+ */
+// 451: 0x82091900291476. 452 moved it to 0x82090f00291471, 453 to 0x8208fe00291415 (config index -10, slot -5),
+// 454 to 0x8208d0002913a8, 455 to 0x8208c200291371 and 456 to 0x8208b900291365; same three readers.
+// 457 moved it from 456's 0x8208b900291365.
+internal const val ORGANIC_MIN_SECONDS = 0x8208b100291340L
+internal const val ORGANIC_MIN_SECONDS_READS = 3
+
+/**
+ * Whether a short ordinary reel's bar is the hidden kind, shown only while you hold the reel. 450
+ * reads it once, where the seek bar row's state is worked out, in the same place as the ads' flag.
+ */
+// 451: 0x8109190010330c. 452 moved it to 0x81090f00103271, 453 to 0x8108fe00103259, 454 to 0x8108d00010323f
+// 455 to 0x8108c2001031f3 and 456 to 0x8108b9001031f3, read by the same seek bar row state.
+// 457 moved it from 456's 0x8108b9001031f3.
+internal const val ORGANIC_LAZY = 0x8108b1001031dcL
+internal const val ORGANIC_LAZY_READS = 1
+
+internal const val PASS_THROUGH = "$REEL_SEEK_BAR->passThrough(I)Z"
+
+/**
+ * Whether a sideways drag across a reel scrubs it, for a reel shorter than the minimum (the one whose bar is
+ * the hidden kind, which nothing else brings back) and for a longer one: the Reels scrubber config's
+ * enableUniversalScrubberPassThroughGesture and enableScrubberPassThroughGesture. 456 reads each once, in the
+ * builder of that config (on 456's 386214574 LX/0JBj->A01), which also reads [ORGANIC_MIN_SECONDS].
+ */
+// 457 moved it from 456's 0x8108b9001431f6.
+internal const val UNIVERSAL_PASS_THROUGH = 0x8108b1001431dfL
+// 457 moved it from 456's 0x8108b9001131f4.
+internal const val ATTACHED_PASS_THROUGH = 0x8108b1001131ddL
+
+/**
+ * What the check of whether a reel gets the attached bar takes: the session, the reel's length and two
+ * booleans. 456 dropped the markers that named it; it's the one method this shape reading the minimum
+ * (on 456's 386214574 LX/04mo->A0P).
+ */
+internal const val USER_SESSION = "Lcom/instagram/common/session/UserSession;"
+private val ATTACHED_PARAMETERS = listOf(USER_SESSION, "J", "Z", "Z")
+
+/**
+ * The Reels viewer's settings, which the seek bar row's state (on 456's 386214574 LX/08DZ->A00) and the
+ * check of whether a reel gets the bar (LX/08LX->A00) take first, ahead of the reel item.
+ */
+internal const val VIEWER_CONFIG = "Lcom/instagram/clips/intf/ClipsViewerConfig;"
+
+/**
+ * What the Reels progress controller reports when it can't make the strip you drag from (on 456's
+ * 386214574 LX/098b->A0D). No other class loads it, so it names the controller.
+ */
+internal const val PROGRESS_CONTROLLER_ERROR = "ClipsScrubberExpandedTouchViewError"
+
+/**
+ * The event the Reels player's position callback (on 456's 386214574 LX/07Ft->A1U) logs at a preview's end.
+ * Other methods load it too, but none of them takes a reel item, the position and the length.
+ */
+internal const val PREVIEW_END = "preview_end"
+
+private const val SET_ON_TOUCH = "Landroid/view/View;->setOnTouchListener(Landroid/view/View\$OnTouchListener;)V"
+
+/** Instagram's reel seek bar, a kept class, and the listener method the label hook goes in. */
+internal const val SEEK_BAR = "Lcom/instagram/ui/mediaactions/VideoScrubberSeekBar;"
+internal const val PROGRESS_CHANGED = "onProgressChanged"
+private const val ANDROID_SEEK_BAR = "Landroid/widget/SeekBar;"
+private val PROGRESS_CHANGED_PARAMETERS = listOf(ANDROID_SEEK_BAR, "I", "Z")
+
+/**
+ * The tag 449 gives a reel's seek bar container, then the reel's id. The one method setting it is
+ * the binder that ties the container, whose first child is the bar, to its reel.
+ */
+internal const val SCRUBBER_TAG = "clips_scrubber_"
+private const val SET_TAG = "Landroid/view/View;->setTag(Ljava/lang/Object;)V"
+
+internal const val PHOTO_BAR_ON = "$REEL_SEEK_BAR->photoBarOn()Z"
+internal const val PHOTO_REEL = "$REEL_SEEK_BAR->photoReel(ILjava/lang/Object;Ljava/lang/String;)Z"
+internal const val PHOTO_ROW = "$REEL_SEEK_BAR->photoRow(Ljava/lang/Object;Ljava/lang/String;)V"
+internal const val PHOTO_PROGRESS = "$REEL_SEEK_BAR->photoProgress(Ljava/lang/String;II)V"
+internal const val SEEK_PREVIEW_ON = "$EXTENSION_PACKAGE/feed/SeekPreview;->on()Z"
+internal const val REMEMBER_REEL = "$REEL_SEEK_BAR->rememberReel(Ljava/lang/Object;Ljava/lang/String;)V"
+
+/**
+ * The Reels progress controller's check of whether a reel's bar shows only while you touch the reel (on
+ * 456's 386214574 LX/098b->A0O, its one static check of itself). It says yes to a reel shorter than the
+ * minimum, and a photo's length is 0, so the controller hid a photo's bar each time the reel came on screen (#10).
+ */
+internal const val PHOTO_TOUCH_ONLY = "$REEL_SEEK_BAR->photoTouchOnly(ILjava/lang/Object;Ljava/lang/String;)Z"
+
+/**
+ * The Reels progress controller's check of whether a reel gets the strip you drag from (on 456's 386214574
+ * LX/098b->A1B, its one instance check of a reel item). Letting go of a hold on a reel asks it before showing
+ * the bar again, and it goes by the reel's length, which it asks the controller for. A photo's length is 0, so
+ * a hold hid a photo's bar for good (#10).
+ */
+internal const val PHOTO_STRIP = "$REEL_SEEK_BAR->photoStrip(Ljava/lang/Object;Ljava/lang/String;)Z"
+
+/**
+ * Hide the seek bar on reels (#680) in the same two checks of the progress controller. Each asks [BARS_HIDDEN] first, ahead
+ * of the photo's hook. Yes, the strip check answers yes for every ordinary reel, since it goes by a length no reel reaches
+ * while the bars are hidden, and a reel with no strip had nothing for the drag along its bottom edge to land on. The
+ * touch-only check hands [HIDDEN_TOUCH_ONLY] its answer and whether the reel is an ad, so a short reel that keeps its strip
+ * still keeps its bar hidden until touched.
+ */
+internal const val BARS_HIDDEN = "$REEL_SEEK_BAR->barsHidden()Z"
+internal const val HIDDEN_TOUCH_ONLY = "$REEL_SEEK_BAR->hiddenTouchOnly(II)Z"
+
+/** What Instagram reports from the method that works out a post's kind of reel (on 454 LX/087h->A00), photo with music among them. */
+internal const val KIND_OF_REPORT = "MixedMediaTypeExt.toMixedMediaType unsupported carousel type"
+private const val MEDIA = "Lcom/instagram/feed/media/Media;"
+private const val STRING = "Ljava/lang/String;"
+
+/**
+ * Keeps Instagram's seek bar under every reel, with the time played and the reel's length. In the
+ * default selection with its switch off: it changes how every reel looks, so it's the user's pick.
+ * Asked for in #10.
+ *
+ * Instagram 449 decides per reel whether to draw its seek bar under it from a server minimum
+ * length, and on short reels draws none, or one hidden until a hold. The patch answers the minimum
+ * for ordinary reels as one second and the hidden kind as off, through the extension, at each of
+ * Instagram's reads of them; where a read also serves the ads' value, only the ordinary reel's
+ * branch gets the answer. The bar's own onProgressChanged hands the extension the bar and its
+ * position, for the time label. Ads use the same bar, so the binder that ties a seek bar container
+ * to its reel hands the extension the container and Instagram's own answer for whether the reel is
+ * an ad, the one the seek bar row reads to pick the ads' setting, and only a bar in a container
+ * bound to an ordinary reel gets the label.
+ *
+ * Instagram's own strip for dragging a little above the bar can reach over the More button and the
+ * audio square on some phones, so a tap there scrubbed the reel (#452). Its touch listener goes to
+ * the extension's ReelSeekTouch, which hands a press on a button under the strip to that button.
+ *
+ * A reel that's a photo with a song plays through the same player, but its post states no length, so
+ * Instagram gives it no bar (#10). On a switch of its own, the check of whether a reel gets the bar and
+ * the row's state tell the extension the reel's kind and id, and it says yes to that kind alone, and the
+ * player's position callback hands it the song's length for that reel's bar. The progress controller's
+ * check of whether the bar shows only while you touch the reel asks the extension too, since a photo,
+ * with no length, is shorter than any minimum and had its bar hidden each time it came on screen. Letting go
+ * of a hold on the reel shows the bar again only when the controller's check of the strip you drag from says
+ * so, which goes by the length too, so that check asks the extension before it does.
+ *
+ * Hide the seek bar on reels (#680) gives every ordinary reel the hidden kind, which only a sideways drag across
+ * the reel brings back, and that drag is off on many accounts. The scrubber config's two reads of whether it's
+ * on go to the extension too, which answers yes while that switch hides the bars.
+ *
+ * Every read is found by its server id and counted, each is checked against the seek bar's methods it
+ * sits in, and the bar's class and method, the binder and the strip's listener call are
+ * checked, all before anything changes. A build that differs stops the patch naming what it couldn't find, and nothing is half
+ * done.
+ */
+@Suppress("unused")
+val reelSeekBarPatch = bytecodePatch(
+    name = "Keep a seek bar on Reels",
+    description = "Keeps a seek bar under every reel, short ones too, with the time played and the reel's length " +
+        "above it, like 0:10 / 0:55. Starts off. Turn it on in HushGram settings > Reels.",
+) {
+    category("Playback")
+    dependsOn(settingsPatch, instagramExtensionPatch)
+    compatibleWith(*AppCompatibilities.instagram())
+
+    execute {
+        requireStatusMethod("reelSeekBar")
+        applyReelSeekBar(findReelSeekBarSites())
+        enableStatus("reelSeekBar")
+    }
+}
+
+private fun refuse(detail: String): Nothing = throw PatchException("$PATCH: $detail")
+
+/**
+ * The three reads of the minimum, the read of the hidden kind, the two reads of whether a sideways drag scrubs,
+ * the seek bar's listener method, the binder and the strip.
+ */
+internal class ReelSeekBarSites(
+    val lengths: List<FlagLoad>,
+    val lazy: FlagLoad,
+    val passThroughs: List<FlagLoad>,
+    val progress: Method,
+    val bind: BindSite,
+    val touch: TouchSite,
+    val photo: PhotoSites,
+)
+
+/**
+ * What the photo reel's hooks need: the reel item's fields as `type->name:type` or `type->name(...)ret`
+ * ([media], [id]), the method working out a post's kind ([kindOf]), the check of whether a reel gets
+ * the bar ([answer], with [answerAt] its last return, of [answerRegister], and [item] the item's register
+ * there and [scratch] two registers free there), the row's state ([row]), the player's callback ([player]),
+ * the controller's check of whether the bar shows only while touched ([touchOnly]) and its check of the
+ * strip you drag from ([strip]).
+ */
+internal class PhotoSites(
+    val media: String,
+    val id: String,
+    val kindOf: String,
+    val answer: Method,
+    val answerAt: Int,
+    val answerRegister: Int,
+    val item: Int,
+    val scratch: Pair<Int, Int>,
+    val row: Method,
+    val player: Method,
+    val touchOnly: TouchOnlySite,
+    val strip: StripSite,
+)
+
+/**
+ * Where the check of the strip you drag from goes by the reel's length: [at] is its first comparison of the
+ * length, which nothing jumps to, [item] the register holding the reel it's asked about, and [scratch] two
+ * registers free there.
+ */
+internal class StripSite(
+    val method: Method,
+    val at: Int,
+    val item: Int,
+    val scratch: Pair<Int, Int>,
+)
+
+/**
+ * Where the check of whether the bar shows only while touched answers: [at] is its return of [answer], which a call put there, [current]
+ * the static getter of the reel on screen it asks with the controller in [controller], [ad] the reel's field it reads
+ * as whether the reel is an ad, and [scratch] three registers free at that return.
+ */
+internal class TouchOnlySite(
+    val method: Method,
+    val at: Int,
+    val answer: Int,
+    val current: String,
+    val controller: Int,
+    val scratch: List<Int>,
+    val ad: String,
+)
+
+/** Where [method] calls [SET_ON_TOUCH] on the strip: instruction [at], with the strip in [view] and the listener in [listener]. */
+internal class TouchSite(
+    val method: Method,
+    val at: Int,
+    val view: Int,
+    val listener: Int,
+)
+
+/**
+ * Where the binder reads whether its reel is an ad: [readAt] is the `iget-boolean` of that field into
+ * [flag], from the reel item in [item], and [view] is the register holding the container all through the method.
+ */
+internal class BindSite(
+    val method: Method,
+    val readAt: Int,
+    val flag: Int,
+    val view: Int,
+    val item: Int,
+)
+
+/**
+ * Finds every read of [ORGANIC_MIN_SECONDS] and [ORGANIC_LAZY] and checks there are exactly
+ * [ORGANIC_MIN_SECONDS_READS] and [ORGANIC_LAZY_READS], then that they're the seek bar's: one read
+ * of the minimum is in the static check of whether a reel gets the attached bar ([ATTACHED_PARAMETERS]),
+ * the read of the hidden kind is in the seek bar row's state, which takes a [VIEWER_CONFIG] first
+ * and calls a method that reads the minimum, and one static check taking a [VIEWER_CONFIG] and the
+ * row's reel item calls the attached check. The progress controller is the one class reporting
+ * [PROGRESS_CONTROLLER_ERROR], and the player's callback the one instance method taking the reel item,
+ * the position and the length that loads [PREVIEW_END]. Then finds [SEEK_BAR]'s one [PROGRESS_CHANGED].
+ * Fails before anything changes when any of it isn't so.
+ */
+internal fun BytecodePatchContext.findReelSeekBarSites(): ReelSeekBarSites {
+    val lengths = findFlagLoads(PATCH, ORGANIC_MIN_SECONDS, "J")
+    if (lengths.size != ORGANIC_MIN_SECONDS_READS) {
+        refuse(
+            "expected $ORGANIC_MIN_SECONDS_READS reads of the shortest reel with a seek bar " +
+                "(${ORGANIC_MIN_SECONDS.toString(16)}), found ${lengths.size}",
+        )
+    }
+    val lazies = findFlagLoads(PATCH, ORGANIC_LAZY, "Z")
+    if (lazies.size != ORGANIC_LAZY_READS) {
+        refuse("expected $ORGANIC_LAZY_READS read of the hidden seek bar flag (${ORGANIC_LAZY.toString(16)}), found ${lazies.size}")
+    }
+    val lazy = lazies.single()
+    // Both reads of whether a sideways drag scrubs sit in the scrubber config's builder, a method reading the minimum.
+    val passThroughs = listOf(UNIVERSAL_PASS_THROUGH, ATTACHED_PASS_THROUGH).map { flag ->
+        val loads = findFlagLoads(PATCH, flag, "Z")
+        val load = loads.singleOrNull()
+            ?: refuse("expected one read of whether a sideways drag scrubs a reel (${flag.toString(16)}), found ${loads.size}")
+        if (lengths.none { it.signature() == load.signature() }) {
+            refuse("${load.signature()} reads whether a sideways drag scrubs a reel but not the shortest reel with a seek bar")
+        }
+        load
+    }
+
+    val attacheds = lengths.filter { it.parameters == ATTACHED_PARAMETERS && it.returnType == "Z" }.map { methodOf(it) }
+        .filter { AccessFlags.STATIC.isSet(it.accessFlags) }.distinctBy { it.signature() }
+    val attached = attacheds.singleOrNull() ?: refuse(
+        "expected one static (${ATTACHED_PARAMETERS.joinToString("")})Z check reading the shortest reel with a seek bar, " +
+            "found ${attacheds.size}",
+    )
+    val row = methodOf(lazy)
+    if (row.parameterTypes.firstOrNull()?.toString() != VIEWER_CONFIG) {
+        refuse("the hidden seek bar flag is read in ${row.signature()}, which doesn't take a $VIEWER_CONFIG first")
+    }
+    if (lengths.none { it.signature() in row.calledSignatures() }) {
+        refuse("${row.signature()} asks no method reading the shortest reel with a seek bar")
+    }
+    val itemType = row.parameterTypes.getOrNull(1)?.toString() ?: refuse("${row.signature()} takes no reel item")
+    val calculates = classesCalling(attached.definingClass, attached.name, ATTACHED_PARAMETERS, "Z").flatMap { it.methods }.filter { method ->
+        AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "Z" &&
+            method.parameterTypes.map(CharSequence::toString).take(2) == listOf(VIEWER_CONFIG, itemType) &&
+            attached.signature() in method.calledSignatures()
+    }
+    val calculate = calculates.singleOrNull() ?: refuse(
+        "expected one static check taking a $VIEWER_CONFIG and a $itemType to ask ${attached.signature()}, found ${calculates.size}",
+    )
+
+    val controllers = classesLoadingString(PROGRESS_CONTROLLER_ERROR).filter { classDef ->
+        !classDef.type.startsWith(EXTENSION_ROOT) && classDef.methods.any { loadsString(it, PROGRESS_CONTROLLER_ERROR) }
+    }
+    val controller = controllers.singleOrNull()
+        ?: refuse("expected one class reporting \"$PROGRESS_CONTROLLER_ERROR\", the Reels progress controller, found ${controllers.size}")
+    fun controllerMethod(what: String, test: (Method) -> Boolean): Method {
+        val found = controller.methods.filter(test)
+        return found.singleOrNull() ?: refuse("expected the Reels progress controller ${controller.type} to have one $what, found ${found.size}")
+    }
+    val touchStrip = controllerMethod("method setting a touch listener") { SET_ON_TOUCH in it.calledSignatures() }
+    val touchOnly = controllerMethod("static check of itself") { method ->
+        AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "Z" &&
+            method.parameterTypes.map(CharSequence::toString) == listOf(controller.type)
+    }
+    val expanded = controllerMethod("instance check of a $itemType") { method ->
+        !AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "Z" &&
+            method.parameterTypes.map(CharSequence::toString) == listOf(itemType)
+    }
+    val players = classesLoadingString(PREVIEW_END).filter { !it.type.startsWith(EXTENSION_ROOT) }.flatMap { it.methods }.filter { method ->
+        !AccessFlags.STATIC.isSet(method.accessFlags) && method.parameterTypes.map(CharSequence::toString).take(3) == listOf(itemType, "I", "I") &&
+            loadsString(method, PREVIEW_END)
+    }
+    val player = players.singleOrNull()
+        ?: refuse("expected one instance method taking a $itemType, the position and the length to load \"$PREVIEW_END\", found ${players.size}")
+
+    classDefByOrNull(REEL_ITEM_READER)?.methods?.singleOrNull { it.signature() == REEL_ITEM_ID && AccessFlags.STATIC.isSet(it.accessFlags) }
+        ?: refuse("the extension has no static $REEL_ITEM_ID")
+    return ReelSeekBarSites(
+        lengths, lazy, passThroughs, findProgressChanged(), findBindSite(row, lazy), findTouchSite(touchStrip),
+        findPhotoSites(calculate, attached, row, player, touchOnly, expanded),
+    )
+}
+
+/** The method [load] is in. */
+private fun BytecodePatchContext.methodOf(load: FlagLoad): Method =
+    classDefByOrNull(load.type)?.methods?.singleOrNull { it.signature() == load.signature() }
+        ?: refuse("this Instagram build has no ${load.signature()}")
+
+/**
+ * The places a photo with a song gets its bar (#10). The reel item is [row]'s second parameter; it has
+ * to hold one [MEDIA], which [KIND_OF_REPORT]'s method takes to answer the kind, and a getId, which is
+ * how the binder tags the bar's container. [calculate] has to end in the answer of [attached], returned
+ * as it is, with the item in a register nothing writes over, and [player] has to take the item, then
+ * the position and the length. [touchOnly] is checked by [findTouchOnlySite] and [strip] by [findStripSite].
+ */
+private fun BytecodePatchContext.findPhotoSites(
+    calculate: Method,
+    attached: Method,
+    row: Method,
+    player: Method,
+    touchOnly: Method,
+    strip: Method,
+): PhotoSites {
+    val itemType = row.parameterTypes.getOrNull(1)?.toString() ?: refuse("${row.signature()} takes no reel item")
+    val itemClass = classDefByOrNull(itemType) ?: refuse("this Instagram build has no $itemType")
+    val mediaFields = itemClass.fields.filter { it.type == MEDIA }
+    val media = mediaFields.singleOrNull() ?: refuse("expected $itemType to hold one $MEDIA, found ${mediaFields.size}")
+    val getId = itemClass.methods.singleOrNull { it.name == "getId" && it.parameterTypes.isEmpty() && it.returnType == STRING }
+        ?: refuse("$itemType has no getId")
+    if (!AccessFlags.PUBLIC.isSet(itemClass.accessFlags) || !AccessFlags.PUBLIC.isSet(getId.accessFlags)) {
+        refuse("$itemType or its getId isn't public, so the extension can't ask a reel its id")
+    }
+    val kinds = classesLoadingString(KIND_OF_REPORT).flatMap { it.methods }.filter { method ->
+        AccessFlags.STATIC.isSet(method.accessFlags) && method.parameterTypes.map(CharSequence::toString) == listOf(MEDIA) &&
+            method.returnType.startsWith("L") && loadsString(method, KIND_OF_REPORT)
+    }
+    val kindOf = kinds.singleOrNull() ?: refuse("expected one method taking a $MEDIA to report \"$KIND_OF_REPORT\", found ${kinds.size}")
+
+    val where = calculate.signature()
+    if (calculate.parameterTypes.getOrNull(1)?.toString() != itemType) refuse("$where doesn't take $itemType second")
+    val code = calculate.implementation?.instructions?.toList() ?: refuse("$where has no body")
+    val calls = code.indices.filter { code[it].methodSignature() == attached.signature() }
+    val call = calls.singleOrNull() ?: refuse("expected $where to ask ${attached.signature()} once, found ${calls.size}")
+    val moved = code.getOrNull(call + 1)
+    val returned = code.getOrNull(call + 2)
+    if (moved?.opcode != Opcode.MOVE_RESULT || returned?.opcode != Opcode.RETURN ||
+        (moved as OneRegisterInstruction).registerA != (returned as OneRegisterInstruction).registerA
+    ) {
+        refuse("$where doesn't return what ${attached.signature()} answers")
+    }
+    val answerAt = call + 2
+    if (answerAt in calculate.jumpTargets()) refuse("$where jumps to its return of the answer, where the hook goes")
+    val answer = (returned as OneRegisterInstruction).registerA
+    val item = calculate.parameterRegisterNumber(1)
+    if (item > 15 || answer > 15) refuse("$where keeps the item or the answer in a register past v15")
+    if (code.any { it.writes(item) }) refuse("$where writes over the reel item")
+    val free = (0 until minOf(calculate.localRegisterCount(), 16)).filter { it != answer }
+    if (free.size < 2) refuse("$where has no two registers free at its return")
+
+    if (row.implementation == null || row.localRegisterCount() < 2 || 0 in row.jumpTargets()) {
+        refuse("${row.signature()} has no room for the photo's hook at its start")
+    }
+    val playerParameters = player.parameterTypes.map(CharSequence::toString)
+    if (AccessFlags.STATIC.isSet(player.accessFlags) || playerParameters.take(3) != listOf(itemType, "I", "I") ||
+        player.localRegisterCount() < 3 || 0 in player.jumpTargets()
+    ) {
+        refuse("${player.signature()} isn't an instance method taking $itemType, the position and the length, with room for a hook")
+    }
+    return PhotoSites(
+        media = "$itemType->${media.name}:$MEDIA",
+        id = "$itemType->getId()$STRING",
+        kindOf = kindOf.signature(),
+        answer = calculate,
+        answerAt = answerAt,
+        answerRegister = answer,
+        item = item,
+        scratch = free[0] to free[1],
+        row = row,
+        player = player,
+        touchOnly = findTouchOnlySite(touchOnly, itemType),
+        strip = findStripSite(strip, itemType),
+    )
+}
+
+/**
+ * The check of the strip you drag from, [method]: an instance method of the progress controller taking an
+ * [itemType] and answering a boolean. It asks the controller's static getter of the reel's length once, and
+ * compares that length in one straight run after, with nothing jumping in or out and nothing writing over it on
+ * the way. The hook goes at that comparison, where 455 loaded the length check's marker just before. The reel is
+ * still in its own register there, v15 or below, and two registers are free there.
+ */
+private fun findStripSite(method: Method, itemType: String): StripSite {
+    val where = method.signature()
+    val controller = method.definingClass
+    if (AccessFlags.STATIC.isSet(method.accessFlags) || method.parameterTypes.map(CharSequence::toString) != listOf(itemType) ||
+        method.returnType != "Z"
+    ) {
+        refuse("$where isn't an instance check of a $itemType")
+    }
+    val code = method.implementation?.instructions?.toList() ?: refuse("$where has no body")
+    val reads = code.indices.filter { at ->
+        val called = (code[at] as? ReferenceInstruction)?.reference as? MethodReference
+        code[at].opcode == Opcode.INVOKE_STATIC && called != null && called.definingClass == controller && called.returnType == "J" &&
+            called.parameterTypes.map(CharSequence::toString) == listOf(controller)
+    }
+    val read = reads.singleOrNull() ?: refuse("expected $where to ask its controller for the reel's length once, found ${reads.size}")
+    val moved = code.getOrNull(read + 1)
+    if (moved?.opcode != Opcode.MOVE_RESULT_WIDE) refuse("$where doesn't keep the reel's length from ${code[read].methodSignature()}")
+    val length = (moved as OneRegisterInstruction).registerA
+    val flow = ControlFlow.of(method)
+    val targets = method.jumpTargets()
+    var at = read + 1
+    while (true) {
+        if (flow.normal[at] != listOf(at + 1)) refuse("$where branches before it compares the reel's length")
+        at++
+        if (at in targets) refuse("$where jumps in between asking for the reel's length and comparing it, where the hook goes")
+        val next = code[at]
+        if (next.opcode == Opcode.CMP_LONG && length in (next as ThreeRegisterInstruction).let { listOf(it.registerB, it.registerC) }) break
+        if (next.writes(length) || next.writes(length + 1)) refuse("$where writes over the reel's length before comparing it")
+    }
+    val item = method.parameterRegisterNumber(0)
+    if (item > 15) refuse("$where keeps the reel in a register past v15")
+    method.requireParameterIntact("$PATCH: $where", 0, listOf(at))
+    val (kind, id) = method.freeLocalsAt("$PATCH: $where", at, 2, listOf(at))
+    return StripSite(method, at, item, kind to id)
+}
+
+/**
+ * The check of whether the bar shows only while touched, [method]: static, taking its controller and answering a boolean, it asks one
+ * static getter of the controller for the reel on screen, an [itemType], and returns one call's answer as
+ * it is, at a return nothing jumps to. The controller stays in its register, and three registers are free
+ * there, so the hook can ask for the reel again.
+ */
+private fun findTouchOnlySite(method: Method, itemType: String): TouchOnlySite {
+    val where = method.signature()
+    val controller = method.definingClass
+    if (!AccessFlags.STATIC.isSet(method.accessFlags) || method.parameterTypes.map(CharSequence::toString) != listOf(controller) ||
+        method.returnType != "Z"
+    ) {
+        refuse("$where isn't a static check of its controller")
+    }
+    val code = method.implementation?.instructions?.toList() ?: refuse("$where has no body")
+    val getters = code.filter { it.opcode == Opcode.INVOKE_STATIC }.mapNotNull { (it as ReferenceInstruction).reference as? MethodReference }
+        .filter { it.definingClass == controller && it.returnType == itemType && it.parameterTypes.map(CharSequence::toString) == listOf(controller) }
+        .map { "${it.definingClass}->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
+        .distinct()
+    val current = getters.singleOrNull() ?: refuse("expected $where to ask its controller for one $itemType, found ${getters.size}")
+    val answers = code.indices.filter { at ->
+        val moved = code.getOrNull(at - 1)
+        code[at].opcode == Opcode.RETURN && moved?.opcode == Opcode.MOVE_RESULT &&
+            (moved as OneRegisterInstruction).registerA == (code[at] as OneRegisterInstruction).registerA
+    }
+    val at = answers.singleOrNull() ?: refuse("expected $where to return one call's answer, found ${answers.size}")
+    if (at in method.jumpTargets()) refuse("$where jumps to its return of the answer, where the hook goes")
+    val answer = (code[at] as OneRegisterInstruction).registerA
+    val self = method.parameterRegisterNumber(0)
+    if (self > 15 || answer > 15) refuse("$where keeps its controller or the answer in a register past v15")
+    if (code.any { it.writes(self) }) refuse("$where writes over its controller")
+    val free = (0 until minOf(method.localRegisterCount(), 16)).filter { it != answer }
+    if (free.size < 3) refuse("$where has no three registers free at its return")
+    // The length check takes whether the reel is an ad, the one boolean of the reel this check reads (on 456's 386214574 LX/04Dh->A19).
+    val ads = code.filter { it.opcode == Opcode.IGET_BOOLEAN }.mapNotNull { it.fieldReference() }
+        .filter { it.definingClass == itemType }.map { it.text() }.distinct()
+    val ad = ads.singleOrNull() ?: refuse("expected $where to read one boolean of the $itemType, whether it's an ad, found ${ads.size}")
+    return TouchOnlySite(method, at, answer, current, self, free.take(3), ad)
+}
+
+/**
+ * The one call in [method], the progress controller's one method setting a touch listener (on 456's
+ * 386214574 LX/098b->A0I), that sets a view's touch listener: the strip's, set to a lambda of the
+ * controller's that scrubs. It names the strip and the listener in two registers a static call can
+ * take, so it can be swapped for one in place.
+ */
+internal fun findTouchSite(method: Method): TouchSite {
+    val where = method.signature()
+    val code = method.implementation?.instructions?.toList() ?: refuse("$where has no body")
+    val calls = code.indices.filter { code[it].methodSignature() == SET_ON_TOUCH }
+    val at = calls.singleOrNull() ?: refuse("expected $where to set one touch listener, found ${calls.size}")
+    val call = code[at]
+    val registers = call.arguments()
+    if (call.opcode != Opcode.INVOKE_VIRTUAL || registers.size != 2 || registers.any { it > 15 }) {
+        refuse("$where sets the strip's touch listener in a form the patch hasn't seen (${call.opcode}, $registers)")
+    }
+    return TouchSite(method, at, registers[0], registers[1])
+}
+
+/**
+ * The binder's read of whether its reel is an ad. The field is the one [adField] proves the seek
+ * bar row's state ([row]) picks the ads' hidden kind by. The binder is the one method setting a
+ * [SCRUBBER_TAG] tag on a view that reads a field of the primitive that makes [SEEK_BAR], so the
+ * view is that bar's container. 451 also tags the container of its legacy attached scrubber
+ * component that way, in a lambda reading that component, which makes no bar of its own (on 451's
+ * 385713073 that's LX/0ea6 reading LX/0ROh beside LX/0BXG reading LX/07UR). The tag is loaded
+ * itself or asked of a static string pool: 451's 385713109 and 385713111 ask LX/0000->A00 for it,
+ * the way 450 loaded the legacy component's. 453's 385914510 builds it, with the reel's id, in a
+ * static method of its own (LX/0JcH->A01) that the binder calls instead. It reads the ad field once;
+ * the call goes right after the read, where nothing jumps, with the read's register and the tagged
+ * view, a parameter's register that nothing writes over but a cast.
+ */
+internal fun BytecodePatchContext.findBindSite(row: Method, lazy: FlagLoad): BindSite {
+    val field = adField(row, lazy)
+    val holders = classesLoadingString(SCRUBBER_TAG)
+    val builders = holders.flatMap { it.methods }.filter { buildsTag(it) }
+    val built = builders.mapTo(HashSet()) { it.signature() }
+    fun tagLoadedAt(code: List<Instruction>, at: Int) = stringLoadedAt(code, at) == SCRUBBER_TAG || code[at].methodSignature() in built
+    val tagging = mutableListOf<Method>()
+    val loading = (holders + builders.flatMap { classesCalling(it.definingClass, it.name, it.parameterTypes.map(CharSequence::toString), it.returnType) })
+        .mapTo(HashSet()) { it.type }
+    classDefForEach { classDef ->
+        if (classDef.type !in loading || classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+        classDef.methods.forEach { method ->
+            val code = method.implementation?.instructions?.toList() ?: return@forEach
+            if (code.any { it.methodSignature() == SET_TAG } && code.indices.any { tagLoadedAt(code, it) }) {
+                tagging += method
+            }
+        }
+    }
+    if (tagging.isEmpty()) refuse("no method tags a view $SCRUBBER_TAG")
+    // A tagging is the call setting the tag and the method it is in. 452 folds the binders into the
+    // cases of one shared lambda class's switch, so a method can hold several, and the one for the real
+    // bar is told by the class it casts or reads just before loading the tag: the primitive that makes the bar.
+    val taggings = tagging.flatMap { method ->
+        val code = method.implementation!!.instructions.toList()
+        code.indices.filter { code[it].methodSignature() == SET_TAG }.mapNotNull { call ->
+            val load = (call - 1 downTo maxOf(0, call - 6)).firstOrNull { tagLoadedAt(code, it) } ?: return@mapNotNull null
+            val makesBar = (load - 1 downTo maxOf(0, load - 10)).any { at ->
+                val reference = (code[at] as? ReferenceInstruction)?.reference
+                (code[at].opcode == Opcode.IGET_OBJECT && makesSeekBar(code[at].fieldReference()!!.type)) ||
+                    (code[at].opcode == Opcode.CHECK_CAST && reference != null && makesSeekBar(reference.toString()))
+            }
+            if (makesBar) method to call else null
+        }
+    }
+    val binders = taggings.map { it.first }.distinctBy { it.signature() }
+    val tagged = taggings.singleOrNull() ?: refuse(
+        "expected one method tagging a view $SCRUBBER_TAG and reading the primitive that makes $SEEK_BAR, " +
+            "found ${taggings.size} of ${tagging.size} tagging",
+    )
+    val binder = binders.single()
+    val where = binder.signature()
+    val code = binder.implementation!!.instructions.toList()
+    val tagAt = tagged.second
+    val view = code[tagAt].arguments().first()
+    fun castsView(at: Int) = code[at].opcode == Opcode.CHECK_CAST && (code[at] as OneRegisterInstruction).registerA == view
+    val start = (tagAt downTo 0).firstOrNull(::castsView) ?: 0
+    val end = (tagAt + 1 until code.size).firstOrNull(::castsView) ?: code.size
+    // 453 copies the handed view into a local before its switch, so the register needn't be a
+    // parameter. Then the copy from a parameter is the only write before the switch, and the case
+    // is reached from the switch alone, so the other cases' writes of the local never get to it.
+    if (view < binder.localRegisterCount()) {
+        val dispatch = (0 until start).firstOrNull { code[it].opcode == Opcode.PACKED_SWITCH || code[it].opcode == Opcode.SPARSE_SWITCH }
+        val copy = (0 until (dispatch ?: 0)).filter { code[it].writes(view) }.singleOrNull()
+        val fromParameter = copy != null &&
+            code[copy].opcode in setOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16) &&
+            (code[copy] as TwoRegisterInstruction).registerB >= binder.localRegisterCount()
+        val flow = ControlFlow.of(binder)
+        val entries = code.indices.filter { start in flow.normal[it] || start in flow.exceptional[it] }
+        if (dispatch == null || !fromParameter || entries.any { it != dispatch }) {
+            refuse("$where tags a view of its own, not the one it's handed")
+        }
+    }
+    val reads = (start until end).filter { code[it].opcode == Opcode.IGET_BOOLEAN && code[it].fieldReference()?.text() == field }
+    val readAt = reads.singleOrNull() ?: refuse("expected $where to read $field once, found ${reads.size}")
+    val flag = (code[readAt] as OneRegisterInstruction).registerA
+    val item = (code[readAt] as TwoRegisterInstruction).registerB
+    val overwrites = (start until end).filter { code[it].writes(view) && code[it].opcode != Opcode.CHECK_CAST }
+    if (overwrites.isNotEmpty()) refuse("$where writes over the view it tags at instruction(s) ${overwrites.joinToString()}")
+    if (readAt == code.lastIndex || readAt + 1 in binder.jumpTargets()) {
+        refuse("$where jumps to just after its read of $field, where the call would go")
+    }
+    // 454 tags the container only on some screens, so the reel's id is handed over from the item the read reads, just before it.
+    if (readAt in binder.jumpTargets()) refuse("$where jumps to its read of $field, where the reel's id is handed over")
+    if (flag > 15 || view > 15 || item > 15) refuse("$where keeps the view, the reel item or the ad answer in a register past v15")
+    return BindSite(binder, readAt, flag, view, item)
+}
+
+/**
+ * The boolean field of the reel item ([row]'s second parameter) that [row] picks the ads' hidden
+ * kind by: the one boolean of the item it reads, into a register that an `if-eqz` tests on the only
+ * way to [lazy], the ordinary reel's flag, with every way to that test going through the read and
+ * nothing on the way writing over the register. So the field is false for an ordinary reel and true
+ * for an ad, as 449's row reads the ads' flag and the ads' minimum when it's true.
+ */
+private fun adField(row: Method, lazy: FlagLoad): String {
+    val where = row.signature()
+    val item = row.parameterTypes.getOrNull(1)?.toString() ?: refuse("$where takes no reel item")
+    val code = row.implementation!!.instructions.toList()
+    val reads = code.indices.filter { code[it].opcode == Opcode.IGET_BOOLEAN && code[it].fieldReference()!!.definingClass == item }
+    val readAt = reads.singleOrNull() ?: refuse("expected $where to read one boolean of $item, found ${reads.size}")
+    val field = code[readAt].fieldReference()!!.text()
+    val register = (code[readAt] as OneRegisterInstruction).registerA
+    val flow = ControlFlow.of(row)
+    val predecessors = Array(code.size) { mutableSetOf<Int>() }
+    code.indices.forEach { from -> (flow.normal[from] + flow.exceptional[from]).forEach { predecessors[it] += from } }
+    val test = predecessors[lazy.loadAt].singleOrNull()
+        ?: refuse("$where reaches its ordinary reel's hidden kind from ${predecessors[lazy.loadAt].size} places, not one test")
+    val branch = code[test]
+    if (branch.opcode != Opcode.IF_EQZ || (branch as OneRegisterInstruction).registerA != register ||
+        flow.normal[test].first() != lazy.loadAt || test + 1 == lazy.loadAt
+    ) {
+        refuse("$where doesn't read its ordinary reel's hidden kind only when $field is false")
+    }
+    fun reach(from: Collection<Int>, next: (Int) -> Collection<Int>, stopAt: Int, avoid: Int): Set<Int> {
+        val seen = mutableSetOf<Int>()
+        val pending = ArrayDeque(from.filter { it != avoid })
+        while (pending.isNotEmpty()) {
+            val at = pending.removeFirst()
+            if (!seen.add(at) || at == stopAt) continue
+            next(at).filter { it != avoid }.forEach(pending::addLast)
+        }
+        return seen
+    }
+    val successors = { at: Int -> flow.normal[at] + flow.exceptional[at] }
+    if (test in reach(listOf(0), successors, test, readAt)) {
+        refuse("$where can test its register before reading $field into it")
+    }
+    val after = reach(successors(readAt), successors, test, readAt)
+    if (test !in after) refuse("$where never tests $field after reading it")
+    val before = reach(listOf(test), { predecessors[it] }, readAt, readAt)
+    val overwrites = (after intersect before).filter { it != test && code[it].writes(register) }.sorted()
+    if (overwrites.isNotEmpty()) refuse("$where writes over $field before testing it, at instruction(s) ${overwrites.joinToString()}")
+    return field
+}
+
+/**
+ * Whether [method] builds the binder's tag: a static method answering a String that loads
+ * [SCRUBBER_TAG] and tags nothing. A pool of shared strings takes an int and isn't one.
+ */
+private fun BytecodePatchContext.buildsTag(method: Method): Boolean {
+    if (!AccessFlags.STATIC.isSet(method.accessFlags) || method.returnType != "Ljava/lang/String;" ||
+        method.parameterTypes.map(CharSequence::toString) == listOf("I")
+    ) {
+        return false
+    }
+    val code = method.implementation?.instructions?.toList() ?: return false
+    return code.none { it.methodSignature() == SET_TAG } && code.indices.any { stringLoadedAt(code, it) == SCRUBBER_TAG }
+}
+
+/** Whether [type] is a class with a method answering [SEEK_BAR]: the primitive that makes the bar. */
+private fun BytecodePatchContext.makesSeekBar(type: String): Boolean =
+    classDefByOrNull(type)?.methods?.any { it.returnType == SEEK_BAR } == true
+
+/**
+ * [SEEK_BAR]'s [PROGRESS_CHANGED]: the class has to be a SeekBar, and to have exactly one method of
+ * that name, an instance `(SeekBar, int, boolean)void` with a body whose position parameter an
+ * invoke can name.
+ */
+internal fun BytecodePatchContext.findProgressChanged(): Method {
+    val bar = classDefByOrNull(SEEK_BAR) ?: refuse("this Instagram build has no $SEEK_BAR")
+    var parent: String? = bar.superclass
+    val seen = mutableSetOf<String>()
+    while (parent != ANDROID_SEEK_BAR) {
+        if (parent == null || !seen.add(parent)) refuse("$SEEK_BAR isn't a $ANDROID_SEEK_BAR")
+        parent = classDefByOrNull(parent)?.superclass ?: refuse("$SEEK_BAR extends $parent, which isn't a $ANDROID_SEEK_BAR")
+    }
+    val named = bar.methods.filter { it.name == PROGRESS_CHANGED }
+    val method = named.singleOrNull() ?: refuse("expected one $PROGRESS_CHANGED in $SEEK_BAR, found ${named.size}")
+    if (method.parameterTypes.map(CharSequence::toString) != PROGRESS_CHANGED_PARAMETERS || method.returnType != "V" ||
+        AccessFlags.STATIC.isSet(method.accessFlags) || method.implementation == null
+    ) {
+        refuse("$SEEK_BAR's $PROGRESS_CHANGED isn't an instance (SeekBar, int, boolean)void with a body")
+    }
+    if (method.parameterRegisterNumber(1) > 15) {
+        refuse("$SEEK_BAR's $PROGRESS_CHANGED keeps the position in a register past v15")
+    }
+    return method
+}
+
+/**
+ * Answers each read of the minimum through [MIN_SECONDS], the read of the hidden kind through [LAZY]
+ * and both reads of whether a sideways drag scrubs through [PASS_THROUGH], then puts the call to
+ * [PROGRESS] first in the seek bar's [PROGRESS_CHANGED], handing it
+ * the bar (`this`) and the position, and the call to [BIND] right after the binder's read of
+ * whether its reel is an ad, handing it the container and that answer, with [BIND_REEL] just before
+ * the read, handing it the container and the reel item [REEL_ITEM_ID] asks the id of. Last, the strip's
+ * [SET_ON_TOUCH] becomes a call to [LISTEN] with the same strip and listener, which sets the
+ * listener itself behind its gate.
+ */
+internal fun BytecodePatchContext.applyReelSeekBar(sites: ReelSeekBarSites) {
+    answerFlagLoads(sites.lengths.map { it to MIN_SECONDS } + (sites.lazy to LAZY) + sites.passThroughs.map { it to PASS_THROUGH })
+    val progress = sites.progress
+    mutableClassDefBy(progress.definingClass).methods.single {
+        it.name == progress.name && it.parameterTypes.map(CharSequence::toString) == PROGRESS_CHANGED_PARAMETERS
+    }.addInstructions(0, "invoke-static { p0, p2 }, $PROGRESS")
+    val bind = sites.bind
+    mutableClassDefBy(bind.method.definingClass).methods.single {
+        it.name == bind.method.name && it.returnType == bind.method.returnType &&
+            it.parameterTypes.map(CharSequence::toString) == bind.method.parameterTypes.map(CharSequence::toString)
+    }.apply {
+        addInstructions(bind.readAt + 1, "invoke-static { v${bind.view}, v${bind.flag} }, $BIND")
+        addInstructions(bind.readAt, "invoke-static { v${bind.view}, v${bind.item} }, $BIND_REEL")
+    }
+    // The stub's own registers are its parameter, so the code uses that.
+    val itemType = sites.photo.id.substringBefore("->")
+    mutableClassDefBy(REEL_ITEM_READER).methods.single { it.name == "id" && it.parameterTypes.size == 1 }.addInstructions(
+        0,
+        """
+            check-cast p0, $itemType
+            invoke-virtual { p0 }, ${sites.photo.id}
+            move-result-object p0
+            return-object p0
+        """,
+    )
+    val touch = sites.touch
+    mutableClassDefBy(touch.method.definingClass).methods.single {
+        it.name == touch.method.name && it.returnType == touch.method.returnType &&
+            it.parameterTypes.map(CharSequence::toString) == touch.method.parameterTypes.map(CharSequence::toString)
+    }.replaceInstruction(touch.at, "invoke-static { v${touch.view}, v${touch.listener} }, $LISTEN")
+    applyPhotoHooks(sites.photo)
+    applyHiddenBarHooks(sites.photo)
+}
+
+/**
+ * Puts [BARS_HIDDEN]'s blocks in the progress controller's touch-only and strip checks, at the same places as the photo's
+ * hooks and ahead of them, so they run first and a photo with a song still gets its own answer after. Off, each lands on
+ * the photo's switch, the instruction that was there.
+ */
+private fun BytecodePatchContext.applyHiddenBarHooks(sites: PhotoSites) {
+    fun mutable(method: Method) = mutableClassDefBy(method.definingClass).methods.single {
+        it.name == method.name && it.returnType == method.returnType &&
+            it.parameterTypes.map(CharSequence::toString) == method.parameterTypes.map(CharSequence::toString)
+    }
+
+    val onTouch = sites.touchOnly
+    val touchOnly = mutable(onTouch.method)
+    val (flag, onScreen) = onTouch.scratch
+    touchOnly.addInstructionsWithLabels(
+        onTouch.at,
+        """
+            invoke-static {}, $BARS_HIDDEN
+            move-result v$flag
+            if-eqz v$flag, :photo_touch
+            invoke-static { v${onTouch.controller} }, ${onTouch.current}
+            move-result-object v$onScreen
+            if-eqz v$onScreen, :photo_touch
+            iget-boolean v$flag, v$onScreen, ${onTouch.ad}
+            invoke-static { v${onTouch.answer}, v$flag }, $HIDDEN_TOUCH_ONLY
+            move-result v${onTouch.answer}
+        """,
+        ExternalLabel("photo_touch", touchOnly.getInstruction(onTouch.at)),
+    )
+
+    val onStrip = sites.strip
+    val strip = mutable(onStrip.method)
+    val yes = onStrip.scratch.first
+    strip.addInstructionsWithLabels(
+        onStrip.at,
+        """
+            invoke-static {}, $BARS_HIDDEN
+            move-result v$yes
+            if-eqz v$yes, :photo_strip
+            return v$yes
+        """,
+        ExternalLabel("photo_strip", strip.getInstruction(onStrip.at)),
+    )
+}
+
+/**
+ * Hands the extension the reel's kind and id where Instagram decides on its bar and works out its row,
+ * and the id, position and length from the player, each asked for only while [PHOTO_BAR_ON] says so,
+ * so a phone with the switch off runs one check and nothing of what the kind takes to work out.
+ */
+private fun BytecodePatchContext.applyPhotoHooks(sites: PhotoSites) {
+    fun mutable(method: Method) = mutableClassDefBy(method.definingClass).methods.single {
+        it.name == method.name && it.returnType == method.returnType &&
+            it.parameterTypes.map(CharSequence::toString) == method.parameterTypes.map(CharSequence::toString)
+    }
+    /** Leaves the reel's kind (or null) in [kind] and its id in [id], from the item in [item], none of them above v15. */
+    fun kindAndId(item: Int, kind: Int, id: Int) = """
+        if-eqz v$item, :instagram
+        iget-object v$kind, v$item, ${sites.media}
+        if-eqz v$kind, :photo_kind
+        invoke-static { v$kind }, ${sites.kindOf}
+        move-result-object v$kind
+        :photo_kind
+        invoke-virtual { v$item }, ${sites.id}
+        move-result-object v$id
+    """
+
+    val answer = mutable(sites.answer)
+    val (kind, id) = sites.scratch
+    answer.addInstructionsWithLabels(
+        sites.answerAt,
+        """
+            invoke-static {}, $PHOTO_BAR_ON
+            move-result v$kind
+            if-eqz v$kind, :instagram
+            ${kindAndId(sites.item, kind, id)}
+            invoke-static { v${sites.answerRegister}, v$kind, v$id }, $PHOTO_REEL
+            move-result v${sites.answerRegister}
+        """,
+        ExternalLabel("instagram", answer.getInstruction(sites.answerAt)),
+    )
+
+    // The controller's check of whether the bar shows only while touched, which it asks each time a reel comes on screen.
+    val onTouch = sites.touchOnly
+    val touchOnly = mutable(onTouch.method)
+    val (flag, onScreen, touchId) = onTouch.scratch
+    touchOnly.addInstructionsWithLabels(
+        onTouch.at,
+        """
+            invoke-static {}, $PHOTO_BAR_ON
+            move-result v$flag
+            if-eqz v$flag, :instagram
+            invoke-static { v${onTouch.controller} }, ${onTouch.current}
+            move-result-object v$onScreen
+            ${kindAndId(onScreen, flag, touchId)}
+            invoke-static { v${onTouch.answer}, v$flag, v$touchId }, $PHOTO_TOUCH_ONLY
+            move-result v${onTouch.answer}
+        """,
+        ExternalLabel("instagram", touchOnly.getInstruction(onTouch.at)),
+    )
+
+    // The controller's check of the strip you drag from, which letting go of a hold asks before showing the bar again.
+    // It answers yes for a photo with a song before it goes by the length.
+    val onStrip = sites.strip
+    val strip = mutable(onStrip.method)
+    val (photo, stripId) = onStrip.scratch
+    strip.addInstructionsWithLabels(
+        onStrip.at,
+        """
+            invoke-static {}, $PHOTO_BAR_ON
+            move-result v$photo
+            if-eqz v$photo, :instagram
+            ${kindAndId(onStrip.item, photo, stripId)}
+            invoke-static { v$photo, v$stripId }, $PHOTO_STRIP
+            move-result v$photo
+            if-eqz v$photo, :instagram
+            return v$photo
+        """,
+        ExternalLabel("instagram", strip.getInstruction(onStrip.at)),
+    )
+
+    // The start of a method: every local register is free there. Each of these keeps the parameter in a register of its own.
+    val row = mutable(sites.row)
+    row.addInstructionsWithLabels(
+        0,
+        """
+            invoke-static {}, $PHOTO_BAR_ON
+            move-result v0
+            if-eqz v0, :instagram
+            move-object/from16 v0, v${row.parameterRegisterNumber(1)}
+            ${kindAndId(0, 1, 0)}
+            invoke-static { v1, v0 }, $PHOTO_ROW
+        """,
+        ExternalLabel("instagram", row.getInstruction(0)),
+    )
+    // Ahead of that, on its own switch: the seek preview's pictures need each reel's post (#567).
+    row.addInstructionsWithLabels(
+        0,
+        """
+            invoke-static {}, $SEEK_PREVIEW_ON
+            move-result v0
+            if-eqz v0, :seek_preview_off
+            move-object/from16 v0, v${row.parameterRegisterNumber(1)}
+            if-eqz v0, :seek_preview_off
+            iget-object v1, v0, ${sites.media}
+            invoke-virtual { v0 }, ${sites.id}
+            move-result-object v0
+            invoke-static { v1, v0 }, $REMEMBER_REEL
+        """,
+        ExternalLabel("seek_preview_off", row.getInstruction(0)),
+    )
+
+    val player = mutable(sites.player)
+    player.addInstructionsWithLabels(
+        0,
+        """
+            invoke-static {}, $PHOTO_BAR_ON
+            move-result v0
+            if-eqz v0, :instagram
+            move-object/from16 v0, v${player.parameterRegisterNumber(0)}
+            if-eqz v0, :instagram
+            invoke-virtual { v0 }, ${sites.id}
+            move-result-object v0
+            move/from16 v1, v${player.parameterRegisterNumber(1)}
+            move/from16 v2, v${player.parameterRegisterNumber(2)}
+            invoke-static { v0, v1, v2 }, $PHOTO_PROGRESS
+        """,
+        ExternalLabel("instagram", player.getInstruction(0)),
+    )
+}
+
+private fun FlagLoad.signature() = "$type->$name(${parameters.joinToString("")})$returnType"
+
+private fun Method.signature() = "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
+
+private fun Method.calledSignatures(): Set<String> = implementation?.instructions
+    ?.mapNotNull { ((it as? ReferenceInstruction)?.reference as? MethodReference) }
+    ?.map { "${it.definingClass}->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
+    ?.toSet() ?: emptySet()
+
+private fun Instruction.fieldReference(): FieldReference? = (this as? ReferenceInstruction)?.reference as? FieldReference
+
+private fun FieldReference.text() = "$definingClass->$name:$type"
+
+private fun Instruction.methodSignature(): String? = ((this as? ReferenceInstruction)?.reference as? MethodReference)
+    ?.let { "${it.definingClass}->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
+
+/** The registers an invoke passes, in order. */
+private fun Instruction.arguments(): List<Int> = when (this) {
+    is RegisterRangeInstruction -> (startRegister until startRegister + registerCount).toList()
+    is FiveRegisterInstruction -> listOf(registerC, registerD, registerE, registerF, registerG).take(registerCount)
+    else -> emptyList()
+}
+
+/** Whether the instruction puts a new value in [register], half of a wide one included. */
+private fun Instruction.writes(register: Int): Boolean {
+    if (!opcode.setsRegister()) return false
+    val destination = (this as? OneRegisterInstruction)?.registerA ?: return false
+    return destination == register || (opcode.setsWideRegister() && destination + 1 == register)
+}

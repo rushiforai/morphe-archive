@@ -207,7 +207,6 @@ internal fun BytecodePatchContext.blockTrackers() {
     }
 }
 
-private const val GET_ALL_BY_NAME = "Ljava/net/InetAddress;->getAllByName(Ljava/lang/String;)[Ljava/net/InetAddress;"
 
 private fun Instruction.isGetAllByName(): Boolean =
     opcode == Opcode.INVOKE_STATIC &&

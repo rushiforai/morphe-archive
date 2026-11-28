@@ -116,6 +116,7 @@ val hideContentPatch = bytecodePatch(
         "Long-press the app icon and choose Hidden names to edit the list.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     dependsOn(hiddenNamesShortcutPatch)

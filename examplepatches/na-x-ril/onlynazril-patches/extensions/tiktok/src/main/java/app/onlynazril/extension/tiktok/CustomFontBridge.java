@@ -245,7 +245,7 @@ public final class CustomFontBridge {
     }
 
     private static void report(String message) {
-        if (logged++ < LOG_CAP) Debug.print(message);
+        if (logged++ < LOG_CAP) Debug.print(message + Debug.by(4));
     }
 
     /**
@@ -253,6 +253,6 @@ public final class CustomFontBridge {
      * the shared one before a page has even finished loading.
      */
     private static void reportPage(String message) {
-        if (pagesLogged++ < LOG_CAP) Debug.print(message);
+        if (pagesLogged++ < LOG_CAP) Debug.print(message + Debug.by(4));
     }
 }

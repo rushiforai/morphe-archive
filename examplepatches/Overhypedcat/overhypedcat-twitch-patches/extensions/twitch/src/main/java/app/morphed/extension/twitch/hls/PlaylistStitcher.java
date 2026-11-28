@@ -35,6 +35,9 @@ public final class PlaylistStitcher {
     private boolean rewriting;
     private long nextSequence = Long.MIN_VALUE;
     private long lastProgramDateTime = MediaPlaylist.UNKNOWN_TIME;
+    /** A source let through from behind (it lags): the moment it has reached, its own clock (see process). */
+    private String laggingSource;
+    private long laggingClock = MediaPlaylist.UNKNOWN_TIME;
     private String lastSource;
     private boolean pendingDiscontinuity;
     private long discontinuityBase;
@@ -104,6 +107,8 @@ public final class PlaylistStitcher {
             discontinuityOffset = discontinuitySequenceAt(playlist.mediaSequence + sequenceOffset)
                     - playlist.discontinuitySequence;
             rewriting = false;
+            laggingSource = null; // (a lagging source's clock is this break's: the next starts from the latest moment)
+            laggingClock = MediaPlaylist.UNKNOWN_TIME;
             handBackWaits = 0;
             numbering.sequenceOffset = sequenceOffset;
             numbering.discontinuityOffset = discontinuityOffset;
@@ -218,24 +223,32 @@ public final class PlaylistStitcher {
 
             Long sequence = sequenceByUri.get(segment.uri);
             if (sequence == null) {
+                // What this source has to be past: a lagging source let through goes by its own clock from then
+                // on; every other source (Twitch's own after the break included) by the latest moment served.
+                long seen = source.equals(laggingSource) ? laggingClock : lastProgramDateTime;
+                boolean behind = segment.programDateTime != MediaPlaylist.UNKNOWN_TIME
+                        && seen != MediaPlaylist.UNKNOWN_TIME
+                        && segment.programDateTime <= seen;
                 // After MAX_EMPTY_POLLS a lagging source gets its newest segment through, not its whole window
                 // (played already, at other numbers).
-                if ((emptyPolls < MAX_EMPTY_POLLS || i < playlist.segments.size() - 1)
-                        && segment.programDateTime != MediaPlaylist.UNKNOWN_TIME
-                        && lastProgramDateTime != MediaPlaylist.UNKNOWN_TIME
-                        && segment.programDateTime <= lastProgramDateTime) {
+                if (behind && (emptyPolls < MAX_EMPTY_POLLS || i < playlist.segments.size() - 1)) {
                     // Same moment of the stream was already served from another source.
                     continue;
                 }
                 sequence = nextSequence++;
                 sequenceByUri.put(segment.uri, sequence);
-                if (segment.discontinuity || pendingDiscontinuity || sourceChanged) {
+                // (let through from behind: a jump in the picture)
+                if (segment.discontinuity || pendingDiscontinuity || sourceChanged || behind) {
                     discontinuities.add(sequence);
                 }
                 pendingDiscontinuity = false;
                 sourceChanged = false;
                 lastSource = source;
-                if (segment.programDateTime != MediaPlaylist.UNKNOWN_TIME) {
+                if (behind) {
+                    laggingSource = source;
+                    laggingClock = segment.programDateTime;
+                } else if (segment.programDateTime != MediaPlaylist.UNKNOWN_TIME) {
+                    if (source.equals(laggingSource)) laggingClock = Math.max(laggingClock, segment.programDateTime);
                     lastProgramDateTime = Math.max(lastProgramDateTime, segment.programDateTime);
                 }
             }

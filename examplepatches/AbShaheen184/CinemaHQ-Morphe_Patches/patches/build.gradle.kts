@@ -3,12 +3,12 @@ group = "app.template"
 patches {
     // TODO: Update this section with your project details.
     about {
-        name = "UserXYZ Patches"
-        description = "Patches for apps I like"
-        source = "git@github.com:UserXYZ/morphe-patches.git"
-        author = "Awesome dev"
+        name = "Cinema HQ Patched"
+        description = "CinemaHQ background service neutralization patches"
+        source = "git@github.com:AbShaheen184/CinemaHQ-Morphe_Patches.git"
+        author = "AbShaheen184"
         contact = "na"
-        website = "na"
+        website = "https://github.com/AbShaheen184/CinemaHQ-Morphe_Patches"
         license = "GPLv3"
     }
 }

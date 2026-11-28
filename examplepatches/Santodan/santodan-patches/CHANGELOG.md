@@ -1,3 +1,9 @@
+## [0.22.0](https://github.com/Santodan/santodan-patches/compare/v0.21.3...v0.22.0) (2026-11-27)
+
+### ✨ New Features
+
+* **peafowl:** support GMS_27.5.2 and bypass the launch signature check ([a0f069a](https://github.com/Santodan/santodan-patches/commit/a0f069a0f372bdcab4a119c8f860d3a692207953))
+
 ## [0.21.3](https://github.com/Santodan/santodan-patches/compare/v0.21.2...v0.21.3) (2026-11-26)
 
 ### 🚀 Updated App Support

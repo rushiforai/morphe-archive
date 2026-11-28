@@ -2,6 +2,7 @@ package semicoloncolonel.mobilestream.patches.settingshome.shared
 
 import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
+import semicoloncolonel.mobilestream.patches.shared.misc.devTarget
 import app.morphe.patcher.patch.Compatibility
 
 object Constants {
@@ -11,6 +12,6 @@ object Constants {
         description = "The Settings Home launcher and quick-settings replacement.",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x2D64BC,
-        targets = listOf(AppTarget("1.6.4", versionCode = 100604)),
+        targets = listOf(devTarget("1.6.6", versionCode = 100606), devTarget("1.6.7", versionCode = 100607), AppTarget("1.6.4", versionCode = 100604)),
     )
 }

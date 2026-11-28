@@ -2,6 +2,7 @@ package dev.vortexnode.sbrowserx.patches.core
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -101,10 +102,14 @@ internal val sbrowserXCoreResourcePatch = resourcePatch(
     description = "Adds the SBrowserX settings hub and integrates extra privacy, appearance, and utility options into browser Settings.",
 ) {
     finalize {
-        val targetPkg = SBrowserPackageRenameTarget.packageName
+        var manifestPkg = "com.sec.android.app.sbrowser"
 
         document("AndroidManifest.xml").use { manifest ->
             val root = manifest.documentElement ?: error("Missing <manifest>")
+            val pkgAttr = root.getAttribute("package")
+            if (!pkgAttr.isNullOrBlank()) {
+                manifestPkg = pkgAttr.trim()
+            }
             val application = root.getElementsByTagName("application").item(0) as? Element
                 ?: error("Missing <application>")
 
@@ -123,67 +128,88 @@ internal val sbrowserXCoreResourcePatch = resourcePatch(
             ensureActivity(manifest, application, BOOKMARKS_BRIDGE_ACTIVITY_CLASS, "@android:style/Theme.Translucent.NoTitleBar")
         }
 
-        // 1. Main Settings: Standalone SBrowserX card -> Sync & Backup + Browsing Assist card -> Extensions inside Privacy card
+        val targetPkg = SBrowserPackageRenameTarget.packageName ?: manifestPkg
+
+        // 1. Main Settings: Unified SBrowserX top card (Hub, Extensions, Assist, Backup, Bookmarks)
+        //    + clean bottom About card (About Samsung Browser + SBrowserX v1.3.7 + Morphe source)
         document("res/xml/settings_fragment.xml").use { xml ->
             val screen = xml.documentElement ?: error("Missing PreferenceScreen in settings_fragment.xml")
 
             val hubPref = createIntentPref(
-                xml, "sbrowserx_settings_hub", "SBrowserX  \u25CF",
-                "Extensions, WebRTC, Translate, Downloads & AMOLED",
+                xml, "sbrowserx_settings_hub", "SBrowserX",
+                "Extensions • Privacy • Interface",
                 targetPkg, SETTINGS_ACTIVITY_CLASS,
             )
-            val cardDivider = createCategory(xml, "sbrowserx_top_card_divider", "")
+            val extPref = createIntentPref(
+                xml, "sbrowserx_settings_extensions", "@string/extensions_title",
+                "Chrome Web Store",
+                targetPkg, EXT_BRIDGE_ACTIVITY_CLASS,
+            )
+            val assistPref = createIntentPref(
+                xml, "sbrowserx_browsing_assist", "Browsing assist",
+                "Gemini • Translator",
+                targetPkg, BROWSING_ASSIST_ACTIVITY_CLASS,
+            )
             val syncBackupPref = createIntentPref(
                 xml, "sbrowserx_sync_backup", "Sync & Backup",
-                "Local scheduled backup & Google Drive",
+                "Local backup • Google Drive",
                 targetPkg, BACKUP_ACTIVITY_CLASS,
             )
             syncBackupPref.setAttributeNS(ANDROID_NS, "android:singleLineTitle", "false")
-            val assistPref = createIntentPref(
-                xml, "sbrowserx_browsing_assist", "Browsing assist",
-                "AI Summary (Gemini API) & Built-in Translator",
-                targetPkg, BROWSING_ASSIST_ACTIVITY_CLASS,
-            )
             val bookmarksPref = createIntentPref(
                 xml, "sbrowserx_settings_bookmarks", "Bookmarks",
-                "Quick access to bookmarks & folders",
+                "Quick access",
                 targetPkg, BOOKMARKS_BRIDGE_ACTIVITY_CLASS,
             )
+            val cardDivider = createCategory(xml, "sbrowserx_top_card_divider", "")
 
             val firstChild = screen.firstChild
             if (firstChild != null) {
                 screen.insertBefore(hubPref, firstChild)
-                screen.insertBefore(cardDivider, firstChild)
-                screen.insertBefore(syncBackupPref, firstChild)
+                screen.insertBefore(extPref, firstChild)
                 screen.insertBefore(assistPref, firstChild)
+                screen.insertBefore(syncBackupPref, firstChild)
                 screen.insertBefore(bookmarksPref, firstChild)
+                screen.insertBefore(cardDivider, firstChild)
             } else {
                 screen.appendChild(hubPref)
-                screen.appendChild(cardDivider)
-                screen.appendChild(syncBackupPref)
+                screen.appendChild(extPref)
                 screen.appendChild(assistPref)
+                screen.appendChild(syncBackupPref)
                 screen.appendChild(bookmarksPref)
+                screen.appendChild(cardDivider)
             }
 
-            // Place "Extensions" down inside the Privacy & Security card (right above "privacy")
-            val extPref = createIntentPref(
-                xml, "sbrowserx_settings_extensions", "@string/extensions_title",
-                "Manage extensions & Chrome Web Store",
-                targetPkg, EXT_BRIDGE_ACTIVITY_CLASS,
-            )
-            val children = screen.childNodes
-            var extInserted = false
-            for (i in 0 until children.length) {
-                val node = children.item(i) as? Element ?: continue
-                if (node.getAttributeNS(ANDROID_NS, "key") == "privacy") {
-                    screen.insertBefore(extPref, node)
-                    extInserted = true
-                    break
+            // Tag the stock bottom "Privacy" category so SBrowserXHooks can safely hide it via setVisible(false)
+            val allNodes = screen.childNodes
+            for (i in 0 until allNodes.length) {
+                val node = allNodes.item(i) as? Element ?: continue
+                if (node.tagName == "androidx.preference.PreferenceCategory" &&
+                    node.getAttributeNS(ANDROID_NS, "title") == "@string/pref_category_privacy"
+                ) {
+                    node.setAttributeNS(ANDROID_NS, "android:key", "sbrowserx_stock_privacy_cat")
                 }
             }
-            if (!extInserted) {
-                screen.appendChild(extPref)
-            }
+
+            // Append "SBrowserX" & "Morphe patch source" directly in the bottom About card
+            // (Click handlers attached cleanly at runtime in SBrowserXHooks so Uri is never null)
+            val aboutVerPref = xml.createElement("com.sec.android.app.sbrowser.common.settings.PreferenceCustom")
+            aboutVerPref.setAttributeNS(ANDROID_NS, "android:key", "sbrowserx_about_version")
+            aboutVerPref.setAttributeNS(ANDROID_NS, "android:title", "SBrowserX")
+            aboutVerPref.setAttributeNS(ANDROID_NS, "android:summary", " ")
+            screen.appendChild(aboutVerPref)
+
+            val aboutMorphePref = xml.createElement("com.sec.android.app.sbrowser.common.settings.PreferenceCustom")
+            aboutMorphePref.setAttributeNS(ANDROID_NS, "android:key", "sbrowserx_about_morphe")
+            aboutMorphePref.setAttributeNS(ANDROID_NS, "android:title", "Morphe patch source")
+            aboutMorphePref.setAttributeNS(ANDROID_NS, "android:summary", " ")
+            screen.appendChild(aboutMorphePref)
+
+            val aboutSupportPref = xml.createElement("com.sec.android.app.sbrowser.common.settings.PreferenceCustom")
+            aboutSupportPref.setAttributeNS(ANDROID_NS, "android:key", "sbrowserx_about_support")
+            aboutSupportPref.setAttributeNS(ANDROID_NS, "android:title", "Support the author")
+            aboutSupportPref.setAttributeNS(ANDROID_NS, "android:summary", " ")
+            screen.appendChild(aboutSupportPref)
         }
 
         // 2. Privacy & Security: WebRTC in-place dialog + native in-place switches
@@ -265,6 +291,13 @@ internal val sbrowserXCoreResourcePatch = resourcePatch(
                     xml, "sbrowserx_layout_compact_button", "Compact bar custom button (replaces AI)",
                     "New tab",
                     targetPkg, COMPACT_BTN_DIALOG_ACTIVITY_CLASS,
+                ),
+            )
+            screen.appendChild(
+                createSwitchPref(
+                    xml, "sbrowserx_home_long_press_close_bg", "Long-press Home closes background tabs",
+                    "Hold Home (~500 ms) to close all background tabs and open/reload Start Page",
+                    false,
                 ),
             )
         }
@@ -576,5 +609,134 @@ val sbrowserXCorePatch = bytecodePatch(
             0,
             "invoke-static {p1}, Ldev/vortexnode/sbrowserx/extension/SBrowserXHooks;->onNativeHomepageUrlChanged(Ljava/lang/String;)V",
         )
+
+        // When SBrowserX Start Page is active, tapping the gear icon next to "Custom page" opens Start Page settings
+        // instead of showing the raw http://127.0.0.1:47391/ EditText dialog.
+        findMethodOrThrow(
+            classType = "Lcom/sec/android/app/sbrowser/settings/homepage/HomePagePreferenceFragment;",
+            methodName = "showSetHomePageDialog",
+            parameterTypes = emptyList(),
+            returnType = "V",
+        ).addInstructions(
+            0,
+            """
+                invoke-static {p0}, Ldev/vortexnode/sbrowserx/extension/SBrowserXHooks;->tryOpenStartPageSettingsFromDialog(Ljava/lang/Object;)Z
+                move-result v0
+                if-eqz v0, :sbrowserx_stock_hp_dlg
+                return-void
+                :sbrowserx_stock_hp_dlg
+                nop
+            """.trimIndent(),
+        )
+
+        // Keep HomePagePreferenceFragment summaries clean (never leak 127.0.0.1 on unselected Custom Page)
+        val hpUpdateGuiMethod = findMethodOrThrow(
+            classType = "Lcom/sec/android/app/sbrowser/settings/homepage/HomePagePreferenceFragment;",
+            methodName = "updateSummaryAndGui",
+            parameterTypes = listOf("I"),
+            returnType = "V",
+        )
+        val hpGuiRetIndices = hpUpdateGuiMethod.implementation!!.instructions
+            .mapIndexedNotNull { idx, insn -> if (insn.opcode == Opcode.RETURN_VOID) idx else null }
+            .reversed()
+        for (retIdx in hpGuiRetIndices) {
+            hpUpdateGuiMethod.addInstruction(
+                retIdx,
+                "invoke-static {p0}, Ldev/vortexnode/sbrowserx/extension/SBrowserXHooks;->onHomepageFragmentUpdated(Ljava/lang/Object;)V",
+            )
+        }
+
+        // Redirect PreferenceGroup.getPreference(I) in HomePagePreferenceFragment (getHomepageSummary & updateSummaryAndGui)
+        // to skip our native top card & category divider, keeping Samsung's 0..2 radio buttons 100% native and intact!
+        listOf(hpSummaryMethod, hpUpdateGuiMethod).forEach { targetMethod ->
+            val insns = targetMethod.implementation!!.instructions.toList()
+            val matchIndices = insns.mapIndexedNotNull { idx, insn ->
+                val ref = (insn as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)?.reference
+                if (insn.opcode == Opcode.INVOKE_VIRTUAL &&
+                    ref is com.android.tools.smali.dexlib2.iface.reference.MethodReference &&
+                    ref.definingClass == "Landroidx/preference/PreferenceGroup;" &&
+                    ref.name == "getPreference"
+                ) {
+                    idx
+                } else {
+                    null
+                }
+            }.reversed()
+            for (callIdx in matchIndices) {
+                val inv = insns[callIdx] as com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+                val regObj = inv.registerC
+                val regIdx = inv.registerD
+                val nextInsn = insns.getOrNull(callIdx + 1)
+                if (nextInsn != null && nextInsn.opcode == Opcode.MOVE_RESULT_OBJECT) {
+                    val regDst = (nextInsn as OneRegisterInstruction).registerA
+                    targetMethod.addInstruction(
+                        callIdx + 2,
+                        "check-cast v$regDst, Landroidx/preference/Preference;",
+                    )
+                    targetMethod.replaceInstruction(
+                        callIdx,
+                        "invoke-static {v$regObj, v$regIdx}, Ldev/vortexnode/sbrowserx/extension/SBrowserXHooks;->getHomepageRadioPreference(Ljava/lang/Object;I)Ljava/lang/Object;",
+                    )
+                }
+            }
+        }
+
+        // Route "Add page to -> Quick access" to SBrowserX Start Page when it is the active start page,
+        // or fall through to Samsung's stock QuickAccess when stock QuickAccess is selected.
+        // AddToMenu.addQuickAccess()V (.locals 4 -> v0 free)
+        findMethodOrThrow(
+            classType = "Lcom/sec/android/app/sbrowser/main_view/menu/AddToMenu;",
+            methodName = "addQuickAccess",
+            parameterTypes = emptyList(),
+            returnType = "V",
+        ).addInstructions(
+            0,
+            """
+                invoke-static {p0}, Ldev/vortexnode/sbrowserx/extension/SBrowserXHooks;->tryAddCurrentPageToStartPage(Ljava/lang/Object;)Z
+                move-result v0
+                if-eqz v0, :sbrowserx_stock_add_qa
+                return-void
+                :sbrowserx_stock_add_qa
+                nop
+            """.trimIndent(),
+        )
+
+        // Optional long-press on Home button: close all background tabs & open/reload Start Page.
+        // ToolbarEventHandler.performToolbarButtonLongClick(I)Z (.locals 7 -> v0 free)
+        findMethodOrThrow(
+            classType = "Lcom/sec/android/app/sbrowser/main_view/toolbar/ToolbarEventHandler;",
+            methodName = "performToolbarButtonLongClick",
+            parameterTypes = listOf("I"),
+            returnType = "Z",
+        ).addInstructions(
+            0,
+            """
+                invoke-static {p0, p1}, Ldev/vortexnode/sbrowserx/extension/SBrowserXHooks;->onToolbarButtonLongClick(Ljava/lang/Object;I)Z
+                move-result v0
+                if-eqz v0, :sbrowserx_orig_toolbar_long_click
+                const/4 v0, 0x1
+                return v0
+                :sbrowserx_orig_toolbar_long_click
+                nop
+            """.trimIndent(),
+        )
+
+        // Inject Permissions, Privacy Notice History & Debug Settings buttons cleanly into AboutFragment
+        // AboutFragment.onViewCreated(Landroid/view/View;Landroid/os/Bundle;)V (.locals 9)
+        val aboutOnViewCreated = findMethodOrThrow(
+            classType = "Lcom/sec/android/app/sbrowser/settings/about/AboutFragment;",
+            methodName = "onViewCreated",
+            parameterTypes = listOf("Landroid/view/View;", "Landroid/os/Bundle;"),
+            returnType = "V",
+        )
+        val aboutRetIndices = aboutOnViewCreated.implementation!!.instructions
+            .mapIndexedNotNull { idx, insn -> if (insn.opcode == Opcode.RETURN_VOID) idx else null }
+            .reversed()
+        for (retIdx in aboutRetIndices) {
+            aboutOnViewCreated.addInstruction(
+                retIdx,
+                "invoke-static {p0, p1}, Ldev/vortexnode/sbrowserx/extension/SBrowserXHooks;->onAboutFragmentViewCreated(Ljava/lang/Object;Landroid/view/View;)V",
+            )
+        }
     }
 }

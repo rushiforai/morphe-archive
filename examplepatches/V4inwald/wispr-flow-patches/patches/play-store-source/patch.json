@@ -1,0 +1,54 @@
+{
+  "$schema": "See patches/README.md for the field reference.",
+  "name": "play-store-source",
+  "title": "Play Store install source",
+  "summary": "Reports the app as installed from the Play Store, so the bundled Play licensing check accepts a re-signed build.",
+  "compatibility": {
+    "package": "com.wispr.flowapp",
+    "version": "2.8.7",
+    "minSdk": 33,
+    "evidence": "analysis/wispr-flow-2.8.7.md"
+  },
+  "hooks": [
+    {
+      "id": "installerPackageName",
+      "kind": "callsite-global",
+      "why": "PackageManager.getInstallerPackageName is the pre-API-30 form of the same question, still read by the Sentry and AppsFlyer builds and by the obfuscated SDK code in lin0/j65. Same answer, otherwise those readers keep reporting a side-load.",
+      "invoke": "Landroid/content/pm/PackageManager;->getInstallerPackageName(Ljava/lang/String;)Ljava/lang/String;",
+      "result": "move-result-object",
+      "replace_with": "const-string",
+      "literal": "com.android.vending",
+      "expect": 4
+    },
+    {
+      "id": "installingPackageName",
+      "kind": "callsite-global",
+      "why": "The gate that decides whether the app runs: LicenseClient.performLocalInstallerCheck compares this exact string against com.android.vending and ends on the licensing error dialog otherwise. The remaining sites only keep the answer consistent (in-app review, install-source telemetry, attribution).",
+      "invoke": "Landroid/content/pm/InstallSourceInfo;->getInstallingPackageName()Ljava/lang/String;",
+      "result": "move-result-object",
+      "replace_with": "const-string",
+      "literal": "com.android.vending",
+      "expect": 4
+    },
+    {
+      "id": "initiatingPackageName",
+      "kind": "callsite-global",
+      "why": "AppsFlyer reads the initiating installer next to the installing one; a patched install must not be attributed to an unknown store.",
+      "invoke": "Landroid/content/pm/InstallSourceInfo;->getInitiatingPackageName()Ljava/lang/String;",
+      "result": "move-result-object",
+      "replace_with": "const-string",
+      "literal": "com.android.vending",
+      "expect": 1
+    },
+    {
+      "id": "packageSource",
+      "kind": "callsite-global",
+      "why": "InstallSourceTelemetry sends the numeric package source as an analytics property. 2 is PACKAGE_INSTALLER_PACKAGE_SOURCE_STORE; without it the spoofed installer name sits next to a source value that still says side-loaded.",
+      "invoke": "Landroid/content/pm/InstallSourceInfo;->getPackageSource()I",
+      "result": "move-result",
+      "replace_with": "const/4",
+      "literal": "0x2",
+      "expect": 1
+    }
+  ]
+}

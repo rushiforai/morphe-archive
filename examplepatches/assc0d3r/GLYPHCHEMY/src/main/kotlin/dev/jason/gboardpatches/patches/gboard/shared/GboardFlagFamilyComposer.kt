@@ -53,6 +53,11 @@ internal enum class GboardFlagFamilyFeature(
         RuntimeCallId.KEY_SHAPE_SELECTION_RUNTIME_APPLY_FLAG_VALUE,
         GboardFlagFamilyArgumentShape.FLAG_NAME_AND_RESULT,
     ),
+    GBOARD_DATA_BACKUP(
+        45,
+        RuntimeCallId.DATA_BACKUP_RUNTIME_APPLY_FLAG_VALUE,
+        GboardFlagFamilyArgumentShape.FLAG_NAME_AND_RESULT,
+    ),
     ACCESS_POINTS_MENU_STYLE(
         100,
         RuntimeCallId.ACCESS_POINTS_MENU_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE,
@@ -704,6 +709,10 @@ private fun emitFlagFamilyRuntimeCall(call: RuntimeCallId, registers: String): S
             RuntimeCallId.CURSOR_TRACKPAD_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE,
             registers,
         )
+    RuntimeCallId.DATA_BACKUP_RUNTIME_APPLY_FLAG_VALUE -> RuntimeCallEmitter.invoke(
+        RuntimeCallId.DATA_BACKUP_RUNTIME_APPLY_FLAG_VALUE,
+        registers,
+    )
     RuntimeCallId.DEVICE_INTELLIGENCE_RUNTIME_APPLY_FLAG_VALUE -> RuntimeCallEmitter.invoke(
         RuntimeCallId.DEVICE_INTELLIGENCE_RUNTIME_APPLY_FLAG_VALUE,
         registers,
@@ -773,6 +782,10 @@ private const val MAX_MOVE_RESULT_OBJECT_REGISTER = 255
 private val GUARDED_FLAG_FAMILY_CALLS = setOf(
     RuntimeCallId.LANGUAGE_MODELS_RUNTIME_APPLY_FLAG_VALUE,
     RuntimeCallId.KEYPRESS_HAPTICS_RUNTIME_APPLY_FLAG_VALUE,
+    // The Backup & Restore runtime ships with the extension after the patch side does, so an APK
+    // built before GboardDataBackupFlagRuntime exists must keep the stock flag result rather than
+    // fail extension linkage.
+    RuntimeCallId.DATA_BACKUP_RUNTIME_APPLY_FLAG_VALUE,
 )
 
 private val ALL_FLAG_FAMILY_RUNTIME_CALLS: Set<RuntimeCallId> = setOf(
@@ -787,6 +800,7 @@ private val ALL_FLAG_FAMILY_RUNTIME_CALLS: Set<RuntimeCallId> = setOf(
     RuntimeCallId.CLIPBOARD_CONTENT_LIMIT_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE,
     RuntimeCallId.CLOSE_PROACTIVE_SUGGESTIONS_RUNTIME_APPLY_FLAG_VALUE,
     RuntimeCallId.CURSOR_TRACKPAD_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE,
+    RuntimeCallId.DATA_BACKUP_RUNTIME_APPLY_FLAG_VALUE,
     RuntimeCallId.DEVICE_INTELLIGENCE_RUNTIME_APPLY_FLAG_VALUE,
     RuntimeCallId.EMOJI_SIZE_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE,
     RuntimeCallId.FEATURE_FLAGS_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE,

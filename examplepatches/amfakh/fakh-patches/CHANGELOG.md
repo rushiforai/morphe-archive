@@ -1,3 +1,90 @@
+## [2.18.2](https://github.com/amfakh/fakh-patches/compare/v2.18.1...v2.18.2) (2026-11-28)
+
+### Bug Fixes
+
+* **Facer:** move Wear OS patches into their own Wear OS category and label Phone and Wear OS targets ([3e54298](https://github.com/amfakh/fakh-patches/commit/3e54298ad2d04b92be97414353f81bbf3468f223))
+
+## [2.18.1](https://github.com/amfakh/fakh-patches/compare/v2.18.0...v2.18.1) (2026-11-28)
+
+### Bug Fixes
+
+* **Facer:** list the phone and Wear OS apps as separate entries ([e5763dc](https://github.com/amfakh/fakh-patches/commit/e5763dc2c0561b2aef797c9eb1253bd76b57f1c3))
+
+## [2.18.0](https://github.com/amfakh/fakh-patches/compare/v2.17.1...v2.18.0) (2026-11-28)
+
+### New Features
+
+* **Facer:** add support for `7.0.82` with Premium unlock, Dark mode, Stop video autoplay, Stop Featured Looks autoplay, Hide hero carousel, Hide welcome card, Hide storefront pill icons, Hide category header emoji, Hide Looks like tip, Disable analytics and GmsCore support ([3e071cf](https://github.com/amfakh/fakh-patches/commit/3e071cfef3b0207fc7b761356bf5bee33a9c104c))
+* **Warung Life Simulator:** add Disable analytics and drop support for `1.2` ([6163c74](https://github.com/amfakh/fakh-patches/commit/6163c7450bcbe8d5668069f2e529f616175f12d5))
+
+### Bug Fixes
+
+* **GitHub:** space the download count chip from the file size chip ([8befd54](https://github.com/amfakh/fakh-patches/commit/8befd544201ef2b94c70a62e94c09fa6335655b7))
+* GitHub, LinkedIn, Smart Life, Tuya Smart, BARDI Smart Home and SYNC by Krisbow narrow the floating glass bar with fewer tabs ([8befd54](https://github.com/amfakh/fakh-patches/commit/8befd544201ef2b94c70a62e94c09fa6335655b7))
+
+## [2.17.1](https://github.com/amfakh/fakh-patches/compare/v2.17.0...v2.17.1) (2026-11-27)
+
+### Updated App Support
+
+* **detikcom:** add support for `7.15.1`, next to `7.15.0` ([96069f8](https://github.com/amfakh/fakh-patches/commit/96069f894648dd84ba0a4007b6407f44e9711c28))
+* **DoDo Music:** add support for `2.0.20`, next to `2.0.18` ([96069f8](https://github.com/amfakh/fakh-patches/commit/96069f894648dd84ba0a4007b6407f44e9711c28))
+* **FlipSide:** add support for `2.0`, next to `1.7.1` ([96069f8](https://github.com/amfakh/fakh-patches/commit/96069f894648dd84ba0a4007b6407f44e9711c28))
+* **KOMPAS.com:** add support for `9.8.9`, next to `9.8.7` ([96069f8](https://github.com/amfakh/fakh-patches/commit/96069f894648dd84ba0a4007b6407f44e9711c28))
+* **Todaii: Learn German A1-C1:** add support for `2.8.3`, next to `2.8.2` ([96069f8](https://github.com/amfakh/fakh-patches/commit/96069f894648dd84ba0a4007b6407f44e9711c28))
+* **Warung Life Simulator:** add support for `1.3`, next to `1.2` ([96069f8](https://github.com/amfakh/fakh-patches/commit/96069f894648dd84ba0a4007b6407f44e9711c28))
+
+## [2.17.0](https://github.com/amfakh/fakh-patches/compare/v2.16.0...v2.17.0) (2026-11-27)
+
+### New Features
+
+* **GitHub:** add Sort by Recently updated first ([9ea291c](https://github.com/amfakh/fakh-patches/commit/9ea291cfdd5dc2ba65a3cca620aa658a1b7eb9a2))
+* **GitHub:** add Override tab width ([9ea291c](https://github.com/amfakh/fakh-patches/commit/9ea291cfdd5dc2ba65a3cca620aa658a1b7eb9a2))
+* **GitHub:** add Fold long code blocks ([9ea291c](https://github.com/amfakh/fakh-patches/commit/9ea291cfdd5dc2ba65a3cca620aa658a1b7eb9a2))
+* **GitHub:** add Shorten GitHub links ([9ea291c](https://github.com/amfakh/fakh-patches/commit/9ea291cfdd5dc2ba65a3cca620aa658a1b7eb9a2))
+* **GitHub:** add Show labels in the header ([e669e26](https://github.com/amfakh/fakh-patches/commit/e669e26fbab3145ba32372fb2754020c4947598f))
+* **GitHub:** add Show exact time ([e669e26](https://github.com/amfakh/fakh-patches/commit/e669e26fbab3145ba32372fb2754020c4947598f))
+* **GitHub:** add Show whitespace marks ([fc81074](https://github.com/amfakh/fakh-patches/commit/fc810744d1b4f203e8482c050f44a3fe351f34c2))
+* **GitHub:** add Show repository age ([fc81074](https://github.com/amfakh/fakh-patches/commit/fc810744d1b4f203e8482c050f44a3fe351f34c2))
+* **GitHub:** add Draw Mermaid diagrams ([fc81074](https://github.com/amfakh/fakh-patches/commit/fc810744d1b4f203e8482c050f44a3fe351f34c2))
+* **GitHub:** add Icon-only floating buttons ([fc81074](https://github.com/amfakh/fakh-patches/commit/fc810744d1b4f203e8482c050f44a3fe351f34c2))
+* **GitHub:** add Show download count for assets ([0dfad0e](https://github.com/amfakh/fakh-patches/commit/0dfad0e05eec781a71cac18f99253f0071d14b42))
+* **GitHub:** add Collapse bot and agent comments ([0dfad0e](https://github.com/amfakh/fakh-patches/commit/0dfad0e05eec781a71cac18f99253f0071d14b42))
+* **GitHub:** add Conventional commits ([0e60618](https://github.com/amfakh/fakh-patches/commit/0e60618a5cd4dff895a07281b53db1ffa5242d46))
+* **GitHub:** add Dim bots and agents ([0e60618](https://github.com/amfakh/fakh-patches/commit/0e60618a5cd4dff895a07281b53db1ffa5242d46))
+* **GitHub:** add Hide low-quality comments ([0e60618](https://github.com/amfakh/fakh-patches/commit/0e60618a5cd4dff895a07281b53db1ffa5242d46))
+* **GitHub:** add Show avatar before each @mention ([0e60618](https://github.com/amfakh/fakh-patches/commit/0e60618a5cd4dff895a07281b53db1ffa5242d46))
+* **GitHub:** add Add download menu to every file ([c25af23](https://github.com/amfakh/fakh-patches/commit/c25af23d9bfdb3d3aedf2f526952ce3b95fa3a27))
+* **GitHub:** add Add Preview menu to HTML files ([c25af23](https://github.com/amfakh/fakh-patches/commit/c25af23d9bfdb3d3aedf2f526952ce3b95fa3a27))
+* **GitHub:** add Linkify code ([cbad7b4](https://github.com/amfakh/fakh-patches/commit/cbad7b414bdfb593a259098a7b57b43b14ef0e22))
+* **GitHub:** add Preview hidden comments ([cbad7b4](https://github.com/amfakh/fakh-patches/commit/cbad7b414bdfb593a259098a7b57b43b14ef0e22))
+* **GitHub:** add Add collapsible section ([cbad7b4](https://github.com/amfakh/fakh-patches/commit/cbad7b414bdfb593a259098a7b57b43b14ef0e22))
+* **GitHub:** add Add table ([cbad7b4](https://github.com/amfakh/fakh-patches/commit/cbad7b414bdfb593a259098a7b57b43b14ef0e22))
+* **GitHub:** add Hide Copilot disclaimer ([cbad7b4](https://github.com/amfakh/fakh-patches/commit/cbad7b414bdfb593a259098a7b57b43b14ef0e22))
+* **GitHub:** add Pin important branches ([70609dc](https://github.com/amfakh/fakh-patches/commit/70609dc3cfdc901a38d83d8808285feb63e56b2d))
+* **GitHub:** add Pin recent branches ([70609dc](https://github.com/amfakh/fakh-patches/commit/70609dc3cfdc901a38d83d8808285feb63e56b2d))
+* **GitHub:** add Show tags on commits ([70609dc](https://github.com/amfakh/fakh-patches/commit/70609dc3cfdc901a38d83d8808285feb63e56b2d))
+* **GitHub:** add Show base branch in pull requests ([70609dc](https://github.com/amfakh/fakh-patches/commit/70609dc3cfdc901a38d83d8808285feb63e56b2d))
+* **GitHub:** add Show if a profile follows you ([70609dc](https://github.com/amfakh/fakh-patches/commit/70609dc3cfdc901a38d83d8808285feb63e56b2d))
+* **GitHub:** add Linkify user location ([70609dc](https://github.com/amfakh/fakh-patches/commit/70609dc3cfdc901a38d83d8808285feb63e56b2d))
+* **GitHub:** add Home header text ([70609dc](https://github.com/amfakh/fakh-patches/commit/70609dc3cfdc901a38d83d8808285feb63e56b2d))
+* **GitHub:** add Hide + and - diff signs ([70609dc](https://github.com/amfakh/fakh-patches/commit/70609dc3cfdc901a38d83d8808285feb63e56b2d))
+* **GitHub:** add Icon-only Add to list button ([0c248fc](https://github.com/amfakh/fakh-patches/commit/0c248fc5e6d20dfb3eeb984f0b37478bb6545a38))
+* **GitHub:** group the Fakh Patches settings into pages ([0e60618](https://github.com/amfakh/fakh-patches/commit/0e60618a5cd4dff895a07281b53db1ffa5242d46))
+* **GitHub:** apply most switches without a restart ([70609dc](https://github.com/amfakh/fakh-patches/commit/70609dc3cfdc901a38d83d8808285feb63e56b2d))
+* **GitHub:** show the code switches in Code options ([0c248fc](https://github.com/amfakh/fakh-patches/commit/0c248fc5e6d20dfb3eeb984f0b37478bb6545a38))
+* **GitHub:** translate the new settings into every supported language ([0c248fc](https://github.com/amfakh/fakh-patches/commit/0c248fc5e6d20dfb3eeb984f0b37478bb6545a38))
+
+### Bug Fixes
+
+* **GitHub:** fix a crash when switching the theme ([cbad7b4](https://github.com/amfakh/fakh-patches/commit/cbad7b414bdfb593a259098a7b57b43b14ef0e22))
+* **GitHub:** fix the API token capture for native asset downloads ([c25af23](https://github.com/amfakh/fakh-patches/commit/c25af23d9bfdb3d3aedf2f526952ce3b95fa3a27))
+* **GitHub:** split Pitch black out of Material You ([fb5feeb](https://github.com/amfakh/fakh-patches/commit/fb5feebe5ae8927c2fcd9542fdb4f901f41490e3))
+* **GitHub:** rename Navigation bar to Navigation bar tabs ([fb5feeb](https://github.com/amfakh/fakh-patches/commit/fb5feebe5ae8927c2fcd9542fdb4f901f41490e3))
+* **GitHub:** rename Glass navigation bar to Liquid Glass navigation bar ([fb5feeb](https://github.com/amfakh/fakh-patches/commit/fb5feebe5ae8927c2fcd9542fdb4f901f41490e3))
+* **GitHub:** rename Hide tab labels to Hide navigation bar labels ([0c248fc](https://github.com/amfakh/fakh-patches/commit/0c248fc5e6d20dfb3eeb984f0b37478bb6545a38))
+* **GitHub:** rename Download assets to Download assets natively ([0c248fc](https://github.com/amfakh/fakh-patches/commit/0c248fc5e6d20dfb3eeb984f0b37478bb6545a38))
+* **GitHub:** drop support for `1.282.0`, `1.283.0` and `1.284.0` ([0e60618](https://github.com/amfakh/fakh-patches/commit/0e60618a5cd4dff895a07281b53db1ffa5242d46))
+
 ## [2.16.0](https://github.com/amfakh/fakh-patches/compare/v2.15.0...v2.16.0) (2026-11-26)
 
 ### New Features

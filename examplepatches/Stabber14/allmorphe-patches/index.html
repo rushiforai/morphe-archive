@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AllMorphe — Morphe Patch Bundle Catalog</title>
+<meta name="description" content="Browse every Morphe community patch bundle. Search, filter, select many, and bulk-add them to Morphe." />
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#0b1020" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header>
+  <div class="brand">
+    <h1>AllMorphe</h1>
+    <p class="sub">Every Morphe community patch bundle — browse, search, select, bulk-add.</p>
+  </div>
+  <div class="stats" id="stats"></div>
+</header>
+
+<div class="toolbar">
+  <input id="search" type="search" placeholder="Search name, author, app package…" autocomplete="off" />
+  <select id="sort">
+    <option value="stars">Sort: most stars</option>
+    <option value="patches">Sort: most patches</option>
+    <option value="name">Sort: name A–Z</option>
+  </select>
+  <button id="selectAll" class="btn secondary">Select visible</button>
+  <button id="clearSel" class="btn secondary">Clear</button>
+</div>
+
+<div class="bulkbar" id="bulkbar">
+  <span id="selCount">0 selected</span>
+  <button class="btn primary" id="copySources">Copy source URLs</button>
+  <button class="btn primary" id="downloadSettings">Download settings import JSON</button>
+  <button class="btn secondary" id="openDeepLinks">Open deep links</button>
+  <button class="btn secondary" id="copyCli">Copy CLI command</button>
+</div>
+
+<main>
+  <div id="list" class="list"></div>
+  <div id="empty" class="empty" hidden>No bundles match your search.</div>
+</main>
+
+<footer>
+  <p>Sources: <a href="sources.txt">sources.txt</a> · <a href="bundles.json">bundles.json</a> · <a href="allmorphe_settings.json">allmorphe_settings.json</a></p>
+  <p class="muted">Bulk add: import <code>allmorphe_settings.json</code> in Morphe → Settings → System → Morphe Settings → Import (Replace existing). Or paste <code>sources.txt</code>.</p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

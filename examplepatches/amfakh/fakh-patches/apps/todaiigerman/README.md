@@ -1,6 +1,6 @@
 # Todaii: Learn German A1-C1
 
-Patches for **Todaii: Learn German A1-C1** (`mobi.eup.easygerman`), version `2.8.2`, as an XAPK from APKPure.
+Patches for **Todaii: Learn German A1-C1** (`mobi.eup.easygerman`), versions `2.8.2` and `2.8.3`, as an XAPK from APKPure.
 
 ## Patches
 
@@ -30,5 +30,5 @@ See the [repo README](../../README.md).
 With [morphe-desktop](https://github.com/MorpheApp/morphe-cli/releases) (needs Java 21):
 
 ```bash
-java -jar morphe-desktop-2.2.0-all.jar patch -p patches/build/libs/patches-<version>.mpp -o todaiigerman-patched.apk <Todaii German 2.8.2 XAPK>
+java -jar morphe-desktop-2.2.0-all.jar patch -p patches/build/libs/patches-<version>.mpp -o todaiigerman-patched.apk <Todaii German 2.8.3 XAPK>
 ```

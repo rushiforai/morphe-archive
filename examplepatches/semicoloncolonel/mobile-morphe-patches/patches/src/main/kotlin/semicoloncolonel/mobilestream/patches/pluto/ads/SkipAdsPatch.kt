@@ -6,12 +6,15 @@
 
 package semicoloncolonel.mobilestream.patches.pluto.ads
 
+import app.morphe.patcher.patch.booleanOption
+import semicoloncolonel.mobilestream.patches.shared.misc.TRANSLATE_OPTION_DESCRIPTION
+import semicoloncolonel.mobilestream.patches.shared.misc.TRANSLATE_OPTION_TITLE
+import app.morphe.patcher.patch.BytecodePatch
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -22,13 +25,29 @@ import semicoloncolonel.mobilestream.patches.shared.ads.ImaPauseAdDisplayFingerp
 private const val MPD_FILTER = "Lsemicoloncolonel/mobilestream/extension/pluto/ads/PlutoMpdFilter;"
 
 @Suppress("unused")
-val skipAdsPatch = bytecodePatch(
+val skipAdsPatch: BytecodePatch = bytecodePatch(
     name = "Skip ads",
     description = "Removes the ads, ad markers, and pause ads from on-demand videos.",
 ) {
+    category("Ads")
     compatibleWith(Constants.COMPATIBILITY)
+    dependsOn(maskLiveAdsPatch)
 
     extendWith("extensions/extension.mpe")
+
+    booleanOption(
+        key = "maskLiveAds",
+        default = true,
+        title = "Mask live ad breaks",
+        description = "Covers live ad breaks with a \"We'll be right back!\" screen and mutes them.",
+    )
+
+    booleanOption(
+        key = "translate",
+        default = false,
+        title = TRANSLATE_OPTION_TITLE,
+        description = TRANSLATE_OPTION_DESCRIPTION,
+    )
 
     execute {
         // Hook 1 — the ad video. Route the raw MPD through PlutoMpdFilter

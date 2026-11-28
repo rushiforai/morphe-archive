@@ -48,6 +48,7 @@ val videoQualityPatch = bytecodePatch(
         "Videos can buffer if your connection is too slow for it.",
     default = false,
 ) {
+    category("Playback")
     compatibleWith(Constants.COMPATIBILITY, Constants.STREAM_COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

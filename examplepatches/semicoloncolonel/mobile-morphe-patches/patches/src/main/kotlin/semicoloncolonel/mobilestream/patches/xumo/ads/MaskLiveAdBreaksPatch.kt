@@ -1,5 +1,7 @@
 package semicoloncolonel.mobilestream.patches.xumo.ads
 
+import semicoloncolonel.mobilestream.patches.shared.misc.enableAdBreakTranslation
+import semicoloncolonel.mobilestream.patches.shared.misc.isOptionOn
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
@@ -7,7 +9,6 @@ import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
-import semicoloncolonel.mobilestream.patches.xumo.shared.Constants
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Xumo Play 4.6.21 — Mask live ad breaks.
@@ -65,16 +66,13 @@ internal object VolumeMethodFingerprint : Fingerprint(
     returnType = "Ljava/lang/String;",
 )
 
-@Suppress("unused")
-val maskLiveAdBreaksPatch = bytecodePatch(
-    name = "Mask live ad breaks",
-    description = "Covers and mutes the ad breaks on live channels until the show returns.",
-) {
-    compatibleWith(Constants.COMPATIBILITY)
-
+// Part of skipAdsPatch: runs only when its "maskLiveAds" option is on.
+internal val maskLiveAdBreaksPatch = bytecodePatch {
     extendWith("extensions/extension.mpe")
 
     execute {
+        if (!isOptionOn(skipAdsPatch, "maskLiveAds")) return@execute
+        if (isOptionOn(skipAdsPatch, "translate")) enableAdBreakTranslation()
         // 1. Read each HLS playlist before ExoPlayer parses it.
         HlsPlaylistParseFingerprint.method.addInstructions(
             0,

@@ -1,3 +1,21 @@
+## [1.7.0](https://github.com/Darkaxt/morphe-patches/compare/v1.6.4...v1.7.0) (2026-11-28)
+
+### ✨ New Features
+
+* **doodlejump:** GmsCore support patch ([fdd2f36](https://github.com/Darkaxt/morphe-patches/commit/fdd2f36881fd4fc654b198da35beba8e3b718f85))
+
+## [1.6.4](https://github.com/Darkaxt/morphe-patches/compare/v1.6.3...v1.6.4) (2026-11-28)
+
+### 🐛 Bug Fixes
+
+* **doodlejump:** lives HUD shows the current theme's and costume's Doodler ([d0cd785](https://github.com/Darkaxt/morphe-patches/commit/d0cd7855ca6a97360d9a714bd0e325ba9a3b8203))
+
+## [1.6.3](https://github.com/Darkaxt/morphe-patches/compare/v1.6.2...v1.6.3) (2026-11-28)
+
+### 🐛 Bug Fixes
+
+* **doodlejump:** keep springs and other items with their platform below the screen ([add00f9](https://github.com/Darkaxt/morphe-patches/commit/add00f9b4e3113ade8c3c1bfef2afa51e12bde86))
+
 ## [1.6.2](https://github.com/Darkaxt/morphe-patches/compare/v1.6.1...v1.6.2) (2026-11-25)
 
 ### 🐛 Bug Fixes

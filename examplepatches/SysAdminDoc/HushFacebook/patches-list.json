@@ -2266,7 +2266,7 @@
     },
     {
       "name": "Hide suggested stories",
-      "description": "Removes stories Facebook suggests from people and Pages you don't follow, and the \"Find friends from contacts\" card, so the Stories tray sticks to people you know. On by default. Turn it off in Hushfacebook settings > Stories, where more switches, all off at first, also hide the Create story tile, the Pages you follow and the stories you've already watched, keep only the ones you've watched, or move the ones you've watched to the end.",
+      "description": "Removes stories Facebook suggests from people and Pages you don't follow, and the \"Find friends from contacts\" card, so the Stories tray sticks to people you know. On by default. Turn it off in Hushfacebook settings > Stories, where more switches, all off at first, also hide the Create story tile, the Pages you follow, the people you know and the stories you've already watched, keep only the ones you've watched, or move the ones you've watched to the end.",
       "category": "Stories",
       "use": true,
       "dependencies": [
@@ -3230,7 +3230,7 @@
     },
     {
       "name": "Open Messenger from the top bar",
-      "description": "Makes the Messenger icon at the top of Facebook open the Messenger app instead of Facebook's own Chats, if you'd rather chat in Messenger. Without Messenger installed, Chats opens as before. Starts off. Turn it on in Hushfacebook settings > Chats and Messenger. Also carries Leave calls and chats to Messenger, a separate switch that starts off and leaves calls and chat notifications to Messenger while it's installed and enabled. Restart Facebook after changing the switch or whether Messenger is installed or enabled, so call routing updates. Open chats in Messenger, another switch that starts off, opens chats in Messenger instead of inside Facebook, the Message button on a profile included.",
+      "description": "Makes the Messenger icon at the top of Facebook open the Messenger app instead of Facebook's own Chats, if you'd rather chat in Messenger. Without Messenger installed, Chats opens as before. Starts off. Turn it on in Hushfacebook settings > Chats and Messenger. Also carries Leave calls and chats to Messenger, a separate switch that starts off and leaves calls and chat notifications to Messenger while it's installed and enabled. Restart Facebook after changing the switch or whether Messenger is installed or enabled, so call routing updates. Open chats in Messenger, another switch that starts off, opens chats in Messenger instead of inside Facebook, the Message button on a profile included. Calls you start in Facebook's chats open Facebook's own call screen, even where Facebook would send you to the Play Store page for Messenger.",
       "category": "Chats",
       "use": true,
       "dependencies": [
@@ -3494,6 +3494,44 @@
       "options": []
     },
     {
+      "name": "Pick the app icon",
+      "description": "Lets you change the icon on your home screen without patching again. In Hushfacebook settings > Appearance > App icon, pick the one you chose when patching, Facebook's own, Hushfacebook's logo in color, white on black or black on white, or Facebook's \"f\" in white on black or black on white. The new icon shows once you leave Facebook, and you may need to add it to your home screen again from the app drawer. Until you pick one, you keep the icon you patched with.",
+      "category": "Theme",
+      "use": true,
+      "dependencies": [
+        "Hushfacebook settings",
+        "Patch"
+      ],
+      "compatiblePackages": {
+        "com.facebook.katana": [
+          "588.0.0.42.55"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Facebook",
+          "packageName": "com.facebook.katana",
+          "description": null,
+          "appIconColor": 550655,
+          "signatures": [
+            "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+            "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+          ],
+          "targets": [
+            {
+              "version": "588.0.0.42.55",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 707615136,
+                "ARMEABI_V7A": 707615135
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Picture-in-picture",
       "description": "Keeps reels and videos from the Reels and Video tabs, or full screen, playing in a small window when you leave Facebook, so you can watch while using another app. Needs Android 12 or later. Starts off. Turn it on in Hushfacebook settings > Video and audio.",
       "category": "Playback",
@@ -3569,7 +3607,7 @@
     },
     {
       "name": "Post action buttons",
-      "description": "Adds Facebook's own Save button next to Like, Comment and Share under posts, and a Download button on posts with a video or photos that saves them the way the post's menu does. It can also take Like, Comment, Share, Send, Save or the Stars and gifts button out of that row, and keep a tap on the row's empty part from opening the comments. Each has its own switch, and they all start off. Find them in Hushfacebook settings > News feed.",
+      "description": "Adds Facebook's own Save button next to Like, Comment and Share under posts, and a Download button on posts with a video or photos that saves them the way the post's menu does. It can also take Like, Comment, Share, Send, Save or the Stars and gifts button out of that row, hide the Messenger Send message bar some posts get, and keep a tap on the row's empty part from opening the comments. Each has its own switch, and they all start off. Find them in Hushfacebook settings > News feed.",
       "category": "Feed",
       "use": true,
       "dependencies": [

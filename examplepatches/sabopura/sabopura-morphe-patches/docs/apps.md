@@ -28,7 +28,7 @@ Weather config resolves the getter's return type against the stable
 `AdsInWeatherConfig$Companion` and its public, typed `default()` factory.
 The 26.9.11 repair preserves the disabled default from 26.8.50. Emulator smoke
 tests require populated article lists before and after scrolling. 26.10.10,
-26.10.20, 26.10.30 and 26.10.41 applied without changes: the public feed showed no sponsored or ad markers before or after
+26.10.20, 26.10.30, 26.10.41, 26.11.30 (Google Play build) and 26.11.40 applied without changes: the public feed showed no sponsored or ad markers before or after
 scrolling on the API 36 emulator, with no fatal errors in the process log.
 
 SmartNews ships two signed builds of the same version. The universal APK (version
@@ -37,7 +37,11 @@ build (version codes `1xxx`, APKMirror APKM with a Google Play source stamp) is 
 with `867abbf0…6d744883`. Their dex files differ. For 26.10.10, 26.10.20, 26.10.30 and 26.10.41 both builds were patched
 without `--force` and checked on the API 36 emulator (the Play build is ARM64-only, so on
 an x86_64 image with ARM translation): the unpatched Play builds showed `Ad ·` feed
-items (for 26.10.30 the unpatched universal APK, `Ad · DirectMax`), the patched builds showed none, and the process logs had no fatal errors. Other
+items (for 26.10.30 the unpatched universal APK, `Ad · DirectMax`), the patched builds showed none, and the process logs had no fatal errors. For 26.11.30 only
+the Google Play build (version code 1155) was checked the same way: Uptodown had not published
+the universal APK of that version yet, so 26.11.30 lists only the Play build's version code. For
+26.11.40 both builds (version codes 1001157 and 1157) were checked the same way: the unpatched
+universal APK showed `Ad ·` feed items, the patched builds showed none. Other
 versions keep the single version code that was verified until the other build is checked.
 
 ### Auto claim mission rewards
@@ -87,7 +91,8 @@ page started, the bridge attached and the mission list loaded; after reading thr
 restarting the app, 26.10.20 (universal and Play) claimed the reading reward (1 point) in the
 background, with no fatal errors. On 26.10.30 (universal and Play) the background page started
 and its script ran on the emulator; the server refused the test device (`CLIENT_CONDITION_DISABLED`),
-so no reward was claimed there. 26.10.41 (universal and Play) behaved the same way. In the background mode the
+so no reward was claimed there. 26.10.41 (universal and Play), the 26.11.30 Google Play build and
+26.11.40 (universal and Play) behaved the same way. In the background mode the
 Japanese edition, staying on Home, drew an article lottery (won) and claimed a 2-point
 reading reward within about 1.5 seconds of the page starting, with nothing shown on screen
 except the toast; leaving the app mid-run removed the page without errors. In the Japanese edition, signed
@@ -167,7 +172,8 @@ patch keeps in the app, so the remaining checks ran on an Android 17 (API 37) em
   26.10.30.
 
 The crash logs of the completed runs had no SmartNews entries. The author also confirmed the
-patch working on a phone.
+patch working on a phone. The 26.11.30 Google Play build and 26.11.40 (both builds) were added after
+the patch applied to them without changes; the article checks above were not repeated on them.
 
 ## Reddit
 

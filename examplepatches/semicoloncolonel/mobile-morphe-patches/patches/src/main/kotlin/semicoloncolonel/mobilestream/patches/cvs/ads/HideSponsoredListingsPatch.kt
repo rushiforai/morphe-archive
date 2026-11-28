@@ -77,6 +77,7 @@ val hideSponsoredListingsPatch = bytecodePatch(
     description = "Removes sponsored products from CVS search results, category pages, " +
         "product pages, and search suggestions.",
 ) {
+    category("Ads")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

@@ -1,3 +1,10 @@
+## [1.18.1](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.18.0...v1.18.1) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **whatsapp:** make read-receipt and usage-data patches effective ([75d0eab](https://github.com/mich111discord/MightyMichs-Patches/commit/75d0eab0bea17f7b90ff9ea4cd801015f44e108a))
+* **whatsapp:** repair preset app icons and block package rename ([49ccec7](https://github.com/mich111discord/MightyMichs-Patches/commit/49ccec7c9d917ff759a8d3497fea30e47a9a2f68))
+
 ## [1.18.0](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.17.0...v1.18.0) (2026-11-26)
 
 ### 🐛 Bug Fixes

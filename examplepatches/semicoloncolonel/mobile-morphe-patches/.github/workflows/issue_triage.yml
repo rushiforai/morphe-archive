@@ -1,11 +1,11 @@
 name: Triage issues
 
 # Checks issues from people outside the project for the details their form
-# requires, and labels the ones that lack them "incomplete". Bug reports and
-# version or build reports are also checked against the app versions the
-# patches support on main and dev,
-# and the ones that use another version or build are labeled "untargeted
-# version". See .github/scripts/issue_triage.py.
+# requires, and labels the ones that lack them "status: needs info". Bug
+# reports and version or build reports are also checked against the app
+# versions the patches support on main and dev,
+# and the ones that use another version or build are labeled "status:
+# untargeted version". See .github/scripts/issue_triage.py.
 #
 # The issue body is untrusted. Only the script reads it, from the event file;
 # it never reaches a shell command.
@@ -24,10 +24,11 @@ jobs:
   triage:
     name: Check the report
     if: >-
-      (contains(github.event.issue.labels.*.name, 'bug') ||
-       contains(github.event.issue.labels.*.name, 'app version') ||
-       contains(github.event.issue.labels.*.name, 'enhancement') ||
-       contains(github.event.issue.labels.*.name, 'question')) &&
+      (contains(github.event.issue.labels.*.name, 'type: bug') ||
+       contains(github.event.issue.labels.*.name, 'status: version not accepted') ||
+       contains(github.event.issue.labels.*.name, 'type: enhancement') ||
+       contains(github.event.issue.labels.*.name, 'type: request') ||
+       contains(github.event.issue.labels.*.name, 'type: question')) &&
       github.event.issue.state == 'open' &&
       github.event.issue.user.type != 'Bot' &&
       !contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association)
@@ -49,5 +50,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           # Android TV reports are sent to the TV patch source.
-          TRIAGE_TV_REPO: ${{ vars.TV_SOURCE }}
+          TRIAGE_TV_REPO: semicoloncolonel/tv-morphe-patches
         run: python3 .github/scripts/issue_triage.py

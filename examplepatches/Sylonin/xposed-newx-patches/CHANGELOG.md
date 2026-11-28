@@ -1,3 +1,28 @@
+## [4.5.2](https://github.com/Sylonin/xposed-newx-patches/compare/v4.5.1...v4.5.2) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* explain posting to X in the share sheet ([80530db](https://github.com/Sylonin/xposed-newx-patches/commit/80530db1fbd005b28090aba8c6b1bf6a94b1884b))
+* show badges at full size in profile and chat headers ([733b33c](https://github.com/Sylonin/xposed-newx-patches/commit/733b33c8c9495ed9e99f5877c78780def9a4d8da))
+
+## [4.5.1](https://github.com/Sylonin/xposed-newx-patches/compare/v4.5.0...v4.5.1) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* find X 12.41's composer share handler ([b5f55a7](https://github.com/Sylonin/xposed-newx-patches/commit/b5f55a7778fe762b48884459bebf3689ef8523db))
+
+## [4.5.0](https://github.com/Sylonin/xposed-newx-patches/compare/v4.4.0...v4.5.0) (2026-11-27)
+
+### ✨ New Features
+
+* show badges in profile and chat headers and share posts as images ([5dd1acc](https://github.com/Sylonin/xposed-newx-patches/commit/5dd1acc2f3cc6404c311f9b6ea264b7b5f334ec8))
+
+## [4.4.0](https://github.com/Sylonin/xposed-newx-patches/compare/v4.3.1...v4.4.0) (2026-11-27)
+
+### ✨ New Features
+
+* add X-Posed's account card to the account sheet, with copy, save and share as an image ([8268589](https://github.com/Sylonin/xposed-newx-patches/commit/8268589ab3e4cac05bb00980506fcc027b5f667b))
+
 ## [4.3.1](https://github.com/Sylonin/xposed-newx-patches/compare/v4.3.0...v4.3.1) (2026-11-27)
 
 ### 🐛 Bug Fixes

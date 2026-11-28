@@ -20,6 +20,10 @@ public final class ChatOptions {
         return NezumiPrefs.bool(context, NezumiPrefs.HIDE_READ_RECEIPTS, false);
     }
 
+    public static boolean isMarkAsReadButtonShown(Context context) {
+        return NezumiPrefs.bool(context, NezumiPrefs.SHOW_MARK_AS_READ_BUTTON, true);
+    }
+
     public static boolean isDeliveryReceiptsHidden(Context context) {
         return NezumiPrefs.bool(context, NezumiPrefs.HIDE_DELIVERY_RECEIPTS, false);
     }

@@ -1,0 +1,703 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.morphe.patches.instagram.feed.suggested
+
+import app.morphe.ExtensionDex
+import app.morphe.Fixtures
+import app.morphe.PatchContexts
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patches.instagram.FixtureDex
+import app.morphe.patches.instagram.ads.hideAdsPatch
+import app.morphe.patches.instagram.feed.ADD_PAGE_HEADER
+import app.morphe.patches.instagram.feed.NEW_POSTS_HEADER
+import app.morphe.patches.instagram.feed.emptiedPageHeaderPatch
+import app.morphe.patches.instagram.feed.guardNewPostsHeader
+import app.morphe.patches.instagram.feed.home.hideHomeFeedPatch
+import app.morphe.patches.instagram.feed.reels.hideFeedReelsPatch
+import app.morphe.patches.instagram.metaai.hideMetaAiPatch
+import app.morphe.patches.instagram.misc.extension.loadsString
+import app.morphe.patches.shared.compat.AppCompatibilities
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+private const val PAGES = "Lfixture/FeedPages;"
+private const val HEADER_INSERT = "Ljava/util/AbstractList;->add(ILjava/lang/Object;)V"
+private const val PLAIN_INSERT = "Ljava/util/ArrayList;->add(ILjava/lang/Object;)V"
+
+class EmptyFeedEndTest {
+    private val adapter = "Lfixture/MainFeedAdapter;"
+    private val feed = "Lfixture/Feed;"
+    private val ended = "$feed->ended:Z"
+
+    private val following = "Lfixture/FeedState;"
+
+    @Test
+    fun theHooksAreInTheExtension() {
+        val declared = ExtensionDex.classDef(FEED_ENDED.substringBefore("->")).methods
+            .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
+            .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
+        for (hook in listOf(FEED_ENDED, HOME_FEED_READ, END_CARD_RULE, MORE_AFTER_FOLLOWING, OLDER_PAGE_LOADING, "$FEED_SUGGESTIONS->$FEED_EMPTY_STUB(Ljava/lang/Object;)I")) {
+            assertTrue("$hook is not in the extension: $declared", hook.substringAfter("->") in declared)
+        }
+    }
+
+    /**
+     * The row's show check asks the extension whether its feed pages as Following's right after
+     * comparing the source, and about a next page right after asking the question isLoading()
+     * shares with it. Nothing else it asks goes past the extension.
+     */
+    @Test
+    fun theEndCardRulesQuestionsGoPastTheExtension() {
+        val context = PatchContexts.of(listOf(followingState(), feedNames()))
+
+        context.endFollowingAtItsCard()
+
+        val shows = context.classDefBy(following).methods.single { it.name == "shows" }.implementation!!.instructions.toList()
+        for ((question, hook) in listOf("Ljava/lang/String;->equals(Ljava/lang/Object;)Z" to END_CARD_RULE,
+            "$following->hasMore()Z" to MORE_AFTER_FOLLOWING)) {
+            val asked = shows.indexOfFirst { it.calls(question) }
+            val answer = (shows[asked + 1] as OneRegisterInstruction).registerA
+            val call = shows[asked + 2]
+            assertTrue("$hook right after the answer", call.calls(hook))
+            assertEquals("the answer", answer, (call as RegisterRangeInstruction).startRegister)
+            assertEquals(Opcode.MOVE_RESULT, shows[asked + 3].opcode)
+            assertEquals(answer, (shows[asked + 3] as OneRegisterInstruction).registerA)
+            assertEquals("$hook once", 1, shows.count { it.calls(hook) })
+        }
+        val loading = context.classDefBy(following).methods.single { it.name == "isLoading" }.implementation!!.instructions
+        assertTrue("isLoading is left", loading.none { it.calls(MORE_AFTER_FOLLOWING) })
+    }
+
+    @Test
+    fun anIsLoadingSharingNoQuestionFailsThePatch() {
+        val context = PatchContexts.of(listOf(followingState(shared = false), feedNames()))
+        assertThrows(PatchException::class.java) { context.endFollowingAtItsCard() }
+    }
+
+    /**
+     * The flag is the last boolean read before the loading row, not an earlier one, and every read
+     * of it in the adapter goes past the extension, the one in its empty check too.
+     */
+    @Test
+    fun everyReadOfTheFlagGoesPastTheExtension() {
+        val context = PatchContexts.of(listOf(adapter()))
+
+        val end = context.findFeedEnd()
+        assertEquals(adapter, end.adapter)
+        assertEquals(ended, end.flag.toString())
+        assertEquals("$feed->isEmpty()Z", end.empty.toString())
+        context.endEmptiedFeed(end)
+
+        for (name in listOf("buildModels", "isEmptyFeed", "branchesToTheRead")) {
+            val code = context.code(name)
+            val read = code.indexOfFirst { it.reads(ended) }
+            val hook = code[read + 1]
+            assertTrue("$name: right after the read", hook.calls(FEED_ENDED))
+            val flag = (code[read] as TwoRegisterInstruction).registerA
+            assertEquals("$name: the flag", flag, (hook as RegisterRangeInstruction).startRegister)
+            assertEquals(Opcode.MOVE_RESULT, code[read + 2].opcode)
+            assertEquals(flag, (code[read + 2] as OneRegisterInstruction).registerA)
+            assertEquals("$name: hooked once", 1, code.count { it.calls(FEED_ENDED) })
+            val handed = code[read - 1]
+            assertTrue("$name: the feed handed over right before the read", handed.calls(HOME_FEED_READ))
+            assertEquals("$name: the feed", (code[read] as TwoRegisterInstruction).registerB, (handed as RegisterRangeInstruction).startRegister)
+            assertEquals("$name: handed over once", 1, code.count { it.calls(HOME_FEED_READ) })
+        }
+        val other = context.code("buildModels").indexOfFirst { it.reads("$feed->other:Z") }
+        assertTrue("the other flag is left", !context.code("buildModels")[other + 1].calls(FEED_ENDED))
+        assertTrue("the other flag is left", !context.code("buildModels")[other - 1].calls(HOME_FEED_READ))
+
+        // A branch to the read hands the feed over too.
+        val branching = context.code("branchesToTheRead")
+        val jump = branching.indexOfFirst { it.opcode == Opcode.IF_NEZ }
+        assertTrue("the branch lands on the hand-over", branching[target(branching, jump)].calls(HOME_FEED_READ))
+    }
+
+    /**
+     * The extension's stub asks the feed object the question the adapter asks right after the flag,
+     * so feedEnded knows whether the feed is empty. A question the extension can't reach leaves the
+     * stub as it was.
+     */
+    @Test
+    fun theStubAsksTheFeedWhetherItsEmpty() {
+        val context = PatchContexts.of(listOf(adapter(), feedClass(), ExtensionDex.classDef(FEED_SUGGESTIONS)))
+        context.endEmptiedFeed(context.findFeedEnd())
+
+        val stub = context.classDefBy(FEED_SUGGESTIONS).methods.single { it.name == FEED_EMPTY_STUB }.implementation!!.instructions.toList()
+        assertEquals(listOf(Opcode.CHECK_CAST, Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT, Opcode.RETURN), stub.take(4).map { it.opcode })
+        assertEquals(feed, ((stub[0] as ReferenceInstruction).reference as com.android.tools.smali.dexlib2.iface.reference.TypeReference).type)
+        assertTrue(stub[1].calls("$feed->isEmpty()Z"))
+        val p0 = (stub[0] as OneRegisterInstruction).registerA
+        assertEquals("the body uses p0 alone", setOf(p0), listOf(stub[2], stub[3]).map { (it as OneRegisterInstruction).registerA }.toSet())
+
+        for (hidden in listOf(feedClass(publicClass = false), feedClass(publicCheck = false))) {
+            val closed = PatchContexts.of(listOf(adapter(), hidden, ExtensionDex.classDef(FEED_SUGGESTIONS)))
+            val before = closed.classDefBy(FEED_SUGGESTIONS).methods.single { it.name == FEED_EMPTY_STUB }.implementation!!.instructions.toList()
+            val end = closed.findFeedEnd()
+            closed.endEmptiedFeed(end)
+            assertFalse(closed.tellFeedEmptiness(end))
+            val after = closed.classDefBy(FEED_SUGGESTIONS).methods.single { it.name == FEED_EMPTY_STUB }.implementation!!.instructions.toList()
+            assertEquals("the stub is left as it was", before.map { it.opcode }, after.map { it.opcode })
+        }
+    }
+
+    @Test
+    fun aBuilderThatDoesntAskWhetherTheFeedIsEmptyFailsThePatch() {
+        val context = PatchContexts.of(listOf(adapter(asks = false)))
+        assertThrows(PatchException::class.java) { context.findFeedEnd() }
+    }
+
+    /**
+     * On 451's 385713073 the builder copies the feed into another register, reads the flag off the
+     * copy over it and asks the register it copied from, with an invoke-virtual/range, whether the
+     * feed is empty.
+     */
+    @Test
+    fun aFlagReadOffACopyOfTheFeedIsFound() {
+        val context = PatchContexts.of(listOf(adapter(
+            read = "move-object v0, v1\niget-boolean v0, v0, $ended",
+            asked = "invoke-virtual/range { v1 .. v1 }, $feed->isEmpty()Z",
+        )))
+        val end = context.findFeedEnd()
+        assertEquals(ended, end.flag.toString())
+        assertEquals("$feed->isEmpty()Z", end.empty.toString())
+    }
+
+    /** A copy the read writes the flag over the source of isn't the feed any more, and the patch fails. */
+    @Test
+    fun aQuestionAskedOfARegisterTheReadWroteFailsThePatch() {
+        val context = PatchContexts.of(listOf(adapter(
+            read = "move-object v0, v1\niget-boolean v1, v0, $ended",
+            asked = "invoke-virtual { v1 }, $feed->isEmpty()Z",
+        )))
+        assertThrows(PatchException::class.java) { context.findFeedEnd() }
+    }
+
+    @Test
+    fun twoBuildersFailThePatch() {
+        val context = PatchContexts.of(listOf(adapter(), adapter("Lfixture/SecondAdapter;")))
+        assertThrows(PatchException::class.java) { context.findFeedEnd() }
+    }
+
+    /**
+     * In each build of the declared version, the declared bundle and the other builds of it, the home
+     * feed adapter reads its flag three times, and every read goes past the extension with the feed
+     * handed over first. The feed's empty check is public, so the extension's stub can ask it. On
+     * 454's 386014758 that's LX/07ca reading LX/07cb;->A02:Z in its builder A06 at 261, in its empty
+     * check A1M, and in the copy of A1M Redex inlined into A06 at 1834, and asking LX/06gS;->A0D()Z.
+     */
+    @Test
+    fun eachBuildEndsTheEmptiedFeed() {
+        val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
+        val bundles = versions.flatMap { version -> Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") } }
+        val others = Fixtures.otherBuilds()
+        assertTrue("no fixture of a declared build", bundles.isNotEmpty())
+        assertTrue("other builds of the declared version were not read", others.isNotEmpty())
+        var checked = 0
+        for (bundle in bundles + others) {
+            val where = "${bundle.parentFile.name}/${bundle.name}"
+            // Some builds ask a string pool for the Following feed's name, so the slice takes those askers and the pool.
+            val classes = (FixtureDex.classesHolding(bundle, BUILD_MODELS) + FixtureDex.classesLoading(bundle, FOLLOWING_FEED))
+                .distinctBy { it.type }.toMutableList()
+            val found = PatchContexts.of(classes.distinctBy { it.type }).findFeedEnd()
+            // The feed's class and its supers, for the stub's empty check.
+            val feedTypes = generateSequence(found.empty.definingClass) { type ->
+                FixtureDex.classes(bundle, setOf(type))[type]?.superclass?.takeIf { it.startsWith("LX/") }
+            }.toSet()
+            val feedClasses = FixtureDex.classes(bundle, feedTypes).values.map { ImmutableClassDef.of(it) }
+            val all = (classes + feedClasses + ExtensionDex.classDef(FEED_SUGGESTIONS)).distinctBy { it.type }
+            val context = PatchContexts.of(all)
+
+            val end = context.findFeedEnd()
+            context.endEmptiedFeed(end)
+
+            val reads = context.classDefBy(end.adapter).methods.flatMap { method ->
+                val code = method.implementation?.instructions?.toList().orEmpty()
+                code.indices.filter { code[it].reads(end.flag.toString()) }.map { code to it }
+            }
+            assertEquals("$where: ${end.adapter} reads ${end.flag}", 3, reads.size)
+            for ((code, at) in reads) {
+                assertTrue("$where: right after the read", code[at + 1].calls(FEED_ENDED))
+                assertEquals(Opcode.MOVE_RESULT, code[at + 2].opcode)
+                assertTrue("$where: the feed handed over right before the read", code[at - 1].calls(HOME_FEED_READ))
+                assertEquals("$where: the feed", (code[at] as TwoRegisterInstruction).registerB, (code[at - 1] as RegisterRangeInstruction).startRegister)
+            }
+            val stub = context.classDefBy(FEED_SUGGESTIONS).methods.single { it.name == FEED_EMPTY_STUB }.implementation!!.instructions.toList()
+            assertTrue("$where: the stub asks ${end.empty}", stub[1].calls(end.empty.toString()))
+
+            context.endFollowingAtItsCard()
+            for (hook in listOf(END_CARD_RULE, MORE_AFTER_FOLLOWING)) {
+                val asked = classes.map { it.type }.distinct().flatMap { type ->
+                    context.classDefBy(type).methods.flatMap { method ->
+                        val code = method.implementation?.instructions?.toList().orEmpty()
+                        code.indices.filter { code[it].calls(hook) }.map { Triple(method, code, it) }
+                    }
+                }
+                assertEquals("$where: $hook asked once", 1, asked.size)
+                val (shows, code, at) = asked.single()
+                assertTrue("$where: in the show check", context.loadsString(shows, FOLLOWING_FEED))
+                assertEquals(Opcode.MOVE_RESULT, code[at - 1].opcode)
+                val question = (code[at - 2] as ReferenceInstruction).reference as MethodReference
+                val expected = if (hook == END_CARD_RULE) "Ljava/lang/String;" else shows.definingClass
+                assertEquals("$where: what $hook answers", expected, question.definingClass)
+                assertEquals(Opcode.MOVE_RESULT, code[at + 1].opcode)
+            }
+            checked++
+        }
+        assertEquals("every build was checked", bundles.size + others.size, checked)
+    }
+
+    private val policy = "Lfixture/LoadMorePolicy;"
+    private val contextual = "Lfixture/ContextualAdapter;"
+    private val contextualToo = "Lfixture/ContextualAdapterToo;"
+
+    /** The load more row's state class, implementing the policy interface the contextual feeds are asked through. */
+    private fun policyImplementation() = classDef(following, followingState().methods.toList(), listOf(policy))
+
+    /**
+     * A contextual feed's model builder: it asks the policy whether the feed is loading, branches on
+     * the answer, and asks its own adapter whether it's empty before the full-screen loading row.
+     */
+    private fun contextualBuilder(type: String, asks: Boolean = true) = classDef(type, listOf(
+        method(type, "build", "V", registers = 5, body = """
+            iget-object v0, v4, $type->policy:$policy
+            invoke-interface { v0 }, $policy->isLoading()Z
+            move-result v1
+            if-eqz v1, :done
+            ${if (asks) "invoke-virtual { v4 }, $type->isEmpty()Z\nmove-result v1" else "const/4 v1, 0x1"}
+            if-eqz v1, :done
+            const-string v2, "row"
+            :done
+            return-void
+        """),
+        method(type, "isEmpty", "Z", registers = 2, body = "const/4 v0, 0x1\nreturn v0"),
+    ))
+
+    /** Something else that asks the policy whether it's loading, and branches, but never asks for emptiness. */
+    private fun otherAsker() = classDef("Lfixture/OtherAsker;", listOf(
+        method("Lfixture/OtherAsker;", "check", "V", registers = 3, body = """
+            iget-object v0, v2, Lfixture/OtherAsker;->policy:$policy
+            invoke-interface { v0 }, $policy->isLoading()Z
+            move-result v1
+            if-eqz v1, :done
+            :done
+            return-void
+        """),
+    ))
+
+    /**
+     * Both of the contextual feed's model builders have their isLoading() answer passed through
+     * olderPageLoading, right after the move-result, in the register that holds it; the other class
+     * that asks the policy the same question is left alone.
+     */
+    @Test
+    fun theContextualFeedsLoadingAnswerGoesPastTheExtension() {
+        val context = PatchContexts.of(listOf(policyImplementation(), feedNames(), contextualBuilder(contextual), contextualBuilder(contextualToo), otherAsker()))
+
+        val rows = context.findLoadingRows()
+        assertEquals(setOf(contextual, contextualToo), rows.map { it.type }.toSet())
+        context.endOlderPostsSpinner(rows)
+
+        for (type in listOf(contextual, contextualToo)) {
+            val code = context.classDefBy(type).methods.single { it.name == "build" }.implementation!!.instructions.toList()
+            val hook = code.indexOfFirst { it.calls(OLDER_PAGE_LOADING) }
+            assertEquals("$type: hooked once", 1, code.count { it.calls(OLDER_PAGE_LOADING) })
+            assertTrue("$type: right after the answer", code[hook - 1].opcode == Opcode.MOVE_RESULT && code[hook - 2].calls("$policy->isLoading()Z"))
+            val answer = (code[hook - 1] as OneRegisterInstruction).registerA
+            assertEquals("$type: the answer", answer, (code[hook] as RegisterRangeInstruction).startRegister)
+            assertEquals(Opcode.MOVE_RESULT, code[hook + 1].opcode)
+            assertEquals("$type: back in the same register", answer, (code[hook + 1] as OneRegisterInstruction).registerA)
+            assertEquals("$type: still branches on it", Opcode.IF_EQZ, code[hook + 2].opcode)
+            val ask = code[hook - 2] as FiveRegisterInstruction
+            val policyHook = code.indexOfFirst { it.calls(OLDER_POLICY_ASKED) }
+            assertEquals("$type: the policy is handed over once, right before the question", hook - 3, policyHook)
+            assertEquals("$type: the feed's own policy", ask.registerC, (code[policyHook] as RegisterRangeInstruction).startRegister)
+        }
+        val other = context.classDefBy("Lfixture/OtherAsker;").methods.single { it.name == "check" }.implementation!!.instructions
+        assertTrue("the other asker is left", other.none { it.calls(OLDER_PAGE_LOADING) })
+    }
+
+    /** A builder that doesn't ask the adapter whether it's empty, or no builder at all, fails the finder; the patch then warns and goes on. */
+    @Test
+    fun aBuildWithoutTheContextualBuilderIsRefusedAndLeftAlone() {
+        for (classes in listOf(
+            listOf(policyImplementation(), feedNames(), contextualBuilder(contextual, asks = false)),
+            listOf(policyImplementation(), feedNames()),
+            listOf(classDef(following, followingState().methods.toList()), feedNames(), contextualBuilder(contextual)),
+        )) {
+            val context = PatchContexts.of(classes)
+            assertThrows(PatchException::class.java) { context.findLoadingRows() }
+            context.endOlderPostsSpinnerOrWarn()
+            if (classes.any { it.type == contextual }) {
+                val code = context.classDefBy(contextual).methods.single { it.name == "build" }.implementation!!.instructions
+                assertTrue("left as it was", code.none { it.calls(OLDER_PAGE_LOADING) })
+            }
+        }
+    }
+
+    @Test
+    fun threeBuildersFailTheFinder() {
+        val context = PatchContexts.of(listOf(
+            policyImplementation(), feedNames(), contextualBuilder(contextual), contextualBuilder(contextualToo), contextualBuilder("Lfixture/ThirdAdapter;"),
+        ))
+        assertThrows(PatchException::class.java) { context.findLoadingRows() }
+    }
+
+    /**
+     * In each build of the declared version, the contextual feed (the Older Posts page's fragment)
+     * has its model builders found through the load more row's interface, one or two of them, and
+     * each isLoading() answer goes past the extension in the register that holds it.
+     */
+    @Test
+    fun eachBuildEndsTheOlderPostsSpinner() {
+        val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
+        val bundles = versions.flatMap { version -> Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") } }
+        val others = Fixtures.otherBuilds()
+        assertTrue("no fixture of a declared build", bundles.isNotEmpty())
+        assertTrue("other builds of the declared version were not read", others.isNotEmpty())
+        var checked = 0
+        for (bundle in bundles + others) {
+            val where = "${bundle.parentFile.name}/${bundle.name}"
+            val policies = FixtureDex.classesLoading(bundle, FOLLOWING_FEED)
+            val interfaces = PatchContexts.of(policies.distinctBy { it.type }).findLoadMoreRow().first.interfaces.toSet()
+            assertTrue("$where: the load more row implements an interface", interfaces.isNotEmpty())
+            val askers = mutableListOf<ClassDef>()
+            FixtureDex.forEach(bundle) { dex ->
+                for (classDef in dex.classes) {
+                    val asks = classDef.methods.any { method ->
+                        method.implementation?.instructions?.any { instruction ->
+                            ((instruction as? ReferenceInstruction)?.reference as? MethodReference)
+                                ?.let { it.name == "isLoading" && it.definingClass in interfaces } == true
+                        } == true
+                    }
+                    if (asks) askers += ImmutableClassDef.of(classDef)
+                }
+            }
+            val context = PatchContexts.of((policies + askers).distinctBy { it.type })
+            val rows = context.findLoadingRows()
+            assertTrue("$where: ${rows.size} builders", rows.size in 1..2)
+            context.endOlderPostsSpinner(rows)
+            for (row in rows) {
+                val code = context.classDefBy(row.type).methods
+                    .single { it.name == row.name && it.parameterTypes.map(CharSequence::toString) == row.parameters }
+                    .implementation!!.instructions.toList()
+                val hooks = code.indices.filter { code[it].calls(OLDER_PAGE_LOADING) }
+                assertEquals("$where: ${row.type}->${row.name} hooked once", 1, hooks.size)
+                val hook = hooks.single()
+                assertEquals("$where: right after the answer", Opcode.MOVE_RESULT, code[hook - 1].opcode)
+                assertEquals("$where: the question", "isLoading", ((code[hook - 2] as ReferenceInstruction).reference as MethodReference).name)
+                val answer = (code[hook - 1] as OneRegisterInstruction).registerA
+                assertEquals("$where: the answer", answer, (code[hook] as RegisterRangeInstruction).startRegister)
+                assertEquals("$where: back in the register", answer, (code[hook + 1] as OneRegisterInstruction).registerA)
+                assertEquals("$where: still branches on it", Opcode.IF_EQZ, code[hook + 2].opcode)
+                val policyHooks = code.indices.filter { code[it].calls(OLDER_POLICY_ASKED) }
+                assertEquals("$where: ${row.type}->${row.name} hands the policy over once", 1, policyHooks.size)
+                assertEquals("$where: right before the question", hook - 2, policyHooks.single() + 1)
+                val ask = code[hook - 2] as ReferenceInstruction
+                val askedOn = (ask as? FiveRegisterInstruction)?.registerC ?: (ask as RegisterRangeInstruction).startRegister
+                val handed = (code[policyHooks.single()] as RegisterRangeInstruction).startRegister
+                assertEquals("$where: the policy it asks", askedOn, handed)
+                assertTrue("$where: a register invoke-static/range can reach", handed <= 255)
+                assertEquals("$where: then asks isEmpty", "isEmpty", ((code[hook + 3] as ReferenceInstruction).reference as MethodReference).name)
+            }
+            checked++
+        }
+        assertEquals("every build was checked", bundles.size + others.size, checked)
+    }
+
+    @Test
+    fun theHeaderHookIsInTheExtension() {
+        val declared = ExtensionDex.classDef(ADD_PAGE_HEADER.substringBefore("->")).methods
+            .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
+            .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
+        assertTrue("$ADD_PAGE_HEADER is not in the extension: $declared", ADD_PAGE_HEADER.substringAfter("->") in declared)
+    }
+
+    /** Only the insert after the header's title changes hands, on the same registers. */
+    @Test
+    fun theHeadersInsertGoesThroughTheExtension() {
+        val context = PatchContexts.of(listOf(feedPages()))
+        val before = context.pageCode()
+
+        context.guardNewPostsHeader()
+
+        val code = context.pageCode()
+        assertEquals(before.size, code.size)
+        val guarded = code.indices.single { code[it].calls(ADD_PAGE_HEADER) }
+        assertEquals(before.indices.single { before[it].calls(HEADER_INSERT) }, guarded)
+        assertEquals(Opcode.INVOKE_STATIC, code[guarded].opcode)
+        val call = code[guarded] as FiveRegisterInstruction
+        assertEquals(listOf(3, 0, 1, 2), listOf(call.registerCount, call.registerC, call.registerD, call.registerE))
+        assertEquals("the page's other inserts stay", 2, code.count { it.calls(PLAIN_INSERT) })
+    }
+
+    @Test
+    fun aHeaderInsertOnHighRegistersStaysARangeCall() {
+        val type = "Lfixture/HighPages;"
+        val context = PatchContexts.of(listOf(classDef(type, listOf(
+            method(type, "build", "V", registers = 20, static = true, body = """
+                const-string v0, "$NEW_POSTS_HEADER"
+                invoke-virtual/range { v16 .. v18 }, $HEADER_INSERT
+                return-void
+            """),
+        ))))
+
+        context.guardNewPostsHeader()
+
+        val call = context.classDefBy(type).methods.single().implementation!!.instructions.toList()[1]
+        assertEquals(Opcode.INVOKE_STATIC_RANGE, call.opcode)
+        assertTrue(call.calls(ADD_PAGE_HEADER))
+        assertEquals(listOf(16, 3), (call as RegisterRangeInstruction).let { listOf(it.startRegister, it.registerCount) })
+    }
+
+    /** 457 names the header by making it: its constructor holds the title, and the insert after the making is guarded. */
+    @Test
+    fun aHeaderWhoseConstructorHoldsTheTitleIsGuardedWhereItsMade() {
+        val banner = "Lfixture/Banner;"
+        val type = "Lfixture/BannerPages;"
+        val context = PatchContexts.of(listOf(
+            classDef(banner, listOf(method(banner, "<init>", "V", registers = 2, body = """
+                const-string v0, "$NEW_POSTS_HEADER"
+                return-void
+            """))),
+            classDef(type, listOf(method(type, "build", "V", registers = 3, static = true, body = """
+                new-instance v0, Ljava/util/ArrayList;
+                invoke-direct { v0 }, Ljava/util/ArrayList;-><init>()V
+                const/4 v1, 0x1
+                new-instance v2, $banner
+                invoke-direct { v2 }, $banner-><init>()V
+                invoke-virtual { v0, v1, v2 }, $HEADER_INSERT
+                invoke-virtual { v0, v1, v2 }, $PLAIN_INSERT
+                return-void
+            """))),
+        ))
+
+        context.guardNewPostsHeader()
+
+        val code = context.classDefBy(type).methods.single().implementation!!.instructions.toList()
+        assertEquals("the insert after the making", listOf(5), code.indices.filter { code[it].calls(ADD_PAGE_HEADER) })
+        assertEquals("the next one stays", 1, code.count { it.calls(PLAIN_INSERT) })
+    }
+
+    /** Hide suggested posts and the others still go in on a build that moved the header. */
+    @Test
+    fun aBuildWithoutTheHeaderInsertStillPatches() {
+        val type = "Lfixture/NoInsert;"
+        val context = PatchContexts.of(listOf(classDef(type, listOf(
+            method(type, "build", "V", registers = 3, static = true, body = """
+                invoke-virtual { v0, v1, v2 }, $HEADER_INSERT
+                const-string v0, "$NEW_POSTS_HEADER"
+                return-void
+            """),
+        ))))
+
+        context.guardNewPostsHeader()
+
+        val code = context.classDefBy(type).methods.single().implementation!!.instructions.toList()
+        assertTrue("an insert before the title isn't the header's", code[0].calls(HEADER_INSERT))
+        PatchContexts.of(listOf(feedNames())).guardNewPostsHeader()
+    }
+
+    @Test
+    fun everyPatchThatEmptiesAPageGuardsTheHeader() {
+        for (patch in listOf(hideSuggestedPostsPatch, hideHomeFeedPatch, hideAdsPatch, hideMetaAiPatch, hideFeedReelsPatch)) {
+            assertTrue("${patch.name} can leave a page with no posts", emptiedPageHeaderPatch in patch.dependencies)
+        }
+    }
+
+    @Test
+    fun eachBuildGuardsItsOneHeaderInsert() {
+        val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
+        val bundles = versions.flatMap { version -> Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") } }
+        val others = Fixtures.otherBuilds()
+        assertTrue("no fixture of a declared build", bundles.isNotEmpty())
+        assertTrue("other builds of the declared version were not read", others.isNotEmpty())
+        for (bundle in bundles + others) {
+            val where = "${bundle.parentFile.name}/${bundle.name}"
+            val loading = FixtureDex.classesLoading(bundle, NEW_POSTS_HEADER)
+            // 457 makes the header from a class whose constructor holds the title (0C2n), so the page making one joins the slice.
+            val headers = loading.flatMap { it.methods }
+                .filter { it.name == "<init>" && FixtureDex.loads(it, NEW_POSTS_HEADER, loading.associateBy { c -> c.type }) }
+                .map { it.definingClass }.toSet()
+            fun Method.makesHeader() = implementation?.instructions?.any { instruction ->
+                val made = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                instruction.opcode == Opcode.INVOKE_DIRECT && made?.name == "<init>" && made.definingClass in headers
+            } == true
+            val makers = FixtureDex.methodsWhere(bundle, { dex -> dex.typeSection.any { it in headers } }) { it.makesHeader() }
+                .map { it.definingClass }.toSet() - headers
+            val classes = (loading + FixtureDex.classes(bundle, makers).values).distinctBy { it.type }
+            val context = PatchContexts.of(classes)
+
+            context.guardNewPostsHeader()
+
+            val guarded = classes.flatMap { context.classDefBy(it.type).methods }.filter { method ->
+                method.implementation?.instructions?.any { it.calls(ADD_PAGE_HEADER) } == true
+            }
+            assertEquals("$where: one method guarded", 1, guarded.size)
+            val method = guarded.single()
+            assertTrue("$where: the one naming the header", context.loadsString(method, NEW_POSTS_HEADER) || method.makesHeader())
+            assertEquals("$where: one insert", 1, method.implementation!!.instructions.count { it.calls(ADD_PAGE_HEADER) })
+        }
+    }
+
+    private fun BytecodePatchContext.pageCode() =
+        classDefBy(PAGES).methods.single().implementation!!.instructions.toList()
+
+    /** A page being built: a post goes in, then the header's title and its insert, then one more item. */
+    private fun feedPages() = classDef(PAGES, listOf(
+        method(PAGES, "build", "V", registers = 3, static = true, body = """
+            new-instance v0, Ljava/util/ArrayList;
+            invoke-direct { v0 }, Ljava/util/ArrayList;-><init>()V
+            const/4 v1, 0x0
+            const-string v2, "post"
+            invoke-virtual { v0, v1, v2 }, $PLAIN_INSERT
+            const/4 v1, 0x1
+            const-string v2, "$NEW_POSTS_HEADER"
+            invoke-virtual { v0, v1, v2 }, $HEADER_INSERT
+            const/4 v1, 0x2
+            const-string v2, "more"
+            invoke-virtual { v0, v1, v2 }, $PLAIN_INSERT
+            return-void
+        """),
+    ))
+
+    /** The index of the instruction the branch at [at] lands on. */
+    private fun target(code: List<Instruction>, at: Int): Int {
+        val address = IntArray(code.size + 1)
+        code.forEachIndexed { index, instruction -> address[index + 1] = address[index] + instruction.codeUnits }
+        return address.indexOf(address[at] + (code[at] as OffsetInstruction).codeOffset)
+    }
+
+    private fun Instruction.calls(reference: String) =
+        ((this as? ReferenceInstruction)?.reference as? MethodReference)?.toString() == reference
+
+    private fun Instruction.reads(reference: String) =
+        ((this as? ReferenceInstruction)?.reference as? FieldReference)?.toString() == reference
+
+    private fun BytecodePatchContext.code(name: String): List<Instruction> =
+        classDefBy(adapter).methods.single { it.name == name }.implementation!!.instructions.toList()
+
+    /**
+     * The builder reads another flag first, then the one that ends the feed, asks the feed whether
+     * it's empty, and asks again before adding the loading row. Its empty check reads the flag too.
+     */
+    private fun adapter(type: String = adapter, asks: Boolean = true, read: String = "iget-boolean v0, v1, $ended", asked: String = "invoke-virtual { v1 }, $feed->isEmpty()Z") = classDef(type, listOf(
+        method(type, "buildModels", "V", registers = 4, body = """
+            const-string v0, "$BUILD_MODELS"
+            iget-object v1, v3, $type->feed:$feed
+            iget-boolean v2, v1, $feed->other:Z
+            $read
+            if-eqz v0, :loading
+            ${if (asks) "$asked\nmove-result v0" else "const/4 v0, 0x1"}
+            if-eqz v0, :loading
+            return-void
+            :loading
+            invoke-virtual { v1 }, $feed->isEmpty()Z
+            move-result v0
+            if-eqz v0, :done
+            const-string v0, "$SHIMMER_KEY"
+            :done
+            return-void
+        """),
+        method(type, "isEmptyFeed", "Z", registers = 3, body = """
+            iget-object v1, v2, $type->feed:$feed
+            iget-boolean v0, v1, $ended
+            return v0
+        """),
+        method(type, "branchesToTheRead", "Z", registers = 3, body = """
+            iget-object v1, v2, $type->feed:$feed
+            if-nez v1, :read
+            const/4 v0, 0x0
+            return v0
+            :read
+            iget-boolean v1, v1, $ended
+            return v1
+        """),
+    ))
+
+    /** The feed itself, with its empty check, public unless a test says otherwise. */
+    private fun feedClass(publicClass: Boolean = true, publicCheck: Boolean = true): ClassDef {
+        val check = method(feed, "isEmpty", "Z", registers = 2, body = "const/4 v0, 0x1\nreturn v0")
+        val flags = if (publicCheck) check.accessFlags else AccessFlags.PRIVATE.value
+        val declared = ImmutableMethod(feed, check.name, emptyList<ImmutableMethodParameter>(), "Z", flags, null, null, check.implementation)
+        return ImmutableClassDef(feed, if (publicClass) AccessFlags.PUBLIC.value else 0, "Ljava/lang/Object;", null, null, null, emptyList(), listOf(declared))
+    }
+
+    /**
+     * The load more row's state: its show check holds the Following feed's name and asks whether
+     * there's a next page and whether paging failed, and isLoading() asks whether it's busy and
+     * (unless [shared] is false) whether there's a next page.
+     */
+    private fun followingState(shared: Boolean = true) = classDef(following, listOf(
+        method(following, "shows", "Z", registers = 2, body = """
+            const-string v0, "$FOLLOWING_FEED"
+            invoke-virtual { v0, v0 }, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+            move-result v0
+            if-eqz v0, :done
+            invoke-virtual { v1 }, $following->hasMore()Z
+            move-result v0
+            if-nez v0, :done
+            invoke-virtual { v1 }, $following->failed()Z
+            move-result v0
+            :done
+            return v0
+        """),
+        method(following, "isLoading", "Z", registers = 2, body = """
+            invoke-virtual { v1 }, $following->busy()Z
+            move-result v0
+            ${if (shared) "invoke-virtual { v1 }, $following->hasMore()Z\nmove-result v0" else ""}
+            return v0
+        """),
+        method(following, "hasMore", "Z", registers = 2, body = "const/4 v0, 0x1\nreturn v0"),
+        method(following, "failed", "Z", registers = 2, body = "const/4 v0, 0x0\nreturn v0"),
+        method(following, "busy", "Z", registers = 2, body = "const/4 v0, 0x0\nreturn v0"),
+    ))
+
+    /** A static table of feed names holding the Following feed's too, which isn't the show check. */
+    private fun feedNames() = classDef("Lfixture/FeedNames;", listOf(
+        method("Lfixture/FeedNames;", "name", "Ljava/lang/String;", registers = 1, static = true, body = """
+            const-string v0, "$FOLLOWING_FEED"
+            return-object v0
+        """),
+    ))
+
+    private fun method(type: String, name: String, returnType: String, registers: Int, body: String, static: Boolean = false): Method {
+        val mutable = MutableMethod(
+            ImmutableMethod(
+                type, name, emptyList<ImmutableMethodParameter>(), returnType,
+                AccessFlags.PUBLIC.value or (if (static) AccessFlags.STATIC.value else 0), null, null,
+                ImmutableMethodImplementation(registers, emptyList(), null, null),
+            ),
+        )
+        mutable.addInstructionsWithLabels(0, body.trimIndent())
+        return ImmutableMethod.of(mutable)
+    }
+
+    private fun classDef(type: String, methods: List<Method>, interfaces: List<String>? = null): ClassDef =
+        ImmutableClassDef(type, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", interfaces, null, null, emptyList(), methods)
+}

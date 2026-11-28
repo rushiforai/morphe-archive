@@ -1,7 +1,5 @@
 package app.onlynazril.extension.tiktok.feedfilter;
 
-import android.os.Build;
-
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -14,25 +12,23 @@ import app.onlynazril.extension.tiktok.settings.FeedFilterSettings;
 /**
  * Drops the items a page should not show, in place, on the list the app is about to use.
  * <p>
- * Four call sites. The feed's own paths , the fetch return, the panel insert and the pager item
- * model's storage , run the full filter. The generic `FeedItemList` setter and clone, which are
- * shared with the profile, search and repost lists, run the **ad filter only**: a like-count range
- * there would hide the profile owner's own posts, but an ad is not wanted on any surface.
+ * Two entry points, both before an item can reach a list the pager counts:
  * <p>
- * The storage's live list is wrapped separately, and that wrapper refuses **ads only**. The adapter
- * model behind it is rebuilt for the detail feed and for a profile's own video list; refusing a
- * LIVE or drama item there drops the video the user just opened, which is the black screen and the
- * previous surface's video that a profile tap showed. The feed's own hooks carry those filters.
+ * The feed's page, at its fetch return, runs the **full** filter. The generic `FeedItemList` setter
+ * and clone, shared with the profile, search and repost lists, run the **ad filter only**: a
+ * like-count range there would hide the profile owner's own posts, but an ad is not wanted on any
+ * surface. The panel's insert callback handles the ad and card paths that never touch the page.
+ * <p>
+ * No list is wrapped and nothing is removed after it has entered a list. Removing there shifts the
+ * positions the pager holds, and refusing the last item empties the feed, which the app renders as
+ * its own error view; both were tried and both are recorded in the docs. The page's own filter is
+ * the only place a drop happens, and an empty page is a state the app already handles.
  * <p>
  * The list is walked with an `Iterator` and items are removed through it. Rebuilding the list would
- * leave the pager holding the old one, and `removeIf` needs Android 7 while the app reaches lower.
+ * leave the caller holding the old one, and `removeIf` needs Android 7 while the app reaches lower.
  * <p>
  * Every link is optional: the page, its item list and an item's counters can each be absent. An
- * absent value never removes anything , see {@link Counts}.
- * <p>
- * A batch of one is never filtered unless that item is an ad. That is the shape of a deep link or
- * the current video being inserted into the pager; removing its only item leaves the surface with
- * nothing to open.
+ * absent count is outside every range, which is what used to leak a video once its count filled in.
  * <p>
  * One census line per call (capped in the log, never in the screen) says what was handed over and
  * what each filter did with it. It is the only way to tell "the filter never saw this item" from
@@ -55,36 +51,82 @@ public final class FeedFilter {
     private FeedFilter() {}
 
     /**
-     * The four entry points, one per hook, differing in what they are handed and in how much of
-     * the filter they are allowed to run. The feed's own hooks get the full set; the generic page
-     * model shared with profile/search/repost gets the ad filter only.
+     * The page-level entry points, differing in what they are handed and in how much of the filter
+     * they are allowed to run. The feed's own hooks get the full set; the generic page model shared
+     * with profile/search/repost gets the ad filter only. Nothing is kept back when everything
+     * would go: a filtered item is never stored, and the launch page is filtered where the cache is
+     * written instead.
      */
-    public static void filterFetch(Object page) {
-        filter(page, "fetch", false);
-    }
+    /**
+     * The page, at the presenter's entry. This is the one point every page passes: a launch page, a
+     * scroll, a refresh. The full filter runs here, one-item pages included, because the page
+     * TikTok shows at launch is exactly one item.
+     * <p>
+     * It is also where the page can be filtered without touching a list: the page has not been
+     * copied into the pager yet, so nothing shifts underneath a position the pager holds. An empty
+     * result is left as an empty page, which the app already handles, and its next page follows.
+     */
+    private static boolean firstPage;
 
-    public static void filterStore(Object list) {
-        filter(list, "store", false);
+    @SuppressWarnings("unchecked")
+    public static void filterPage(Object page) {
+        if (!firstPage) {
+            firstPage = true;
+            Debug.mark("first feed page");
+        }
+        List<?> items = asList(Reflect.property(page, "getItems", "items"));
+        Object first = null;
+        if (items != null) {
+            for (Object candidate : items) {
+                if (candidate != null) {
+                    first = candidate;
+                    break;
+                }
+            }
+        }
+        filter(page, "page", false, false);
+        if (items == null || first == null || !items.isEmpty()) return;
+        // A page with no items is what the app draws as its own error view, and it waits for the
+        // next request before anything plays. One kept video is the cheaper failure.
+        ((List<Object>) items).add(first);
+        Debug.print("feedfilter: page kept=1, everything else was filtered");
     }
 
     public static void filterGenericSet(Object list) {
-        filter(list, "generic-set", true);
+        filter(list, "generic-set", true, true);
     }
 
     public static void filterGenericClone(Object page) {
-        filter(page, "generic-clone", true);
+        filter(page, "generic-clone", true, true);
     }
 
     /** Whether the item is an ad under the current switch; used by the ad-only list paths. */
-    public static boolean isAdItem(Object item) {
+
+    /** Whether the item is an ad under the current switch; the ad-only list uses this. */
+    public static boolean shouldRefuse(Object item) {
         return item != null
                 && FeedFilterSettings.isAdsEnabled()
                 && new AdsFilter().shouldRemove(item);
     }
 
+    /** A list refused an ad at insertion, which is a path no page hook sees. */
+    public static void logRefusedItem(Object item) {
+        if (refusedItems++ >= MAX_ACTIONS) return;
+        Debug.print("feedfilter: list refused ad@" + handle(item) + Debug.by(6));
+    }
+
+    private static int refusedItems;
+
     public static boolean isSurveyEnabled() {
         return FeedFilterSettings.isSurveyEnabled();
     }
+
+    /**
+     * Whether the launch preload is skipped. The cached first page is one item from a server-side
+     * cache, and it reaches the feed before the switches can remove it without either showing it or
+     * emptying the pager. Skipping the preload leaves the app with its own first load instead.
+     */
+
 
     /**
      * Ads only. The live-list wrapper is shared with the detail feed, the profile's own feed and
@@ -93,17 +135,6 @@ public final class FeedFilter {
      * show (or with the previous feed's items), and a drama video can still be opened from a
      * profile. The feed's own hooks carry those filters.
      */
-    public static boolean shouldRefuse(Object item) {
-        return isAdItem(item);
-    }
-
-    private static int refusedItems;
-
-    /** A feed list refused a direct add, which is a path no insert callback sees. */
-    public static void logRefusedItem(Object item) {
-        if (refusedItems++ >= MAX_ACTIONS) return;
-        Debug.print("feedfilter: storage refused ad@" + handle(item));
-    }
 
     private static String handle(Object item) {
         Object author = Reflect.property(item, "getAuthor", "author");
@@ -111,21 +142,19 @@ public final class FeedFilter {
     }
 
     /**
-     * Replaces the storage's live list with an {@link AdFreeList} built from it.
+     * Replaces a storage's live list with an {@link AdFreeList} built from it.
      * <p>
-     * The storage is a plain `ArrayList` that the ad SDK can add to directly. Wrapping the field
-     * makes every path , insert callback, setter, page restore and a bare `add` , pass the same
-     * refusal. The storage's own `getList` returns a copy, so the field is found by its declared
-     * `ArrayList` type instead.
+     * The storage keeps its items in an {@code ArrayList} that the ad SDK can add to directly; the
+     * field is replaced at construction so a direct {@code add} is refused like every other path.
+     * Found by its declared collection type, never through the storage's own getter (that returns a
+     * copy).
      */
     public static void wrapStorage(Object store) {
         if (store == null) return;
-        // `getList` on the storage returns a copy, so it cannot be used to find the live field.
-        // The store classes keep the live item list in an ArrayList field; the instance can be a
-        // subclass, so the field is looked up through the whole hierarchy.
         boolean wrapped = false;
-        for (Class<?> type = store.getClass(); type != null && type != Object.class; type = type.getSuperclass()) {
-            for (Field field : type.getDeclaredFields()) {
+        for (Class<?> type = store.getClass(); type != null && type != Object.class;
+                type = type.getSuperclass()) {
+            for (java.lang.reflect.Field field : type.getDeclaredFields()) {
                 if (!ArrayList.class.isAssignableFrom(field.getType())) continue;
                 try {
                     field.setAccessible(true);
@@ -133,11 +162,10 @@ public final class FeedFilter {
                     if (!(value instanceof List) || value instanceof AdFreeList) continue;
                     field.set(store, new AdFreeList((List<?>) value));
                     wrapped = true;
-                    Debug.print("feedfilter: storage list wrapped field="
-                            + type.getSimpleName() + "." + field.getName()
-                            + " size=" + ((List<?>) value).size());
+                    Debug.print("feedfilter: storage list wrapped field=" + type.getSimpleName()
+                            + "." + field.getName() + " size=" + ((List<?>) value).size());
                 } catch (Throwable ignored) {
-                    // A field the runtime refuses to open is skipped; the other hooks still run.
+                    // A field the runtime refuses to open is skipped; other hooks still run.
                 }
             }
         }
@@ -165,7 +193,7 @@ public final class FeedFilter {
             String line = "insert source=" + source + " items=" + items.size()
                     + " kept=0 dropped=" + dropped;
             FeedFilterStats.record(line, items.size());
-            Debug.print("feedfilter: " + line);
+            Debug.print("feedfilter: " + line + Debug.by(6));
             return new ArrayList<>(0);
         }
 
@@ -204,16 +232,18 @@ public final class FeedFilter {
 
         int removed = items.size() - kept.size();
         String line = "insert source=" + source
+               
                 + " items=" + items.size()
                 + " kept=" + kept.size()
                 + " removed=" + removed
                 + " dropped=" + reasons;
         FeedFilterStats.record(line, removed);
-        Debug.print("feedfilter: " + line);
+        Debug.print("feedfilter: " + line + Debug.by(6));
         return kept;
     }
 
-    private static void filter(Object source, String site, boolean adsOnly) {
+    @SuppressWarnings("unchecked")
+    private static void filter(Object source, String site, boolean adsOnly, boolean keepSingle) {
         // Every return here is recorded, including the ones that filter nothing. Without that, "the
         // hook never ran" and "it ran and the page was not what we expected" look the same on screen,
         // which is exactly the pair that is hardest to tell apart from a device.
@@ -261,7 +291,7 @@ public final class FeedFilter {
         }
         // A single item is the deep-link/current video being inserted; removing it leaves nothing
         // to open. A lone ad is still an ad, so that one goes through the normal filter.
-        if (items.size() == 1 && !isAd(active, items.get(0))) {
+        if (keepSingle && items.size() == 1 && !isAd(active, items.get(0))) {
             FeedFilterStats.record(site + " a single-item batch, kept", 0);
             return;
         }
@@ -292,9 +322,9 @@ public final class FeedFilter {
                 items, before, removed, active, hits, unread, preloadCount, preloadCleared, reasons);
         FeedFilterStats.record(line, removed);
         if (removed > 0) {
-            if (actions++ < MAX_ACTIONS) Debug.print("feedfilter: " + line);
+            if (actions++ < MAX_ACTIONS) Debug.print("feedfilter: " + line + Debug.by(6));
         } else if (idle++ < MAX_IDLE) {
-            Debug.print("feedfilter: " + line);
+            Debug.print("feedfilter: " + line + Debug.by(6));
         }
     }
 
@@ -400,30 +430,9 @@ public final class FeedFilter {
         line.append(" preload=").append(preload);
         if (preloadCleared) line.append(" cleared");
         if (!reasons.isEmpty()) {
-            // Only on a call that dropped something: the builder is what a fix has to reach, and the
-            // list it hands over is a fresh copy every time, so the frames are the only thing that
-            // names it.
-            line.append(" by=").append(caller());
             line.append(" dropped=").append(reasons);
         }
         return line.toString();
-    }
-
-    /** The frames above the hook, minus the extension's own, so the caller that built the list is named. */
-    private static String caller() {
-        StackTraceElement[] frames = new Throwable().getStackTrace();
-        StringBuilder out = new StringBuilder();
-        int shown = 0;
-        for (StackTraceElement frame : frames) {
-            String name = frame.getClassName();
-            if (name.startsWith("app.onlynazril.extension") || name.startsWith("java.lang.Thread")) {
-                continue;
-            }
-            if (shown++ >= 3) break;
-            if (out.length() > 0) out.append(" <- ");
-            out.append(name).append('#').append(frame.getMethodName());
-        }
-        return out.toString();
     }
 
     private static List<?> asList(Object value) {

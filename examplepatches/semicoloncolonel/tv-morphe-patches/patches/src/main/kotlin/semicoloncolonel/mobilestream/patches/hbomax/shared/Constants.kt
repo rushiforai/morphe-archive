@@ -4,18 +4,18 @@ import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.FormFactor
-
-private const val TV_VERSION = "22.0.0.36"
+import semicoloncolonel.mobilestream.patches.shared.misc.devTarget
 
 object Constants {
     val COMPATIBILITY = Compatibility(
         name = "HBO Max",
         packageName = "com.wbd.hbomax",
-        description = "The HBO Max app (version $TV_VERSION).",
+        description = "The HBO Max app.",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x002BE7,
         targets = listOf(
-            AppTarget(version = TV_VERSION, versionCode = 1842000036, minSdk = 29),
+            AppTarget(version = "22.0.0.36", versionCode = 1842000036, minSdk = 29),
+            devTarget("22.1.0.82", versionCode = 1842010082),
         ),
         formFactor = FormFactor.TV,
     )
@@ -25,11 +25,12 @@ object Constants {
     val STREAM_COMPATIBILITY = Compatibility(
         name = "HBO Max",
         packageName = "com.wbd.stream",
-        description = "The HBO Max app as the Play Store installs it (version $TV_VERSION).",
+        description = "The HBO Max app as the Play Store installs it.",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x002BE7,
         targets = listOf(
-            AppTarget(version = TV_VERSION, versionCode = 1842000036, minSdk = 29),
+            AppTarget(version = "22.0.0.36", versionCode = 1842000036, minSdk = 29),
+            devTarget("22.1.0.82", versionCode = 1842010082),
         ),
         formFactor = FormFactor.TV,
     )

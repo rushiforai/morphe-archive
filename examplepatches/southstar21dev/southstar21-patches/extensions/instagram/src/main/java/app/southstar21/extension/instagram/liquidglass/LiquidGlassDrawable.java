@@ -40,6 +40,10 @@ final class LiquidGlassDrawable extends Drawable {
 
     private static final String GLASS_SHADER =
             "uniform shader content;\n" +
+            // Plain white, converted to the shader's working space: SDR white there. In an HDR
+            // window that is well below 1.0, so constant whites must be scaled by it or the glass
+            // lights up at the display's HDR peak, far brighter than the app around it.
+            "layout(color) uniform half4 sdrWhite;\n" +
             "uniform float2 origin;\n" +   // pill top-left inside the backdrop node
             "uniform float2 size;\n" +     // pill size
             "uniform float radius;\n" +
@@ -76,6 +80,7 @@ final class LiquidGlassDrawable extends Drawable {
             "  float d = sdRoundRect(p, half_size, radius);\n" +
             "  float coverage = clamp(0.5 - d, 0.0, 1.0);\n" +   // anti-aliased edge
             "  if (coverage <= 0.0) return half4(0.0);\n" +
+            "  half w = sdrWhite.g;\n" +
 
             // Surface normal from the SDF gradient.
             "  float e = 0.75;\n" +
@@ -112,28 +117,28 @@ final class LiquidGlassDrawable extends Drawable {
             "  float clearing = 1.0 - smoothstep(0.0, edgeWidth, -d);\n" +
             "  half amount = tint.a * (1.0 - edgeClear * clearing * clearing);\n" +
             // Premultiplied: the material covers holes too, as much as it covers content.
-            "  col.rgb = mix(col.rgb, tint.rgb, amount);\n" +
+            "  col.rgb = mix(col.rgb, tint.rgb * w, amount);\n" +
             "  col.a = mix(col.a, 1.0, amount);\n" +
 
             // Specular rim, lit from the light's side (the top left at rest, moving as the phone
             // tilts) with a softer bounce opposite.
             "  float rim = smoothstep(0.55, 1.0, t);\n" +
             "  float spec = pow(max(dot(n, light), 0.0), 2.0) + 0.45 * pow(max(dot(n, -light), 0.0), 2.0);\n" +
-            "  col.rgb += half3(rim * spec * mix(0.22, 0.18, dark));\n" +
-            "  col.rgb += half3(rim * pow(abs(n.x), 3.0) * sideGlare);\n" +
+            "  col.rgb += half3(rim * spec * mix(0.22, 0.18, dark)) * w;\n" +
+            "  col.rgb += half3(rim * pow(abs(n.x), 3.0) * sideGlare) * w;\n" +
             // The tilt glint: a soft spot sliding along the rim, and a weaker one opposite it.
             "  float2 ga = p - glint.xy;\n" +
             "  float2 gb = p - glintOpp;\n" +
             "  float gk = -0.5 / max(glint.z * glint.z, 1.0);\n" +
             "  float g = exp(dot(ga, ga) * gk) + 0.35 * exp(dot(gb, gb) * gk);\n" +
-            "  col.rgb += half3(rim * g * glint.w);\n" +
+            "  col.rgb += half3(rim * g * glint.w) * w;\n" +
 
             // Faint inner glow along the top for depth.
             "  float top = 1.0 - smoothstep(0.0, size.y * 0.55, coord.y - origin.y);\n" +
-            "  col.rgb += half3(top * mix(0.06, 0.03, dark));\n" +
+            "  col.rgb += half3(top * mix(0.06, 0.03, dark)) * w;\n" +
 
-            "  col = clamp(col, 0.0, 1.0);\n" +
-            "  col.rgb = min(col.rgb, half3(col.a));\n" +
+            "  col.a = clamp(col.a, 0.0, 1.0);\n" +
+            "  col.rgb = clamp(col.rgb, 0.0, w * col.a);\n" +
             "  return col * coverage;\n" +
             "}\n";
 
@@ -621,7 +626,10 @@ final class LiquidGlassDrawable extends Drawable {
             return;
         }
 
-        if (shader == null) shader = new RuntimeShader(GLASS_SHADER);
+        if (shader == null) {
+            shader = new RuntimeShader(GLASS_SHADER);
+            shader.setColorUniform("sdrWhite", Color.WHITE);
+        }
         shader.setFloatUniform("origin", pad, pad);
         shader.setFloatUniform("size", w - 2f * pad, h - 2f * pad);
         shader.setFloatUniform("radius", radius);

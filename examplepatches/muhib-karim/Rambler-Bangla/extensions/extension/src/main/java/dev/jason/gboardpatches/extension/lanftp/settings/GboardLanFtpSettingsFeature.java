@@ -65,6 +65,11 @@ public final class GboardLanFtpSettingsFeature
     }
 
     @Override
+    public String getRootSectionKey() {
+        return GboardPatchesSettingsContract.ROOT_SECTION_CLIPBOARD_SHARING;
+    }
+
+    @Override
     public boolean isAvailable(Context context) {
         return GboardPatchesFeatureAvailability.hasFeature(
                 context, GboardPatchesFeatureAvailability.FEATURE_LAN_FTP);

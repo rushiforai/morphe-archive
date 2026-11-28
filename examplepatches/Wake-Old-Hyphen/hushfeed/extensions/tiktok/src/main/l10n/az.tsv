@@ -285,6 +285,8 @@ Blocked	Bloklanıb
 Blocked %1$s	%1$s bloklandı
 Blocked %1$s. Unblock	%1$s bloklandı. Blokdan çıxarın
 Blocked caption words	Bloklanmış başlıq sözləri
+Only show videos with these words	Yalnız bu sözlər olan videoları göstər
+For You only. Separate words or phrases with commas, like #recipe, cooking. A video stays only when its caption or hashtags match one, with the same rules as Blocked caption words. A batch with no match keeps one video so the feed keeps moving. Leave it empty to show everything.	Yalnız Sənin üçün. Söz və ya ifadələri vergüllə ayırın, məsələn #recipe, cooking. Video yalnız başlığı və ya heşteqləri onlardan birinə uyğun gəldikdə qalır, qaydalar Bloklanmış başlıq sözləri ilə eynidir. Uyğunluq olmayan dəst lentin davam etməsi üçün bir video saxlayır. Hamısını göstərmək üçün boş qoyun.
 Blocked comment words	Bloklanmış şərh sözləri
 Blocked creators	Bloklanmış yaradıcılar
 Blocked sound ids	Bloklanmış səs ID-ləri
@@ -3023,6 +3025,8 @@ Crop and stretch to fill the screen	Ekranı doldurmaq üçün kəs və uzat
 Cover the whole window with half the crop of Fill and half the stretch of Stretch, so neither is easy to spot. A video far from the screen's shape keeps TikTok's size.	Bütün pəncərəni Doldurmanın yarısı qədər kəsmə və Uzatmanın yarısı qədər uzatma ilə örtür, beləliklə heç biri çox gözə çarpmır. Forması ekrandan çox fərqli olan video TikTok-un ölçüsünü saxlayır.
 Watch LIVEs unseen	LIVE-lara görünmədən bax
 You stay off the viewer list of LIVEs you open. Tap the eye in a LIVE to let that host see you. Needs Ghost mode on.	Açdığınız LIVE-ların baxış siyahısında görünməyəcəksiniz. Aparıcının sizi görməsi üçün LIVE-da gözə toxunun. Xəyal rejimi açıq olmalıdır.
+Double tap to let the host see you	Aparıcının sizi görməsi üçün iki dəfə toxunun
+No eye on the video. Double tap a LIVE to let that host see you, and the next LIVE you open hides you again. Needs Watch LIVEs unseen on.	Videoda göz olmayacaq. Aparıcının sizi görməsi üçün LIVE-a iki dəfə toxunun, açdığınız növbəti LIVE sizi yenidən gizlədəcək. LIVE-lara görünmədən bax açıq olmalıdır.
 Keep likes on this phone	Bəyənmələri bu telefonda saxlayın
 A like you give a video stays on this phone. The heart turns red, but TikTok isn't told, so the creator never sees it and it isn't on your profile. Needs Ghost mode on.	Videoya verdiyiniz bəyənmə bu telefonda qalır. Ürək qırmızı olur, amma TikTok-a bildirilmir, ona görə də yaradıcı onu heç vaxt görmür və o, profilinizdə görünmür. Xəyal rejimi açıq olmalıdır.
 My likes on this phone	Bu telefondakı bəyənmələrim
@@ -3152,8 +3156,8 @@ Sort pinned videos with the rest	Sancılmış videoları qalanları ilə sırala
 Pinned videos take their place in the order instead of staying at the top, so Newest first puts them at the date they were posted.	Sancılmış videolar yuxarıda qalmaq əvəzinə sıradakı yerini tutur, beləliklə Əvvəlcə ən yenilər onları paylaşıldıqları tarixə qoyur.
 Hide or reorder profile tabs	Profil tablarını gizlədin və ya yenidən sıralayın
 Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos, and use the arrows to put the rest in your order. One tab always stays. Restart TikTok to apply this.	Profilin videolarının üstündəki zolaqda gizlədiləcək tabları seçin, məsələn Repostlar və ya Bəyənilən videolar, qalanlarını isə oxlarla istədiyiniz sıraya qoyun. Bir tab həmişə qalır. Tətbiq etmək üçün TikTok-u yenidən başladın.
-Hide Add bio	Bio əlavə et təklifini gizlədin
-Hide the Add bio prompt TikTok shows on your own profile while it has no bio. You can still add one from Edit profile.	Profilinizdə bio olmayanda TikTok-un göstərdiyi Bio əlavə et təklifini gizlədin. Bio-nu yenə də Profili redaktə edin bölməsindən əlavə edə bilərsiniz.
+Hide tips on your profile	Profilinizdəki ipuclarını gizlədin
+Hide the Add bio prompt and the tip bubbles TikTok points at things on your own profile. You can still add a bio from Edit profile.	Profilinizdə Bio əlavə et təklifini və TikTok-un elementlərə göstərdiyi ipucu balonlarını gizlədin. Bio-nu yenə də Profili redaktə edin bölməsindən əlavə edə bilərsiniz.
 Show the picture before saving	Saxlamadan əvvəl şəkli göstər
 With the long press save on, holding a profile picture opens it full screen at full size, with a Save button under it.	Uzun basmaqla saxlama açıq olanda profil şəklini basıb saxlamaq onu tam ekranda, tam ölçüdə açır, altında Saxla düyməsi olur.
 The profile picture couldn't be loaded. Try again.	Profil şəkli yüklənə bilmədi. Yenidən cəhd edin.
@@ -3171,7 +3175,6 @@ Gives each video on profile grids rounded corners, on your own profile and on Li
 Gifter level	Hədiyyəçi səviyyəsi
 SecUID	SecUID
 Unknown (TikTok didn't send it)	Naməlum (TikTok göndərmədi)
-A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, how many posts, liked videos, favorites and reposts it has, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.	Profilin paylaşma panelinə Hesab faktları düyməsi əlavə olunur. O, TikTok-un hesab haqqında artıq göndərdiklərini göstərir: nə vaxt qoşulduğunu, regionunu və dilini, hədiyyəçi səviyyəsini və SecUID-ni, neçə paylaşımı, bəyəndiyi video, sevimlisi və repostu olduğunu, istifadəçi adının və görünən adının sonuncu dəfə nə vaxt dəyişdiyini, hesabın gizli olub-olmadığını və bəyəndiyi videoların açıq olub-olmadığını. Əlavə heç nə yüklənmir.
 # context: LIVE controls: a small line in a LIVE room with the room ID and the viewer's own connection (ping, latency, download speed) from TikTok's player; a tap copies the room ID
 Show the room ID and your connection	Otaq ID-sini və bağlantınızı göstərin
 Show the room line	Otaq sətrini göstər
@@ -3277,3 +3280,76 @@ Unavailable saved video	Əlçatan olmayan saxlanılmış video
 Posted %1$s	Paylaşılıb: %1$s
 Remembered %1$s	Xatırlanıb: %1$s
 Unavailable since %1$s	%1$s tarixindən əlçatan deyil
+# context: Number row under Round the corners on profile grids; how big the rounded corners are, in dp
+Corner size on profile grids	Profil şəbəkəsində künclərin ölçüsü
+# context: Summary of Corner size on profile grids; dp is the screen unit shown next to the number
+How round the corners are, in dp. TikTok's own cards use about 8.	Künclərin nə qədər yumru olduğu, dp ilə. TikTok-un öz kartları təxminən 8 istifadə edir.
+# context: Number row in the profile grid settings; extra space between the videos, in dp
+Gap between videos on profile grids	Profil şəbəkəsində videolar arasındakı boşluq
+# context: Summary of Gap between videos on profile grids; 0 keeps the spacing TikTok draws itself
+Adds space between the videos on profile grids, on top of TikTok's own thin line. Use 0 for TikTok's spacing.	Profil şəbəkəsində videolar arasına TikTok-un öz nazik xəttindən əlavə boşluq qoyur. TikTok-un öz aralığı üçün 0 yazın.
+# context: Account facts line: the gifter points TikTok sent for the account (pay_grade now_diamond), shown beside Gifter level
+Gifter points	Hədiyyəçi xalları
+# context: Account facts line: the points figure TikTok sent for the next gifter level (pay_grade next_diamond)
+Gifter points for the next level	Növbəti səviyyə üçün hədiyyəçi xalları
+# context: Account facts line: all the gifter points TikTok counted for the account (pay_grade total_diamond_count)
+Gifter points in total	Ümumi hədiyyəçi xalları
+# context: Account facts line: web link to the account's profile picture at its smallest size
+Profile picture (small)	Profil şəkli (kiçik)
+# context: Account facts line: web link to the account's profile picture at its middle size
+Profile picture (medium)	Profil şəkli (orta)
+# context: Account facts line: web link to the account's profile picture at its largest size
+Profile picture (large)	Profil şəkli (böyük)
+# context: Account facts line: web link to the cover picture TikTok keeps for the profile (cover_url)
+Profile cover	Profil örtüyü
+# context: Toast after tapping one value in the Account facts sheet, which copies just that value
+Copied to the clipboard	Mübadilə buferinə kopyalandı
+# context: Summary of Account facts on profiles; the sheet lists what TikTok sent, and a tap on one value copies only that value
+A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, how many posts, liked videos, favorites and reposts it has, when its username and display name last changed, whether it's private and whether its liked videos are public. Links to its profile picture and cover come last. Tap a value to copy just that one. Nothing extra is fetched.	Profilin paylaşma panelinə Hesab faktları düyməsi əlavə olunur. O, TikTok-un hesab haqqında artıq göndərdiklərini göstərir: nə vaxt qoşulduğunu, regionunu və dilini, hədiyyəçi səviyyəsini və SecUID-ni, neçə paylaşımı, bəyəndiyi video, sevimlisi və repostu olduğunu, istifadəçi adının və görünən adının sonuncu dəfə nə vaxt dəyişdiyini, hesabın gizli olub-olmadığını və bəyəndiyi videoların açıq olub-olmadığını. Profil şəklinin və örtüyün linkləri ən sonda gəlir. Yalnız onu kopyalamaq üçün bir dəyərə toxunun. Əlavə heç nə yüklənmir.
+# context: Settings toggle title: a profile's Followers or Following count shows in yellow when that list is private
+Yellow counts for private lists	Gizli siyahılar üçün sarı saylar
+# context: Settings toggle summary for Yellow counts for private lists; it also applies to your own profile
+On a profile that keeps its followers or following list private, that count shows in yellow, so you can tell it's private before you tap it. Yours too.	İzləyicilər və ya izlənilənlər siyahısını gizli saxlayan profildə həmin say sarı görünür, belə ki, toxunmadan öncə onun gizli olduğunu bilirsiniz. Sizinki də.
+# context: Settings toggle title: another app's username in a profile bio (IG, Snap, YT, X, Twitch, Threads, FB) becomes a tappable pill that opens its public page
+Links to other apps in bios	Bioqrafiyalarda digər tətbiqlərə keçidlər
+# context: Settings toggle summary for Links to other apps in bios; IG, Snap, YT, X, Twitch, Threads and FB are the short names people type in bios and stay as written
+A username named after IG, Snap, YT, X, Twitch, Threads or FB in a bio turns into a pill in that app's color. Tapping it opens that account's public page in the app or your browser. Nothing is looked up before you tap.	Bioqrafiyada IG, Snap, YT, X, Twitch, Threads və ya FB sözündən sonra yazılan istifadəçi adı həmin tətbiqin rəngində düyməyə çevrilir. Ona toxunduqda həmin hesabın ictimai səhifəsi tətbiqdə və ya brauzerinizdə açılır. Toxunmadan öncə heç nə axtarılmır.
+# context: Settings row title: pick a picture that stands in for the blue verified check beside your own name on your own profile, on this phone only
+Badge picture	Nişan şəkli
+# context: Settings row title: deletes the picked badge picture so the blue check comes back
+Remove the badge picture	Nişan şəklini sil
+# context: Summary of the Badge picture row; Local verified badge is the name of the switch just above it
+Pick a picture to show in place of the blue check while Local verified badge is on. It's kept on this phone only and nobody else sees it.	Yerli təsdiq nişanı açıq olanda mavi işarənin yerində göstəriləcək şəkli seçin. Şəkil yalnız bu telefonda saxlanılır və onu başqa heç kim görmür.
+# context: Summary of the Badge picture row while the picked file is being read
+Reading the picture	Şəkil oxunur
+# context: Summary of the Remove the badge picture row
+Deletes the picture, and the blue check comes back.	Şəkli silir və mavi işarə geri qayıdır.
+# context: Summary of the Remove the badge picture row when there is none
+No badge picture is kept	Saxlanılmış nişan şəkli yoxdur
+# context: Banner after a badge picture was picked while Local verified badge is on
+Badge picture saved. Open your profile to see it.	Nişan şəkli saxlanıldı. Görmək üçün profilinizi açın.
+# context: Banner after a badge picture was picked while Local verified badge is off; Local verified badge is the switch's name
+Badge picture saved. Turn on Local verified badge to see it.	Nişan şəkli saxlanıldı. Görmək üçün Yerli təsdiq nişanı seçimini açın.
+# context: Banner when the picked badge picture could not be written to TikTok's private storage
+Couldn't save the picture in TikTok's storage. Free up some space and try again.	Şəkli TikTok yaddaşında saxlamaq mümkün olmadı. Bir az yer boşaldın və yenidən cəhd edin.
+# context: Banner when the picked badge picture file is too big; %1$s is the size limit in megabytes
+That picture is larger than %1$s MB. Choose a smaller one.	Bu şəkil %1$s MB-dan böyükdür. Daha kiçik birini seçin.
+# context: Banner when the picked badge file is not an image; PNG, JPEG and WebP are file formats and stay as written
+That file isn't a picture this phone can open. Choose a PNG, JPEG or WebP.	Bu fayl bu telefonun aça bildiyi şəkil deyil. PNG, JPEG və ya WebP seçin.
+# context: Banner after the badge picture was deleted
+Badge picture removed. Your profile shows the blue check again.	Nişan şəkli silindi. Profiliniz yenidən mavi işarəni göstərir.
+# context: Banner when deleting the badge picture failed
+Couldn't remove the badge picture. Try again.	Nişan şəklini silmək mümkün olmadı. Yenidən cəhd edin.
+Keep the letters after the flag	Bayraqdan sonra hərfləri saxla
+Shows the country's two letters next to its flag, so a flag you don't recognize still tells you where it is.	Ölkənin iki hərfini bayrağının yanında göstərir, belə ki tanımadığın bayraq da haradan olduğunu bildirir.
+Write grid dates the way TikTok does	Şəbəkə tarixlərini TikTok kimi yaz
+Profile grids show the date the way TikTok writes it by the creator's name, like 2d ago or 10-12, in place of Oct 12. Day before month, Write the month as a word and Date instead of age change it the same way.	Profil şəbəkələri tarixi TikTok-un yaradıcının adı yanında yazdığı kimi göstərir, məsələn 2 gün əvvəl və ya 10-12, Oct 12 əvəzinə. Gün aydan əvvəl, Ayı sözlə yaz və Yaş əvəzinə tarix onu da eyni cür dəyişir.
+Where the date goes on grids	Şəbəkədə tarixin yeri
+Under the view count	Baxış sayının altında
+After the view count	Baxış sayından sonra
+Above the view count	Baxış sayının üstündə
+Above the view count takes the video length along with the date.	Baxış sayının üstündə seçimi videonun uzunluğunu da tarixlə birlikdə aparır.
+Show notices at the top	Bildirişləri yuxarıda göstər
+Put Hushfeed's notices, like a finished save or a block's Undo, just under the status bar instead of above the tab bar. Swipe a notice left or right to close it.	Hushfeed bildirişlərini, məsələn, bitmiş yadda saxlamanı və ya bloklamadan sonrakı «Geri qaytarın» düyməsini, nişanlar panelinin üstündə deyil, status sətrinin düz altında göstərir. Bağlamaq üçün bildirişi sola və ya sağa sürüşdürün.
+Blur behind notices	Bildirişlərin arxasını bulanıqlaşdır
+Blur the video behind Hushfeed's notices so they look like frosted glass. Needs Android 12 and up. Away from a video they keep the plain dark look.	Hushfeed bildirişlərinin arxasındakı videonu bulanıqlaşdırır ki, buzlu şüşə kimi görünsünlər. Android 12 və yuxarı tələb olunur. Video olmayan yerdə adi tünd görünüşdə qalırlar.

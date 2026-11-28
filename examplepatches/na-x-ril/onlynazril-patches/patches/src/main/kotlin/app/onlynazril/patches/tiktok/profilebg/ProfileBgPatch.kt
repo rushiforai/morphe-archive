@@ -8,10 +8,6 @@ import app.morphe.util.findMutableMethodOf
 import app.morphe.util.implementationOrPatchException
 import app.morphe.util.numberOfParameterRegisters
 import app.onlynazril.patches.shared.Constants.COMPATIBILITY_TIKTOK
-import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.ClassDef
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 private const val BRIDGE = "Lapp/onlynazril/extension/tiktok/ProfileBgBridge;"
 
@@ -45,47 +41,16 @@ val tiktokProfileBgPatch = bytecodePatch(
     extendWith("extensions/tiktok.mpe")
 
     execute {
-        // The obfuscated class that holds the AB decision, found by shape
-        // rather than by name: it reads the gate keys and carries the
-        // (boolean) -> boolean gate next to a (boolean) -> void setter.
-        // The AB-defaults registry reads the same keys but answers nothing
-        // in boolean, and the class that only lists the keys in its static
-        // init has no boolean method at all, so the shape is unique.
-        //
-        // The string index names the few classes that read either key, so
-        // the shape check runs over those instead of every class.
-        val candidates = mutableListOf<ClassDef>()
-        val checked = mutableSetOf<String>()
-        for (key in GATE_KEYS) {
-            for (classDef in classDefByStrings(key)) {
-                if (!checked.add(classDef.type)) continue
-                var readsKeys = false
-                var hasGate = false
-                var hasSetter = false
-                for (method in classDef.methods) {
-                    if (method.returnType == "Z" && method.parameterTypes == listOf("Z")) {
-                        hasGate = true
-                    }
-                    if (method.returnType == "V" && method.parameterTypes == listOf("Z")) {
-                        hasSetter = true
-                    }
-                    val implementation = method.implementation
-                    if (!readsKeys && implementation != null) {
-                        readsKeys = implementation.instructions.any { instruction ->
-                            instruction is ReferenceInstruction
-                                    && instruction.opcode == Opcode.CONST_STRING
-                                    && (instruction.reference as? StringReference)?.string in GATE_KEYS
-                        }
-                    }
-                }
-                if (readsKeys && hasGate && hasSetter) candidates += classDef
-            }
-        }
-        val gate = candidates.singleOrNull()
+        // The gate holder is the class of the one static accessor that reads
+        // the allow-list key, which is unique in the bundle. The gate itself
+        // is then the class's single (boolean) -> boolean method, next to the
+        // (boolean) -> void setter that stores the decision.
+        val accessor = ProfileBgGateAccessorFingerprint.matchOrNull()
             ?: throw PatchException(
-                "Profile background: expected one gate holder reading ${GATE_KEYS}, " +
-                    "found ${candidates.size}: ${candidates.joinToString { it.type }}.",
+                "Profile background: the gate holder's accessor reading $ALLOW_LIST_KEY " +
+                    "was not found.",
             )
+        val gate = accessor.originalClassDef
         val mutableGate = mutableClassDefBy(gate.type)
 
         // The gate every profile component asks. Its name moved between

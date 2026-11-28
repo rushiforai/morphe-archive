@@ -109,6 +109,7 @@ val disableAiPatch = bytecodePatch(
     description = "Hides Andi, AT&T's AI assistant, and turns off its Fusion AI features.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     dependsOn(hideAndiEntryPointsPatch)

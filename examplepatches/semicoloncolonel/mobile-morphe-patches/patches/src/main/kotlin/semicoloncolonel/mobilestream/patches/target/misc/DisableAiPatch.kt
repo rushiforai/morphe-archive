@@ -77,6 +77,7 @@ val disableAiPatch = bytecodePatch(
     description = "Turns off Ask Target, AI mode in search, and Target's other AI shopping tools.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

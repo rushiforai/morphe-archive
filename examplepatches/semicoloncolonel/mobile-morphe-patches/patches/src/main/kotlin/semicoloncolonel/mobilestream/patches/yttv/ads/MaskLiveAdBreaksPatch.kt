@@ -2,7 +2,11 @@ package semicoloncolonel.mobilestream.patches.yttv.ads
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
+import semicoloncolonel.mobilestream.patches.shared.misc.TRANSLATE_OPTION_DESCRIPTION
+import semicoloncolonel.mobilestream.patches.shared.misc.TRANSLATE_OPTION_TITLE
+import semicoloncolonel.mobilestream.patches.shared.misc.enableAdBreakTranslation
 import semicoloncolonel.mobilestream.patches.yttv.shared.Constants
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -63,7 +67,16 @@ val maskLiveAdBreaksPatch = bytecodePatch(
 
     extendWith("extensions/extension.mpe")
 
+    val translate by booleanOption(
+        key = "translate",
+        default = false,
+        title = TRANSLATE_OPTION_TITLE,
+        description = TRANSLATE_OPTION_DESCRIPTION,
+    )
+
     execute {
+        if (translate == true) enableAdBreakTranslation()
+
         OnCuepointListFingerprint.method.addInstructions(
             0,
             "invoke-static/range { p1 .. p1 }, $MASK->cuepoints([B)V",

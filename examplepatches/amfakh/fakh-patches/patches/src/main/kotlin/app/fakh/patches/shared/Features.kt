@@ -20,6 +20,7 @@ import app.morphe.patcher.patch.mutableClassDefBy
  * @param restart Whether a change applies only after the app restarts.
  * @param default Whether the switch is on until the user changes it.
  * @param description What the switch does, for a switch whose title does not say; the extension translates it.
+ * @param group A header the settings list it under within its section; the features of a header are declared together.
  */
 class Feature(
     val id: String,
@@ -29,6 +30,7 @@ class Feature(
     val restart: Boolean = true,
     val default: Boolean = true,
     val description: String = "",
+    val group: String = "",
 ) {
     /** The settings list features in the order they are declared, so declare an app's features in one place. */
     internal val order = declared++
@@ -68,7 +70,10 @@ val featuresPatch = bytecodePatch {
         val registry = registered
             .sortedBy { it.order }
             .joinToString("\n") {
-                listOf(it.id, it.title, it.section, it.dependsOn?.id.orEmpty(), it.restart, it.default, it.description).joinToString("\t")
+                listOf(
+                    it.id, it.title, it.section, it.dependsOn?.id.orEmpty(), it.restart, it.default, it.description,
+                    it.group,
+                ).joinToString("\t")
             }
         val literal = buildString {
             registry.forEach { c ->

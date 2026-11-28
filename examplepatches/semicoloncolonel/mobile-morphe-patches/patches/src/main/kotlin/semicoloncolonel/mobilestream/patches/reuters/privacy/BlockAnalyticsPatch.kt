@@ -46,7 +46,7 @@ private val blockPermutiveInBundlePatch = rawResourcePatch {
         val file = get(HERMES_BUNDLE)
         val bundle = HermesBundle(file.readBytes())
         bundle.returnAtStart(
-            "", listOf("\n      permutive.addon(\"web\", ", "injectJavaScript"), HermesBundle.Value.UNDEFINED,
+            "", listOf("\n      permutive.addon(\"web\", ", ")\n    ", "injectJavaScript"), HermesBundle.Value.UNDEFINED,
         )
         bundle.returnAtStart(
             "", listOf("\n      permutive.track(\n        \"", "injectJavaScript"), HermesBundle.Value.UNDEFINED,

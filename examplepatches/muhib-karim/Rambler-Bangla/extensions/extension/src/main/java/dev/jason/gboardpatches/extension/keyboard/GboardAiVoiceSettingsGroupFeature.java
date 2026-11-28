@@ -56,6 +56,11 @@ public final class GboardAiVoiceSettingsGroupFeature
     }
 
     @Override
+    public String getRootSectionKey() {
+        return GboardPatchesSettingsContract.ROOT_SECTION_VOICE_INPUT;
+    }
+
+    @Override
     public boolean isAvailable(Context context) {
         return delegate.isAvailable(context);
     }

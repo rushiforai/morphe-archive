@@ -19,11 +19,14 @@ private const val TILE_CONTENTS_CLASS = "$EXTENSION_PACKAGE/TileContents;"
 private const val ABSORBED_CLASS = "$EXTENSION_PACKAGE/AbsorbedItems;"
 private const val ITEM_TYPE = "Ljava/lang/Object;"
 private const val GARDEN_CLASS = "$EXTENSION_PACKAGE/Garden;"
+private const val TORCHES_CLASS = "$EXTENSION_PACKAGE/Torches;"
+private const val CHAR_DESCRIPTOR = "Lcom/shatteredpixel/shatteredpixeldungeon/actors/Char;"
+private const val FLAVOUR_BUFF_DESCRIPTOR = "Lcom/shatteredpixel/shatteredpixeldungeon/actors/buffs/FlavourBuff;"
 
 @Suppress("unused")
 val qolEnhancementsPatch = bytecodePatch(
 	name = "QoL enhancements",
-	description = "Confirm risky taps, a calmer shopkeeper, a Quantum Chest on boss floors, bigger bags, extra toolbar item slots, an Attack Tile button, an Enhanced Bestiary, a hero stats button, experience and loot rules, more items to energize, catalyst rerolls, walking through allies, item tags, display margins, a stronger Mageroyal, safe gardens, a preview of each game in progress and new games from any game's seed.",
+	description = "Confirm risky taps, a calmer shopkeeper, a Quantum Chest on boss floors, bigger bags, extra toolbar item slots, an Attack Tile button, an Enhanced Bestiary, a hero stats button, experience and loot rules, more items to energize, catalyst rerolls, walking through allies, item tags, display margins, a stronger Mageroyal, safe gardens, improved torches, a preview of each game in progress and new games from any game's seed.",
 	default = true,
 ) {
 	compatibleWith(COMPATIBILITY_SHATTERED_PIXEL_DUNGEON)
@@ -138,6 +141,15 @@ val qolEnhancementsPatch = bytecodePatch(
 		ItemRestoreFromBundleFingerprint.method.addInstruction(0, "invoke-static { p0, p1 }, $ABSORBED_CLASS->restore($ITEM_TYPE$ITEM_TYPE)V")
 		GameSceneLayoutTagsFingerprint.callBeforeEveryReturn("invoke-static { }, $EXTENSION_PACKAGE/GameEvents;->afterLayoutTags()V")
 		GameSceneBossSlainFingerprint.method.addInstruction(0, "invoke-static { }, $CHEST_CLASS->onBossSlain()V")
+		replaceCallsInClass(
+			"Lcom/shatteredpixel/shatteredpixeldungeon/items/Torch;",
+			"Lcom/shatteredpixel/shatteredpixeldungeon/actors/buffs/Buff;->affect(${CHAR_DESCRIPTOR}Ljava/lang/Class;F)$FLAVOUR_BUFF_DESCRIPTOR",
+			"$TORCHES_CLASS->light(${CHAR_DESCRIPTOR}Ljava/lang/Class;F)$FLAVOUR_BUFF_DESCRIPTOR",
+		)
+		LightIconFadePercentFingerprint.adjustReturns("$TORCHES_CLASS->fade(F$ITEM_TYPE)F", "p0")
+		FlavourBuffDescFingerprint.adjustObjectReturns("$TORCHES_CLASS->describe(Ljava/lang/String;$ITEM_TYPE)Ljava/lang/String;", "p0")
+		CharStealthFingerprint.adjustReturns("$TORCHES_CLASS->adjustStealth(F$ITEM_TYPE)F", "p0")
+		HeroSearchFingerprint.adjustCallResults("Lcom/watabou/utils/Random;->Float()F", "$TORCHES_CLASS->adjustSearchRoll(F)F")
 		HeroStoreInBundleFingerprint.method.addInstruction(
 			0,
 			"invoke-static/range { p0 .. p1 }, $CHEST_CLASS->onStore(Ljava/lang/Object;Lcom/watabou/utils/Bundle;)V",

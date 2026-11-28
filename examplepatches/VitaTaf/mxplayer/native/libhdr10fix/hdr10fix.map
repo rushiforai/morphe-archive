@@ -1,0 +1,6 @@
+VERS_2.0 {
+    global:
+        _ZN5media3avc11Transformer11buildAnnexBERNS0_6BufferEPKhi;
+    local:
+        *;
+};

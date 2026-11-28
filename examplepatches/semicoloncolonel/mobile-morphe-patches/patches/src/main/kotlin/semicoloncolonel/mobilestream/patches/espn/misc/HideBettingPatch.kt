@@ -94,6 +94,7 @@ val hideBettingPatch = bytecodePatch(
     name = "Hide betting",
     description = "Removes odds, sportsbook links and promos, and DraftKings account linking.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

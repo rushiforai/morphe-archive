@@ -66,35 +66,36 @@ compared against X-Posed 4.4.0 (commit 7e93b04, 2026-11-08). Upstream paths are 
 - [X] Filter profiles: named filter sets that the user can create, rename, delete and switch.
   Each signed-in X account remembers its profile. Badge settings and the cache stay shared.
 
-* TODO Account sheet [1/8]
-- [ ] Header with the profile picture, display name and the verification checkmark in its
+* DONE Account sheet [8/8]
+- [X] Header with the profile picture, display name and the verification checkmark in its
   color (blue, gold for business, grey for government), plus "Identity verified" and
   "Protected" tags.
-- [ ] Activity counts: followers, following, posts and media.
-- [ ] Account history: creation date with account age, verified since, and the number of
+- [X] Activity counts: followers, following, posts and media. X's models carry no media
+  count (only =Tweet_counts(tweets=)=), so the sheet shows followers, following and posts.
+- [X] Account history: creation date with account age, verified since, and the number of
   handle changes.
-- [ ] Affiliation with the organization's badge image and a link to it.
-- [ ] User ID row. Tapping it copies the ID-based link =https://x.com/i/user/<id>=, which
+- [X] Affiliation with the organization's badge image and a link to it.
+- [X] User ID row. Tapping it copies the ID-based link =https://x.com/i/user/<id>=, which
   keeps working after handle changes.
 - [X] Quick filter for the account itself (by user ID), next to the existing country or region
   button.
-- [ ] Always Show button.
-- [ ] Copy or save the sheet as a PNG, in light or dark.
+- [X] Always Show button.
+- [X] Copy or save the sheet as a PNG, in light or dark. Share was added as well.
 
-* TODO Badges and surfaces [0/4]
-- [ ] Badges in the profile page header. It is not hooked today (see =docs/HOOKS.md=).
-- [ ] Chat: badges in one-to-one chat headers, inbox rows and message requests. The README
+* DONE Badges and surfaces [4/4]
+- [X] Badges in the profile page header. It is not hooked today (see =docs/HOOKS.md=).
+- [X] Chat: badges in one-to-one chat headers, inbox rows and message requests. The README
   says badges appear in messages; check which of these three are covered.
-- [ ] Share button on badges, with a setting to hide it (see Sharing).
-- [ ] Defaults: upstream shows device icons and the location warning icon by default. Both are
+- [X] Share button on badges, with a setting to hide it (see Sharing).
+- [X] Defaults: upstream shows device icons and the location warning icon by default. Both are
   off here. Decide whether to match.
 
-* TODO Sharing [0/2]
-- [ ] Post card: render a post as an image with its text, up to four uncropped photos,
+* DONE Sharing [2/2]
+- [X] Post card: render a post as an image with its text, up to four uncropped photos,
   metrics, account context (flag, connection, location warning), post and capture times, an
   ID-based post link and the version. Upstream: =content/post-card.js=,
   =content/evidence-capture.js=.
-- [ ] Share flow: a preview with an editable caption, then Quote, Reply or New post through
+- [X] Share flow: a preview with an editable caption, then Quote, Reply or New post through
   X's composer, or save the image. Nothing is posted without the user. Offer Android's share
   sheet as well.
 

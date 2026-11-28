@@ -128,6 +128,7 @@ public final class LogWindow {
         panel.setBackground(new Squircle(0xEB141417, theme.dpf(16)).border(0x33FFFFFF, theme.dpf(1)));
         panel.setClipToOutline(true);
         panel.setElevation(theme.dpf(12));
+        panel.setClickable(true); // (every touch on the window is the window's: none falls through to the player)
 
         LinearLayout bar = new LinearLayout(context);
         bar.setOrientation(LinearLayout.HORIZONTAL);
@@ -231,15 +232,16 @@ public final class LogWindow {
         return panel;
     }
 
-    /** Two thirds of the screen's width (at least 300 dp), leaving a margin. */
+    /** Half the screen's width (at least 300 dp), leaving a margin. */
     static int widthFor(int screenWidth, float density) {
         int margin = Math.round(24 * density), least = Math.round(300 * density);
-        return Math.max(0, Math.min(screenWidth - margin, Math.max(least, (int) (screenWidth * 0.66f))));
+        return Math.max(0, Math.min(screenWidth - margin, Math.max(least, (int) (screenWidth * 0.5f))));
     }
 
-    /** A third of the screen's height (at least 200 dp), never more than the screen. */
+    /** A third of the screen's height (at least 200 dp), never more than 45% of it. */
     static int heightFor(int screenHeight, float density) {
-        return Math.min(screenHeight, Math.max(Math.round(200 * density), (int) (screenHeight * 0.32f)));
+        // (a third of the height, at least 200 dp, but never most of the screen: in landscape the stream stays in view)
+        return Math.min((int) (screenHeight * 0.45f), Math.max(Math.round(200 * density), (int) (screenHeight * 0.32f)));
     }
 
     private static ViewGroup root(Activity activity) {

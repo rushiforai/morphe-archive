@@ -1,11 +1,18 @@
 package app.template.extension.zalo.ui;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ValueAnimator;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.RectF;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
@@ -19,12 +26,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.PathInterpolator;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.List;
 
 import app.template.extension.zalo.appearance.CustomFont;
 import app.template.extension.zalo.buglog.NezumiLog;
@@ -41,6 +51,12 @@ public final class ZaloUi {
     private static final int ROW_TITLE_KEY = 0x7E4E5A01;
 
     private static final int ROW_DIVIDER_KEY = 0x7E4E5A02;
+
+    private static final int ROW_ANIMATOR_KEY = 0x7E4E5A03;
+
+    private static final int CHILD_SLIDE_DP = 12;
+
+    private static final long CHILD_ANIMATION_MS = 200;
 
     private static final int HEADER_BLUE = 0xFF008DFA;
 
@@ -246,7 +262,148 @@ public final class ZaloUi {
     /** Settings row with a leading Zalo icon, a label and a trailing Zalo-style switch. */
     public static View toggleRow(LinearLayout list, Context context, String title, String icon, boolean checked,
             boolean darkMode, CompoundButton.OnCheckedChangeListener listener) {
-        View wrapper = row(context, title, zdsIcon(context, icon, darkMode), false, darkMode, null);
+        return switchRow(list, context, title, zdsIcon(context, icon, darkMode), checked, darkMode, listener);
+    }
+
+    /**
+     * Adds a container to {@code list} that links a parent row with its dependent rows: add the rows
+     * to it with {@link #toggleRow}. While more than one of its rows is visible, a blue bar runs down
+     * the left edge and the dividers between the linked rows are hidden (see {@link #trimGroupDividers}).
+     */
+    public static LinearLayout linkedRows(LinearLayout list, Context context, boolean darkMode) {
+        LinkedRows group = new LinkedRows(context, darkMode ? BLUE_DARK : BLUE);
+        list.addView(group, new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        return group;
+    }
+
+    /** Draws the 3dp link bar over its rows' left edge, inset 10dp, rounded on the right. */
+    private static final class LinkedRows extends LinearLayout {
+        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Path bar = new Path();
+        private final RectF bounds = new RectF();
+        private boolean linked;
+
+        LinkedRows(Context context, int color) {
+            super(context);
+            setOrientation(VERTICAL);
+            paint.setColor(color);
+        }
+
+        void setLinked(boolean value) {
+            if (linked == value) return;
+            linked = value;
+            invalidate();
+        }
+
+        @Override
+        protected void dispatchDraw(Canvas canvas) {
+            super.dispatchDraw(canvas);
+            int inset = dp(getContext(), 10);
+            if (!linked || getHeight() <= inset * 2) return;
+            float width = dp(getContext(), 3);
+            bounds.set(0, inset, width, getHeight() - inset);
+            bar.reset();
+            bar.addRoundRect(bounds, new float[] { 0, 0, width, width, width, width, 0, 0 }, Path.Direction.CW);
+            canvas.drawPath(bar, paint);
+        }
+    }
+
+    /**
+     * Shows or hides a dependent row (inside {@link #linkedRows} or directly in {@code list}). When
+     * animated, the row expands from zero height while fading in and its content slides down from
+     * under the row above; collapsing reverses that and ends with GONE. A running animation is
+     * cancelled and the new one starts from its current state. Dividers and the link bar are
+     * re-trimmed when the row appears and after it is gone, so the bar spans the row while it animates.
+     */
+    public static void setChildRowVisible(LinearLayout list, View row, boolean visible, boolean animate) {
+        Object running = row.getTag(ROW_ANIMATOR_KEY);
+        row.setTag(ROW_ANIMATOR_KEY, null);
+        if (running instanceof ValueAnimator) ((ValueAnimator) running).cancel();
+        boolean shown = row.getVisibility() == View.VISIBLE;
+        ViewGroup host = row.getParent() instanceof ViewGroup ? (ViewGroup) row.getParent() : list;
+        int width = host.getWidth() - host.getPaddingLeft() - host.getPaddingRight();
+        if (!animate || width <= 0 || !row.isAttachedToWindow() || (running == null && shown == visible)) {
+            settleChildRow(list, row, visible);
+            return;
+        }
+        float slide = -dp(row.getContext(), CHILD_SLIDE_DP);
+        ViewGroup.LayoutParams params = row.getLayoutParams();
+        int startHeight = shown ? (params.height >= 0 ? params.height : row.getHeight()) : 0;
+        float startAlpha = shown ? row.getAlpha() : 0f;
+        float startShift = shown ? childShift(row) : slide;
+        int endHeight = 0;
+        if (visible) {
+            row.setVisibility(View.VISIBLE);
+            trimGroupDividers(list);
+            row.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+            endHeight = row.getMeasuredHeight();
+        }
+        float endAlpha = visible ? 1f : 0f;
+        float endShift = visible ? 0f : slide;
+        params.height = startHeight;
+        row.setLayoutParams(params);
+        row.setAlpha(startAlpha);
+        setChildShift(row, startShift);
+        int targetHeight = endHeight;
+        ValueAnimator animator = ValueAnimator.ofFloat(0f, 1f);
+        animator.setDuration(CHILD_ANIMATION_MS);
+        animator.setInterpolator(new PathInterpolator(0.4f, 0f, 0.2f, 1f));
+        animator.addUpdateListener(animation -> {
+            float fraction = (float) animation.getAnimatedValue();
+            ViewGroup.LayoutParams current = row.getLayoutParams();
+            current.height = Math.round(startHeight + (targetHeight - startHeight) * fraction);
+            row.setLayoutParams(current);
+            row.setAlpha(startAlpha + (endAlpha - startAlpha) * fraction);
+            setChildShift(row, startShift + (endShift - startShift) * fraction);
+        });
+        animator.addListener(new AnimatorListenerAdapter() {
+            private boolean cancelled;
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+                cancelled = true;
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                if (cancelled) return;
+                row.setTag(ROW_ANIMATOR_KEY, null);
+                settleChildRow(list, row, visible);
+            }
+        });
+        row.setTag(ROW_ANIMATOR_KEY, animator);
+        animator.start();
+    }
+
+    private static void settleChildRow(LinearLayout list, View row, boolean visible) {
+        ViewGroup.LayoutParams params = row.getLayoutParams();
+        if (params != null && params.height != ViewGroup.LayoutParams.WRAP_CONTENT) {
+            params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+            row.setLayoutParams(params);
+        }
+        row.setAlpha(1f);
+        setChildShift(row, 0f);
+        row.setVisibility(visible ? View.VISIBLE : View.GONE);
+        trimGroupDividers(list);
+    }
+
+    /** Slides the row's contents rather than the row, so the row's own bounds clip them under the row above. */
+    private static void setChildShift(View row, float shift) {
+        if (!(row instanceof ViewGroup)) return;
+        ViewGroup group = (ViewGroup) row;
+        for (int index = 0; index < group.getChildCount(); index++) group.getChildAt(index).setTranslationY(shift);
+    }
+
+    private static float childShift(View row) {
+        return row instanceof ViewGroup && ((ViewGroup) row).getChildCount() > 0
+            ? ((ViewGroup) row).getChildAt(0).getTranslationY() : 0f;
+    }
+
+    private static View switchRow(LinearLayout list, Context context, String title, Drawable icon, boolean checked,
+            boolean darkMode, CompoundButton.OnCheckedChangeListener listener) {
+        View wrapper = row(context, title, icon, false, darkMode, null);
         LinearLayout content = (LinearLayout) ((ViewGroup) wrapper).getChildAt(0);
         CompoundButton toggle = zaloSwitch(context, darkMode);
         toggle.setContentDescription(title);
@@ -296,11 +453,27 @@ public final class ZaloUi {
         return title instanceof TextView ? (TextView) title : findTextView(row);
     }
 
-    /** Hide the separator under the last visible row of each group, like Zalo's own lists. */
+    /**
+     * Hide the separator under the last visible row of each group, like Zalo's own lists. Rows inside
+     * {@link #linkedRows} count as rows of the list; while linked, the separators between them are hidden.
+     */
     public static void trimGroupDividers(LinearLayout list) {
+        List<View> children = new ArrayList<>();
+        List<LinkedRows> linkedGroups = new ArrayList<>();
+        for (int index = 0; index < list.getChildCount(); index++) {
+            View child = list.getChildAt(index);
+            if (!(child instanceof LinkedRows)) {
+                children.add(child);
+                continue;
+            }
+            LinkedRows group = (LinkedRows) child;
+            linkedGroups.add(group);
+            if (group.getVisibility() == View.GONE) continue;
+            for (int inner = 0; inner < group.getChildCount(); inner++) children.add(group.getChildAt(inner));
+        }
         View lastRow = null;
-        for (int index = 0; index <= list.getChildCount(); index++) {
-            View child = index < list.getChildCount() ? list.getChildAt(index) : null;
+        for (int index = 0; index <= children.size(); index++) {
+            View child = index < children.size() ? children.get(index) : null;
             if (child != null && child.getVisibility() == View.GONE) continue;
             Object divider = child == null ? null : child.getTag(ROW_DIVIDER_KEY);
             if (child != null && divider instanceof View) {
@@ -310,6 +483,19 @@ public final class ZaloUi {
             }
             if (lastRow != null) ((View) lastRow.getTag(ROW_DIVIDER_KEY)).setVisibility(View.GONE);
             lastRow = null;
+        }
+        for (LinkedRows group : linkedGroups) {
+            View previous = null;
+            int visibleRows = 0;
+            for (int index = 0; index < group.getChildCount(); index++) {
+                View child = group.getChildAt(index);
+                if (child.getVisibility() == View.GONE) continue;
+                visibleRows++;
+                Object divider = previous == null ? null : previous.getTag(ROW_DIVIDER_KEY);
+                if (divider instanceof View) ((View) divider).setVisibility(View.GONE);
+                previous = child;
+            }
+            group.setLinked(group.getVisibility() != View.GONE && visibleRows > 1);
         }
     }
 

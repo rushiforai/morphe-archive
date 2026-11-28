@@ -1,0 +1,75 @@
+name: Build & Test Gboard Pro iOS (iPhone & iPad)
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "ios/**"
+      - ".github/workflows/ios-build-and-test.yml"
+
+jobs:
+  build-and-test-ios:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode Project
+        working-directory: ios
+        run: xcodegen generate
+
+      - name: Select Available Virtual iPhone & iPad Simulators
+        id: sims
+        run: |
+          IPHONE_ID=$(xcrun simctl list devices available "iPhone" -j | python3 -c "import sys,json; d=json.load(sys.stdin)['devices']; print(next((dev['udid'] for k in sorted(d.keys(), reverse=True) if 'iOS' in k for dev in d[k] if 'iPhone' in dev['name']), ''))")
+          IPAD_ID=$(xcrun simctl list devices available "iPad" -j | python3 -c "import sys,json; d=json.load(sys.stdin)['devices']; print(next((dev['udid'] for k in sorted(d.keys(), reverse=True) if 'iOS' in k for dev in d[k] if 'iPad' in dev['name']), ''))")
+          echo "iphone_id=$IPHONE_ID" >> $GITHUB_OUTPUT
+          echo "ipad_id=$IPAD_ID" >> $GITHUB_OUTPUT
+          xcrun simctl boot "$IPHONE_ID" || true
+          xcrun simctl boot "$IPAD_ID" || true
+
+      - name: Run Unit & UI Tests on Virtual iPhone
+        working-directory: ios
+        run: |
+          xcodebuild test \
+            -project GboardProiOS.xcodeproj \
+            -scheme GboardProApp \
+            -destination "platform=iOS Simulator,id=${{ steps.sims.outputs.iphone_id }}" \
+            -resultBundlePath ../output/GboardPro_iPhone_Tests.xcresult \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Build & UI Test on Virtual iPad
+        working-directory: ios
+        run: |
+          xcodebuild test \
+            -project GboardProiOS.xcodeproj \
+            -scheme GboardProApp \
+            -destination "platform=iOS Simulator,id=${{ steps.sims.outputs.ipad_id }}" \
+            -resultBundlePath ../output/GboardPro_iPad_Tests.xcresult \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Package Unsigned Universal IPA (iPhone + iPad)
+        working-directory: ios
+        run: |
+          xcodebuild build \
+            -project GboardProiOS.xcodeproj \
+            -scheme GboardProApp \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath ../build_ios \
+            CODE_SIGNING_ALLOWED=NO
+          mkdir -p ../output/Payload
+          cp -R "../build_ios/Build/Products/Release-iphoneos/Gboard Pro.app" ../output/Payload/
+          cd ../output && zip -r Gboard_Pro_iOS_Unsigned.ipa Payload && rm -rf Payload
+
+      - name: Upload Unsigned IPA & Virtual Device Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: gboard-pro-ios-build-and-tests
+          path: |
+            output/Gboard_Pro_iOS_Unsigned.ipa
+            output/GboardPro_iPhone_Tests.xcresult
+            output/GboardPro_iPad_Tests.xcresult

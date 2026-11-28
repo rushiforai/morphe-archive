@@ -48,10 +48,6 @@ jobs:
           name: caption-validation-${{ github.sha }}
           path: |
             validation/runs/
-            build/maintenance/M1a/**/gradle/translation-core/reports/tests/
-            build/maintenance/M1a/**/gradle/translation-core/test-results/
-            extensions/extension/build/reports/tests/
-            extensions/extension/build/test-results/
-            build/maintenance/M1a/**/*.mpp
-            build/maintenance/M1a/**/extension.mpe
+            build/verification/**/*.mpp
+            build/verification/**/extension.mpe
           retention-days: 7

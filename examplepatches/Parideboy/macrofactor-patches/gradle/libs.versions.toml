@@ -7,6 +7,8 @@ arsc-lib = "9b742c412d"
 smali = "4220ae75f7"
 gson = "2.15.0"
 morphe-patches-library = "2.1.0"
+json = "20240303"
+junit5 = "5.11.4"
 
 [libraries]
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
@@ -16,3 +18,7 @@ morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-p
 morphe-patches-library = { module = "app.morphe:morphe-patches-library", version.ref = "morphe-patches-library" }
 morphe-extensions-library = { module = "app.morphe:morphe-extensions-library", version.ref = "morphe-patches-library" }
 arsc-lib = { module = "com.github.MorpheApp:ARSCLib", version.ref = "arsc-lib" }
+json = { module = "org.json:json", version.ref = "json" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.10.2" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit5" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version = "1.11.4" }

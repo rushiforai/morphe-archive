@@ -62,7 +62,7 @@ Select **Hide follow recommendations** on the matching FeurStagram APK. Morphe D
 ## Patch list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.2.0](https://github.com/brandonp2412/instagram-patches/releases/tag/v1.2.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+> **[v1.2.1](https://github.com/brandonp2412/instagram-patches/releases/tag/v1.2.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
 <details open>
 <summary>📦 Instagram (FeurStagram)&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>

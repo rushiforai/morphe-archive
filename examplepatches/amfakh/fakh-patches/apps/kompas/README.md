@@ -1,7 +1,7 @@
 # KOMPAS.com
 
-Patches for **KOMPAS.com** (`com.ertanto.kompas.official`, "KOMPAS.com+ News Updates" on APKPure), version `9.8.7`,
-as an XAPK.
+Patches for **KOMPAS.com** (`com.ertanto.kompas.official`, "KOMPAS.com+ News Updates" on APKPure), versions `9.8.7`
+and `9.8.9`, as an XAPK.
 
 ## Patches
 
@@ -55,10 +55,10 @@ See the [repo README](../../README.md).
 With [morphe-desktop](https://github.com/MorpheApp/morphe-cli/releases) (needs Java 21):
 
 ```bash
-java -jar morphe-desktop-1.19.1-all.jar patch -p patches/build/libs/patches-<version>.mpp -o kompas-patched.apk <KOMPAS.com 9.8.7 XAPK>
+java -jar morphe-desktop-2.2.0-all.jar patch -p patches/build/libs/patches-<version>.mpp -o kompas-patched.apk <KOMPAS.com 9.8.9 XAPK>
 ```
 
 ## Getting the APK
 
-Download the `9.8.7` XAPK from APKPure by hand. Morphe Manager's own lookup only knows APKMirror
+Download the `9.8.9` XAPK from APKPure by hand. Morphe Manager's own lookup only knows APKMirror
 and Uptodown pages.

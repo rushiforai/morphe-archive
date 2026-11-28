@@ -3,6 +3,7 @@ package semicoloncolonel.mobilestream.patches.att.shared
 import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
+import semicoloncolonel.mobilestream.patches.shared.misc.devTarget
 
 object Constants {
     val COMPATIBILITY = Compatibility(
@@ -11,6 +12,6 @@ object Constants {
         description = "The myAT&T app.",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x009FDB,
-        targets = listOf(AppTarget(version = "2026.10.2"), AppTarget("2026.11.1", versionCode = 46456), AppTarget("2026.10.1", versionCode = 46156))
+        targets = listOf(AppTarget(version = "2026.10.2"), AppTarget("2026.11.1", versionCode = 46456), devTarget("2026.11.2", versionCode = 46524), AppTarget("2026.10.1", versionCode = 46156))
     )
 }

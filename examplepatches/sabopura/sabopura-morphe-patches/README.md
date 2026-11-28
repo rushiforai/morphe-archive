@@ -20,6 +20,15 @@
 
 > ⚠️ 個人用に作ったものを公開しています。動作確認は限られた環境のみで、不具合があっても対応できない場合があります。自己責任でお使いください。
 
+## お知らせ
+
+> **Twitch has moved to [ViolaTV](https://github.com/sabopura/violatv-morphe-patches).** On Android 12L or newer, please use ViolaTV instead of the Twitch patches here.
+
+- **Twitch は [ViolaTV](https://github.com/sabopura/violatv-morphe-patches) に移りました。** Android 12L 以上の端末では、ViolaTV を使ってください（[Morphe に追加](https://morphe.software/add-source?github=sabopura/violatv-morphe-patches)）。ViolaTV は別のアプリとして入るので、ログインと設定はやり直しになります。Morphe Manager に両方の出どころを入れた場合は、Sabopura の「Apps」で Twitch のチェックを外してください。
+  - Android 12 以下の端末向けの Twitch 30.7.2 は、このパッチ集に残します（新しい版への対応はしません）。31.9.0・32.0.0 への対応は、次の版で外す予定です。
+- **YouTube の Ambient light は、Morphe 公式のパッチに移りました。** 公式の「Ambient mode」パッチの Enhanced Ambient mode を使ってください。こちらは次の版で外す予定です。YouTube の Danmaku comments は、通常のコメントも流せる公式にない機能なので残します。
+- **新しい版への対応を続けているのは SmartNews だけです。** YouTube・Twitch・Reddit・Pinterest・pixiv・Google News・Sankaku のパッチは、下の表の版の上では今も使えますが、新しい版には対応しません。
+
 ## できること
 
 ### YouTube
@@ -83,7 +92,7 @@
 | YouTube | `com.google.android.youtube` | 21.30.216, 21.45.82, 21.45.90 |
 | Twitch | `tv.twitch.android.app` | 30.7.2, 31.9.0, 32.0.0（`Ads:` のパッチと `Drops: Auto-claim Drops` は 31.9.0・32.0.0。30.7.2 は Android 12 以下の端末用） |
 | Reddit | `com.reddit.frontpage` | 2026.40.0, 2026.46.0 |
-| SmartNews | `jp.gocro.smartnews.android` | 26.10.30, 26.10.41（どちらも Google Play 版の APKM も可） |
+| SmartNews | `jp.gocro.smartnews.android` | 26.11.30（Google Play 版の APKM のみ）, 26.11.40（Google Play 版の APKM も可） |
 | Pinterest | `com.pinterest` | 14.43.0, 14.44.0 |
 | pixiv | `jp.pxv.android` | 6.202.1, 6.203.0 |
 | Google News | `com.google.android.apps.magazines` | 5.170.0.999208975, 5.171.0.1009119516 |

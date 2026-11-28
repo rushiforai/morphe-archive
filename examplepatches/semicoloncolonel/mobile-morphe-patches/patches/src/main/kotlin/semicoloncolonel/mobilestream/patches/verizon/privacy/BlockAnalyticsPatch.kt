@@ -1,11 +1,14 @@
 package semicoloncolonel.mobilestream.patches.verizon.privacy
 
+import semicoloncolonel.mobilestream.patches.shared.privacy.gatedAnalyticsKillSwitchesPatch
+import semicoloncolonel.mobilestream.patches.shared.misc.isOptionOn
+import app.morphe.patcher.patch.booleanOption
+import app.morphe.patcher.patch.BytecodePatch
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import semicoloncolonel.mobilestream.patches.shared.misc.forEachMatchingMethod
 import semicoloncolonel.mobilestream.patches.shared.misc.returnEarly
-import semicoloncolonel.mobilestream.patches.shared.privacy.analyticsKillSwitchesPatch
 import semicoloncolonel.mobilestream.patches.shared.privacy.blockTrackers
 import semicoloncolonel.mobilestream.patches.verizon.shared.Constants
 
@@ -34,18 +37,33 @@ internal object NewRelicStartFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val blockAnalyticsPatch = bytecodePatch(
+val blockAnalyticsPatch: BytecodePatch = bytecodePatch(
     name = "Block analytics & tracking",
-    description = "Stops the app's analytics, ad measurement, and marketing services.",
-    default = false,
+    description = "Blocks the tracking you choose in the patch options.",
 ) {
+    category("Privacy")
     compatibleWith(Constants.COMPATIBILITY)
+    dependsOn(blockSessionRecordingPatch)
 
-    dependsOn(analyticsKillSwitchesPatch)
+    dependsOn(gatedAnalyticsKillSwitchesPatch { isOptionOn(blockAnalyticsPatch, "analytics") })
 
     extendWith("extensions/extension.mpe")
 
+    booleanOption(
+        key = "analytics",
+        default = false,
+        title = "Analytics and tracking services",
+        description = "Stops the app's analytics, ad measurement, and marketing services.",
+    )
+    booleanOption(
+        key = "sessionRecording",
+        default = true,
+        title = "Session recording",
+        description = "Stops Quantum Metric, which records what you do in the app.",
+    )
+
     execute {
+        if (!isOptionOn(blockAnalyticsPatch, "analytics")) return@execute
         AdobeRegisterExtensionsFingerprint.method.returnEarly("return-void")
         NewRelicStartFingerprint.method.returnEarly("return-void")
 

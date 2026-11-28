@@ -58,6 +58,7 @@ val blockAnalyticsPatch = bytecodePatch(
     description = "Stops analytics and crash reporting, which receive your reservation and payment details.",
     default = false,
 ) {
+    category("Privacy")
     compatibleWith(Constants.COMPATIBILITY)
 
     dependsOn(analyticsKillSwitchesPatch, crashReportingPatch)

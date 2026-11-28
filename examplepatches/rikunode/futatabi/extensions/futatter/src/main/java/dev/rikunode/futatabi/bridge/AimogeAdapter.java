@@ -47,7 +47,7 @@ final class AimogeAdapter {
             if ("/aimoge/".equals(path) || "/aimoge/futaba.php".equals(path)) {
                 if ("/aimoge/futaba.php".equals(path) && !rawPath.contains("mode=cat"))
                     return BridgeServer.BridgeResponse.text(404, "Unsupported page");
-                return BridgeServer.BridgeResponse.html(BridgePalette.decorate(context,catalog()));
+                return BridgeServer.BridgeResponse.html(BridgePalette.decorate(context,catalog(CatalogOrder.fromPath(rawPath))));
             }
             if (path.matches("^/aimoge/res/[0-9]{13}\\.htm$")) {
                 String id = path.substring("/aimoge/res/".length(), path.length() - 4);
@@ -77,12 +77,54 @@ final class AimogeAdapter {
         }
     }
 
-    JSONObject threadsJson() throws Exception {
+    // Fetch complete pages before rendering or future sort operations.
+    static final int CATALOG_PAGE_SIZE = 100;
+    static final int CATALOG_MAX_PAGES = 10;
+    static final int CATALOG_LIMIT = CATALOG_PAGE_SIZE * CATALOG_MAX_PAGES;
+    private static final String CATALOG_PREFIX = API + "/catalog/" + BOARD + "?";
+    private JSONArray catalogSnapshot;
+    private long catalogUntil;
+    private String catalogSnapshotSort;
+
+    private synchronized JSONArray catalogThreads(int sort) throws Exception {
+        String upstreamSort=CatalogOrder.aimoge(sort);
         ensureClientPolicy();
-        JSONObject upstream = new JSONObject(new String(fetch(API + "/catalog/" + BOARD +
-                "?sort=bump&limit=20&page=1", 90000L, true), StandardCharsets.UTF_8));
+        if (catalogSnapshot != null && upstreamSort.equals(catalogSnapshotSort) && catalogUntil > System.currentTimeMillis())
+            return CatalogOrder.replies(catalogSnapshot, sort==4?4:0);
+        JSONArray all = new JSONArray();
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        for (int page = 1; page <= CATALOG_MAX_PAGES; page++) {
+            // Do not combine cached pages from different refreshes.
+            String url = CATALOG_PREFIX + "sort=" + upstreamSort + "&limit=" + CATALOG_PAGE_SIZE + "&page=" + page;
+            cache.remove(url);
+            JSONObject result = new JSONObject(new String(fetch(url, 0, true), StandardCharsets.UTF_8));
+            JSONArray rows = result.getJSONArray("threads");
+            JSONObject pagination = result.getJSONObject("pagination");
+            if (pagination.getInt("page") != page || pagination.getInt("limit") != CATALOG_PAGE_SIZE
+                    || rows.length() > CATALOG_PAGE_SIZE)
+                throw new IllegalStateException("Unexpected catalog pagination");
+            for (int i = 0; i < rows.length(); i++) {
+                JSONObject row = rows.getJSONObject(i);
+                if (seen.add(row.getString("id"))) all.put(row);
+            }
+            if (!pagination.getBoolean("hasNextPage")) break;
+            if (rows.length() == 0) throw new IllegalStateException("Empty continuation page");
+        }
+        catalogSnapshot = all;
+        catalogSnapshotSort = upstreamSort;
+        catalogUntil = System.currentTimeMillis() + CATALOG_TTL;
+        return CatalogOrder.replies(all, sort==4?4:0);
+    }
+
+    private synchronized void invalidateCatalog() {
+        catalogSnapshot = null;
+        catalogUntil = 0;
+        cache.keySet().removeIf(key -> key.startsWith(CATALOG_PREFIX));
+    }
+
+    JSONObject threadsJson() throws Exception {
         org.json.JSONArray summaries = new org.json.JSONArray();
-        org.json.JSONArray threads = upstream.getJSONArray("threads");
+        org.json.JSONArray threads = catalogThreads(0);
         for (int i = 0; i < threads.length(); i++) {
             JSONObject entry = threads.getJSONObject(i);
             JSONObject summary = new JSONObject();
@@ -96,30 +138,31 @@ final class AimogeAdapter {
         return answer;
     }
 
-    private byte[] catalog() throws Exception {
-        ensureClientPolicy();
-        JSONObject result = new JSONObject(new String(fetch(API + "/catalog/" + BOARD +
-                "?sort=bump&limit=20&page=1", 90000L, true), StandardCharsets.UTF_8));
-        JSONArray threads = result.getJSONArray("threads");
-        StringBuilder html = pageStart("あいもげ");
-        html.append("<table id='cattable'><tr>");
-        for (int i = 0; i < threads.length(); i++) {
-            JSONObject t = threads.getJSONObject(i);
-            String uuid = t.getString("id");
-            String tid = ids.threadId(uuid);
-            JSONObject op = t.getJSONObject("opPost");
-            JSONObject attachment = attachment(op);
-            String thumb = thumbnailTag(attachment);
-            String description = op.optString("body", "");
-            if (description.length() > 90) description = description.substring(0, 90);
-            html.append("<td><a href='res/").append(tid).append(".htm'>")
-                    .append(thumb).append("</a><small>")
-                    .append(escape(description)).append("</small><font size=2>")
-                    .append(Math.max(0, t.optInt("replyCount", 0))).append("</font></td>");
-            if (i % 5 == 4 && i < threads.length() - 1) html.append("</tr><tr>");
+    private byte[] catalog(int sort) throws Exception {
+        JSONArray threads = catalogThreads(sort);
+        synchronized(ids) {
+            Map<String,String> pending=new HashMap<>();
+            StringBuilder html = pageStart("あいもげ");
+            html.append("<table id='cattable'><tr>");
+            for (int i = 0; i < threads.length(); i++) {
+                JSONObject t = threads.getJSONObject(i);
+                String uuid = t.getString("id");
+                String tid = ids.catalogThreadId(uuid,pending);
+                JSONObject op = t.getJSONObject("opPost");
+                JSONObject attachment = attachment(op);
+                String thumb = thumbnailTag(attachment,pending);
+                String description = op.optString("body", "");
+                if (description.length() > 90) description = description.substring(0, 90);
+                html.append("<td><a href='res/").append(tid).append(".htm'>")
+                        .append(thumb).append("</a><small>")
+                        .append(escape(description)).append("</small><font size=2>")
+                        .append(Math.max(0, t.optInt("replyCount", 0))).append("</font></td>");
+                if (i % 5 == 4 && i < threads.length() - 1) html.append("</tr><tr>");
+            }
+            ids.commitCatalog(pending);
+            html.append("</tr></table></body></html>");
+            return html.toString().getBytes(SJIS);
         }
-        html.append("</tr></table></body></html>");
-        return html.toString().getBytes(SJIS);
     }
 
     synchronized void invalidateThread(String uuid) {
@@ -136,7 +179,7 @@ final class AimogeAdapter {
         for(int i=0;i<posts.length();i++){
             JSONObject p=posts.getJSONObject(i);
             if(post.equals(p.optString("id"))&&thread.equals(p.optString("threadId"))&&p.optInt("seq",-1)==0){
-                cache.remove(API+"/catalog/"+BOARD+"?sort=bump&limit=20&page=1");
+                invalidateCatalog();
                 return ids.threadId(thread);
             }
         }
@@ -160,7 +203,9 @@ final class AimogeAdapter {
             Object value=p.opt("postSequenceNo");
             if (!(value instanceof Number)) return null;
             String number=value.toString();
-            return number.matches("[1-9][0-9]{0,17}") ? number : null;
+            if (!number.matches("[1-9][0-9]{0,17}")) return null;
+            invalidateCatalog();
+            return number;
         }
         return null;
     }
@@ -205,7 +250,9 @@ final class AimogeAdapter {
                 html.append("<a href='/aimoge/src/").append(imageId).append(".jpg'>")
                         .append(imageId).append(".jpg</a><br>")
                         .append("<a href='/aimoge/src/").append(imageId).append(".jpg'>")
-                        .append(thumbnailTag(attachment)).append("</a>");
+                        .append("<img src='/aimoge/thumb/").append(imageId).append("s.jpg' ")
+                        .append(ThreadImageSize.attributes(attachment.opt("width"),attachment.opt("height")))
+                        .append("></a>");
             }
             html.append("<span class='csb'>無念</span>Name<span class='cnm'>としあき</span>")
                     .append("<span class='cnw'>").append(escape(post.optString("createdAt", "")))
@@ -218,13 +265,17 @@ final class AimogeAdapter {
         return html.toString().getBytes(SJIS);
     }
 
-    private String thumbnailTag(JSONObject attachment) {
+    private String thumbnailTag(JSONObject attachment,Map<String,String> pending) {
         if (attachment == null) return "";
-        String id = imageId(attachment);
+        String id = imageId(attachment,pending);
         return "<img src='/aimoge/thumb/" + id + "s.jpg' width=50 height=50>";
     }
 
     private String imageId(JSONObject attachment) {
+        return imageId(attachment,null);
+    }
+
+    private String imageId(JSONObject attachment,Map<String,String> pending) {
         String key = attachment.optString("id");
         String original = attachment.optString("originalUrl");
         String thumbnail = attachment.optString("thumbnailUrl");
@@ -232,7 +283,7 @@ final class AimogeAdapter {
         // frame as its still image, without downloading a video.
         if ("video".equals(attachment.optString("kind")) ||
                 attachment.optString("mime").startsWith("video/")) original = thumbnail;
-        return ids.imageId(key, original, thumbnail);
+        return pending==null?ids.imageId(key,original,thumbnail):ids.catalogImageId(key,original,thumbnail,pending);
     }
 
     private static JSONObject attachment(JSONObject post) {

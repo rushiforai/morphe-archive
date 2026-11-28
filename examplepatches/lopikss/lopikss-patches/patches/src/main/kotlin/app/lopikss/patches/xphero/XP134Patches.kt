@@ -44,9 +44,11 @@ val xpHeroFreeTickets400 = rawResourcePatch(
         // Keep the 26.2.0 names and existing field matching code unchanged.
         val remote27 = get(XP134TicketEditor.REMOTE_27)
         val pvp27 = get(XP134TicketEditor.PVP_27)
+        val remote272 = get(XP134TicketEditor.REMOTE_272)
         val use27 = remote27.isFile && pvp27.isFile
-        val remote = if (use27) remote27 else get(XP134TicketEditor.REMOTE)
-        val pvp = if (use27) pvp27 else get(XP134TicketEditor.PVP)
+        val use272 = remote272.isFile && pvp27.isFile
+        val remote = if (use272) remote272 else if (use27) remote27 else get(XP134TicketEditor.REMOTE)
+        val pvp = if (use272 || use27) pvp27 else get(XP134TicketEditor.PVP)
         val native = get(XP135NativeEditor.ARM64)
         // Check all three assets before writing any file.
         val (newRemote, newPvp) = XP134TicketEditor.freeTicketRecharge(

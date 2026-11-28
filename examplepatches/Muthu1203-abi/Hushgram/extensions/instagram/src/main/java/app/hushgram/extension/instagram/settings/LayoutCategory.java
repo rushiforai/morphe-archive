@@ -1,0 +1,152 @@
+/*
+ * Copyright 2026 Hushfacebook contributors
+ * https://github.com/SysAdminDoc/Hushfacebook
+ *
+ * Modified for HushGram (Instagram), 2026.
+ */
+package app.hushgram.extension.instagram.settings;
+
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.accentCustomRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.accentHueRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.appIconRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.category;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.headerFontRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.headerTextRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.info;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.mark;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.onFlip;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.textSizeRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.toggle;
+
+import android.content.Context;
+import android.os.Build;
+import android.preference.PreferenceCategory;
+import android.preference.PreferenceScreen;
+
+import java.util.Set;
+
+import app.hushgram.extension.instagram.misc.RefreshRate;
+import app.hushgram.extension.shared.L10n;
+
+/** Builds the Layout category of HushGram settings. */
+final class LayoutCategory {
+    /** The row a build without Pure black dark mode shows under Layout, saying where to get it. */
+    static final String PURE_BLACK_HINT_ROW = "hushgram_pure_black_hint_row";
+
+    private LayoutCategory() { }
+
+    static void add(HushgramPreferenceFragment page, PreferenceScreen screen, Context context, Set<PatchFamily> build) {
+        if (build.contains(PatchFamily.BOTTOM_SPACE) || build.contains(PatchFamily.PHONE_LAYOUT) || build.contains(PatchFamily.EMOJI_STYLE)
+                || build.contains(PatchFamily.ACCENT_COLOR) || build.contains(PatchFamily.LAUNCH_SCREEN)
+                || build.contains(PatchFamily.HEADER_TEXT) || build.contains(PatchFamily.FONT) || build.contains(PatchFamily.APP_ICON)
+                || build.contains(PatchFamily.SETTINGS_ROWS) || build.contains(PatchFamily.REFRESH_RATE)) {
+            PreferenceCategory layout = category(screen, L10n.t("Layout"), SettingsIcons.LAYOUT,
+                    L10n.t("Change how Instagram looks, from its colors to its emoji."));
+            if (build.contains(PatchFamily.BOTTOM_SPACE)) {
+                layout.addPreference(toggle(context, Settings.REMOVE_BOTTOM_SPACE, L10n.t("Remove the empty space at the bottom"),
+                        L10n.t("Removes the empty gap under Instagram's tab bar that appears when your phone hides "
+                                + "its navigation bar or Instagram is in a pop-up window. Restart Instagram to see "
+                                + "the change.")));
+            }
+            if (build.contains(PatchFamily.PHONE_LAYOUT)) {
+                layout.addPreference(toggle(context, Settings.PHONE_LAYOUT, L10n.t("Phone layout on big screens"),
+                        L10n.t("On a foldable or tablet, Instagram keeps its phone layout across the whole screen, "
+                                + "with the tab bar at the bottom instead of down the side. Restart Instagram to see "
+                                + "the change.")));
+            }
+            // Rows whose key words name no icon get one that says what they change, not the
+            // category's grid on every other row.
+            if (build.contains(PatchFamily.FONT)) {
+                layout.addPreference(mark(page.fontRow(context), SettingsIcons.WRITING));
+                layout.addPreference(mark(textSizeRow(context), SettingsIcons.WRITING));
+            }
+            if (build.contains(PatchFamily.EMOJI_STYLE)) {
+                layout.addPreference(toggle(context, Settings.NOTO_EMOJI, L10n.t("Google's emoji everywhere"),
+                        L10n.t("Shows every emoji in Google's style instead of your phone's own. Restart Instagram "
+                                + "to see the change.")));
+                layout.addPreference(page.emojiRow(context));
+            }
+            if (build.contains(PatchFamily.ACCENT_COLOR)) {
+                layout.addPreference(toggle(context, Settings.ACCENT_COLOR, L10n.t("Accent color"),
+                        L10n.t("Turns Instagram's blue, on Follow buttons, links and the like, into the color you "
+                                + "pick below. Restart Instagram to see the change.")));
+                layout.addPreference(accentHueRow(context));
+                layout.addPreference(accentCustomRow(context));
+                layout.addPreference(toggle(context, Settings.ACCENT_BADGES, L10n.t("Badges in the accent color"),
+                        L10n.t("The red dots and counts for new messages and notifications take the color you "
+                                + "picked. Restart Instagram to see the change.")));
+                layout.addPreference(toggle(context, Settings.ACCENT_ICONS, L10n.t("Icons in the accent color"),
+                        L10n.t("Instagram's icons on the top bar, the tab bar and under posts take the color you "
+                                + "picked. Text stays as it is. Restart Instagram to see the change.")));
+                layout.addPreference(toggle(context, Settings.ACCENT_TEXT, L10n.t("Text in the accent color"),
+                        L10n.t("Names, captions and other main text take the same color as the icons. Gray text "
+                                + "stays gray. Restart Instagram to see the change.")));
+                layout.addPreference(toggle(context, Settings.ACCENT_REELS, L10n.t("Reel buttons in the accent color"),
+                        L10n.t("The buttons beside a reel and their counts take the color you picked instead of "
+                                + "white. Restart Instagram to see the change.")));
+                layout.addPreference(toggle(context, Settings.ACCENT_PILLS, L10n.t("Filters in the accent color"),
+                        L10n.t("The filters along the top of Saved and under a search take the color you picked, and "
+                                + "the one you're on is filled with it. Restart Instagram to see the change.")));
+                layout.addPreference(toggle(context, Settings.ACCENT_RINGS, L10n.t("Story rings in the accent color"),
+                        L10n.t("Story rings take the color you picked instead of Instagram's gradient. A few other "
+                                + "gradients share those colors and change with them. Restart Instagram to see the change.")));
+                layout.addPreference(toggle(context, Settings.ACCENT_RINGS_SOLID, L10n.t("Solid story rings"),
+                        L10n.t("Story rings are one solid shade of the color you picked instead of running light to dark. "
+                                + "Restart Instagram to see the change.")));
+                layout.addPreference(toggle(context, Settings.ACCENT_BACKGROUNDS, L10n.t("Backgrounds in the accent color"),
+                        L10n.t("Screens, panels, cards and menus take a dark or light shade of the color you picked. "
+                                + "Story and reel viewers keep their own background. Wins over Pure black dark mode. "
+                                + "Restart Instagram to see the change.")));
+                layout.addPreference(toggle(context, Settings.CLASSIC_COLORS, L10n.t("Classic colors"),
+                        L10n.t("Dark mode turns navy blue with charcoal gray panels, and light mode turns off-white. "
+                                + "Story and reel viewers keep their own background. Wins over Pure black dark mode and "
+                                + "Backgrounds in the accent color. Restart Instagram to see the change.")));
+            }
+            // Pure black is set when you patch and stays out of the default selection, so a build
+            // without it says where to get it (#267, #359).
+            if (!build.contains(PatchFamily.PURE_BLACK)) {
+                android.preference.Preference hint = info(context, L10n.t("Pure black dark mode isn't in this build"),
+                        L10n.t("To make dark mode pure black instead of dark gray, which can save battery on an "
+                                + "OLED screen, pick Pure black dark mode in Morphe Manager the next time you patch "
+                                + "Instagram."));
+                hint.setKey(PURE_BLACK_HINT_ROW);
+                layout.addPreference(mark(hint, SettingsIcons.MOON));
+            }
+            if (build.contains(PatchFamily.LAUNCH_SCREEN)) {
+                layout.addPreference(toggle(context, Settings.LAUNCH_SCREEN, L10n.t("HushGram launch screen"),
+                        L10n.t("Shows HushGram's logo instead of Instagram's on the screen you see while Instagram "
+                                + "starts, on Android 13 and newer. It shows from the next start.")));
+                layout.addPreference(toggle(context, Settings.LAUNCH_SCREEN_ACCENT, L10n.t("Launch screen in the accent color"),
+                        L10n.t("Fills that screen with the accent color, or Instagram's blue while Accent color is "
+                                + "off. A custom color shows as the closest one in the list. It shows from the next start.")));
+            }
+            if (build.contains(PatchFamily.HEADER_TEXT)) {
+                layout.addPreference(mark(headerTextRow(context), SettingsIcons.WRITING));
+                layout.addPreference(mark(page.headerPictureRow(context), SettingsIcons.STORIES));
+                layout.addPreference(mark(page.removeHeaderPictureRow(context), SettingsIcons.DELETE));
+                layout.addPreference(mark(headerFontRow(context, build.contains(PatchFamily.FONT)), SettingsIcons.WRITING));
+                layout.addPreference(toggle(context, Settings.HEADER_TEXT_CENTER, L10n.t("Center the header text"),
+                        L10n.t("Puts your words or picture in the middle of the top of Home instead of where "
+                                + "Instagram puts its logo.")));
+            }
+            if (build.contains(PatchFamily.REFRESH_RATE)) {
+                layout.addPreference(mark(onFlip(toggle(context, Settings.HIGHEST_REFRESH_RATE, L10n.t("Use the highest refresh rate"),
+                        L10n.t("Asks Android to run Instagram at your screen's fastest refresh rate, at the same "
+                                + "resolution. Some phones keep their own limit for apps, and battery saver can "
+                                + "still lower it.")), RefreshRate::switchChanged), SettingsIcons.PHONE));
+                // Only Android 15 and up let a view ask for a frame rate.
+                if (Build.VERSION.SDK_INT >= 35) {
+                    layout.addPreference(mark(toggle(context, Settings.MATCH_VIDEO_FRAME_RATE, L10n.t("Match the video's frame rate"),
+                            L10n.t("While a video plays, tells Android its frame rate and asks for a refresh rate that "
+                                    + "frame rate divides into, like 60 Hz for a 30 fps reel. Use the highest refresh rate "
+                                    + "comes first while it's on.")), SettingsIcons.PHONE));
+                }
+            }
+            if (build.contains(PatchFamily.APP_ICON)) {
+                layout.addPreference(mark(appIconRow(context), SettingsIcons.PHONE));
+                layout.addPreference(mark(page.customIconRow(context), SettingsIcons.STORIES));
+            }
+            if (build.contains(PatchFamily.SETTINGS_ROWS)) layout.addPreference(page.settingsRowsRow(context));
+        }
+    }
+}

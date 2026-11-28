@@ -11,11 +11,38 @@ body:
         > - Use the [latest patches](https://github.com/amfakh/fakh-patches/releases/latest).
         > - Use an app version listed in the [README](https://github.com/amfakh/fakh-patches#readme). Other versions might not be supported.
         > - [Search existing issues](https://github.com/amfakh/fakh-patches/issues?q=is%3Aissue) to see if it was already reported.
-  - type: input
+  - type: dropdown
     id: app
     attributes:
       label: App
-      placeholder: Smart Life
+      options:
+        - BARDI Smart Home
+        - CNN Indonesia
+        - Confluence
+        - CoverScreen OS
+        - detikcom
+        - DoDo Music
+        - Facer
+        - Facer (Wear OS)
+        - FlipSide
+        - FOMO Indonesia
+        - Genius
+        - GitHub
+        - IDN
+        - Jira
+        - KOMPAS.com
+        - LinkedIn
+        - "Mazii: Japanese Dictionary"
+        - Muslim Pro
+        - Radio Indonesia
+        - Smart Life
+        - SYNC by Krisbow
+        - Todaii Super
+        - "Todaii: Learn German A1-C1"
+        - "Todaii: Learn Japanese N5-N1"
+        - Tuya Smart
+        - Warung Life Simulator
+        - Windy
     validations:
       required: true
   - type: input

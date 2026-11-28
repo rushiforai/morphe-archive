@@ -89,7 +89,8 @@ class ReleaseGateTests(unittest.TestCase):
                 self.assertEqual(plan["source_tag"], releases[0]["tag"] if releases else "")
 
     def test_paginates_and_ignores_drafts_but_counts_legacy_and_prerelease_tags(self):
-        first = [{"tag_name": "unrelated", "draft": False}] * 99 + [
+        first = [{"tag_name": "unrelated", "draft": False}] * 98 + [
+            {"tag_name": "ci-compatibility-fixtures-v1", "draft": False, "prerelease": True},
             {"tag_name": waze("6.0.0.0", 2000000)["tag"], "draft": True}]
         second = [{"tag_name": "waze-5.24.5.0-1030732", "draft": False},
                   {"tag_name": waze()["tag"], "draft": False, "prerelease": True}]

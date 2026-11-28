@@ -42,7 +42,7 @@ public final class Debug {
      * a log says which build is actually installed: without it, "the change did nothing" and "the
      * APK was never replaced" look exactly the same.
      */
-    public static final String BUILD = "b56";
+    public static final String BUILD = "b131";
     private static final String TAG = "tiktokHandle";
     private static final String FILE_NAME = "tiktokhandle.log";
     /** A file past this size is moved aside as `.1` and a fresh one is started. */
@@ -57,10 +57,80 @@ public final class Debug {
 
     private Debug() {}
 
+    /**
+     * The app-side frames that led to a hook, in one line. The extension's own frames are skipped,
+     * because the question is always "which app path reached this", not "which wrapper called it".
+     * `depth` is the number of app frames to keep: three is a summary, six names the producer.
+     */
+    /** " by=<frames>" when the diagnostics are on, an empty string otherwise. */
+    public static String by(int depth) {
+        return verbose ? " by=" + caller(depth) : "";
+    }
+
+    public static String caller(int depth) {
+        // The capture is the cost, so it is skipped entirely unless the diagnostics are wanted.
+        if (!verbose) return "";
+        StackTraceElement[] frames = new Throwable().getStackTrace();
+        StringBuilder out = new StringBuilder();
+        int shown = 0;
+        for (StackTraceElement frame : frames) {
+            String name = frame.getClassName();
+            if (name.startsWith("app.onlynazril.extension") || name.startsWith("java.lang.Thread")) {
+                continue;
+            }
+            if (shown++ >= depth) break;
+            if (out.length() > 0) out.append(" <- ");
+            out.append(name).append('#').append(frame.getMethodName());
+        }
+        return out.toString();
+    }
+
+    /**
+     * Lines written to the file before the sink stops for this process. logcat already carries
+     * every line, so the file is a convenience for `adb pull`; past the budget the file write is
+     * what a long scroll would pay for on the main thread.
+     */
+    /** Verbose: every line, frames and callers included. Off: the budgets below, no stack capture. */
+    private static volatile boolean verbose;
+
+    public static boolean verbose() {
+        return verbose;
+    }
+
+    public static void setVerbose(boolean value) {
+        verbose = value;
+    }
+
+    private static final int FILE_LINES = 600;
+    private static int fileLines;
+    /** logcat carries every line, but a binder call per line is still paid on a scroll. */
+    private static final int LOGCAT_LINES = 2000;
+    private static int logcatLines;
+    private static String lastMessage;
+
+    /** Process clock at class load: every mark is measured from the first use of the extension. */
+    private static final long startAt = android.os.SystemClock.elapsedRealtime();
+
+    /**
+     * A startup step with the time since the extension loaded. Startup cost is the one thing that
+     * cannot be read off the dex: it needs the clock, and only the device has it.
+     */
+    public static void mark(String name) {
+        if (!verbose) return;
+        print("startup: " + name + " +" + (android.os.SystemClock.elapsedRealtime() - startAt) + "ms");
+    }
+
     public static void print(String message) {
-        System.out.println(PREFIX + " " + message);
-        Log.w(TAG, message);
-        append(message);
+        // The diagnostics switch owns every line: off is silent, on is the full log. Exception
+        // traces in the bridges stay separate, because those name a failure rather than a tick.
+        if (!verbose) return;
+        // A repeated line says nothing new, and the loop that repeats it is exactly what costs.
+        if (message.equals(lastMessage)) return;
+        lastMessage = message;
+        int logcatBudget = verbose ? 20000 : LOGCAT_LINES;
+        int fileBudget = verbose ? 8000 : FILE_LINES;
+        if (logcatLines++ < logcatBudget) Log.w(TAG, message);
+        if (fileLines++ < fileBudget) append(message);
     }
 
     /** Where the file went, or null while nothing was writable yet. */
@@ -141,7 +211,6 @@ public final class Debug {
     }
 
     private static void note(String message) {
-        System.out.println(PREFIX + " " + message);
         Log.w(TAG, message);
     }
 

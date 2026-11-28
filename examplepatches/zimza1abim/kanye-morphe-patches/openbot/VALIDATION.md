@@ -195,3 +195,30 @@ Recorded on 2026-11-26 (Asia/Seoul).
 | Rewritten DEX verification | `SMOKE_OK`; 4 DEX files; the 5 baseline issues only |
 | Device | Font menu, font change and DOM pages checked on a device |
 
+
+## 1.4.14 delta adapter
+
+Recorded on 2026-11-27 (Asia/Seoul).
+
+- Official release: `android-v1.4.14`, package `run.openbot.mobile`.
+- Original APK SHA-256:
+  `b338a8bb40472a7cb2be0bbeca44ba556277064cb9f5355c825fa560af6d423c`.
+- Original embedded Hermes SHA-256:
+  `26622490af225e80a9dabb05b9e5d4176025b6cefc9fc05b9b542d91b7efd8e4`.
+- Patched Hermes SHA-256:
+  `9c369432977e9e83418aa2c61dde4426715e36181d40e8cfddd28d7cc18e16ac`.
+- Original and patched Hermes bytecode version: **99**.
+- Signing certificate (APK and source stamp) unchanged from 1.4.13:
+  APK `5a25924e83aa4a66eb6ae89be317064727e9d1a124c2602c4063a3b843ec5029`,
+  source stamp `3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d`.
+- Exact adapter and asset checksums are in `resources/openbot/adapters/1.4.14.properties`.
+
+| Check | Result |
+| --- | --- |
+| Source transform (`prepare-source.cjs`) | All anchors still present in 1.4.14; 4 transformation tests passed |
+| Official APK patch application | `PATCH OpenBot custom font: OK` |
+| Rewritten DEX verification | `SMOKE_OK`; 4 DEX files, the 5 baseline issues only |
+| Adapter size | `1.4.14.bdelta` 2.05 MB, `1.4.14.assets.zip` 144 KB |
+
+The 1.4.13 adapter stays installed, so the set now holds both versions. On-device
+checks for the new bundle are still open.

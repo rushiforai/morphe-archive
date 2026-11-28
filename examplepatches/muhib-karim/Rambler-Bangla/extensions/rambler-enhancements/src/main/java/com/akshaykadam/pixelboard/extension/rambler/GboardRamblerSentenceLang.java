@@ -28,7 +28,7 @@ final class GboardRamblerSentenceLang {
   static final HashSet<String> BN_GRAM = set(
       "e", "o", "te", "er", "ke", "ta", "ti", "ra", "re", "der", "gulo", "gula", "tai", "tao",
       "ami", "amar", "amake", "amra", "amader", "tumi", "tomar", "tomake", "tomra", "tomader", "apni", "apnar", "apnake",
-      "tara", "tader", "ora", "oder", "ki", "na", "nai", "nei", "ar", "kintu", "tahole", "keno", "kothay",
+      "tara", "tader", "ora", "oder", "ja", "je", "jar", "jara", "jemon", "temon", "ki", "na", "nai", "nei", "ar", "kintu", "tahole", "keno", "kothay",
       "kemon", "ekta", "ekti", "ei", "oi", "eta", "ota", "sheta", "ekhon", "tokhon", "ekhane", "okhane", "jodi", "karon", "jonno",
       "theke", "moddhe", "sathe", "shathe", "hobe", "hoy", "hoyeche", "hocche", "holo", "chilo", "ache", "achi", "acho", "achen",
       "koro", "kori", "korbo", "korchi", "korcho", "korche", "korechi", "korecho", "kore", "korte", "dao", "dibo", "dite", "jabo",
@@ -41,10 +41,11 @@ final class GboardRamblerSentenceLang {
   static final HashSet<String> BN_CONTENT = set(
       "onek", "beshi", "kotha", "shobai", "sobai", "ektu", "gorom", "thanda", "tay", "thak", "tarpor", "bhalo", "valo", "sundor",
       "shundor", "kichu", "kisu", "kichui", "tokhon", "ajke", "kalke", "porshu", "shob", "shudhu", "abar", "khub", "thik",
-      "accha", "achha", "hoyto", "mone", "pari", "parbo", "parbe", "lage", "lagche", "laglo", "jani", "bujhi", "bujhlam", "dorkar",
+      "accha", "achha", "hoyto", "mone", "pari", "parbo", "parbe", "pare", "lage", "lagche", "laglo", "jani", "bujhi", "bujhlam",
+      "bujhbe", "bujhte", "bujhe", "bujhina", "bolle", "bole", "pura", "purata", "mishano", "mishai", "misai", "mishay", "dorkar",
       "kaj", "bari", "basha", "khabar", "khete", "khabo", "ghum", "pani", "taka", "rasta", "shomoy", "somoy", "bondhu", "bhai",
-      "apu", "boro", "choto", "kharap", "mishti", "sokal", "bikel", "raat", "dupur", "shondha", "aste", "taratari", "ekhuni",
-      "ekdom", "kono", "keu", "amio", "tumio", "sheshe", "prothom", "korsi", "bolsi", "khaisi", "gesi", "hoise", "ashtese",
+      "apu", "boro", "choto", "kharap", "mishti", "sokal", "bikel", "raat", "dupur", "shondha", "aste", "ashte", "taratari", "ekhuni",
+      "ekdom", "kono", "keu", "amio", "tumio", "sheshe", "prothom", "korsi", "bolsi", "khaisi", "gesi", "hoise", "ashtese", "ashe",
       "jaitesi", "dekhsi", "parsi", "lagse", "kal", "jabe", "jaben", "ashen", "shuno", "shono");
   // Short English chat forms: English evidence even though the dictionary does not carry them.
   static final HashSet<String> EN_SLANG = set(
@@ -151,13 +152,15 @@ final class GboardRamblerSentenceLang {
     StringBuilder out = new StringBuilder(n + 16);
     int a = 0;
     while (a < N) {
-      // Sentence = tokens up to and including a run of . ? ! \u0964 \u2026 (outside protected spans) followed by whitespace/end, or a newline.
+      // Split at sentence boundaries (. ? ! । … \n) AND clause punctuation (, ; : —) outside protected spans
+      // so mixed Bangla + English sentences (e.g. "Pura ta Bangla ashtese, English e ashe na, and then...")
+      // classify each clause independently instead of forcing one script onto the whole sentence.
       int b = a;
       while (b < N) {
         String t = tok.get(b); int st = start.get(b);
         if (t.equals("\n")) { b++; break; }
-        if (isEnd(t) && !prot[st]) {
-          int k = b; while (k + 1 < N && isEnd(tok.get(k + 1))) k++;
+        if ((isEnd(t) || isClauseBreak(t)) && !prot[st]) {
+          int k = b; while (k + 1 < N && (isEnd(tok.get(k + 1)) || isClauseBreak(tok.get(k + 1)))) k++;
           if (k + 1 >= N || Character.isWhitespace(tok.get(k + 1).charAt(0))) { b = k + 1; break; }
           b = k + 1; continue;
         }
@@ -183,6 +186,30 @@ final class GboardRamblerSentenceLang {
     return t.length() == 1 && ".?!\u0964\u2026".indexOf(t.charAt(0)) >= 0;
   }
 
+  static boolean isClauseBreak(String t) {
+    return t.length() == 1 && ",;:\u2014".indexOf(t.charAt(0)) >= 0;
+  }
+
+  static boolean isBengaliChar(char c) {
+    return c >= '\u0980' && c <= '\u09FF';
+  }
+
+  static boolean hasBengaliNeighbor(ArrayList<String> tok, int a, int b, int pos) {
+    for (int k = pos - 1; k >= a; k--) {
+      String t = tok.get(k);
+      if (t.isEmpty() || Character.isWhitespace(t.charAt(0))) continue;
+      if (isBengaliChar(t.charAt(0))) return true;
+      break;
+    }
+    for (int k = pos + 1; k < b; k++) {
+      String t = tok.get(k);
+      if (t.isEmpty() || Character.isWhitespace(t.charAt(0))) continue;
+      if (isBengaliChar(t.charAt(0))) return true;
+      break;
+    }
+    return false;
+  }
+
   static void mark(boolean[] p, Matcher m, int n) {
     while (m.find()) for (int x = m.start(); x < m.end() && x < n; x++) p[x] = true;
   }
@@ -206,6 +233,7 @@ final class GboardRamblerSentenceLang {
     int ap = lo.indexOf('\''); if (ap < 0) ap = lo.indexOf('\u2019');
     if (ap > 0 && english.contains(lo.substring(0, ap))) return T_EN;
     if (bool(H.INFLECTION, lo)) return T_EN;
+    if (GboardRamblerLoanSpell.banglish(lo) != null) return T_BN;
     if (GboardRamblerScriptFix.convertToken(lo, lo) == null) return T_UNK;
     if (BN_SUFFIX.matcher(lo).matches() || BN_DIGRAPH.matcher(lo).find()) return T_BN;
     return T_UNK;
@@ -218,24 +246,32 @@ final class GboardRamblerSentenceLang {
     boolean first = true;
     for (int x = a; x < b; x++) {
       String t = tok.get(x);
-      int c = classify(t, prot[start.get(x)], english);
+      int c;
+      if (!prot[start.get(x)] && isBanglaHyphenEnclitic(tok, a, x)) {
+        c = T_BN_GRAM;
+      } else {
+        c = classify(t, prot[start.get(x)], english);
+      }
       // A capitalised word inside the sentence that is Bangla only by spelling shape is a name (Dhaka, Rahim): no evidence.
       if (c == T_BN && !first && Character.isUpperCase(t.charAt(0)) && t.length() > 1 && t.substring(1).equals(t.substring(1).toLowerCase(Locale.US))
           && !BN_CONTENT.contains(t.toLowerCase(Locale.US)) && !DEMOTION_EXEMPT.contains(t.toLowerCase(Locale.US))) c = T_UNK;
       if (c != T_NEUTRAL && c != T_PROT) first = false;
       cls[x - a] = c;
     }
-    // Resolve context words from their nearest word neighbours (non-context).
+    // Resolve context words from their nearest word neighbours (non-context), including already-Bengali Unicode tokens.
     for (int x = 0; x < cls.length; x++) {
       if (cls[x] != T_CTX) continue;
-      boolean near = bnEvidence(cls, prev(cls, x)) || bnEvidence(cls, next(cls, x));
+      boolean near = bnEvidence(cls, prev(cls, x)) || bnEvidence(cls, next(cls, x))
+          || hasBengaliNeighbor(tok, a, b, a + x);
       String lo = tok.get(a + x).toLowerCase(Locale.US);
       cls[x] = near ? T_BN_GRAM : (english.contains(lo) && lo.length() > 1 ? T_EN_WEAK : T_NEUTRAL);
     }
     int words = 0;
+    boolean hasExistingBengali = false;
     for (int x = a; x < b; x++) {
       String t = tok.get(x);
       int c = cls[x - a];
+      if (!t.isEmpty() && isBengaliChar(t.charAt(0))) hasExistingBengali = true;
       if (latin(t.charAt(0)) && c != T_PROT) words++;
       switch (c) {
         case T_BN_GRAM: wb += 2; nb++; break;
@@ -246,6 +282,10 @@ final class GboardRamblerSentenceLang {
         case T_EN_WEAK: we += 0.5; break;
         default: break;
       }
+    }
+    if (hasExistingBengali) {
+      wb += 2;
+      nb++;
     }
     boolean bangla;
     String rule;
@@ -264,9 +304,68 @@ final class GboardRamblerSentenceLang {
     }
     for (int x = a; x < b; x++) {
       String t = tok.get(x);
-      if (!bangla || cls[x - a] == T_PROT || !latin(t.charAt(0))) { out.append(t); continue; }
+      int c = cls[x - a];
+      if (c == T_PROT || !latin(t.charAt(0))) { out.append(t); continue; }
+      // Hyphenated Bengali enclitic particles after Bengali words (e.g. "সব-i" -> "সব-ই", "কাল-ke" -> "কাল-কে")
+      // MUST run before any English skip because "i" is classified as EN_GRAM in English!
+      if (isBanglaHyphenEnclitic(tok, a, x)) {
+        String encl = renderBanglaEnclitic(t.toLowerCase(Locale.US));
+        if (encl != null) {
+          out.append(encl);
+          continue;
+        }
+      }
+      if (!bangla) {
+        // English-heavy mixed Bangla + English clause (nb >= 1, e.g. "Ajke kalke client meeting and everything"):
+        // Still convert definite Bengali tokens (T_BN_GRAM / T_BN) to Bengali Unicode while keeping all English Latin!
+        if (nb >= 1 && (c == T_BN_GRAM || c == T_BN)) {
+          out.append(render(t, english));
+        } else {
+          out.append(t);
+        }
+        continue;
+      }
+      // True Mixed Bangla + English (abc -> বাংলা): keep clear English words in English Latin
+      // inside a Bangla clause while converting Bangla/Romanized words to Bengali Unicode.
+      if (c == T_EN || c == T_EN_GRAM || c == T_EN_WEAK) {
+        out.append(t);
+        continue;
+      }
       out.append(render(t, english));
     }
+  }
+
+  private static boolean isHyphenOrDash(String s) {
+    if (s == null || s.length() != 1) return false;
+    char ch = s.charAt(0);
+    return ch == '-' || ch == '\u2010' || ch == '\u2011' || ch == '\u2012'
+        || ch == '\u2013' || ch == '\u2014' || ch == '\u2212';
+  }
+
+  private static boolean isBanglaHyphenEnclitic(ArrayList<String> tok, int clauseStart, int x) {
+    if (x < clauseStart + 2) return false;
+    String t = tok.get(x);
+    if (t.isEmpty() || !latin(t.charAt(0))) return false;
+    if (!isHyphenOrDash(tok.get(x - 1))) return false;
+    String beforeHyphen = tok.get(x - 2);
+    if (beforeHyphen.isEmpty() || !isBengaliChar(beforeHyphen.charAt(beforeHyphen.length() - 1))) return false;
+    String lo = t.toLowerCase(Locale.US);
+    return lo.equals("i") || lo.equals("o") || lo.equals("e") || lo.equals("ta") || lo.equals("ti")
+        || lo.equals("te") || lo.equals("ke") || lo.equals("er") || lo.equals("ra")
+        || lo.equals("gulo") || lo.equals("gula") || lo.equals("to") || lo.equals("na");
+  }
+
+  private static String renderBanglaEnclitic(String lo) {
+    if ("i".equals(lo)) return "\u0987";       // ই (সব-ই, না-ই)
+    if ("o".equals(lo)) return "\u0993";       // ও (বাংলা-ও)
+    if ("e".equals(lo)) return "\u098f";       // এ (কাজ-এ)
+    if ("ta".equals(lo)) return "\u099f\u09be"; // টা
+    if ("ti".equals(lo)) return "\u099f\u09bf"; // টি
+    if ("te".equals(lo)) return "\u09a4\u09c7"; // তে
+    if ("ke".equals(lo)) return "\u0995\u09c7"; // কে
+    if ("er".equals(lo)) return "\u098f\u09b0"; // এর
+    if ("ra".equals(lo)) return "\u09b0\u09be"; // রা
+    return null;
   }
 
   static final String[] LETTER = {"\u098f", "\u09ac\u09bf", "\u09b8\u09bf", "\u09a1\u09bf", "\u0987", "\u098f\u09ab", "\u099c\u09bf",

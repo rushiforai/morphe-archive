@@ -18,3 +18,6 @@ contact_links:
   - name: ⚠️ Known issues
     url: https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/docs/known-issues.md
     about: Problems that are already known, with their causes and workarounds.
+  - name: 🏷️ Issue labels
+    url: https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/docs/issue-labels.md
+    about: How issues are sorted, tracked, and closed.

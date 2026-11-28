@@ -381,7 +381,7 @@ Removes the summary, Sources and Ask Meta AI box from a reel's more menu. In you
 Hide Ask Meta AI in About this reel	이 릴스 정보에서 Meta AI에게 물어보기 숨기기
 About this reel keeps its summary and Sources, and only the Ask Meta AI box under them goes.	이 릴스 정보에서 요약과 출처는 그대로 두고, 그 아래의 Meta AI에게 물어보기 창만 없앱니다.
 Hide Meta AI in the share sheet	공유 시트에서 Meta AI 숨기기
-Removes Meta AI from the row at the bottom of the share sheet. Some accounts see it as Muse.	공유 시트 하단 목록에서 Meta AI를 없앱니다. 일부 계정에서는 Muse로 표시됩니다.
+Removes Meta AI from the share sheet, both from the people you can send to and from the row at the bottom. Some accounts see it as Muse.	공유 시트에서 Meta AI를 없앱니다. 보낼 수 있는 사람 목록과 하단 목록 모두에서 사라집니다. 일부 계정에서는 Muse로 표시됩니다.
 Hide the Muse card	Muse 카드 숨기기
 Removes the Meet Muse card, with its Try Muse button, from Home and your profile. Your other cards stay.	홈과 내 프로필에서 Meet Muse 카드와 Try Muse 버튼을 없앱니다. 다른 카드는 그대로 남습니다.
 Hide the Muse button on your profile	내 프로필에서 Muse 버튼 숨기기
@@ -605,6 +605,9 @@ Adds an eye button to the top of each story while you view anonymously. Tap it t
 Mark as seen	읽음으로 표시
 Marked as seen. Tap again to undo.	읽음으로 표시하였습니다. 다시 누르면 실행 취소됩니다
 Marked as seen and sent	읽음으로 표시하고 전송함
+# context: View stories anonymously's third switch, after Mark as seen button. A like is the heart under a story, a quick reaction is an emoji from the row above a story's reply box
+Mark a story seen when you like or reply	좋아요를 누르거나 답장하면 스토리를 읽음으로 표시
+While you view anonymously, liking a story, replying to it or sending it a quick reaction puts you on that story's viewer list first. The other stories stay hidden.	스토리를 몰래 보는 동안 스토리에 좋아요를 누르거나 답장하거나 빠른 반응을 보내면 먼저 해당 스토리의 조회자 목록에 내 계정이 표시됩니다. 다른 스토리는 계속 익명으로 유지됩니다.
 View DM photos and videos anonymously	DM 사진 및 동영상 몰래보기
 Stops people seeing that you opened their view once photos and videos. They still disappear after you view them. This is a test feature and starts off.	다른 사람이 한 번 보기 사진과 동영상을 내가 열었다는 것을 알지 못하게 합니다. 본 후에는 그대로 사라집니다. 테스트 기능이며 꺼진 상태로 시작합니다.
 Restored %1$d settings. Kept %2$d newer choices.	%1$d개의 설정을 복원했습니다. 더 최근에 바꾼 선택 %2$d개는 유지했습니다.
@@ -1581,6 +1584,14 @@ All of them. Tap to leave some out, and Ghost mode leaves those as you set them.
 %1$s. The others stay as you set them.	%1$s. 나머지는 설정한 그대로 유지됩니다.
 Switches Ghost mode turns	고스트 모드가 바꾸는 스위치
 Ghost mode needs at least one switch to turn.	고스트 모드에는 바꿀 스위치가 하나 이상 필요합니다.
+# context: Ghost mode: the switch under its rows in Ads and privacy that holds likes, story replies, comments, share links and new stories and posts back while Ghost mode is on (#876). A like is the heart under a post, a reel, a story or a comment, a share link is what Copy link and sharing a post out make, and posting is sharing a new story, post or reel from Instagram's camera; the five short ones are toasts shown when a tap is held back
+Block likes, replies and posts in Ghost mode	고스트 모드에서 좋아요, 답장, 게시 차단
+While Ghost mode is on, liking, commenting, replying to a story, posting a story or post and copying or sharing a link do nothing, and a message says why. Nothing is sent.	고스트 모드가 켜져 있으면 좋아요를 누르거나, 댓글을 달거나, 스토리에 답장하거나, 스토리나 게시물을 올리거나, 링크를 복사하거나 공유해도 아무 일도 일어나지 않고, 그 이유를 알려 주는 메시지가 표시됩니다. 아무것도 전송되지 않습니다.
+Likes are off in Ghost mode.	고스트 모드에서는 좋아요가 꺼져 있습니다.
+Replies are off in Ghost mode.	고스트 모드에서는 답장이 꺼져 있습니다.
+Comments are off in Ghost mode.	고스트 모드에서는 댓글이 꺼져 있습니다.
+Share links are off in Ghost mode.	고스트 모드에서는 공유 링크가 꺼져 있습니다.
+Posting is off in Ghost mode.	고스트 모드에서는 게시가 꺼져 있습니다.
 # context: Ghost mode: turning it on or off with a long press on a tab (#255). %1$s is a tab's name
 Turn Ghost mode on or off with a tab long press	탭을 길게 탭하여 고스트 모드 켜고 끄기
 Tab long presses keep Instagram's own action. Choose one to turn Ghost mode on or off instead.	탭을 길게 탭하면 Instagram의 기본 동작이 실행됩니다. 고스트 모드를 대신 켜고 끌 탭을 하나 고르세요.
@@ -1821,7 +1832,7 @@ Previous page	이전 페이지
 Next page	다음 페이지
 # context: Feed settings: the Page dots on a pill switch, right under Carousel arrows (#419). A pill is a small bar with round ends that holds the dots.
 Page dots on a pill	알약 모양 페이지 점
-Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue. Hold the pill and slide left or right to move through the pages.	캐러셀 게시물의 페이지 점을 사진이나 동영상 아래쪽의 둥근 알약 모양 위로 옮깁니다. 지금 보고 있는 페이지는 파란색으로 표시됩니다. 알약을 길게 누른 채 왼쪽이나 오른쪽으로 밀면 페이지를 넘길 수 있습니다.
+Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue, or your accent color when Accent color is on. Hold the pill and slide left or right to move through the pages.	캐러셀 게시물의 페이지 점을 사진이나 동영상 아래쪽의 둥근 알약 모양 위로 옮깁니다. 지금 보고 있는 페이지는 파란색으로 표시되며, 강조 색상이 켜져 있으면 강조 색상으로 표시됩니다. 알약을 길게 누른 채 왼쪽이나 오른쪽으로 밀면 페이지를 넘길 수 있습니다.
 # context: Feed settings: the Hide page number switch, under Carousel arrows (#581). The number is the 3/5 in the corner of a carousel post.
 Hide page number	페이지 번호 숨기기
 Takes the number like 3/5 off the corner of a carousel post's photo or video.	캐러셀 게시물의 사진이나 동영상 모서리에 있는 3/5 같은 숫자를 없앱니다.
@@ -1957,6 +1968,10 @@ Hide the Map bubble	지도 버블 숨기기
 Takes only the Map bubble out of the row of notes. Your notes stay.	메모 목록에서 지도 버블만 숨깁니다. 메모는 그대로 유지됩니다.
 Split the notes row	메모 목록 나누기
 Splits the row of notes into three stacks, Instants, Notes and Stories, the layout Instagram is trying out. Restart Instagram to see the change.	메모 목록을 Instants, 메모, 스토리의 세 묶음으로 나눕니다. Instagram이 시험 중인 레이아웃입니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
+# context: Messages: a switch under Split the notes row (#832). Primary and General are the two tabs Instagram shows professional accounts at the top of their messages. Use the names Instagram's own messages page gives them in this language.
+Primary and General tabs	기본 및 일반 탭
+# context: the summary under Primary and General tabs; Primary is the tab's name again
+Experimental. Adds the Primary and General tabs that professional accounts get to your messages. Instagram may put every chat in Primary at first. Starts off. Restart Instagram to see the change.	실험적 기능입니다. 프로페셔널 계정에 있는 기본 및 일반 탭을 메시지에 추가합니다. 초기에는 Instagram이 모든 채팅을 기본 탭에 둘 수도 있습니다. 처음에는 꺼져 있습니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
 Hide Saved in the plus menu	플러스 메뉴에서 저장됨 숨기기
 Takes Saved off the menu the plus button opens in a chat's message bar.	채팅 메시지 바의 플러스 버튼이 여는 메뉴에서 저장됨을 뺍니다.
 Hide AI images in the plus menu	플러스 메뉴에서 AI 이미지 숨기기
@@ -2140,9 +2155,11 @@ Solid	불투명
 See-through	반투명
 # context: a look for the page-dots pill and the seek bars: blurs what's under it
 Frosted glass	젖빛 유리
+Dots only	점만
 A light pill with dark dots, as it's always been.	지금까지처럼 밝은 알약에 어두운 점을 표시합니다.
 A see-through dark pill with white dots, so more of the photo shows.	사진이 더 잘 보이도록 반투명한 어두운 알약에 흰색 점을 표시합니다.
 A frosted glass pill that blurs the photo under it. Before Android 12 it's see-through instead.	아래 사진을 흐리게 비추는 젖빛 유리 알약입니다. Android 12 이전에는 대신 반투명하게 표시됩니다.
+Just the white dots with no pill behind them. A soft shadow keeps them clear on a bright photo.	알약 없이 흰색 점만 표시합니다. 부드러운 그림자 덕분에 밝은 사진 위에서도 잘 보입니다.
 Turn on Page dots on a pill to use this choice.	이 옵션을 사용하려면 ‘알약 모양 페이지 점’을 켜세요
 Turn on Seek bar on feed videos or its button to use this choice.	이 옵션을 사용하려면 ‘피드 동영상 탐색 막대’ 또는 그 버튼을 켜세요
 Turn on Seek bar on stories to use this choice.	이 옵션을 사용하려면 ‘스토리 탐색 막대’를 켜세요

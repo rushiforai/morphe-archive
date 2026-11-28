@@ -11,4 +11,6 @@ public class Gizmo {
 	public void draw() { throw new RuntimeException("Stub"); }
 	public void killAndErase() { throw new RuntimeException("Stub"); }
 	public void destroy() { throw new RuntimeException("Stub"); }
+	public boolean exists;
+	public boolean isVisible() { throw new RuntimeException("Stub"); }
 }

@@ -1,0 +1,148 @@
+/*
+ * Copyright 2026 Hushfacebook contributors
+ * https://github.com/SysAdminDoc/Hushfacebook
+ *
+ * Modified for HushGram (Instagram), 2026.
+ */
+package app.morphe.patches.instagram.misc.translatedstart
+
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.instagram.misc.extension.classesCalling
+import app.morphe.patches.instagram.misc.extension.enableStatus
+import app.morphe.patches.instagram.misc.extension.freeLocalsAt
+import app.morphe.patches.instagram.misc.extension.handleTargets
+import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
+import app.morphe.patches.instagram.misc.extension.liveAcrossInjection
+import app.morphe.patches.instagram.misc.extension.localRegisterCount
+import app.morphe.patches.instagram.misc.extension.requireStatusMethod
+import app.morphe.patches.instagram.misc.extension.TargetCoverage
+import app.morphe.patches.instagram.misc.extension.writeTargetCoverage
+import app.morphe.patches.instagram.misc.settings.settingsPatch
+import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.addInstructionsAtControlFlowLabel
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+
+internal const val TRANSLATED_START_NAME = "Start on x86 devices"
+
+internal const val PROTECT_CODE = "$EXTENSION_PACKAGE/misc/TranslatedStart;->protectCode()I"
+
+/** Instagram's code protection step. Native, so its class and name are kept in every build. */
+internal const val MPROTECT_EXEC_CODE = "Lcom/facebook/common/dextricks/RuntimeInternals;->mprotectExecCode()V"
+
+@Suppress("unused")
+val translatedStartPatch = bytecodePatch(
+    name = "Start on x86 devices",
+    description = "Stops Instagram from crashing or freezing on x86 devices that run its code through a " +
+        "translator, such as some Chromebooks and emulators. Phones and tablets with arm chips run it as before. " +
+        "Works as soon as you patch it in, with no switch.",
+    default = true,
+) {
+    category("Fixes")
+    dependsOn(settingsPatch, instagramExtensionPatch)
+    compatibleWith(*AppCompatibilities.instagram())
+
+    execute {
+        requireStatusMethod("translatedStart")
+        guardCodeProtection { writeTargetCoverage("translatedStart", it) }
+        enableStatus("translatedStart")
+    }
+}
+
+/**
+ * Puts [PROTECT_CODE] in front of every call Instagram makes to [MPROTECT_EXEC_CODE], and skips the
+ * call when it answers 0. On 449 that's the idle task named "mprotect", which Instagram queues on
+ * its first trip to the foreground, and one other caller. Instagram's own classes only: the
+ * extension never calls it. A build that never calls it stops the patch; a call that can't be
+ * guarded is named in the patch log, and the rest are still guarded.
+ *
+ * @return how many calls were guarded
+ */
+internal fun BytecodePatchContext.guardCodeProtection(coverage: (TargetCoverage) -> Unit = {}): Int {
+    val callers = mutableListOf<Method>()
+    classesCalling(MPROTECT_EXEC_CODE.substringBefore("->"), MPROTECT_EXEC_CODE.substringAfter("->").substringBefore('(')).forEach { classDef ->
+        classDef.methods.forEach { method ->
+            if (method.implementation?.instructions?.any { it.callsCodeProtection() } == true) callers += method
+        }
+    }
+    if (callers.isEmpty()) throw PatchException("$TRANSLATED_START_NAME: this Instagram build never calls $MPROTECT_EXEC_CODE")
+    // Last call first in each method, so the code put in front of one doesn't move those still to guard.
+    val calls = callers.flatMap { found ->
+        val method = mutableClassDefBy(found.definingClass).methods.single {
+            it.name == found.name && it.returnType == found.returnType &&
+                it.parameterTypes.map(Any::toString) == found.parameterTypes.map(Any::toString)
+        }
+        method.implementation!!.instructions.withIndex()
+            .filter { it.value.callsCodeProtection() }
+            .map { method to it.index }
+            .reversed()
+    }
+    return handleTargets(TRANSLATED_START_NAME, "calls to the code protection step", calls.withIndex().toList(),
+        label = { "code protection call ${it.index + 1}" }, coverage = coverage) { (_, target) ->
+        val (method, call) = target
+        try {
+            method.skipUnlessProtected(call)
+            null
+        } catch (failure: PatchException) {
+            failure.message ?: "${method.definingClass}->${method.name} couldn't be guarded at instruction $call"
+        }
+    }
+}
+
+/**
+ * Asks [PROTECT_CODE] in front of the call at [call], and jumps over the call on a 0. The answer goes
+ * in a local nothing reads after the call, or when the method has none, in a parameter nothing reads
+ * from the call on. The code takes the call's own label, so a branch that reached the call asks first too.
+ */
+internal fun MutableMethod.skipUnlessProtected(call: Int) {
+    val after = call + 1
+    if (after >= implementation!!.instructions.size) {
+        throw PatchException("$TRANSLATED_START_NAME: $definingClass->$name ends on its call to $MPROTECT_EXEC_CODE")
+    }
+    val answer = try {
+        freeLocalsAt(TRANSLATED_START_NAME, call, 1, targets = listOf(after), highest = 255).single()
+    } catch (noLocal: PatchException) {
+        deadParameterAt(call, after) ?: throw noLocal
+    }
+    addInstructionsAtControlFlowLabel(
+        call,
+        """
+            invoke-static { }, $PROTECT_CODE
+            move-result v$answer
+            if-eqz v$answer, :skip
+        """,
+        ExternalLabel("skip", getInstruction(after)),
+    )
+}
+
+/**
+ * A parameter register, `this` included, that nothing reads from [call] on, or null. Instagram 451's
+ * 0HUM.A02 is an instance method whose one register is `this`, holding only the call and its return.
+ * A narrow parameter only: half of a long or a double stays as it is, and so does a constructor's.
+ */
+private fun MutableMethod.deadParameterAt(call: Int, after: Int): Int? {
+    if (name == "<init>") return null
+    val live = liveAcrossInjection(call, listOf(after))
+    var register = localRegisterCount()
+    val narrow = mutableListOf<Int>()
+    if (!AccessFlags.STATIC.isSet(accessFlags)) narrow += register++
+    for (type in parameterTypes.map(CharSequence::toString)) {
+        val wide = type == "J" || type == "D"
+        if (!wide) narrow += register
+        register += if (wide) 2 else 1
+    }
+    return narrow.firstOrNull { it !in live && it <= 255 }
+}
+
+private fun Instruction.callsCodeProtection(): Boolean =
+    (opcode == Opcode.INVOKE_STATIC || opcode == Opcode.INVOKE_STATIC_RANGE) &&
+        (this as ReferenceInstruction).reference.toString() == MPROTECT_EXEC_CODE

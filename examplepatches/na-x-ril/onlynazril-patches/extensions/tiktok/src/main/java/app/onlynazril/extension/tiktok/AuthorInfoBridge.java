@@ -103,7 +103,7 @@ public final class AuthorInfoBridge {
             }
             TIME_VIEWS.put(assem, new WeakReference<>(time));
         } catch (Throwable t) {
-            Log.w(TAG, "post-time view lookup failed", t);
+            if (Debug.verbose()) Log.w(TAG, "post-time view lookup failed", t);
         }
     }
 
@@ -120,9 +120,14 @@ public final class AuthorInfoBridge {
                 reportNoView(assem);
                 return;
             }
+            Object author = Reflect.property(aweme, "getAuthor", "author");
+            HandleCopy.watchNear(
+                    time,
+                    Reflect.string(author, "getNickname", "nickname"),
+                    Reflect.string(author, "getUniqueId", "uniqueId"));
             apply(time, aweme);
         } catch (Throwable t) {
-            Log.w(TAG, "post-time write failed", t);
+            if (Debug.verbose()) Log.w(TAG, "post-time write failed", t);
         }
     }
 
@@ -181,7 +186,7 @@ public final class AuthorInfoBridge {
             timeView.setText(target);
             timeView.setVisibility(View.VISIBLE);
         } catch (Throwable t) {
-            Log.w(TAG, "post-time / region write failed", t);
+            if (Debug.verbose()) Log.w(TAG, "post-time / region write failed", t);
         }
     }
 
@@ -217,7 +222,7 @@ public final class AuthorInfoBridge {
                 + " used=" + (region == null ? "none" : region)
                 + " createTime=" + createTime
                 + " (time=" + onOff(showTime) + " region=" + onOff(showRegion) + ")"
-                + " before='" + before + "' -> '" + after + "'");
+                + " before='" + before + "' -> '" + after + "'" + Debug.by(4));
     }
 
     private static String onOff(boolean value) {
@@ -232,7 +237,7 @@ public final class AuthorInfoBridge {
         if (reportedHides >= MAX_HIDES) return;
         reportedHides++;
         Debug.print("header hide: time off, nothing to keep (time=" + onOff(showTime)
-                + " region=" + onOff(showRegion) + ")");
+                + " region=" + onOff(showRegion) + ")" + Debug.by(4));
     }
 
     /**
@@ -243,21 +248,21 @@ public final class AuthorInfoBridge {
     private static void reportNoView(Object assem) {
         if (reportedNoViews >= MAX_NO_VIEW) return;
         reportedNoViews++;
-        Debug.print("header write skipped: no time view captured for " + nameOf(assem));
+        Debug.print("header write skipped: no time view captured for " + nameOf(assem) + Debug.by(4));
     }
 
     /** A component whose root view does not carry the time view, so none of its renders can write. */
     private static void reportViewMiss(Object assem, String why) {
         if (reportedViewMisses >= MAX_VIEW_MISS) return;
         reportedViewMisses++;
-        Debug.print("header view not found: " + why + " on " + nameOf(assem));
+        Debug.print("header view not found: " + why + " on " + nameOf(assem) + Debug.by(4));
     }
 
     /** A render that reached the write and was stopped by a switch before it could compose. */
     private static void reportGate(String why) {
         if (reportedGates >= MAX_GATES) return;
         reportedGates++;
-        Debug.print("header write skipped: " + why);
+        Debug.print("header write skipped: " + why + Debug.by(4));
     }
 
     private static String nameOf(Object assem) {
@@ -300,7 +305,7 @@ public final class AuthorInfoBridge {
                 view.setText(target);
                 if (view.getVisibility() != View.VISIBLE) view.setVisibility(View.VISIBLE);
             } catch (Throwable t) {
-                Log.w(TAG, "post-time re-assert failed", t);
+                if (Debug.verbose()) Log.w(TAG, "post-time re-assert failed", t);
             } finally {
                 writing = false;
             }
@@ -315,7 +320,7 @@ public final class AuthorInfoBridge {
     private static void reportRestore(String was, String target) {
         if (reportedRestores >= MAX_RESTORES) return;
         reportedRestores++;
-        Debug.print("header text restored: '" + was + "' -> '" + target + "' via " + frames());
+        Debug.print("header text restored: '" + was + "' -> '" + target + "' via " + frames() + Debug.by(4));
     }
 
     /** The frames above the view write, minus the extension's own and the framework's. */
@@ -353,7 +358,7 @@ public final class AuthorInfoBridge {
             timeViewId = id;
             return timeViewId;
         }
-        Log.w(TAG, "no post-time view id resolved — post time and region stay off");
+        if (Debug.verbose()) Log.w(TAG, "no post-time view id resolved - post time and region stay off");
         return 0;
     }
 

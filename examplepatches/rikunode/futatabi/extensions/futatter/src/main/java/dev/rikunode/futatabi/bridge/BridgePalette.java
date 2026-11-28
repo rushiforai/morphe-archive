@@ -16,7 +16,23 @@ final class BridgePalette {
     }
     static boolean save(Context c,String choice){
         if(!DARK.equals(choice)&&!LIGHT.equals(choice))return false;
-        return prefs(c).edit().putString(KEY,choice).commit();
+        if (!prefs(c).edit().putString(KEY,choice).commit()) return false;
+        return mirror(c).edit().putString(KEY,choice).commit();
+    }
+    // Stock restore replaces the whole Flutter XML. Mirror only this one
+    // extension setting outside that file. A restored explicit value wins.
+    private static SharedPreferences mirror(Context c) {
+        return c.getSharedPreferences("futatabi_default_migration",Context.MODE_PRIVATE);
+    }
+    static boolean repair(Context c) {
+        SharedPreferences primary=prefs(c), saved=mirror(c);
+        if (primary.contains(KEY)) {
+            String choice=primary.getString(KEY,"");
+            if (!DARK.equals(choice)&&!LIGHT.equals(choice)) return false;
+            return choice.equals(saved.getString(KEY,"")) || saved.edit().putString(KEY,choice).commit();
+        }
+        String choice=saved.getString(KEY,"");
+        return (!DARK.equals(choice)&&!LIGHT.equals(choice)) || primary.edit().putString(KEY,choice).commit();
     }
     static String style(String choice){
         return "<style>body{background:"+ (LIGHT.equals(choice)?"#fafafa;color:#222":"#202124;color:#e8eaed")

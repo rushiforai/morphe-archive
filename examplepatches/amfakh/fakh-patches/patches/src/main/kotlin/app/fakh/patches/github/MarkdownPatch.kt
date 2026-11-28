@@ -8,11 +8,11 @@ package app.fakh.patches.github
 import app.fakh.patches.shared.register
 import app.fakh.patches.shared.Feature
 import app.morphe.patcher.patch.mutableClassDefBy
-import app.fakh.patches.github.shared.Constants.MERMAID
-import app.fakh.patches.github.shared.Constants.COLLAPSE_CODE
-import app.fakh.patches.github.shared.Constants.SHORTEN_LINKS
-import app.fakh.patches.github.shared.Constants.MENTION_AVATARS
-import app.fakh.patches.github.shared.Constants.TAB_WIDTH
+import app.fakh.patches.github.shared.Constants.DRAW_MERMAID
+import app.fakh.patches.github.shared.Constants.FOLD_CODE
+import app.fakh.patches.github.shared.Constants.OVERRIDE_TAB_WIDTH
+import app.fakh.patches.github.shared.Constants.SHORTEN_GITHUB_LINKS
+import app.fakh.patches.github.shared.Constants.SHOW_MENTION_AVATARS
 import app.fakh.patches.github.shared.Constants.COMPATIBILITY_GITHUB
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
@@ -62,7 +62,7 @@ internal fun appendToMarkdownView(file: File, text: String) {
 }
 
 /** Lets the scripts of the markdown page ask which switches are on, through `window.fakhSettings`. */
-private val markdownSettingsPatch = patch {
+internal val markdownSettingsPatch = patch {
     dependsOn(githubSettingsPatch)
     extendWith("extensions/extension.mpe")
 
@@ -72,7 +72,7 @@ private val markdownSettingsPatch = patch {
 }
 
 /** [body], run only while the switch of [feature] is on. */
-private fun whileOn(feature: Feature, body: String) =
+internal fun whileOn(feature: Feature, body: String) =
     "if (window.fakhSettings.on('${feature.id}')) {\n${body.trimIndent().prependIndent("  ")}\n}"
 
 /**
@@ -92,8 +92,8 @@ internal fun afterLoad(body: String) = """
 """
 
 @Suppress("unused")
-val mermaidDiagramsPatch = patch(
-    name = "Mermaid diagrams",
+val drawMermaidDiagramsPatch = patch(
+    name = "Draw Mermaid diagrams",
     description = "Draws Mermaid diagrams in place of their code. Tap a diagram to open it full screen and pinch " +
         "to zoom.",
     default = true,
@@ -104,7 +104,7 @@ val mermaidDiagramsPatch = patch(
     extendWith("extensions/extension.mpe")
 
     execute {
-        register(MERMAID)
+        register(DRAW_MERMAID)
 
         // The page asks for the full screen viewer through its own bridge, added before the page loads.
         withMarkdownView("$VIEWER->attach")
@@ -127,7 +127,7 @@ val mermaidDiagramsPatch = patch(
             resourceFile("assets/webview/markdown.js"),
             afterLoad(
                 whileOn(
-                    MERMAID,
+                    DRAW_MERMAID,
                     """
                     const sources = document.querySelectorAll(
                       '#content pre[lang="mermaid"], #content .highlight-source-mermaid pre')
@@ -182,27 +182,26 @@ val mermaidDiagramsPatch = patch(
 }
 
 @Suppress("unused")
-val tabWidthPatch = patch(
-    name = "Tab width",
-    description = "Shows tabs in code blocks as 2, 4 or 8 spaces wide. The app uses 8. The option is the width until " +
-        "another is picked in Fakh Patches.",
+val overrideTabWidthPatch = patch(
+    name = "Override tab width",
+    description = "Shows tabs in files, diffs and code blocks as 2, 4 or 8 spaces wide. The app uses 8.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_GITHUB)
     category("Feature")
-    dependsOn(markdownSettingsPatch)
+    dependsOn(markdownSettingsPatch, codeTextPatch, codeOptionsPatch)
 
     val width = intOption(
         key = "width",
         default = 4,
         values = listOf(2, 4, 8).associateBy { "$it spaces" },
         title = "Width",
-        description = "How many spaces a tab takes in code blocks.",
+        description = "How many spaces a tab takes in code.",
         required = true,
     ) { value -> value in listOf(2, 4, 8) }
 
     execute {
-        register(TAB_WIDTH)
+        register(OVERRIDE_TAB_WIDTH)
         mutableClassDefBy(MARKDOWN_SETTINGS).methods.first { it.name == "defaultTabWidth" }.addInstructions(
             0,
             """
@@ -227,8 +226,8 @@ val tabWidthPatch = patch(
 }
 
 @Suppress("unused")
-val collapseLongCodeBlocksPatch = patch(
-    name = "Collapse long code blocks",
+val foldLongCodeBlocksPatch = patch(
+    name = "Fold long code blocks",
     description = "Folds code blocks longer than 25 lines to their first 20, with a button that shows all of them.",
     default = true,
 ) {
@@ -237,7 +236,7 @@ val collapseLongCodeBlocksPatch = patch(
     dependsOn(markdownSettingsPatch)
 
     execute {
-        register(COLLAPSE_CODE)
+        register(FOLD_CODE)
 
         // The WebView is as tall as its content and sits in a scrolling list, so a code block with its own vertical
         // scroll never gets the swipe. Folding it keeps the list short and a tap opens it in place.
@@ -270,7 +269,7 @@ val collapseLongCodeBlocksPatch = patch(
             resourceFile("assets/webview/markdown.js"),
             afterLoad(
                 whileOn(
-                    COLLAPSE_CODE,
+                    FOLD_CODE,
                     """
                     for (const pre of document.querySelectorAll('#content pre')) {
                       const lines = pre.textContent.replace(/\n$/, '').split('\n').length
@@ -295,8 +294,8 @@ val collapseLongCodeBlocksPatch = patch(
 }
 
 @Suppress("unused")
-val shortenLinksPatch = patch(
-    name = "Shorten links",
+val shortenGitHubLinksPatch = patch(
+    name = "Shorten GitHub links",
     description = "Shows pasted links in comments and READMEs as short references, such as owner/repo#123.",
     default = true,
 ) {
@@ -305,7 +304,7 @@ val shortenLinksPatch = patch(
     dependsOn(markdownSettingsPatch)
 
     execute {
-        register(SHORTEN_LINKS)
+        register(SHORTEN_GITHUB_LINKS)
 
         // Only links whose text is their own address are rewritten; a link with its own text stays as written.
         // The address itself is not touched, so tapping it opens the same page.
@@ -313,7 +312,7 @@ val shortenLinksPatch = patch(
             resourceFile("assets/webview/markdown.js"),
             afterLoad(
                 whileOn(
-                    SHORTEN_LINKS,
+                    SHORTEN_GITHUB_LINKS,
                     """
                     const reserved = new Set(['about', 'apps', 'collections', 'explore', 'features', 'marketplace',
                       'new', 'notifications', 'orgs', 'organizations', 'pricing', 'search', 'settings', 'sponsors',
@@ -346,7 +345,7 @@ val shortenLinksPatch = patch(
                       return plain
                     }
                     for (const link of document.querySelectorAll('#content a[href]')) {
-                      if (link.childElementCount > 0) continue
+                      if (link.childElementCount > 0 || link.closest('pre, code')) continue
                       const text = link.textContent.trim()
                       if (text !== link.href && text !== link.getAttribute('href') && text + '/' !== link.href) continue
                       try {
@@ -362,8 +361,8 @@ val shortenLinksPatch = patch(
 }
 
 @Suppress("unused")
-val mentionAvatarsPatch = patch(
-    name = "Mention avatars",
+val showMentionAvatarsPatch = patch(
+    name = "Show avatar before each @mention",
     description = "Shows a small avatar before each @mention in comments, descriptions and READMEs.",
     default = true,
 ) {
@@ -372,7 +371,7 @@ val mentionAvatarsPatch = patch(
     dependsOn(markdownSettingsPatch)
 
     execute {
-        register(MENTION_AVATARS)
+        register(SHOW_MENTION_AVATARS)
 
         // The size is fixed, so the text does not move when an avatar arrives.
         appendToMarkdownView(
@@ -391,7 +390,7 @@ val mentionAvatarsPatch = patch(
             resourceFile("assets/webview/markdown.js"),
             afterLoad(
                 whileOn(
-                    MENTION_AVATARS,
+                    SHOW_MENTION_AVATARS,
                     """
                     for (const mention of document.querySelectorAll('#content a.user-mention[href]')) {
                       // A person or organization links to /name. Apps and teams have longer paths and no avatar there.

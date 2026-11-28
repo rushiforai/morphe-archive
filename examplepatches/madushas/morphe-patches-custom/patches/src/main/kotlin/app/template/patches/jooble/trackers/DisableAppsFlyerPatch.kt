@@ -1,5 +1,6 @@
 package app.template.patches.jooble.trackers
 
+import app.morphe.patcher.patch.PatchException
 import app.template.patches.shared.requireProgress
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
@@ -25,8 +26,14 @@ val joobleDisableAppsFlyerPatch = bytecodePatch(
     compatibleWith(JOOBLE_COMPATIBILITY)
 
     execute {
+        // Fail closed on a missing class: compat targets are version-pinned, so a Jooble
+        // build we support must contain AppsFlyer. A silent skip would ship a build whose
+        // "Disable trackers" patch did nothing at all.
         val methods = mutableClassDefByOrNull("Lcom/appsflyer/internal/AFa1uSDK;")?.methods
-            ?: return@execute
+            ?: throw PatchException(
+                "Jooble Disable trackers: AppsFlyer class Lcom/appsflyer/internal/AFa1uSDK; " +
+                    "not found — re-audit (fail-closed).",
+            )
         var matched = 0
         var noOped = 0
         for (m in methods) {

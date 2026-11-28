@@ -129,6 +129,26 @@ public final class BackupStreamFinder {
         if (committed != null) {
             // Own threads: a search's slow requests must not hold up the stream already being served.
             StreamSession.Refresh pending = session.refreshes.get(key);
+            // A refresh that came in since the last poll: taken, and the next one started at once (so one is
+            // always on its way: a slow one doesn't halve how often the backup moves on).
+            String earlier = null;
+            String earlierFailure = null; // (a refresh that came back failed: counted, as any failed refresh)
+            if (pending != null && pending.url.equals(committed.url) && pending.future.isDone()) {
+                try {
+                    earlier = pending.future.get();
+                    if (earlier == null) earlierFailure = "refresh failed";
+                } catch (ExecutionException e) {
+                    earlierFailure = "refresh crashed (" + e.getCause() + ")";
+                    problems.report(Problem.PROCESSING_FAILED, "backup refresh: " + e.getCause());
+                } catch (java.util.concurrent.CancellationException cancelled) {
+                    earlier = null;
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return committed;
+                }
+                session.refreshes.remove(key, pending);
+                pending = null;
+            }
             if (pending == null || !pending.url.equals(committed.url)) {
                 String url = committed.url;
                 pending = new StreamSession.Refresh(url, REFRESHES.submit(() -> fetchPlaylist(url)), System.nanoTime());
@@ -139,16 +159,23 @@ public final class BackupStreamFinder {
             try {
                 playlist = pending.future.get(REFRESH_WAIT_MS, TimeUnit.MILLISECONDS);
                 session.refreshes.remove(key, pending);
-                if (playlist == null) failure = "refresh failed";
+                if (playlist == null && earlier != null) playlist = earlier; // (the one that came in meanwhile)
+                else if (playlist == null) failure = "refresh failed";
             } catch (TimeoutException e) {
-                if ((System.nanoTime() - pending.startedAt) / 1_000_000 < REFRESH_TIMEOUT_MS) {
+                if (earlier != null) {
+                    playlist = earlier; // the fresh one is still on its way: the one that came in meanwhile now
+                } else if (earlierFailure != null) {
+                    playlist = null; // the one before failed: that counts now (the fresh one goes on meanwhile)
+                    failure = earlierFailure;
+                } else if ((System.nanoTime() - pending.startedAt) / 1_000_000 < REFRESH_TIMEOUT_MS) {
                     // Still on its way: the backup's last playlist now, the refresh on the next poll.
                     return committed;
+                } else {
+                    pending.future.cancel(true);
+                    session.refreshes.remove(key, pending);
+                    playlist = null;
+                    failure = "too slow to refresh";
                 }
-                pending.future.cancel(true);
-                session.refreshes.remove(key, pending);
-                playlist = null;
-                failure = "too slow to refresh";
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 return committed;

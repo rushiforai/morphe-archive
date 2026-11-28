@@ -62,3 +62,17 @@ object KeyboardSettingsQueryFingerprint : Fingerprint(
     parameters = listOf("Landroid/content/Context;"),
     strings = listOf("high_contrast_keyboard"),
 )
+
+/**
+ * `com.smartthings.smartclient.util.ContextUtil.getCurrentProcessName(Context)` — the single source
+ * of the current process name that `ProcessConfig` reads to decide which process it is running in.
+ * The "Install alongside" patch replaces it so a renamed clone's process names map back to the
+ * original package, so the app's hardcoded process-identity checks still pass. Unobfuscated (bundled
+ * smartclient library); pinned by full descriptor and fails closed on other builds.
+ */
+object GetCurrentProcessNameFingerprint : Fingerprint(
+    definingClass = "Lcom/smartthings/smartclient/util/ContextUtil;",
+    name = "getCurrentProcessName",
+    returnType = "Ljava/lang/String;",
+    parameters = listOf("Landroid/content/Context;"),
+)

@@ -9,6 +9,11 @@ import java.util.Collections;
 import java.util.List;
 
 public final class GboardPatchesSettingsContract {
+    public static final String ROOT_SECTION_KEYBOARD = "keyboard";
+    public static final String ROOT_SECTION_VOICE_INPUT = "voice_input";
+    public static final String ROOT_SECTION_CLIPBOARD_SHARING = "clipboard_sharing";
+    public static final String ROOT_SECTION_SYSTEM = "system";
+
     public interface Feature {
         String getEntryTitle();
 
@@ -44,6 +49,14 @@ public final class GboardPatchesSettingsContract {
 
         default String getEntryTone() {
             return null;
+        }
+
+        default String getRootSectionKey() {
+            return ROOT_SECTION_KEYBOARD;
+        }
+
+        default boolean showRootEntryToggle() {
+            return false;
         }
 
         Screen buildScreen(FeatureHost host);

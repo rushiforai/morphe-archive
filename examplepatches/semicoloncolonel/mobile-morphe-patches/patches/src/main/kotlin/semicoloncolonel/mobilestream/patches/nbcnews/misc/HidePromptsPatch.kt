@@ -1,8 +1,8 @@
 package semicoloncolonel.mobilestream.patches.nbcnews.misc
 
+import semicoloncolonel.mobilestream.patches.shared.misc.isOptionOn
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.patch.bytecodePatch
-import semicoloncolonel.mobilestream.patches.nbcnews.shared.Constants
 import semicoloncolonel.mobilestream.patches.shared.misc.returnEarly
 
 // NBC News 15.0.1 shows Iterate surveys whenever a survey ID is set, and a
@@ -23,14 +23,10 @@ internal object RatingPromptFingerprint : Fingerprint(
     parameters = listOf(),
 )
 
-@Suppress("unused")
-val hidePromptsPatch = bytecodePatch(
-    name = "Hide surveys and rating prompt",
-    description = "Stops the Iterate surveys and the prompt to rate the app.",
-) {
-    compatibleWith(Constants.COMPATIBILITY)
-
+// Part of hidePromptsAndPopupsPatch: runs only when its "surveys" option is on.
+internal val hidePromptsPatch = bytecodePatch {
     execute {
+        if (!isOptionOn(hidePromptsAndPopupsPatch, "surveys")) return@execute
         listOf(SurveyIdFingerprint, RatingPromptFingerprint).forEach {
             it.method.returnEarly("const/4 v0, 0x0\nreturn v0")
         }

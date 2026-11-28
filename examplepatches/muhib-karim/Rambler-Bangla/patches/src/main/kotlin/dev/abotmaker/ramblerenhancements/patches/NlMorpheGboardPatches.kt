@@ -13,9 +13,13 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patcher.util.smali.ExternalLabel
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
@@ -23,9 +27,15 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
 internal const val AMOLED_DARK_BACKGROUND = "0xff000000"
 internal const val AMOLED_DARK_COLOR = -0x1000000
+internal const val SETTINGS_CLASS_TYPE =
+    "Ldev/abotmaker/ramblerenhancements/RamblerEnhancementsSettings;"
+internal const val CLIPBOARD_REORDER_RUNTIME_TYPE =
+    "Ldev/abotmaker/ramblerenhancements/RamblerClipboardReorderRuntime;"
 
 private val AMOLED_SURFACE_TOKENS = listOf(
     "color_gm3_surface_dim",
@@ -37,19 +47,46 @@ private val AMOLED_SURFACE_TOKENS = listOf(
 @Suppress("unused")
 val gboardAmoledDarkKeyboardPatch = bytecodePatch(
     name = "AMOLED Dark Keyboard",
-    description = "Turns Gboard's Material You dark keyboard surfaces pure AMOLED black (#000000) " +
-        "instead of grey while leaving the light theme, accent colors, and key faces unchanged. " +
+    description = "Adds a live Settings toggle (off by default) to turn Gboard's Material You dark " +
+        "keyboard surfaces pure AMOLED black (#000000) while preserving stock dark gray contrast " +
+        "whenever turned off, and leaving the light theme, accent colors, and key faces unchanged. " +
         "Ported from nl-morphe-patches for Gboard 18.5.4.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_GBOARD)
+    dependsOn(
+        ramblerSharedExtensionPatch,
+        ramblerSharedSettingsResourcePatch,
+    )
 
     execute {
+        RamblerPatchStateStore.state(this).selectedFeatures.add(RamblerFeature.AMOLED_DARK_KEYBOARD)
         val targets = resolveAmoledPaletteTargets(this)
         targets.constructor.applyAmoledDarkPalette(
             isLightField = targets.isLightField,
             surfaceFields = targets.surfaceFields,
         )
+    }
+}
+
+@Suppress("unused")
+val gboardClipboardReorderPatch = bytecodePatch(
+    name = "Clipboard Drag-to-Reorder",
+    description = "Enables tap-and-hold drag-to-reorder on Gboard 18.5.4's clipboard grid/list " +
+        "(rearranges within Pinned or Recent and persists across reopens/reboots) while preserving " +
+        "stationary long-press Pin/Delete popup, swipe-to-delete with Undo, and a live Settings toggle.",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_GBOARD)
+    dependsOn(
+        ramblerSharedExtensionPatch,
+        ramblerSharedSettingsResourcePatch,
+    )
+
+    execute {
+        RamblerPatchStateStore.state(this).selectedFeatures.add(RamblerFeature.CLIPBOARD_REORDER)
+        val targets = resolveClipboardTouchCallbackTargets(this)
+        applyClipboardDragReorder(targets)
     }
 }
 
@@ -228,13 +265,22 @@ internal fun MutableMethod.applyAmoledDarkPalette(
     if (scratch < 0) {
         throw PatchException("FAIL-CLOSED: No local register available in $definingClass->$name")
     }
-    // Check that p0 is addressable by 4-bit iget-boolean/iput (paramRegs <= 16 -> p0 <= 15; else move).
+    // Check that p0 is addressable by 4-bit iget-boolean/iput (p0 <= 15; else move).
+    // IMPORTANT: Never read p1 (Context) before return-void — R8 reuses p1 for the int result
+    // of context.getColor(...) right before return-void in Gboard 18.5.4's Lrmt;-><init>, which
+    // triggers an ART VerifyError if p1 is passed as Context. Always use zero-arg
+    // isAmoledDarkKeyboardEnabled()Z instead.
     val p0RegIndex = localCount
     val returnIndex = returns.single()
     val snippet = if (p0RegIndex <= 15) {
         buildString {
             appendLine("iget-boolean v$scratch, p0, $isLightField")
             appendLine("if-nez v$scratch, :amoled_dark_surface_done")
+            appendLine(
+                "invoke-static {}, $SETTINGS_CLASS_TYPE->isAmoledDarkKeyboardEnabled()Z",
+            )
+            appendLine("move-result v$scratch")
+            appendLine("if-eqz v$scratch, :amoled_dark_surface_done")
             appendLine("const/high16 v$scratch, $AMOLED_DARK_BACKGROUND")
             surfaceFields.forEach { appendLine("iput v$scratch, p0, $it") }
         }
@@ -246,6 +292,11 @@ internal fun MutableMethod.applyAmoledDarkPalette(
             appendLine("move-object/from16 v0, p0")
             appendLine("iget-boolean v1, v0, $isLightField")
             appendLine("if-nez v1, :amoled_dark_surface_done")
+            appendLine(
+                "invoke-static {}, $SETTINGS_CLASS_TYPE->isAmoledDarkKeyboardEnabled()Z",
+            )
+            appendLine("move-result v1")
+            appendLine("if-eqz v1, :amoled_dark_surface_done")
             appendLine("const/high16 v1, $AMOLED_DARK_BACKGROUND")
             surfaceFields.forEach { appendLine("iput v1, v0, $it") }
         }
@@ -255,4 +306,355 @@ internal fun MutableMethod.applyAmoledDarkPalette(
         snippet,
         ExternalLabel("amoled_dark_surface_done", getInstruction(returnIndex)),
     )
+}
+
+internal data class ClipboardTouchCallbackTargets(
+    val callbackClass: MutableClass,
+    val superClass: String,
+    val adapterFieldRef: String,
+    val recyclerViewType: String,
+    val viewHolderType: String,
+    val getMovementFlagsMethod: MutableMethod,
+    val onChildDrawMethod: MutableMethod,
+    val isLongPressDragMethod: MutableMethod,
+    val onMoveMethod: MutableMethod,
+    val clearViewMethodName: String,
+    val onSelectedChangedMethodName: String,
+)
+
+internal fun resolveClipboardTouchCallbackTargets(
+    context: BytecodePatchContext,
+): ClipboardTouchCallbackTargets {
+    val classesByType = hashMapOf<String, ClassDef>()
+    var adapterClassType: String? = null
+    context.classDefForEach { cls ->
+        classesByType[cls.type] = cls
+        val hasTag = cls.methods.any { m ->
+            m.implementation?.instructions?.any { insn ->
+                ((insn as? ReferenceInstruction)?.reference as? StringReference)?.string ==
+                    "com/google/android/apps/inputmethod/libs/clipboard/ClipboardAdapter"
+            } == true
+        }
+        if (hasTag) {
+            if (adapterClassType != null && adapterClassType != cls.type) {
+                throw PatchException(
+                    "FAIL-CLOSED: Multiple ClipboardAdapter classes found: $adapterClassType and ${cls.type}",
+                )
+            }
+            adapterClassType = cls.type
+        }
+    }
+    val resolvedAdapterType = adapterClassType
+        ?: throw PatchException("FAIL-CLOSED: Could not find Gboard ClipboardAdapter class")
+
+    val callbackCandidates = classesByType.values.filter { cls ->
+        cls.instanceFields.any { it.type == resolvedAdapterType } &&
+            cls.methods.any { m ->
+                m.returnType == "V" &&
+                    m.parameterTypes.size == 7 &&
+                    m.parameterTypes[0].toString() == "Landroid/graphics/Canvas;" &&
+                    m.parameterTypes[3].toString() == "F" &&
+                    m.parameterTypes[4].toString() == "F" &&
+                    m.parameterTypes[5].toString() == "I" &&
+                    m.parameterTypes[6].toString() == "Z"
+            }
+    }
+    val callbackDef = callbackCandidates.singleOrNull()
+        ?: throw PatchException(
+            "FAIL-CLOSED: Expected 1 Clipboard ItemTouchHelper.Callback class referencing " +
+                "$resolvedAdapterType, found ${callbackCandidates.size}",
+        )
+
+    val superType = callbackDef.superclass
+        ?: throw PatchException("FAIL-CLOSED: Clipboard callback ${callbackDef.type} has no superclass")
+    val adapterField = callbackDef.instanceFields.singleOrNull { it.type == resolvedAdapterType }
+        ?: throw PatchException(
+            "FAIL-CLOSED: Expected 1 $resolvedAdapterType field on ${callbackDef.type}",
+        )
+    val onChildDrawDef = callbackDef.methods.single { m ->
+        m.returnType == "V" &&
+            m.parameterTypes.size == 7 &&
+            m.parameterTypes[0].toString() == "Landroid/graphics/Canvas;" &&
+            m.parameterTypes[3].toString() == "F" &&
+            m.parameterTypes[4].toString() == "F" &&
+            m.parameterTypes[5].toString() == "I" &&
+            m.parameterTypes[6].toString() == "Z"
+    }
+    val recyclerType = onChildDrawDef.parameterTypes[1].toString()
+    val holderType = onChildDrawDef.parameterTypes[2].toString()
+
+    // Walk up ItemTouchHelper.Callback hierarchy (fqi -> ma -> lw) to resolve clearView & onSelectedChanged.
+    var baseDef: ClassDef? = classesByType[superType]
+    var clearViewName: String? = null
+    var onSelectedName: String? = null
+    while (baseDef != null && baseDef.type != "Ljava/lang/Object;") {
+        if (clearViewName == null) {
+            clearViewName = baseDef.methods.singleOrNull { m ->
+                m.returnType == "V" &&
+                    m.parameterTypes.map { it.toString() } == listOf(recyclerType, holderType)
+            }?.name
+        }
+        if (onSelectedName == null) {
+            onSelectedName = baseDef.methods.singleOrNull { m ->
+                m.returnType == "V" &&
+                    m.parameterTypes.map { it.toString() } == listOf(holderType, "I")
+            }?.name
+        }
+        if (clearViewName != null && onSelectedName != null) break
+        baseDef = baseDef.superclass?.let { classesByType[it] }
+    }
+    if (clearViewName == null || onSelectedName == null) {
+        throw PatchException(
+            "FAIL-CLOSED: Could not resolve ItemTouchHelper.Callback clearView ($clearViewName) / " +
+                "onSelectedChanged ($onSelectedName) above $superType",
+        )
+    }
+
+    val mutableCallback = context.mutableClassDefBy(callbackDef.type)
+    val getMovementFlags = mutableCallback.methods.singleOrNull { m ->
+        m.returnType == "I" &&
+            m.parameterTypes.map { it.toString() } == listOf(recyclerType, holderType)
+    } ?: throw PatchException("FAIL-CLOSED: Missing getMovementFlags on ${callbackDef.type}")
+    val onChildDraw = mutableCallback.methods.single { m ->
+        m.name == onChildDrawDef.name && m.parameterTypes.size == 7 && m.returnType == "V"
+    }
+    val isLongPressDrag = mutableCallback.methods.singleOrNull { m ->
+        m.returnType == "Z" && m.parameterTypes.isEmpty()
+    } ?: throw PatchException("FAIL-CLOSED: Missing isLongPressDragEnabled on ${callbackDef.type}")
+    val onMove = mutableCallback.methods.singleOrNull { m ->
+        m.returnType == "Z" &&
+            m.parameterTypes.map { it.toString() } == listOf(recyclerType, holderType, holderType)
+    } ?: throw PatchException("FAIL-CLOSED: Missing onMove on ${callbackDef.type}")
+
+    return ClipboardTouchCallbackTargets(
+        callbackClass = mutableCallback,
+        superClass = superType,
+        adapterFieldRef = "${callbackDef.type}->${adapterField.name}:$resolvedAdapterType",
+        recyclerViewType = recyclerType,
+        viewHolderType = holderType,
+        getMovementFlagsMethod = getMovementFlags,
+        onChildDrawMethod = onChildDraw,
+        isLongPressDragMethod = isLongPressDrag,
+        onMoveMethod = onMove,
+        clearViewMethodName = clearViewName,
+        onSelectedChangedMethodName = onSelectedName,
+    )
+}
+
+internal fun applyClipboardDragReorder(targets: ClipboardTouchCallbackTargets) {
+    val owner = targets.callbackClass
+    val stockMoveHelper = "ramblerStockMovementFlags"
+    val stockDrawHelper = "ramblerStockOnChildDraw"
+    if (owner.methods.any { it.name == stockMoveHelper }) {
+        return
+    }
+    val rv = targets.recyclerViewType
+    val vh = targets.viewHolderType
+    val adapterField = targets.adapterFieldRef
+    val superCls = targets.superClass
+    val publicFinal = AccessFlags.PUBLIC.value or AccessFlags.FINAL.value
+    val privateFinal = AccessFlags.PRIVATE.value or AccessFlags.FINAL.value
+
+    // 1. Wrap getMovementFlags(RecyclerView, ViewHolder)I
+    val origMoveFlags = targets.getMovementFlagsMethod
+    owner.methods.add(
+        ImmutableMethod(
+            owner.type,
+            stockMoveHelper,
+            origMoveFlags.parameters,
+            origMoveFlags.returnType,
+            privateFinal,
+            origMoveFlags.annotations,
+            origMoveFlags.hiddenApiRestrictions,
+            origMoveFlags.implementation,
+        ).toMutable(),
+    )
+    owner.methods.remove(origMoveFlags)
+    val wrappedMoveFlags = ImmutableMethod(
+        owner.type,
+        origMoveFlags.name,
+        listOf(
+            ImmutableMethodParameter(rv, emptySet(), null),
+            ImmutableMethodParameter(vh, emptySet(), null),
+        ),
+        "I",
+        publicFinal,
+        emptySet(),
+        emptySet(),
+        MutableMethodImplementation(5),
+    ).toMutable()
+    wrappedMoveFlags.addInstructionsWithLabels(
+        0,
+        """
+        invoke-direct {p0, p1, p2}, ${owner.type}->$stockMoveHelper($rv$vh)I
+        move-result v0
+        iget-object v1, p0, $adapterField
+        invoke-static {v1, p2, v0}, $CLIPBOARD_REORDER_RUNTIME_TYPE->computeMovementFlags(Ljava/lang/Object;Ljava/lang/Object;I)I
+        move-result v0
+        return v0
+        """.trimIndent(),
+    )
+    owner.methods.add(wrappedMoveFlags)
+
+    // 2. Replace isLongPressDragEnabled()Z
+    val origLongPress = targets.isLongPressDragMethod
+    owner.methods.remove(origLongPress)
+    val patchedLongPress = ImmutableMethod(
+        owner.type,
+        origLongPress.name,
+        emptyList(),
+        "Z",
+        publicFinal,
+        emptySet(),
+        emptySet(),
+        MutableMethodImplementation(2),
+    ).toMutable()
+    patchedLongPress.addInstructionsWithLabels(
+        0,
+        """
+        iget-object v0, p0, $adapterField
+        invoke-static {v0}, $CLIPBOARD_REORDER_RUNTIME_TYPE->isLongPressDragEnabled(Ljava/lang/Object;)Z
+        move-result v0
+        return v0
+        """.trimIndent(),
+    )
+    owner.methods.add(patchedLongPress)
+
+    // 3. Replace onMove(RecyclerView, ViewHolder, ViewHolder)Z
+    val origOnMove = targets.onMoveMethod
+    owner.methods.remove(origOnMove)
+    val patchedOnMove = ImmutableMethod(
+        owner.type,
+        origOnMove.name,
+        listOf(
+            ImmutableMethodParameter(rv, emptySet(), null),
+            ImmutableMethodParameter(vh, emptySet(), null),
+            ImmutableMethodParameter(vh, emptySet(), null),
+        ),
+        "Z",
+        publicFinal,
+        emptySet(),
+        emptySet(),
+        MutableMethodImplementation(5),
+    ).toMutable()
+    patchedOnMove.addInstructionsWithLabels(
+        0,
+        """
+        iget-object v0, p0, $adapterField
+        invoke-static {v0, p1, p2, p3}, $CLIPBOARD_REORDER_RUNTIME_TYPE->onMove(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Z
+        move-result v0
+        return v0
+        """.trimIndent(),
+    )
+    owner.methods.add(patchedOnMove)
+
+    // 4. Wrap onChildDraw(Canvas, RecyclerView, ViewHolder, F, F, I, Z)V so drag keeps opacity
+    //    instead of applying horizontal swipe-to-delete alpha fade.
+    val origDraw = targets.onChildDrawMethod
+    owner.methods.add(
+        ImmutableMethod(
+            owner.type,
+            stockDrawHelper,
+            origDraw.parameters,
+            origDraw.returnType,
+            privateFinal,
+            origDraw.annotations,
+            origDraw.hiddenApiRestrictions,
+            origDraw.implementation,
+        ).toMutable(),
+    )
+    owner.methods.remove(origDraw)
+    val wrappedDraw = ImmutableMethod(
+        owner.type,
+        origDraw.name,
+        listOf(
+            ImmutableMethodParameter("Landroid/graphics/Canvas;", emptySet(), null),
+            ImmutableMethodParameter(rv, emptySet(), null),
+            ImmutableMethodParameter(vh, emptySet(), null),
+            ImmutableMethodParameter("F", emptySet(), null),
+            ImmutableMethodParameter("F", emptySet(), null),
+            ImmutableMethodParameter("I", emptySet(), null),
+            ImmutableMethodParameter("Z", emptySet(), null),
+        ),
+        "V",
+        publicFinal,
+        emptySet(),
+        emptySet(),
+        MutableMethodImplementation(10),
+    ).toMutable()
+    wrappedDraw.addInstructionsWithLabels(
+        0,
+        """
+        const/4 v0, 0x2
+        if-ne p6, v0, :rambler_stock_draw
+        invoke-super/range {p0 .. p7}, $superCls->${origDraw.name}(Landroid/graphics/Canvas;$rv${vh}FFIZ)V
+        iget-object v0, p0, $adapterField
+        invoke-static {v0, p3, p4, p5}, $CLIPBOARD_REORDER_RUNTIME_TYPE->onDragDraw(Ljava/lang/Object;Ljava/lang/Object;FF)V
+        return-void
+        :rambler_stock_draw
+        invoke-direct/range {p0 .. p7}, ${owner.type}->$stockDrawHelper(Landroid/graphics/Canvas;$rv${vh}FFIZ)V
+        return-void
+        """.trimIndent(),
+    )
+    owner.methods.add(wrappedDraw)
+
+    // 5. Override onSelectedChanged(ViewHolder, I)V
+    owner.methods.removeAll {
+        it.name == targets.onSelectedChangedMethodName &&
+            it.parameterTypes.map { p -> p.toString() } == listOf(vh, "I") &&
+            it.returnType == "V"
+    }
+    val onSelected = ImmutableMethod(
+        owner.type,
+        targets.onSelectedChangedMethodName,
+        listOf(
+            ImmutableMethodParameter(vh, emptySet(), null),
+            ImmutableMethodParameter("I", emptySet(), null),
+        ),
+        "V",
+        publicFinal,
+        emptySet(),
+        emptySet(),
+        MutableMethodImplementation(4),
+    ).toMutable()
+    onSelected.addInstructionsWithLabels(
+        0,
+        """
+        invoke-super {p0, p1, p2}, $superCls->${targets.onSelectedChangedMethodName}(${vh}I)V
+        iget-object v0, p0, $adapterField
+        invoke-static {v0, p1, p2}, $CLIPBOARD_REORDER_RUNTIME_TYPE->onSelectedChanged(Ljava/lang/Object;Ljava/lang/Object;I)V
+        return-void
+        """.trimIndent(),
+    )
+    owner.methods.add(onSelected)
+
+    // 6. Override clearView(RecyclerView, ViewHolder)V
+    owner.methods.removeAll {
+        it.name == targets.clearViewMethodName &&
+            it.parameterTypes.map { p -> p.toString() } == listOf(rv, vh) &&
+            it.returnType == "V"
+    }
+    val clearView = ImmutableMethod(
+        owner.type,
+        targets.clearViewMethodName,
+        listOf(
+            ImmutableMethodParameter(rv, emptySet(), null),
+            ImmutableMethodParameter(vh, emptySet(), null),
+        ),
+        "V",
+        publicFinal,
+        emptySet(),
+        emptySet(),
+        MutableMethodImplementation(4),
+    ).toMutable()
+    clearView.addInstructionsWithLabels(
+        0,
+        """
+        invoke-super {p0, p1, p2}, $superCls->${targets.clearViewMethodName}($rv$vh)V
+        iget-object v0, p0, $adapterField
+        invoke-static {v0, p1, p2}, $CLIPBOARD_REORDER_RUNTIME_TYPE->onClearView(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
+        return-void
+        """.trimIndent(),
+    )
+    owner.methods.add(clearView)
 }

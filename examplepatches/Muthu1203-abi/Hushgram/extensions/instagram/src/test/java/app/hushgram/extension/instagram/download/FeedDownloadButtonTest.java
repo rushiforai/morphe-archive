@@ -1,0 +1,996 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.hushgram.extension.instagram.download;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+
+import android.app.Activity;
+import android.content.Context;
+import android.content.ContextWrapper;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Rect;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
+import android.os.LocaleList;
+import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.PopupMenu;
+import android.widget.RelativeLayout;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.Shadows;
+import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowPopupMenu;
+
+import kotlin.jvm.functions.Function1;
+
+import app.hushgram.extension.instagram.settings.Settings;
+import app.hushgram.extension.shared.SettingsContextRule;
+import app.hushgram.extension.shared.Utils;
+import app.hushgram.extension.shared.diagnostics.HookStatus;
+import app.hushgram.extension.shared.settings.BaseSettings;
+import app.hushgram.extension.shared.settings.HushgramPause;
+import app.hushgram.extension.shared.settings.PauseForTests;
+
+/**
+ * Download button on feed posts (#97): where the icon goes in the row that holds Save, that it
+ * follows its switch, and that a tap reaches the same save the post's menu uses.
+ */
+@RunWith(RobolectricTestRunner.class)
+@Config(sdk = {28, 37})
+public class FeedDownloadButtonTest {
+    @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
+
+    private final FeedDownloadButton.Actions original = FeedDownloadButton.actions;
+    private final FeedDownloadButton.Litho originalLitho = FeedDownloadButton.litho;
+    private final Recorder recorder = new Recorder();
+    private Activity activity;
+
+    @Before
+    public void setUp() {
+        activity = Robolectric.buildActivity(Activity.class).setup().get();
+        FeedDownloadButton.actions = recorder;
+        FeedDownloadButton.resetForTests();
+        Settings.DOWNLOAD_VIDEOS.save(true);
+        Settings.FEED_DOWNLOAD_BUTTON.save(true);
+    }
+
+    @After
+    public void tearDown() {
+        FeedDownloadButton.actions = original;
+        FeedDownloadButton.resetForTests();
+        Settings.FEED_DOWNLOAD_ALL_PAGES.resetToDefault();
+        Settings.FEED_DOWNLOAD_BUTTON.resetToDefault();
+        Settings.DOWNLOAD_VIDEOS.resetToDefault();
+        Settings.DOWNLOAD_PHOTOS.resetToDefault();
+        Settings.DOWNLOAD_CHOOSE_PAGES.resetToDefault();
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+        HookStatus.clear();
+    }
+
+    /** The calls a tap makes, the carousel pages the post answers with, and the posts the switches leave nothing to save on. */
+    private static final class Recorder implements FeedDownloadButton.Actions {
+        final List<String> calls = new ArrayList<>();
+        final Set<Object> switchedOff = new HashSet<>();
+        List<?> pages;
+        boolean saves = true;
+        Runnable page;
+        Runnable all;
+        Runnable some;
+
+        @Override public boolean saves(Object post) {
+            return !switchedOff.contains(post);
+        }
+
+        @Override public List<?> pages(Object post) {
+            return pages;
+        }
+
+        @Override public boolean save(Object post, Object itemState, Activity activity) {
+            calls.add("save " + post + " " + itemState);
+            return saves;
+        }
+
+        @Override public void saveAll(Object post, Activity activity) {
+            calls.add("saveAll " + post);
+        }
+
+        @Override public void choose(View anchor, Runnable page, Runnable all) {
+            choose(anchor, page, all, null);
+        }
+
+        @Override public void choose(View anchor, Runnable page, Runnable all, Runnable some) {
+            calls.add("choose");
+            this.page = page;
+            this.all = all;
+            this.some = some;
+        }
+
+        @Override public void choosePages(Object post, Activity activity) {
+            calls.add("choosePages " + post + " " + activity);
+        }
+
+        final Set<Object> music = new HashSet<>();
+        Runnable video;
+        Runnable photo;
+
+        @Override public boolean music(Object post, Object itemState) {
+            return music.contains(post);
+        }
+
+        @Override public boolean saveAsVideo(Object post, Object itemState, Activity activity) {
+            calls.add("video " + post + " " + itemState);
+            return saves;
+        }
+
+        @Override public void chooseMusic(View anchor, Runnable video, Runnable photo) {
+            calls.add("music");
+            this.video = video;
+            this.photo = photo;
+        }
+
+        @Override public void nothing(Context context) {
+            calls.add("nothing");
+        }
+    }
+
+    private ImageView save(Context context) {
+        ImageView save = new ImageView(context);
+        save.setId(0x7f0b370e);
+        save.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        save.setPaddingRelative(6, 7, 8, 9);
+        return save;
+    }
+
+    /** Like, Comment, a stretching spacer, Save: the left buttons, then the right one. */
+    private LinearLayout linearRow(ImageView save) {
+        LinearLayout row = new LinearLayout(activity);
+        row.addView(new View(activity), new LinearLayout.LayoutParams(40, 40));
+        row.addView(new View(activity), new LinearLayout.LayoutParams(40, 40));
+        row.addView(new View(activity), new LinearLayout.LayoutParams(0, 40, 1f));
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(60, 44);
+        params.gravity = Gravity.BOTTOM;
+        params.topMargin = 3;
+        params.bottomMargin = 5;
+        row.addView(save, params);
+        return row;
+    }
+
+    private static ImageView buttonOf(ViewGroup row) {
+        ImageView found = FeedDownloadButton.existing(row);
+        assertNotNull("the row has no download button", found);
+        return found;
+    }
+
+    @Test
+    public void theSwitchStartsOffAndWaitsForTheVideoOrThePhotoSwitch() {
+        Settings.FEED_DOWNLOAD_BUTTON.resetToDefault();
+        assertFalse(Settings.FEED_DOWNLOAD_BUTTON.get());
+        assertEquals("hushgram_feed_download_button", Settings.FEED_DOWNLOAD_BUTTON.key);
+        Settings.DOWNLOAD_VIDEOS.save(false);
+        Settings.DOWNLOAD_PHOTOS.save(false);
+        assertFalse(Settings.FEED_DOWNLOAD_BUTTON.isAvailable());
+        Settings.DOWNLOAD_PHOTOS.save(true);
+        assertTrue("the photo switch alone is enough", Settings.FEED_DOWNLOAD_BUTTON.isAvailable());
+        Settings.DOWNLOAD_PHOTOS.save(false);
+        Settings.DOWNLOAD_VIDEOS.save(true);
+        assertTrue("the video switch alone is enough", Settings.FEED_DOWNLOAD_BUTTON.isAvailable());
+    }
+
+    @Test
+    public void switchedOffTheRowIsInstagramsOwn() {
+        Settings.FEED_DOWNLOAD_BUTTON.save(false);
+        ImageView save = save(activity);
+        LinearLayout row = linearRow(save);
+        FeedDownloadButton.bind(save, "post", "state", activity);
+        assertEquals(4, row.getChildCount());
+        assertNull(FeedDownloadButton.existing(row));
+    }
+
+    @Test
+    public void aLinearRowGetsTheIconJustLeftOfSaveWithSavesSizeAndPadding() {
+        ImageView save = save(activity);
+        LinearLayout row = linearRow(save);
+        FeedDownloadButton.bind(save, "post", "state", activity);
+
+        assertEquals(5, row.getChildCount());
+        ImageView button = buttonOf(row);
+        assertEquals("just before Save", row.indexOfChild(save) - 1, row.indexOfChild(button));
+        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) button.getLayoutParams();
+        assertEquals(60, params.width);
+        assertEquals(44, params.height);
+        assertEquals(0f, params.weight, 0f);
+        assertEquals(Gravity.BOTTOM, params.gravity);
+        assertEquals(3, params.topMargin);
+        assertEquals(5, params.bottomMargin);
+        assertEquals(6, button.getPaddingStart());
+        assertEquals(7, button.getPaddingTop());
+        assertEquals(8, button.getPaddingEnd());
+        assertEquals(9, button.getPaddingBottom());
+        assertEquals(ImageView.ScaleType.FIT_CENTER, button.getScaleType());
+        assertEquals("Download", String.valueOf(button.getContentDescription()));
+        assertTrue(button.isClickable());
+        assertEquals(View.VISIBLE, button.getVisibility());
+        assertTrue(button.getDrawable() instanceof FeedDownloadButton.Glyph);
+    }
+
+    @Test
+    public void bindingAgainReusesTheIconAndPointsItAtTheNewPost() {
+        ImageView save = save(activity);
+        LinearLayout row = linearRow(save);
+        FeedDownloadButton.bind(save, "first", "stateA", activity);
+        ImageView button = buttonOf(row);
+        FeedDownloadButton.bind(save, "second", "stateB", activity);
+        assertEquals(5, row.getChildCount());
+        assertSame(button, buttonOf(row));
+        button.performClick();
+        assertEquals(Collections.singletonList("save second stateB"), recorder.calls);
+    }
+
+    @Test
+    public void aRowSavesAndAWidthOfZeroOrAStretchBecomesWrapContent() {
+        ImageView save = save(activity);
+        LinearLayout row = new LinearLayout(activity);
+        row.addView(save, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f));
+        FeedDownloadButton.bind(save, "post", "state", activity);
+        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) buttonOf(row).getLayoutParams();
+        assertEquals(ViewGroup.LayoutParams.WRAP_CONTENT, params.width);
+        assertEquals(ViewGroup.LayoutParams.WRAP_CONTENT, params.height);
+        assertEquals(0f, params.weight, 0f);
+    }
+
+    @Test
+    public void aRelativeRowPlacesItStartOfSaveAndOnSavesLine() {
+        ImageView save = save(activity);
+        RelativeLayout row = new RelativeLayout(activity);
+        RelativeLayout.LayoutParams saveParams = new RelativeLayout.LayoutParams(60, 44);
+        saveParams.addRule(RelativeLayout.ALIGN_PARENT_END);
+        saveParams.addRule(RelativeLayout.CENTER_VERTICAL);
+        row.addView(save, saveParams);
+        FeedDownloadButton.bind(save, "post", "state", activity);
+
+        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) buttonOf(row).getLayoutParams();
+        params.resolveLayoutDirection(View.LAYOUT_DIRECTION_LTR);
+        assertEquals(save.getId(), params.getRule(RelativeLayout.LEFT_OF));
+        assertEquals("on Save's line", RelativeLayout.TRUE, params.getRule(RelativeLayout.CENTER_VERTICAL));
+        assertEquals("not at the end of the row", 0, params.getRule(RelativeLayout.ALIGN_PARENT_RIGHT));
+    }
+
+    @Test
+    public void aFrameRowShiftsItInByThePlaceSaveTakes() {
+        ImageView save = save(activity);
+        FrameLayout row = new FrameLayout(activity);
+        FrameLayout.LayoutParams saveParams = new FrameLayout.LayoutParams(60, 44, Gravity.END | Gravity.CENTER_VERTICAL);
+        saveParams.setMarginEnd(10);
+        row.addView(save, saveParams);
+        FeedDownloadButton.bind(save, "post", "state", activity);
+
+        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) buttonOf(row).getLayoutParams();
+        assertEquals(Gravity.END | Gravity.CENTER_VERTICAL, params.gravity);
+        assertEquals("Save's end margin, its width and a gap", 10 + 60 + FeedDownloadButtonTest.gap(activity), params.getMarginEnd());
+    }
+
+    private static int gap(Context context) {
+        return Math.round(4 * context.getResources().getDisplayMetrics().density);
+    }
+
+    @Test
+    public void theSwitchTurnedOffOrAPauseHidesItAndBackOnShowsItAgain() {
+        ImageView save = save(activity);
+        LinearLayout row = linearRow(save);
+        FeedDownloadButton.bind(save, "post", "state", activity);
+        ImageView button = buttonOf(row);
+
+        Settings.FEED_DOWNLOAD_BUTTON.save(false);
+        FeedDownloadButton.bind(save, "post", "state", activity);
+        assertEquals(View.GONE, button.getVisibility());
+
+        Settings.FEED_DOWNLOAD_BUTTON.save(true);
+        FeedDownloadButton.bind(save, "post", "state", activity);
+        assertEquals(View.VISIBLE, button.getVisibility());
+
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        FeedDownloadButton.bind(save, "post", "state", activity);
+        assertEquals("paused", View.GONE, button.getVisibility());
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+
+        Settings.DOWNLOAD_VIDEOS.save(false);
+        FeedDownloadButton.bind(save, "post", "state", activity);
+        assertEquals("nothing a tap could save", View.GONE, button.getVisibility());
+        Settings.DOWNLOAD_PHOTOS.save(true);
+        FeedDownloadButton.bind(save, "post", "state", activity);
+        assertEquals("photos alone", View.VISIBLE, button.getVisibility());
+    }
+
+    /**
+     * #840: a row icon mounted without Litho's centering matrix gets its whole box, and Instagram's
+     * glyph stretched to fill it. The boxes are Share's and Save's in the S25's row (68 px glyphs):
+     * the glyph keeps its 68 px in the middle of each.
+     */
+    @Test
+    public void aRowIconInABiggerBoxKeepsTheGlyphAtItsOwnSizeInTheMiddle() {
+        Drawable icon = sized(68, 68);
+        assertEquals("Share's box, the glyph's width and the row's height",
+                new Rect(639, 1747, 707, 1815), FeedDownloadButton.iconBounds(icon, new Rect(639, 1717, 707, 1846), 1));
+        assertEquals("Save's box", new Rect(978, 1742, 1046, 1810), FeedDownloadButton.iconBounds(icon, new Rect(950, 1717, 1074, 1835), 1));
+        assertEquals("narrower than the glyph, taller too", new Rect(0, 16, 40, 84), FeedDownloadButton.iconBounds(icon, new Rect(0, 0, 40, 100), 1));
+    }
+
+    @Test
+    public void aRowIconThatFitsItsBoxOrIsNoRowIconKeepsTheBoxItGot() {
+        Drawable icon = sized(68, 68);
+        Rect matrixed = new Rect(0, 0, 68, 68);
+        assertSame("drawn at its size through Litho's matrix", matrixed, FeedDownloadButton.iconBounds(icon, matrixed, 1));
+        Rect smaller = new Rect(0, 0, 40, 40);
+        assertSame("a box smaller than the glyph", smaller, FeedDownloadButton.iconBounds(icon, smaller, 1));
+        Rect box = new Rect(950, 1717, 1074, 1835);
+        assertSame("another drawable of the class", box, FeedDownloadButton.iconBounds(icon, box, 0));
+        assertSame("a glyph with no size of its own", box, FeedDownloadButton.iconBounds(sized(-1, -1), box, 1));
+        assertNull(FeedDownloadButton.iconBounds(icon, null, 1));
+
+        Settings.FEED_DOWNLOAD_BUTTON.save(false);
+        assertSame("the switch off", box, FeedDownloadButton.iconBounds(icon, box, 1));
+        Settings.FEED_DOWNLOAD_BUTTON.save(true);
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        assertSame("paused", box, FeedDownloadButton.iconBounds(icon, box, 1));
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+        assertEquals("back on", new Rect(978, 1742, 1046, 1810), FeedDownloadButton.iconBounds(icon, box, 1));
+    }
+
+    /** A drawable of [width] by [height] pixels, or of no size of its own for -1. */
+    private static Drawable sized(int width, int height) {
+        return new ColorDrawable(0xFF000000) {
+            @Override public int getIntrinsicWidth() {
+                return width;
+            }
+
+            @Override public int getIntrinsicHeight() {
+                return height;
+            }
+        };
+    }
+
+    @Test
+    public void aTapOnAPlainPostSavesItAndSaysWhenThereIsNothing() {
+        ImageView save = save(activity);
+        LinearLayout row = linearRow(save);
+        FeedDownloadButton.bind(save, "post", "state", activity);
+        buttonOf(row).performClick();
+        assertEquals(Collections.singletonList("save post state"), recorder.calls);
+
+        recorder.calls.clear();
+        recorder.saves = false;
+        buttonOf(row).performClick();
+        assertEquals(Arrays.asList("save post state", "nothing"), recorder.calls);
+    }
+
+    @Test
+    public void aTapOnACarouselAsksAndEachChoiceGoesToItsSave() {
+        recorder.pages = Arrays.asList("one", "two", "three");
+        ImageView save = save(activity);
+        LinearLayout row = linearRow(save);
+        FeedDownloadButton.bind(save, "post", "state", activity);
+        buttonOf(row).performClick();
+        assertEquals(Collections.singletonList("choose"), recorder.calls);
+
+        recorder.page.run();
+        assertEquals(Arrays.asList("choose", "save post state"), recorder.calls);
+        recorder.all.run();
+        assertEquals(Arrays.asList("choose", "save post state", "saveAll post"), recorder.calls);
+        assertNull("Choose carousel pages is off, so there's no third answer", recorder.some);
+    }
+
+    /** With Choose carousel pages on, the question has a third answer, which opens the list of the post's pages over its screen. */
+    @Test
+    public void chooseCarouselPagesAddsAThirdAnswerThatOpensTheList() {
+        Settings.DOWNLOAD_CHOOSE_PAGES.save(true);
+        recorder.pages = Arrays.asList("one", "two", "three");
+        ImageView save = save(activity);
+        LinearLayout row = linearRow(save);
+        FeedDownloadButton.bind(save, "post", "state", activity);
+        buttonOf(row).performClick();
+        assertEquals(Collections.singletonList("choose"), recorder.calls);
+        assertNotNull(recorder.some);
+        recorder.some.run();
+        assertEquals(Arrays.asList("choose", "choosePages post " + activity), recorder.calls);
+
+        recorder.calls.clear();
+        recorder.some = null;
+        Settings.DOWNLOAD_VIDEOS.save(false);
+        Settings.DOWNLOAD_PHOTOS.save(true);
+        buttonOf(row).performClick();
+        assertEquals(Collections.singletonList("choose"), recorder.calls);
+        assertNotNull("the photo switch alone is enough", recorder.some);
+    }
+
+    /** The real question: Download and Save all, and Choose pages third only when there's an answer for it. */
+    @Test
+    public void theQuestionListsChoosePagesOnlyWithItsAnswer() {
+        List<String> ran = new ArrayList<>();
+        View anchor = new View(activity);
+        activity.setContentView(anchor);
+        original.choose(anchor, () -> ran.add("page"), () -> ran.add("all"));
+        PopupMenu two = ShadowPopupMenu.getLatestPopupMenu();
+        assertEquals(2, two.getMenu().size());
+        Shadows.shadowOf(two).getOnMenuItemClickListener().onMenuItemClick(two.getMenu().getItem(1));
+
+        original.choose(anchor, () -> ran.add("page"), () -> ran.add("all"), () -> ran.add("some"));
+        PopupMenu three = ShadowPopupMenu.getLatestPopupMenu();
+        assertEquals(3, three.getMenu().size());
+        assertEquals("Choose pages", three.getMenu().getItem(2).getTitle().toString());
+        PopupMenu.OnMenuItemClickListener clicks = Shadows.shadowOf(three).getOnMenuItemClickListener();
+        clicks.onMenuItemClick(three.getMenu().getItem(2));
+        clicks.onMenuItemClick(three.getMenu().getItem(0));
+        clicks.onMenuItemClick(three.getMenu().getItem(1));
+        assertEquals(Arrays.asList("all", "some", "page", "all"), ran);
+    }
+
+    /**
+     * #71: a photo with music asks Download as video or Download as photo, each going to its own
+     * save, and a video that can't start says so. A photo without music saves on the tap.
+     */
+    @Test
+    public void aTapOnAPhotoWithMusicAsksVideoOrPhoto() {
+        recorder.music.add("post");
+        ImageView save = save(activity);
+        LinearLayout row = linearRow(save);
+        FeedDownloadButton.bind(save, "post", "state", activity);
+        buttonOf(row).performClick();
+        assertEquals(Collections.singletonList("music"), recorder.calls);
+
+        recorder.video.run();
+        assertEquals(Arrays.asList("music", "video post state"), recorder.calls);
+        recorder.photo.run();
+        assertEquals(Arrays.asList("music", "video post state", "save post state"), recorder.calls);
+
+        recorder.calls.clear();
+        recorder.saves = false;
+        recorder.video.run();
+        assertEquals(Arrays.asList("video post state", "nothing"), recorder.calls);
+
+        recorder.calls.clear();
+        recorder.saves = true;
+        recorder.music.clear();
+        buttonOf(row).performClick();
+        assertEquals("no music, no question", Collections.singletonList("save post state"), recorder.calls);
+    }
+
+    /** #71: on a carousel, Download on a page with music asks the same question next. */
+    @Test
+    public void aCarouselPageWithMusicAsksAfterDownload() {
+        recorder.pages = Arrays.asList("one", "two", "three");
+        recorder.music.add("post");
+        ImageView save = save(activity);
+        LinearLayout row = linearRow(save);
+        FeedDownloadButton.bind(save, "post", "state", activity);
+        buttonOf(row).performClick();
+        assertEquals(Collections.singletonList("choose"), recorder.calls);
+        recorder.page.run();
+        assertEquals(Arrays.asList("choose", "music"), recorder.calls);
+        recorder.video.run();
+        assertEquals(Arrays.asList("choose", "music", "video post state"), recorder.calls);
+        recorder.all.run();
+        assertEquals("Save all doesn't ask", Arrays.asList("choose", "music", "video post state", "saveAll post"), recorder.calls);
+    }
+
+    /** #71: the real question lists Download as video, then Download as photo, and each runs its answer. */
+    @Test
+    public void theMusicQuestionListsVideoThenPhoto() {
+        List<String> ran = new ArrayList<>();
+        View anchor = new View(activity);
+        activity.setContentView(anchor);
+        original.chooseMusic(anchor, () -> ran.add("video"), () -> ran.add("photo"));
+        PopupMenu menu = ShadowPopupMenu.getLatestPopupMenu();
+        assertNotNull("no question was shown", menu);
+        assertEquals(2, menu.getMenu().size());
+        assertEquals("Download as video", menu.getMenu().getItem(0).getTitle().toString());
+        assertEquals("Download as photo", menu.getMenu().getItem(1).getTitle().toString());
+        PopupMenu.OnMenuItemClickListener clicks = Shadows.shadowOf(menu).getOnMenuItemClickListener();
+        clicks.onMenuItemClick(menu.getMenu().getItem(1));
+        clicks.onMenuItemClick(menu.getMenu().getItem(0));
+        assertEquals(Arrays.asList("photo", "video"), ran);
+    }
+
+    /** Save every page without asking saves a carousel's pages on the tap, and leaves a single post as it was (#190). */
+    @Test
+    public void saveEveryPageWithoutAskingSkipsTheChoiceOnACarousel() {
+        Settings.FEED_DOWNLOAD_ALL_PAGES.save(true);
+        recorder.pages = Arrays.asList("one", "two", "three");
+        ImageView save = save(activity);
+        LinearLayout row = linearRow(save);
+        FeedDownloadButton.bind(save, "post", "state", activity);
+        buttonOf(row).performClick();
+        assertEquals(Collections.singletonList("saveAll post"), recorder.calls);
+
+        recorder.calls.clear();
+        recorder.pages = Collections.singletonList("one");
+        buttonOf(row).performClick();
+        assertEquals("one page still saves on its own", Collections.singletonList("save post state"), recorder.calls);
+
+        recorder.calls.clear();
+        recorder.pages = Arrays.asList("one", "two");
+        Settings.FEED_DOWNLOAD_ALL_PAGES.save(false);
+        buttonOf(row).performClick();
+        assertEquals("off, it asks again", Collections.singletonList("choose"), recorder.calls);
+    }
+
+    @Test
+    public void aCarouselOfOnePageIsSavedWithoutAsking() {
+        recorder.pages = Collections.singletonList("one");
+        ImageView save = save(activity);
+        LinearLayout row = linearRow(save);
+        FeedDownloadButton.bind(save, "post", "state", activity);
+        buttonOf(row).performClick();
+        assertEquals(Collections.singletonList("save post state"), recorder.calls);
+    }
+
+    @Test
+    public void aTapAfterTheSwitchWentOffDoesNothing() {
+        ImageView save = save(activity);
+        LinearLayout row = linearRow(save);
+        FeedDownloadButton.bind(save, "post", "state", activity);
+        ImageView button = buttonOf(row);
+        Settings.FEED_DOWNLOAD_BUTTON.save(false);
+        button.performClick();
+        assertTrue(recorder.calls.isEmpty());
+    }
+
+    /**
+     * #97: with Download feed videos on and Download feed photos off, a photo post got the icon and a
+     * tap did nothing. A post the switches leave nothing to save on gets no icon, and a row Instagram
+     * reuses for one hides the icon an earlier post had, until a post that saves comes back.
+     */
+    @Test
+    public void aPostWhoseTypeIsSwitchedOffGetsNoIconAndAReusedRowHidesIt() {
+        recorder.switchedOff.add("photo");
+        ImageView save = save(activity);
+        LinearLayout row = linearRow(save);
+        FeedDownloadButton.bind(save, "photo", "state", activity);
+        assertEquals("no icon added", 4, row.getChildCount());
+        assertNull(FeedDownloadButton.existing(row));
+        String report = report();
+        assertTrue(report, report.contains("feed button left off a post whose type is switched off"));
+
+        FeedDownloadButton.bind(save, "video", "state", activity);
+        ImageView button = buttonOf(row);
+        assertEquals(View.VISIBLE, button.getVisibility());
+
+        FeedDownloadButton.bind(save, "photo", "state", activity);
+        assertEquals("the reused row hides it", View.GONE, button.getVisibility());
+        assertSame(button, buttonOf(row));
+
+        FeedDownloadButton.bind(save, "video", "state", activity);
+        assertEquals(View.VISIBLE, button.getVisibility());
+        button.performClick();
+        assertEquals(Collections.singletonList("save video state"), recorder.calls);
+    }
+
+    /**
+     * A tap that can't save says so: a post the switches stopped letting a tap save after the icon
+     * went on, or both download switches turned off since. With the icon's own switch off it stays
+     * quiet, as Instagram's row would.
+     */
+    @Test
+    public void aTapThatStillCantSaveSaysSo() {
+        ImageView save = save(activity);
+        LinearLayout row = linearRow(save);
+        FeedDownloadButton.bind(save, "post", "state", activity);
+        ImageView button = buttonOf(row);
+
+        recorder.switchedOff.add("post");
+        button.performClick();
+        assertEquals("the post's type was switched off", Collections.singletonList("nothing"), recorder.calls);
+
+        recorder.switchedOff.clear();
+        recorder.calls.clear();
+        Settings.DOWNLOAD_VIDEOS.save(false);
+        Settings.DOWNLOAD_PHOTOS.save(false);
+        button.performClick();
+        assertEquals("every download switch off", Collections.singletonList("nothing"), recorder.calls);
+
+        recorder.calls.clear();
+        Settings.FEED_DOWNLOAD_BUTTON.save(false);
+        button.performClick();
+        assertTrue("the icon's own switch off", recorder.calls.isEmpty());
+    }
+
+    @Test
+    public void whatCannotBeBoundIsLeftAlone() {
+        FeedDownloadButton.bind(null, "post", "state", activity);
+        FeedDownloadButton.bind(save(activity), "post", "state", activity);
+        ImageView save = save(activity);
+        LinearLayout row = linearRow(save);
+        FeedDownloadButton.bind(save, null, null, null);
+        ImageView button = buttonOf(row);
+        button.performClick();
+        assertEquals(Collections.singletonList("nothing"), recorder.calls);
+    }
+
+    @Test
+    public void theGlyphDrawsAndKeepsItsSize() {
+        FeedDownloadButton.Glyph glyph = new FeedDownloadButton.Glyph(48);
+        glyph.color = 0xFFFF0000;
+        glyph.setBounds(0, 0, 48, 48);
+        Bitmap bitmap = Bitmap.createBitmap(48, 48, Bitmap.Config.ARGB_8888);
+        glyph.draw(new Canvas(bitmap));
+        glyph.draw(new Canvas(bitmap));
+        glyph.setAlpha(255);
+        glyph.setColorFilter(null);
+        assertEquals(android.graphics.PixelFormat.TRANSLUCENT, glyph.getOpacity());
+        assertEquals(48, glyph.getIntrinsicWidth());
+        assertEquals(48, glyph.getIntrinsicHeight());
+    }
+
+    /** Instagram's classes behind the component row's bridges, as plain objects. */
+    private static final class FakeLitho implements FeedDownloadButton.Litho {
+        final List<String> calls = new ArrayList<>();
+        int drawable = 77;
+        Object icon = "icon";
+        boolean throwing;
+        Function1<Object, Object> click;
+        Function1<Object, Object> consume;
+        int id;
+        CharSequence description;
+        int usedDrawable;
+        Object savedSpec;
+        Object usedModifier;
+        /** Save's modifier as Instagram builds it: its placement and size, its own binders and props, its padding. */
+        List<Object> parts = new ArrayList<>(Arrays.asList(
+                "align", "size", "description", "selected binder", "id prop", "tracker binder", "padding", "tap prop"));
+        boolean partsReadable = true;
+
+        @Override public Object post(Object state) {
+            return "post of " + state;
+        }
+
+        @Override public Object item(Object state) {
+            return "item of " + state;
+        }
+
+        @Override public int drawable(Context context) {
+            return drawable;
+        }
+
+        @Override public List<Object> parts(Object save) {
+            return partsReadable ? new ArrayList<>(parts) : null;
+        }
+
+        @Override public boolean saveOnly(Object part) {
+            String name = part.toString();
+            return name.endsWith(" binder") || name.endsWith(" prop");
+        }
+
+        @Override public Object modifier(List<Object> parts) {
+            return "modifier " + parts;
+        }
+
+        @Override public Object icon(Object save, Object modifier, Function1<Object, Object> click, Function1<Object, Object> consume,
+                                     int id, CharSequence description, int drawable) {
+            if (throwing) throw new IllegalStateException("Instagram changed");
+            this.savedSpec = save;
+            this.usedModifier = modifier;
+            this.click = click;
+            this.consume = consume;
+            this.id = id;
+            this.description = description;
+            this.usedDrawable = drawable;
+            return icon;
+        }
+    }
+
+    private static String report() {
+        return String.join("\n", HookStatus.report());
+    }
+
+    @Test
+    public void aComponentRowGetsTheIconSpecAheadOfSave() {
+        FakeLitho fake = new FakeLitho();
+        FeedDownloadButton.litho = fake;
+        try {
+            List<Object> row = new ArrayList<>(Collections.singletonList("share"));
+            FeedDownloadButton.litho(row, "save spec", "state");
+            assertEquals(Arrays.asList("share", "icon"), row);
+            assertEquals("made from Save's spec", "save spec", fake.savedSpec);
+            assertEquals(77, fake.usedDrawable);
+            assertTrue("a view id of its own", fake.id != 0 && fake.id != View.NO_ID);
+            assertEquals("Download", fake.description.toString());
+            String report = report();
+            assertTrue(report, report.contains("feed button placed (litho row)"));
+        } finally {
+            FeedDownloadButton.litho = originalLitho;
+        }
+    }
+
+    /**
+     * Home and the post viewer draw their rows here and never reach bind(), so a post seen on one of
+     * those has to be noted here too, with the Download button's switch on or off (#228).
+     */
+    @Test
+    public void aComponentRowNotesThePostItsDrawnFor() {
+        FakeLitho fake = new FakeLitho();
+        List<Object> noted = new ArrayList<>();
+        java.util.function.Consumer<Object> originalSeen = FeedDownloadButton.seen;
+        FeedDownloadButton.litho = fake;
+        FeedDownloadButton.seen = noted::add;
+        try {
+            FeedDownloadButton.litho(new ArrayList<>(), "save spec", "state");
+            assertEquals(Collections.singletonList(fake.post("state")), noted);
+            noted.clear();
+            Settings.DOWNLOAD_VIDEOS.save(false);
+            Settings.DOWNLOAD_PHOTOS.save(false);
+            FeedDownloadButton.litho(new ArrayList<>(), "save spec", "state");
+            assertEquals(Collections.singletonList(fake.post("state")), noted);
+        } finally {
+            FeedDownloadButton.litho = originalLitho;
+            FeedDownloadButton.seen = originalSeen;
+        }
+    }
+
+    /**
+     * Save's binders (the view-interaction tracker's Save element, the selected state) and its
+     * common props never reach the Download icon: its modifier is made of Save's other parts, in
+     * their order.
+     */
+    @Test
+    public void theComponentIconTakesSavesSizeAndPaddingButNoneOfSavesOwnParts() {
+        FakeLitho fake = new FakeLitho();
+        FeedDownloadButton.litho = fake;
+        try {
+            FeedDownloadButton.litho(new ArrayList<>(), "save spec", "state");
+            assertEquals("modifier [align, size, description, padding]", fake.usedModifier);
+            assertFalse(fake.usedModifier.toString().contains("binder"));
+            assertFalse(fake.usedModifier.toString().contains("prop"));
+        } finally {
+            FeedDownloadButton.litho = originalLitho;
+        }
+    }
+
+    /** A modifier whose parts can't be read, or where nothing reads as Save's own, gets no icon: a binder could hide in it. */
+    @Test
+    public void aSaveModifierThatCannotBeToldApartGetsNoIcon() {
+        FakeLitho fake = new FakeLitho();
+        FeedDownloadButton.litho = fake;
+        try {
+            List<Object> row = new ArrayList<>();
+            fake.partsReadable = false;
+            FeedDownloadButton.litho(row, "save", "state");
+            fake.partsReadable = true;
+            fake.parts = new ArrayList<>(Arrays.asList("size", "padding"));
+            FeedDownloadButton.litho(row, "save", "state");
+            assertTrue(row.isEmpty());
+            assertNull("no icon was made", fake.savedSpec);
+            String report = report();
+            assertTrue(report, report.contains("feed button not placed (litho row)"));
+        } finally {
+            FeedDownloadButton.litho = originalLitho;
+        }
+    }
+
+    /** Before the patch writes the bridges, Save's modifier reads as nothing, so the icon is never made from it whole. */
+    @Test
+    public void theUnpatchedBridgesGiveNoModifier() {
+        assertNull(originalLitho.parts("save"));
+        assertNull(FeedDownloadButton.iconModifier("save"));
+        assertNull(originalLitho.modifier(new ArrayList<>(Collections.singletonList("size"))));
+        assertFalse(originalLitho.saveOnly("part"));
+        List<Object> collected = new ArrayList<>();
+        assertNull(new FeedDownloadButton.Collect(collected).invoke("part"));
+        assertEquals(Collections.singletonList("part"), collected);
+    }
+
+    @Test
+    public void theComponentIconKeepsOneIdAndTakesTheLongPress() {
+        FakeLitho fake = new FakeLitho();
+        FeedDownloadButton.litho = fake;
+        try {
+            FeedDownloadButton.litho(new ArrayList<>(), "save", "state");
+            int first = fake.id;
+            FeedDownloadButton.litho(new ArrayList<>(), "save", "state");
+            assertEquals("the same id on every compose", first, fake.id);
+            assertEquals(Boolean.TRUE, fake.consume.invoke(new Object()));
+        } finally {
+            FeedDownloadButton.litho = originalLitho;
+        }
+    }
+
+    @Test
+    public void aComponentRowIsLeftAloneWhenTheSwitchIsOffOrPausedOrNothingCanBeSaved() {
+        FakeLitho fake = new FakeLitho();
+        FeedDownloadButton.litho = fake;
+        try {
+            List<Object> row = new ArrayList<>();
+            Settings.FEED_DOWNLOAD_BUTTON.save(false);
+            FeedDownloadButton.litho(row, "save", "state");
+            Settings.FEED_DOWNLOAD_BUTTON.save(true);
+            BaseSettings.PAUSED.save(true);
+            PauseForTests.pause(HushgramPause.Reason.SWITCH);
+            FeedDownloadButton.litho(row, "save", "state");
+            BaseSettings.PAUSED.save(false);
+            PauseForTests.resume();
+            Settings.DOWNLOAD_VIDEOS.save(false);
+            Settings.DOWNLOAD_PHOTOS.save(false);
+            FeedDownloadButton.litho(row, "save", "state");
+            assertTrue("nothing was added", row.isEmpty());
+            assertNull("Instagram's classes were not asked", fake.savedSpec);
+        } finally {
+            FeedDownloadButton.litho = originalLitho;
+        }
+    }
+
+    /** #97 on the component row: a post the switches leave nothing to save on gets no icon spec. */
+    @Test
+    public void aComponentRowLeavesTheIconOffAPostWhoseTypeIsSwitchedOff() {
+        FakeLitho fake = new FakeLitho();
+        FeedDownloadButton.litho = fake;
+        try {
+            recorder.switchedOff.add("post of photo row");
+            List<Object> row = new ArrayList<>(Collections.singletonList("share"));
+            FeedDownloadButton.litho(row, "save", "photo row");
+            assertEquals("nothing added", Collections.singletonList("share"), row);
+            assertNull("Instagram's classes were not asked", fake.savedSpec);
+            String report = report();
+            assertTrue(report, report.contains("feed button left off a post whose type is switched off"));
+
+            FeedDownloadButton.litho(row, "save", "video row");
+            assertEquals(Arrays.asList("share", "icon"), row);
+
+            recorder.switchedOff.add("post of video row");
+            fake.click.invoke(new View(activity));
+            assertEquals("a tap after the switch changed says so", Collections.singletonList("nothing"), recorder.calls);
+        } finally {
+            FeedDownloadButton.litho = originalLitho;
+        }
+    }
+
+    @Test
+    public void aComponentRowThatCannotTakeTheIconIsLeftAsItWasAndCounted() {
+        FakeLitho fake = new FakeLitho();
+        FeedDownloadButton.litho = fake;
+        try {
+            List<Object> row = new ArrayList<>();
+            FeedDownloadButton.litho(null, "save", "state");
+            FeedDownloadButton.litho(row, null, "state");
+            FeedDownloadButton.litho(row, "save", null);
+            fake.drawable = 0;
+            FeedDownloadButton.litho(row, "save", "state");
+            fake.drawable = 5;
+            fake.icon = null;
+            FeedDownloadButton.litho(row, "save", "state");
+            fake.throwing = true;
+            FeedDownloadButton.litho(row, "save", "state");
+            assertTrue(row.isEmpty());
+            String report = report();
+            assertTrue(report, report.contains("feed button not placed (litho row)"));
+        } finally {
+            FeedDownloadButton.litho = originalLitho;
+        }
+    }
+
+    @Test
+    public void aTapOnTheComponentIconSavesThePostWithTheFeedStateAndAnchorsOnTheTappedView() {
+        FakeLitho fake = new FakeLitho();
+        FeedDownloadButton.litho = fake;
+        try {
+            FeedDownloadButton.litho(new ArrayList<>(), "save", "row");
+            View tapped = new View(activity);
+            fake.click.invoke(tapped);
+            assertEquals(Collections.singletonList("save post of row item of row"), recorder.calls);
+
+            recorder.calls.clear();
+            recorder.pages = Arrays.asList("one", "two");
+            fake.click.invoke(new Object() {
+                @SuppressWarnings("unused") final View view = tapped;
+            });
+            assertEquals(Collections.singletonList("choose"), recorder.calls);
+        } finally {
+            FeedDownloadButton.litho = originalLitho;
+        }
+    }
+
+    @Test
+    public void aTapWithNoViewFallsBackToTheActivityAndNeverThrows() {
+        FakeLitho fake = new FakeLitho();
+        FeedDownloadButton.litho = fake;
+        try {
+            FeedDownloadButton.litho(new ArrayList<>(), "save", "row");
+            Utils.setActivity(activity);
+            assertNull(fake.click.invoke(new Object()));
+            assertEquals(Collections.singletonList("save post of row item of row"), recorder.calls);
+
+            Settings.FEED_DOWNLOAD_BUTTON.save(false);
+            recorder.calls.clear();
+            assertNull(fake.click.invoke(null));
+            assertTrue("a switch turned off after the compose stops the tap", recorder.calls.isEmpty());
+        } finally {
+            FeedDownloadButton.litho = originalLitho;
+        }
+    }
+
+    @Test
+    public void theViewAClickEventCameFromIsFoundInTheEventOrItsFields() {
+        View view = new View(activity);
+        assertSame(view, FeedDownloadButton.viewOf(view));
+        assertNull(FeedDownloadButton.viewOf(null));
+        assertNull(FeedDownloadButton.viewOf("no view"));
+        assertSame(view, FeedDownloadButton.viewOf(new Object() {
+            @SuppressWarnings("unused") final String other = "x";
+            @SuppressWarnings("unused") final View seen = view;
+        }));
+        assertSame(activity, FeedDownloadButton.activityOf(view));
+    }
+
+    @Test
+    public void theDownloadGlyphIsFoundByItsResourceNameAndMissingMeansNoIcon() {
+        assertEquals("a resource this app lacks", 0, originalLitho.drawable(activity));
+    }
+
+    /** The glyph is looked up by name once, found or not, and never again on the compose after. */
+    @Test
+    public void theDownloadGlyphIsLookedUpOnce() {
+        int[] asked = {0};
+        Context counting = new ContextWrapper(activity) {
+            @Override public Resources getResources() {
+                asked[0]++;
+                return super.getResources();
+            }
+        };
+
+        assertEquals(0, originalLitho.drawable(counting));
+        assertEquals("missing is remembered too", 0, originalLitho.drawable(counting));
+        assertEquals(1, asked[0]);
+        assertEquals(-1, FeedDownloadButton.glyph);
+
+        FeedDownloadButton.glyph = 0x7f080042;
+        assertEquals("a glyph already found", 0x7f080042, originalLitho.drawable(counting));
+        assertEquals(1, asked[0]);
+        FeedDownloadButton.resetForTests();
+        originalLitho.drawable(counting);
+        assertEquals("a fresh start looks again", 2, asked[0]);
+    }
+
+    /** The description is written once per set of languages and again when they change. */
+    @Test
+    public void theDescriptionIsKeptUntilTheLanguageChanges() {
+        assertEquals("Download", FeedDownloadButton.description(activity));
+        FeedDownloadButton.Label first = FeedDownloadButton.label;
+        assertNotNull(first);
+        assertEquals(activity.getApplicationContext().getResources().getConfiguration().getLocales(), first.locales);
+
+        FeedDownloadButton.label = new FeedDownloadButton.Label(first.locales, "kept");
+        assertEquals("the same languages reuse it", "kept", FeedDownloadButton.description(activity));
+        FeedDownloadButton.label = new FeedDownloadButton.Label(LocaleList.forLanguageTags("xx"), "stale");
+        assertEquals("other languages write it again", "Download", FeedDownloadButton.description(activity));
+        assertEquals(first.locales, FeedDownloadButton.label.locales);
+    }
+}

@@ -97,9 +97,12 @@ public final class HandleDelegate {
 
     /** Where this render is happening, or null when it is not a surface we stamp. */
     private static String surface() {
+        String marked = BindBridge.currentSurface();
+        // The comment binder marks itself, so the list pays no stack walk per name. The stack check
+        // stays for the paths outside a comment bind.
+        if (Surfaces.COMMENTS.equals(marked)) return Surfaces.COMMENTS;
         // Specific surfaces first: a feed marker can still be fresh while another surface renders.
         if (onStackAny(Surfaces.COMMENT_CLASSES)) return Surfaces.COMMENTS;
-        String marked = BindBridge.currentSurface();
         if (marked != null) return marked;
         // Kept from the feed path: a render can slip just outside the binder's window.
         if (mentionsFeed()) return Surfaces.FEED;
@@ -210,6 +213,7 @@ public final class HandleDelegate {
      * VM's say nothing about who is rendering, and they are what filled the first report.
      */
     private static String frames(int limit) {
+        if (!Debug.verbose()) return "";
         StringBuilder chain = new StringBuilder();
         int taken = 0;
         for (StackTraceElement frame : Thread.currentThread().getStackTrace()) {

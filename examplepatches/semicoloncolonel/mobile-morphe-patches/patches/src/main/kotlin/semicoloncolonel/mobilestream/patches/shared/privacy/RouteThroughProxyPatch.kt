@@ -8,11 +8,9 @@ import app.morphe.patcher.patch.stringOption
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import semicoloncolonel.mobilestream.patches.shared.NEWS_APPS
 import semicoloncolonel.mobilestream.patches.shared.misc.forEachMatchingMethod
 import semicoloncolonel.mobilestream.patches.whitehouse.shared.Constants as WhiteHouse
-import semicoloncolonel.mobilestream.patches.npr.shared.Constants as Npr
-import semicoloncolonel.mobilestream.patches.apnews.shared.Constants as ApNews
-import semicoloncolonel.mobilestream.patches.newsbreak.shared.Constants as NewsBreak
 import semicoloncolonel.mobilestream.patches.truthsocial.shared.Constants as TruthSocial
 
 // Sends the app's traffic through a proxy chosen in the patch option, for
@@ -31,11 +29,12 @@ val routeThroughProxyPatch = bytecodePatch(
     description = "Sends the app's network traffic through a proxy you choose, such as Orbot or a VPN service's SOCKS5 server.",
     default = false,
 ) {
+    category("Privacy")
+    // Every news app (NEWS_APPS), plus the White House (government) and Truth
+    // Social (social) apps, which had this patch before the news list existed.
     compatibleWith(
+        *NEWS_APPS,
         WhiteHouse.COMPATIBILITY,
-        Npr.COMPATIBILITY,
-        ApNews.COMPATIBILITY,
-        NewsBreak.COMPATIBILITY,
         TruthSocial.COMPATIBILITY,
     )
 

@@ -86,6 +86,10 @@ public final class SBrowserXStrings {
     public static final String DARK_FORCE_LIGHT_SUMMARY = "dark_force_light_summary";
     public static final String LAYOUT_TRANSPARENCY_TITLE = "layout_transparency_title";
     public static final String COMPACT_AI_BTN_TITLE = "compact_ai_btn_title";
+    public static final String HOME_LONG_PRESS_TITLE = "home_long_press_title";
+    public static final String HOME_LONG_PRESS_SUMMARY = "home_long_press_summary";
+    public static final String HOME_LONG_PRESS_TOAST_CLOSED = "home_long_press_toast_closed";
+    public static final String HOME_LONG_PRESS_TOAST_RELOADED = "home_long_press_toast_reloaded";
     public static final String UNLIMITED_TABS_TITLE = "unlimited_tabs_title";
     public static final String UNLIMITED_TABS_SUMMARY = "unlimited_tabs_summary";
     public static final String EXT_MANAGE_TITLE = "ext_manage_title";
@@ -170,6 +174,13 @@ public final class SBrowserXStrings {
     public static final String SP_SC_CLEAR = "sp_sc_clear";
     public static final String SP_SC_COUNT = "sp_sc_count";
     public static final String SP_SC_CLEAR_CONFIRM = "sp_sc_clear_confirm";
+    public static final String SP_SC_GRID_COLS = "sp_sc_grid_cols";
+    public static final String SP_SC_GRID_4 = "sp_sc_grid_4";
+    public static final String SP_SC_GRID_5 = "sp_sc_grid_5";
+    public static final String SP_SC_TILE_FILL = "sp_sc_tile_fill";
+    public static final String SP_SC_TILE_FILL_SUM = "sp_sc_tile_fill_sum";
+    public static final String EXT_MV2_BLOCKED_TITLE = "ext_mv2_blocked_title";
+    public static final String EXT_MV2_BLOCKED_MSG = "ext_mv2_blocked_msg";
     public static final String ASSIST_TITLE = "assist_title";
     public static final String ASSIST_SUMMARY = "assist_summary";
     public static final String ASSIST_INFO_LEAD = "assist_info_lead";
@@ -197,7 +208,7 @@ public final class SBrowserXStrings {
         put("en",
             "SBrowserX", "Extensions", "Privacy & Security", "Features & Downloads", "Appearance & UI", "New Features Highlight",
             "Install extension from file (.crx / .zip)", "Pick any local .crx or .zip extension to install natively",
-            "Install recommended extensions (6)", "uBlock Origin Lite, SponsorBlock, VOT, Fingerprint Defender, AdGuard, Bitwarden",
+            "Install recommended extensions (7)", "uBlock Origin Lite, SponsorBlock, VOT, Fingerprint Defender, AdGuard, Bitwarden, Mate Translate",
             "Extensions manager (internet://extensions)", "Open Chrome Web Store",
             "Installing extension…", "Extension installed!", "Installation error: ", "Open any webpage first so the extensions engine initializes", "Install",
             "WebRTC IP handling policy", "Default", "Default public and private interfaces", "Default public interface only", "Disable non-proxied UDP",
@@ -215,7 +226,7 @@ public final class SBrowserXStrings {
         put("ru",
             "SBrowserX", "Расширения", "Конфиденциальность и безопасность", "Функции и загрузки", "Внешний вид и интерфейс", "Подсветка новых настроек",
             "Установить расширение из файла (.crx / .zip)", "Нативная установка локального .crx или .zip архива",
-            "Набор рекомендуемых расширений (6)", "uBlock Origin Lite, SponsorBlock, VOT, Fingerprint Defender, AdGuard, Bitwarden",
+            "Набор рекомендуемых расширений (7)", "uBlock Origin Lite, SponsorBlock, VOT, Fingerprint Defender, AdGuard, Bitwarden, Mate Translate",
             "Менеджер расширений (internet://extensions)", "Открыть Chrome Web Store",
             "Установка расширения…", "Расширение установлено!", "Ошибка установки: ", "Сначала откройте любую страницу, чтобы запустился движок расширений", "Установить",
             "Политика WebRTC IP", "По умолчанию", "Публичные и локальные интерфейсы", "Только публичный интерфейс", "Отключить non-proxied UDP (рекомендуется)",
@@ -233,7 +244,7 @@ public final class SBrowserXStrings {
         put("uk",
             "SBrowserX", "Розширення", "Конфіденційність і безпека", "Функції та завантаження", "Зовнішній вигляд та інтерфейс", "Підсвічування нових функцій",
             "Встановити розширення з файлу (.crx / .zip)", "Нативне встановлення локального .crx або .zip архіву",
-            "Набір рекомендованих розширень (6)", "uBlock Origin Lite, SponsorBlock, VOT, Fingerprint Defender, AdGuard, Bitwarden",
+            "Набір рекомендованих розширень (7)", "uBlock Origin Lite, SponsorBlock, VOT, Fingerprint Defender, AdGuard, Bitwarden, Mate Translate",
             "Менеджер розширень (internet://extensions)", "Відкрити Chrome Web Store",
             "Встановлення розширення…", "Розширення встановлено!", "Помилка встановлення: ", "Спочатку відкрийте будь-яку сторінку для запуску рушія розширень", "Встановити",
             "Політика WebRTC IP", "За замовчуванням", "Публічні та локальні інтерфейси", "Лише публічний інтерфейс", "Вимкнути non-proxied UDP (рекомендовано)",
@@ -281,7 +292,7 @@ public final class SBrowserXStrings {
         putExtra("en",
             "After 1 day",
             "Hide Samsung Ad Blockers", "Safely hide Samsung's built-in Ad Blockers from the menu (reversible, restart to apply)",
-            "Google Translate settings", "Target language, auto-translate & language rules (like Chrome)",
+            "Translator settings", "Target language, auto-translate & language rules (like Chrome)",
             "Translate into language", "Auto-translate pages", "Automatically translate pages not in your Never-translate list",
             "Never translate these languages", "Always translate these languages",
             "Reset translate settings", "Translate settings reset", "None",
@@ -289,7 +300,7 @@ public final class SBrowserXStrings {
         putExtra("ru",
             "Через 1 день",
             "Скрыть блокировщики рекламы Samsung", "Безопасно скрывает штатный пункт «Блокировщики рекламы» из меню (обратимо, нужен перезапуск)",
-            "Настройки Google Переводчика", "Язык перевода, автоперевод и списки языков (как в Chrome)",
+            "Настройки переводчика", "Язык перевода, автоперевод и списки языков (как в Chrome)",
             "Переводить на язык", "Автоперевод страниц", "Автоматически переводить страницы на других языках",
             "Никогда не переводить языки", "Всегда переводить языки",
             "Сбросить настройки переводчика", "Настройки переводчика сброшены", "Не выбрано",
@@ -297,7 +308,7 @@ public final class SBrowserXStrings {
         putExtra("uk",
             "Через 1 день",
             "Сховати блокувальники реклами Samsung", "Безпечно ховає штатний пункт «Блокувальники реклами» з меню (зворотно, потрібен перезапуск)",
-            "Налаштування Google Перекладача", "Мова перекладу, автопереклад та списки мов (як у Chrome)",
+            "Налаштування перекладача", "Мова перекладу, автопереклад та списки мов (як у Chrome)",
             "Перекладати мовою", "Автопереклад сторінок", "Автоматично перекладати сторінки іншими мовами",
             "Ніколи не перекладати мови", "Завжди перекладати мови",
             "Скинути налаштування перекладача", "Налаштування перекладача скинуто", "Не вибрано",
@@ -551,7 +562,11 @@ public final class SBrowserXStrings {
         putOne("en", SYNC_BACKUP_SUMMARY, "Local scheduled backup & Google Drive");
         putOne("en", BACKUP_CAT_LOCAL, "Local backup");
         putOne("en", BACKUP_EXPORT_LOCAL, "Create backup file");
-        putOne("en", BACKUP_EXPORT_LOCAL_SUM, "Save all SBrowserX settings to a JSON file on device");
+        putOne("en", BACKUP_EXPORT_LOCAL_SUM, "Save all SBrowserX & Samsung Internet settings (toolbar, More menu, address bar), bookmarks, and Start Page to a JSON file");
+        putOne("en", HOME_LONG_PRESS_TITLE, "Long-press Home closes background tabs");
+        putOne("en", HOME_LONG_PRESS_SUMMARY, "Holding the Home button (~500 ms) closes all background tabs and opens or reloads the Start Page, whether you are on a website or already on the Start Page");
+        putOne("en", HOME_LONG_PRESS_TOAST_CLOSED, "Closed %d background tab(s)");
+        putOne("en", HOME_LONG_PRESS_TOAST_RELOADED, "Start Page reloaded");
         putOne("en", BACKUP_IMPORT_LOCAL, "Restore from file");
         putOne("en", BACKUP_IMPORT_LOCAL_SUM, "Load SBrowserX settings from a local JSON backup");
         putOne("en", BACKUP_FOLDER_TITLE, "Auto-backup folder");
@@ -624,10 +639,17 @@ public final class SBrowserXStrings {
         putOne("en", SP_SC_CLEAR, "Clear all shortcuts");
         putOne("en", SP_SC_COUNT, "Saved shortcuts");
         putOne("en", SP_SC_CLEAR_CONFIRM, "Remove all shortcuts to make the Start Page completely empty?");
+        putOne("en", SP_SC_GRID_COLS, "Shortcut grid");
+        putOne("en", SP_SC_GRID_4, "4 columns (standard)");
+        putOne("en", SP_SC_GRID_5, "5 columns (compact)");
+        putOne("en", SP_SC_TILE_FILL, "Fill tile with icon");
+        putOne("en", SP_SC_TILE_FILL_SUM, "Stretch site icons edge-to-edge inside rounded tiles");
+        putOne("en", EXT_MV2_BLOCKED_TITLE, "Manifest V2 is not supported");
+        putOne("en", EXT_MV2_BLOCKED_MSG, "This extension uses Manifest V2, which was removed in Chromium 145 (Samsung Internet 31).\n\nInstallation was blocked to prevent a browser crash or silent removal on restart.\n\nPlease install a Manifest V3 version instead (for example, uBlock Origin Lite from Chrome Web Store).");
         putOne("en", ASSIST_TITLE, "Browsing assist");
         putOne("en", ASSIST_SUMMARY, "AI Summary (Gemini API) & Built-in Translator");
         putOne("en", ASSIST_INFO_LEAD, "In SBrowserX, Samsung Galaxy AI cloud features are replaced by open engines:");
-        putOne("en", ASSIST_INFO_BODY, "• Summarize — concise bullet-point summary of any webpage powered by Gemini 2.5 Flash API (requires a free API key from Google AI Studio).\n\n• Translate — instant page translation via Google, Microsoft Edge, DeepL, or Gemini (works out of the box with Google/Microsoft).");
+        putOne("en", ASSIST_INFO_BODY, "• Summarize — concise bullet-point summary of any webpage powered by Gemini 3.5 Flash-Lite API (requires a free API key from Google AI Studio).\n\n• Translate — instant page translation via Google, Bing, Yandex, DeepL, or Gemini (works out of the box with Google/Microsoft).");
         putOne("en", ASSIST_GET_KEY_BTN, "Create free Gemini API key in Google AI Studio →");
         putOne("en", ASSIST_GET_KEY_SHORT, "Get API key");
         putOne("en", ASSIST_CAT_FEATURES, "Features");
@@ -635,8 +657,8 @@ public final class SBrowserXStrings {
         putOne("en", ASSIST_TRANSLATE_TITLE, "Translate");
         putOne("en", ASSIST_KEY_SET, "Gemini API key configured — ready to summarize");
         putOne("en", ASSIST_KEY_MISSING, "Tap to enter Gemini API key (free at aistudio.google.com/apikey)");
-        putOne("en", ASSIST_KEY_DIALOG_MSG, "Page Summary now runs via Gemini 2.5 Flash API. Create a free key at aistudio.google.com/apikey and paste it below:");
-        putOne("en", AI_SUM_LOADING, "Generating summary via Gemini 2.5 Flash...");
+        putOne("en", ASSIST_KEY_DIALOG_MSG, "Page Summary now runs via Gemini 3.5 Flash-Lite API. Create a free key at aistudio.google.com/apikey and paste it below:");
+        putOne("en", AI_SUM_LOADING, "Generating summary via Gemini 3.5 Flash-Lite...");
         putOne("en", AI_SUM_EMPTY, "Not enough text on this page to summarize");
         putOne("en", AI_SUM_COPY, "Copy");
         putOne("en", AI_SUM_COPIED, "Summary copied");
@@ -656,7 +678,11 @@ public final class SBrowserXStrings {
         putOne("ru", SYNC_BACKUP_SUMMARY, "Локальный бэкап по расписанию и Google Диск");
         putOne("ru", BACKUP_CAT_LOCAL, "Локальное резервное копирование");
         putOne("ru", BACKUP_EXPORT_LOCAL, "Создать резервную копию");
-        putOne("ru", BACKUP_EXPORT_LOCAL_SUM, "Сохранить все настройки SBrowserX в JSON-файл на телефон");
+        putOne("ru", BACKUP_EXPORT_LOCAL_SUM, "Сохранить абсолютно все настройки SBrowserX и Samsung Internet (панель инструментов, меню, адресную строку), закладки и стартовую страницу в JSON");
+        putOne("ru", HOME_LONG_PRESS_TITLE, "Долгий тап по «Домой» — закрыть фоновые вкладки");
+        putOne("ru", HOME_LONG_PRESS_SUMMARY, "Удержание кнопки «Домой» (~500 мс) закрывает все фоновые вкладки и открывает или перезагружает стартовую страницу — независимо от того, открыт сейчас сайт или стартовая страница");
+        putOne("ru", HOME_LONG_PRESS_TOAST_CLOSED, "Закрыто фоновых вкладок: %d");
+        putOne("ru", HOME_LONG_PRESS_TOAST_RELOADED, "Стартовая страница обновлена");
         putOne("ru", BACKUP_IMPORT_LOCAL, "Восстановить из файла");
         putOne("ru", BACKUP_IMPORT_LOCAL_SUM, "Загрузить настройки SBrowserX из локальной копии");
         putOne("ru", BACKUP_FOLDER_TITLE, "Папка для автобэкапа");
@@ -729,10 +755,24 @@ public final class SBrowserXStrings {
         putOne("ru", SP_SC_CLEAR, "Очистить все ярлыки");
         putOne("ru", SP_SC_COUNT, "Сохранено ярлыков");
         putOne("ru", SP_SC_CLEAR_CONFIRM, "Удалить все ярлыки, чтобы стартовая страница стала полностью пустой?");
+        putOne("ru", SP_SC_GRID_COLS, "Сетка ярлыков");
+        putOne("ru", SP_SC_GRID_4, "4 колонки (стандарт)");
+        putOne("ru", SP_SC_GRID_5, "5 колонок (компактно)");
+        putOne("ru", SP_SC_TILE_FILL, "Заполнять плитку иконкой");
+        putOne("ru", SP_SC_TILE_FILL_SUM, "Растягивать иконки сайтов на всю плитку без отступов");
+        putOne("ru", EXT_MV2_BLOCKED_TITLE, "Manifest V2 не поддерживается");
+        putOne("ru", EXT_MV2_BLOCKED_MSG, "Это расширение использует устаревший Manifest V2, поддержка которого удалена в Chromium 145 (Samsung Internet 31).\n\nУстановка заблокирована, чтобы предотвратить вылет браузера или исчезновение расширения после перезапуска.\n\nИспользуйте версию на Manifest V3 — например, uBlock Origin Lite из Chrome Web Store.");
+        putOne("uk", SP_SC_GRID_COLS, "Сітка ярликів");
+        putOne("uk", SP_SC_GRID_4, "4 колонки (стандарт)");
+        putOne("uk", SP_SC_GRID_5, "5 колонок (компактно)");
+        putOne("uk", SP_SC_TILE_FILL, "Заповнювати плитку іконкою");
+        putOne("uk", SP_SC_TILE_FILL_SUM, "Розтягувати іконки сайтів на всю плитку без відступів");
+        putOne("uk", EXT_MV2_BLOCKED_TITLE, "Manifest V2 не підтримується");
+        putOne("uk", EXT_MV2_BLOCKED_MSG, "Це розширення використовує застарілий Manifest V2, підтримку якого видалено в Chromium 145 (Samsung Internet 31).\n\nВстановлення заблоковано, щоб запобігти збою браузера або зникненню розширення після перезапуску.\n\nВикористовуйте версію на Manifest V3 — наприклад, uBlock Origin Lite із Chrome Web Store.");
         putOne("ru", ASSIST_TITLE, "Ассистент по просмотру");
         putOne("ru", ASSIST_SUMMARY, "Сводка (Gemini API) и встроенный переводчик");
         putOne("ru", ASSIST_INFO_LEAD, "В SBrowserX вместо облачных сервисов Samsung Galaxy AI работают открытые движки:");
-        putOne("ru", ASSIST_INFO_BODY, "• Сводка — краткий пересказ любой веб-страницы через Gemini 2.5 Flash API (бесплатный ключ создаётся за минуту в Google AI Studio).\n\n• Перевести — мгновенный перевод страниц через Google, Microsoft Edge, DeepL или Gemini (работает сразу без ключа).");
+        putOne("ru", ASSIST_INFO_BODY, "• Сводка — краткий пересказ любой веб-страницы через Gemini 3.5 Flash-Lite API (бесплатный ключ создаётся за минуту в Google AI Studio).\n\n• Перевести — мгновенный перевод страниц через Google, Bing, Yandex, DeepL или Gemini (работает сразу без ключа).");
         putOne("ru", ASSIST_GET_KEY_BTN, "Создать бесплатный ключ в Google AI Studio →");
         putOne("ru", ASSIST_GET_KEY_SHORT, "Получить ключ");
         putOne("ru", ASSIST_CAT_FEATURES, "Функции");
@@ -740,8 +780,8 @@ public final class SBrowserXStrings {
         putOne("ru", ASSIST_TRANSLATE_TITLE, "Перевести");
         putOne("ru", ASSIST_KEY_SET, "Ключ Gemini API задан — сводка готова к работе");
         putOne("ru", ASSIST_KEY_MISSING, "Нажмите, чтобы вставить ключ Gemini API (бесплатно на aistudio.google.com/apikey)");
-        putOne("ru", ASSIST_KEY_DIALOG_MSG, "Сводка страниц теперь работает через Gemini 2.5 Flash API. Создайте бесплатный ключ на aistudio.google.com/apikey и вставьте его ниже:");
-        putOne("ru", AI_SUM_LOADING, "Создаём сводку через Gemini 2.5 Flash...");
+        putOne("ru", ASSIST_KEY_DIALOG_MSG, "Сводка страниц теперь работает через Gemini 3.5 Flash-Lite API. Создайте бесплатный ключ на aistudio.google.com/apikey и вставьте его ниже:");
+        putOne("ru", AI_SUM_LOADING, "Создаём сводку через Gemini 3.5 Flash-Lite...");
         putOne("ru", AI_SUM_EMPTY, "На странице недостаточно текста для сводки");
         putOne("ru", AI_SUM_COPY, "Копировать");
         putOne("ru", AI_SUM_COPIED, "Сводка скопирована");
@@ -749,10 +789,7 @@ public final class SBrowserXStrings {
         putOne("ru", CAT_ASSIST_TRANSLATE, "Ассистент и перевод");
         putOne("ru", CAT_DOWNLOADS_TABS, "Загрузки и вкладки");
         putOne("ru", CAT_BACKUP_SECTION, "Резервное копирование");
-        for (String lang : new String[] {"es", "pt", "de", "fr", "it", "pl", "tr", "ar", "hi", "zh", "ja", "ko"}) {
-            putOne(lang, LAYOUT_TRANSPARENCY_TITLE, "Panel & address bar translucency");
-            putOne(lang, COMPACT_AI_BTN_TITLE, "Compact bar button (replaces Samsung AI)");
-        }
+        SBrowserXLocales.applyAll(CATALOG);
     }
 
     private static void putOne(String lang, String key, String value) {
@@ -760,8 +797,127 @@ public final class SBrowserXStrings {
         if (m != null) m.put(key, value);
     }
 
+    private static volatile java.lang.ref.WeakReference<android.content.Context> sUiContextRef =
+            new java.lang.ref.WeakReference<>(null);
+
+    public static void updateUiContext(android.content.Context ctx) {
+        if (ctx instanceof android.app.Activity) {
+            sUiContextRef = new java.lang.ref.WeakReference<>(ctx);
+        }
+    }
+
+    private static boolean isValidLocale(Locale l) {
+        if (l == null) return false;
+        String lang = l.getLanguage();
+        if (lang == null || lang.length() < 2 || lang.length() > 3) return false;
+        return !"und".equalsIgnoreCase(lang);
+    }
+
+    public static Locale getAppLocale() {
+        return getAppLocale(null);
+    }
+
+    public static Locale getAppLocale(android.content.Context preferredCtx) {
+        try {
+            android.content.Context ctx = preferredCtx != null ? preferredCtx : sUiContextRef.get();
+            if (ctx == null) ctx = SBrowserXPrefs.getAppContext();
+            // 1. Explicit Android 13+ Per-App Language (only when non-empty)
+            if (ctx != null && android.os.Build.VERSION.SDK_INT >= 33) {
+                android.app.LocaleManager lm = (android.app.LocaleManager) ctx.getSystemService(android.content.Context.LOCALE_SERVICE);
+                if (lm != null) {
+                    android.os.LocaleList appLocs = lm.getApplicationLocales();
+                    if (appLocs != null && !appLocs.isEmpty()) {
+                        Locale l = appLocs.get(0);
+                        if (isValidLocale(l)) return l;
+                    }
+                }
+            }
+            // 2. Active Activity Resources configuration (exact locale rendering Samsung Internet UI)
+            android.content.Context actCtx = (preferredCtx instanceof android.app.Activity)
+                    ? preferredCtx : sUiContextRef.get();
+            if (actCtx != null) {
+                android.content.res.Configuration cfg = actCtx.getResources().getConfiguration();
+                if (cfg != null) {
+                    Locale l = (android.os.Build.VERSION.SDK_INT >= 24 && !cfg.getLocales().isEmpty())
+                            ? cfg.getLocales().get(0) : cfg.locale;
+                    if (isValidLocale(l)) return l;
+                }
+            }
+            // 3. Android System Resources configuration (reliable even before Activity attaches)
+            android.content.res.Configuration sysCfg = android.content.res.Resources.getSystem().getConfiguration();
+            if (sysCfg != null) {
+                Locale l = (android.os.Build.VERSION.SDK_INT >= 24 && !sysCfg.getLocales().isEmpty())
+                        ? sysCfg.getLocales().get(0) : sysCfg.locale;
+                if (isValidLocale(l)) return l;
+            }
+        } catch (Throwable ignored) {}
+        return Locale.getDefault();
+    }
+
+    public static String getAppLang(android.content.Context preferredCtx) {
+        String l = getAppLocale(preferredCtx).getLanguage();
+        if (l == null || l.isEmpty()) return "en";
+        l = l.toLowerCase(Locale.US);
+        if ("in".equals(l)) return "id";
+        if ("iw".equals(l)) return "he";
+        return l;
+    }
+
+    public static String getAppLang() {
+        String l = getAppLocale().getLanguage();
+        if (l == null || l.isEmpty()) return "en";
+        l = l.toLowerCase(Locale.US);
+        if ("in".equals(l)) return "id";
+        if ("iw".equals(l)) return "he";
+        return l;
+    }
+
+    public static String getTranslateMenuLabel() {
+        return SBrowserXLocales.translateMenuLabel(getAppLang());
+    }
+
+    public static String getBannerTranslated() {
+        return SBrowserXLocales.bannerTranslated(getAppLang());
+    }
+
+    public static String getBannerOriginal() {
+        return SBrowserXLocales.bannerOriginal(getAppLang());
+    }
+
+    public static String getSettingsScreenTitle() {
+        return SBrowserXLocales.settingsScreenTitle(getAppLang());
+    }
+
+    public static String getTransGuideTitle() {
+        return SBrowserXLocales.transGuideTitle(getAppLang());
+    }
+
+    public static String getTransGuideBody() {
+        return SBrowserXLocales.transGuideBody(getAppLang());
+    }
+
+    public static String getTransGuideCheck() {
+        return SBrowserXLocales.transGuideCheck(getAppLang());
+    }
+
+    public static String getSupportTitle() {
+        return SBrowserXLocales.supportTitle(getAppLang());
+    }
+
+    public static String getSupportSubtitle() {
+        return SBrowserXLocales.supportSubtitle(getAppLang());
+    }
+
+    public static String getSupportCopied() {
+        return SBrowserXLocales.supportCopied(getAppLang());
+    }
+
+    public static String getSupportClose() {
+        return SBrowserXLocales.supportClose(getAppLang());
+    }
+
     public static String get(String key) {
-        String lang = Locale.getDefault().getLanguage();
+        String lang = getAppLang();
         Map<String, String> map = CATALOG.get(lang);
         if (map != null && map.containsKey(key)) {
             return map.get(key);
@@ -778,7 +934,7 @@ public final class SBrowserXStrings {
     }
 
     public static String getOpenNativeExtensionsLabel() {
-        String lang = Locale.getDefault().getLanguage();
+        String lang = getAppLang();
         if ("ru".equals(lang)) return "Нативный список расширений Samsung (без лагов)";
         if ("uk".equals(lang)) return "Нативний список розширень Samsung (без лагів)";
         if ("es".equals(lang)) return "Lista nativa de extensiones Samsung (rápida)";
@@ -797,7 +953,7 @@ public final class SBrowserXStrings {
     }
 
     public static String compactButtonLabel(String code) {
-        String lang = Locale.getDefault().getLanguage();
+        String lang = getAppLang();
         boolean ru = "ru".equals(lang);
         boolean uk = "uk".equals(lang);
         if (SBrowserXPrefs.COMPACT_BTN_BOOKMARKS.equals(code)) return ru ? "Закладки" : (uk ? "Закладки" : "Bookmarks");

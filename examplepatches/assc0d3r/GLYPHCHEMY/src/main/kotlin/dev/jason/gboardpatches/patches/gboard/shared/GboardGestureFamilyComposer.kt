@@ -12,11 +12,9 @@ import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardVersionBindings
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeAbiCatalog
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
-import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
 import java.util.WeakHashMap
 
 private const val TOP_ROW_HELPER_NAME = "jasondevDispatchWithTopRow"
@@ -95,25 +93,27 @@ internal fun interface GboardGestureFamilyTransformation {
     fun apply(
         ownerClass: MutableClass,
         selectedFeatures: Collection<GboardGestureFamilyFeature>,
+        targets: GestureFamilyTargets,
     )
 }
 
 internal val gboardGestureFamilyTransformation = GboardGestureFamilyTransformation {
         ownerClass,
         features,
+        targets,
     ->
     if (features.isEmpty()) return@GboardGestureFamilyTransformation
     val selected = features.toSet()
     check(selected.size == features.size) { "Duplicate Gesture-family feature intent" }
 
-    val plan = GboardGestureFamilyTransformationPlan.preflight(ownerClass, selected)
+    val plan = GboardGestureFamilyTransformationPlan.preflight(ownerClass, selected, targets)
     plan.commit()
 }
 
 private val gboardGestureFamilyComposerPatch = bytecodePatch(
     description = "Compose selected Gboard gesture dispatch policies in one verified transformation.",
 ) {
-    compatibleWith(COMPATIBILITY_GBOARD)
+    compatibleWith(gboardCompatibility18_8())
     dependsOn(gboardPatchesExtensionCarrierPatch)
 
     execute { }
@@ -121,9 +121,11 @@ private val gboardGestureFamilyComposerPatch = bytecodePatch(
     finalize {
         val selected = GboardGestureFamilyFeatureSelections.take(this)
         if (selected.isEmpty()) return@finalize
+        val targets = gestureFamilyTargets(this)
         gboardGestureFamilyTransformation.apply(
-            GboardVersionBindings.gestureDispatch.ownerClass(this),
+            targets.dispatch.ownerClass(this),
             selected,
+            targets,
         )
     }
 }
@@ -132,7 +134,7 @@ internal fun gboardGestureFamilyFeaturePatch(
     description: String,
     feature: GboardGestureFamilyFeature,
 ) = bytecodePatch(description = description) {
-    compatibleWith(COMPATIBILITY_GBOARD)
+    compatibleWith(gboardCompatibility18_8())
     dependsOn(gboardGestureFamilyComposerPatch)
 
     execute {
@@ -202,24 +204,25 @@ private data class GboardGestureFamilyTransformationPlan(
         fun preflight(
             ownerClass: MutableClass,
             selected: Set<GboardGestureFamilyFeature>,
+            targets: GestureFamilyTargets,
         ): GboardGestureFamilyTransformationPlan {
             selected.verifyCanonicalGestureStages()
-            val target = ownerClass.resolveGestureTargetForPreflight()
-            val layout = target.requireGestureTargetShape()
-            ownerClass.verifyGestureBindingRelations()
+            val target = ownerClass.resolveGestureTargetForPreflight(targets)
+            val layout = target.requireGestureTargetShape(targets)
+            ownerClass.verifyGestureBindingRelations(targets)
             selected.verifyGestureRuntimeAbis(layout)
 
-            if (ownerClass.hasAnyGestureFamilyState(target)) {
-                ownerClass.verifyExactGestureFamilyState(selected, layout)
+            if (ownerClass.hasAnyGestureFamilyState(target, targets)) {
+                ownerClass.verifyExactGestureFamilyState(selected, layout, targets)
                 return GboardGestureFamilyTransformationPlan(ownerClass, null)
             }
 
-            target.requireSupportedGestureStock()
+            target.requireSupportedGestureStock(targets)
             val candidate = MutableClass(ownerClass)
-            candidate.applySelectedGestureFamily(selected, layout)
-            candidate.verifyExactGestureFamilyState(selected, layout)
+            candidate.applySelectedGestureFamily(selected, layout, targets)
+            candidate.verifyExactGestureFamilyState(selected, layout, targets)
 
-            val candidateTarget = GboardVersionBindings.gestureDispatch.resolve(candidate)
+            val candidateTarget = targets.dispatch.resolve(candidate)
             val candidateHelpers = candidate.methods.filter { method ->
                 method.name in GESTURE_HELPER_NAMES
             }
@@ -234,8 +237,10 @@ private data class GboardGestureFamilyTransformationPlan(
     }
 }
 
-private fun MutableClass.resolveGestureTargetForPreflight(): MutableMethod {
-    val binding = GboardVersionBindings.gestureDispatch
+private fun MutableClass.resolveGestureTargetForPreflight(
+    targets: GestureFamilyTargets,
+): MutableMethod {
+    val binding = targets.dispatch
     val exact = methods.filter(binding::matches)
     check(exact.size <= 1) { "Ambiguous gesture dispatch target: ${binding.reference}" }
     exact.singleOrNull()?.let { return it }
@@ -252,8 +257,10 @@ private fun MutableClass.resolveGestureTargetForPreflight(): MutableMethod {
     error("Could not find ${binding.reference}")
 }
 
-private fun MutableMethod.requireGestureTargetShape(): GestureRegisterLayout {
-    val binding = GboardVersionBindings.gestureDispatch
+private fun MutableMethod.requireGestureTargetShape(
+    targets: GestureFamilyTargets,
+): GestureRegisterLayout {
+    val binding = targets.dispatch
     check(
         binding.matches(this) &&
             accessFlags == GESTURE_TARGET_ACCESS_FLAGS &&
@@ -269,10 +276,10 @@ private fun MutableMethod.requireGestureTargetShape(): GestureRegisterLayout {
     return layout
 }
 
-private fun MutableClass.verifyGestureBindingRelations() {
-    val dispatch = GboardVersionBindings.gestureDispatch
-    val field = GboardVersionBindings.gestureStockDelegateField
-    val stock = GboardVersionBindings.gestureStockDispatch
+private fun MutableClass.verifyGestureBindingRelations(targets: GestureFamilyTargets) {
+    val dispatch = targets.dispatch
+    val field = targets.stockDelegateField
+    val stock = targets.stockDispatch
 
     check(field.ownerDescriptor == dispatch.ownerDescriptor) {
         "Gesture stock field owner does not match gesture dispatch owner"
@@ -324,19 +331,19 @@ private fun Set<GboardGestureFamilyFeature>.selectedGestureStages():
         .filter { stage -> stage.feature in this }
         .sortedBy(GboardGestureFamilyStage::order)
 
-// 18.0.3, 18.5.4 and 18.6.3 all compile the stock boundary to the same three-instruction
-// forward (iget-object / invoke-interface-range / return-void), so the exact shape below is
-// what decides support. A version allowlist here would reject the retargeted 18.6.3 build
-// whose gesture bindings are already generated from this APK.
-private fun MutableMethod.requireSupportedGestureStock() {
-    requireExactGestureStockShape()
+// 18.0.3, 18.5.4, 18.6.3 and 18.8.0 all compile the stock boundary to the same three-instruction
+// forward (iget-object / invoke-interface-range / return-void), so the exact shape below is what
+// decides support. A version allowlist here would reject a retargeted build whose gesture bindings
+// already describe it.
+private fun MutableMethod.requireSupportedGestureStock(targets: GestureFamilyTargets) {
+    requireExactGestureStockShape(targets)
 }
 
-private fun MutableMethod.requireExactGestureStockShape() {
+private fun MutableMethod.requireExactGestureStockShape(targets: GestureFamilyTargets) {
     val implementation = implementation
         ?: error("No instructions in the gesture dispatch target")
     val instructions = implementation.instructions
-    val layout = GestureRegisterLayout.from(GboardVersionBindings.gestureDispatch)
+    val layout = GestureRegisterLayout.from(targets.dispatch)
     val fieldRead = instructions.getOrNull(0) as? TwoRegisterInstruction
     val field = (instructions.getOrNull(0) as? ReferenceInstruction)
         ?.reference as? FieldReference
@@ -349,36 +356,40 @@ private fun MutableMethod.requireExactGestureStockShape() {
             instructions.size == 3 &&
             instructions[0].opcode == Opcode.IGET_OBJECT &&
             fieldRead != null && fieldRead.registerA == 0 && fieldRead.registerB == 0 &&
-            field != null && GboardVersionBindings.gestureStockDelegateField.matches(field) &&
+            field != null && targets.stockDelegateField.matches(field) &&
             instructions[1].opcode == Opcode.INVOKE_INTERFACE_RANGE &&
             dispatch != null && dispatch.startRegister == 0 &&
             dispatch.registerCount == layout.rangeRegisterCount &&
             dispatchReference != null &&
-            GboardVersionBindings.gestureStockDispatch.matches(dispatchReference) &&
+            targets.stockDispatch.matches(dispatchReference) &&
             instructions[2].opcode == Opcode.RETURN_VOID
     ) {
         "Gesture stock forwarding boundary drift in $definingClass->$name"
     }
 }
 
-private fun MutableClass.hasAnyGestureFamilyState(target: MutableMethod): Boolean =
+private fun MutableClass.hasAnyGestureFamilyState(
+    target: MutableMethod,
+    targets: GestureFamilyTargets,
+): Boolean =
     methods.any { method -> method.name in GESTURE_HELPER_NAMES } ||
         methods.any { method ->
             method.implementation?.instructions.orEmpty().any { instruction ->
                 instruction.gestureRuntimeCallNearMatch() != null ||
-                    instruction.gestureHelperCallName() != null
+                    instruction.gestureHelperCallName(targets) != null
             }
         } ||
         target.implementation!!.instructions.any { instruction ->
-            instruction.gestureHelperCallName() != null
+            instruction.gestureHelperCallName(targets) != null
         }
 
 private fun MutableClass.applySelectedGestureFamily(
     selected: Set<GboardGestureFamilyFeature>,
     layout: GestureRegisterLayout,
+    targets: GestureFamilyTargets,
 ) {
     if (GboardGestureFamilyFeature.ZHUYIN_TOGGLE in selected) {
-        addGestureHelper(TOGGLE_HELPER_NAME, layout, renderToggleHelperBody(layout))
+        addGestureHelper(TOGGLE_HELPER_NAME, layout, renderToggleHelperBody(layout, targets), targets)
     }
     if (GboardGestureFamilyFeature.TOP_ROW_SWIPE in selected) {
         addGestureHelper(
@@ -387,24 +398,28 @@ private fun MutableClass.applySelectedGestureFamily(
             renderTopRowHelperBody(
                 layout = layout,
                 includeToggle = GboardGestureFamilyFeature.ZHUYIN_TOGGLE in selected,
+                targets = targets,
             ),
+            targets,
         )
     }
     if (GboardGestureFamilyFeature.LONG_PRESS_QUICK_ACTIONS in selected) {
         addGestureHelper(
             LONG_PRESS_HELPER_NAME,
             layout,
-            renderLongPressHelperBody(selected, layout),
+            renderLongPressHelperBody(selected, layout, targets),
+            targets,
         )
     }
 
-    val target = GboardVersionBindings.gestureDispatch.resolve(this)
-    target.addInstructions(0, renderGestureOwnerWrapper(selected, layout))
+    val target = targets.dispatch.resolve(this)
+    target.addInstructions(0, renderGestureOwnerWrapper(selected, layout, targets))
 }
 
 private fun renderLongPressHelperBody(
     selected: Set<GboardGestureFamilyFeature>,
     layout: GestureRegisterLayout,
+    targets: GestureFamilyTargets,
 ): String {
     val stage = GboardGestureFamilyStage.LONG_PRESS_QUICK_ACTIONS
     val nextHelper = when {
@@ -413,10 +428,10 @@ private fun renderLongPressHelperBody(
         else -> null
     }
     val continuation = if (nextHelper == null) {
-        renderStockGestureDispatch(layout)
+        renderStockGestureDispatch(layout, targets)
     } else {
         """
-            invoke-direct/range {p0 .. p${layout.rangeEndParameterRegister}}, ${GboardVersionBindings.gestureDispatch.referenceNamed(nextHelper)}
+            invoke-direct/range {p0 .. p${layout.rangeEndParameterRegister}}, ${targets.dispatch.referenceNamed(nextHelper)}
 
             return-void
         """.trimIndent()
@@ -439,11 +454,12 @@ private fun MutableClass.addGestureHelper(
     name: String,
     layout: GestureRegisterLayout,
     body: String,
+    targets: GestureFamilyTargets,
 ) {
     addHelperMethodIfMissing(
         name = name,
-        parameterTypes = GboardVersionBindings.gestureDispatch.parameterTypes,
-        returnType = GboardVersionBindings.gestureDispatch.returnType,
+        parameterTypes = targets.dispatch.parameterTypes,
+        returnType = targets.dispatch.returnType,
         accessFlags = GESTURE_HELPER_ACCESS_FLAGS,
         registerCount = layout.helperRegisterCount,
         body = body,
@@ -453,10 +469,11 @@ private fun MutableClass.addGestureHelper(
 private fun renderGestureOwnerWrapper(
     selected: Set<GboardGestureFamilyFeature>,
     layout: GestureRegisterLayout,
+    targets: GestureFamilyTargets,
 ): String {
     val entryHelper = selected.entryHelperName()
     return """
-        invoke-direct/range {p0 .. p${layout.rangeEndParameterRegister}}, ${GboardVersionBindings.gestureDispatch.referenceNamed(entryHelper)}
+        invoke-direct/range {p0 .. p${layout.rangeEndParameterRegister}}, ${targets.dispatch.referenceNamed(entryHelper)}
 
         return-void
     """.trimIndent()
@@ -465,6 +482,7 @@ private fun renderGestureOwnerWrapper(
 private fun renderTopRowHelperBody(
     layout: GestureRegisterLayout,
     includeToggle: Boolean,
+    targets: GestureFamilyTargets,
 ): String {
     val stages = GboardGestureFamilyStage.entries.filter { stage ->
         stage.feature == GboardGestureFamilyFeature.TOP_ROW_SWIPE
@@ -474,12 +492,12 @@ private fun renderTopRowHelperBody(
     val continuationLabel = if (includeToggle) ":cond_dispatch_or_toggle" else ":cond_dispatch_stock"
     val continuation = if (includeToggle) {
         """
-            invoke-direct/range {p0 .. p${layout.rangeEndParameterRegister}}, ${GboardVersionBindings.gestureDispatch.referenceNamed(TOGGLE_HELPER_NAME)}
+            invoke-direct/range {p0 .. p${layout.rangeEndParameterRegister}}, ${targets.dispatch.referenceNamed(TOGGLE_HELPER_NAME)}
 
             return-void
         """.trimIndent()
     } else {
-        renderStockGestureDispatch(layout)
+        renderStockGestureDispatch(layout, targets)
     }
 
     return """
@@ -503,7 +521,10 @@ private fun renderTopRowHelperBody(
     """.trimIndent()
 }
 
-private fun renderToggleHelperBody(layout: GestureRegisterLayout): String {
+private fun renderToggleHelperBody(
+    layout: GestureRegisterLayout,
+    targets: GestureFamilyTargets,
+): String {
     val toggle = GboardGestureFamilyStage.entries.single { stage ->
         stage.feature == GboardGestureFamilyFeature.ZHUYIN_TOGGLE
     }
@@ -514,7 +535,7 @@ private fun renderToggleHelperBody(layout: GestureRegisterLayout): String {
 
         if-nez v0, :cond_return
 
-        ${renderStockGestureDispatch(layout, includeReturn = false)}
+        ${renderStockGestureDispatch(layout, targets, includeReturn = false)}
 
         :cond_return
         return-void
@@ -523,15 +544,16 @@ private fun renderToggleHelperBody(layout: GestureRegisterLayout): String {
 
 private fun renderStockGestureDispatch(
     layout: GestureRegisterLayout,
+    targets: GestureFamilyTargets,
     includeReturn: Boolean = true,
 ): String = buildString {
     append("iget-object p0, p0, ")
-        .append(GboardVersionBindings.gestureStockDelegateField.reference)
+        .append(targets.stockDelegateField.reference)
         .append("\n\n")
     append("invoke-interface/range {p0 .. p")
         .append(layout.rangeEndParameterRegister)
         .append("}, ")
-        .append(GboardVersionBindings.gestureStockDispatch.reference)
+        .append(targets.stockDispatch.reference)
     if (includeReturn) append("\n\nreturn-void")
 }
 
@@ -545,8 +567,9 @@ private fun Set<GboardGestureFamilyFeature>.entryHelperName(): String =
 private fun MutableClass.verifyExactGestureFamilyState(
     selected: Set<GboardGestureFamilyFeature>,
     layout: GestureRegisterLayout,
+    targets: GestureFamilyTargets,
 ) {
-    val target = resolveGestureTargetForPreflight()
+    val target = resolveGestureTargetForPreflight(targets)
     val expectedHelperNames = buildSet {
         if (GboardGestureFamilyFeature.LONG_PRESS_QUICK_ACTIONS in selected) {
             add(LONG_PRESS_HELPER_NAME)
@@ -562,42 +585,42 @@ private fun MutableClass.verifyExactGestureFamilyState(
     check(actualHelpers.size == expectedHelperNames.size) { "Duplicate Gesture-family helper" }
     actualHelpers.forEach { helper ->
         check(
-            helper.parameterTypes == GboardVersionBindings.gestureDispatch.parameterTypes &&
-                helper.returnType == GboardVersionBindings.gestureDispatch.returnType &&
+            helper.parameterTypes == targets.dispatch.parameterTypes &&
+                helper.returnType == targets.dispatch.returnType &&
                 helper.accessFlags == GESTURE_HELPER_ACCESS_FLAGS &&
                 helper.implementation?.registerCount == layout.helperRegisterCount
         ) { "Malformed Gesture-family helper ${helper.name}" }
     }
 
-    target.requireExactGestureWrapper(selected, layout)
+    target.requireExactGestureWrapper(selected, layout, targets)
     methods.filter { method -> method !== target && method.name !in GESTURE_HELPER_NAMES }
         .forEach { method ->
             check(
                 method.implementation?.instructions.orEmpty().none { instruction ->
                     instruction.gestureRuntimeCallNearMatch() != null ||
-                        instruction.gestureHelperCallName() != null
+                        instruction.gestureHelperCallName(targets) != null
                 }
             ) { "Extraneous Gesture-family call outside managed target/helpers" }
         }
 
     val normalized = MutableClass(this)
     normalized.methods.removeAll { method -> method.name in GESTURE_HELPER_NAMES }
-    val normalizedTarget = GboardVersionBindings.gestureDispatch.resolve(normalized)
+    val normalizedTarget = targets.dispatch.resolve(normalized)
     normalizedTarget.implementation!!.removeInstruction(1)
     normalizedTarget.implementation!!.removeInstruction(0)
-    normalizedTarget.requireSupportedGestureStock()
+    normalizedTarget.requireSupportedGestureStock(targets)
     check(
         normalized.methods.all { method ->
             method.implementation?.instructions.orEmpty().none { instruction ->
                 instruction.gestureRuntimeCallNearMatch() != null ||
-                    instruction.gestureHelperCallName() != null
+                    instruction.gestureHelperCallName(targets) != null
             }
         }
     ) { "Extraneous Gesture-family state after normalization" }
 
     val expected = MutableClass(normalized)
-    expected.applySelectedGestureFamily(selected, layout)
-    val expectedTarget = GboardVersionBindings.gestureDispatch.resolve(expected)
+    expected.applySelectedGestureFamily(selected, layout, targets)
+    val expectedTarget = targets.dispatch.resolve(expected)
     check(target.gboardStructuralFingerprint() == expectedTarget.gboardStructuralFingerprint()) {
         "Malformed Gesture-family target wrapper"
     }
@@ -615,6 +638,7 @@ private fun MutableClass.verifyExactGestureFamilyState(
 private fun MutableMethod.requireExactGestureWrapper(
     selected: Set<GboardGestureFamilyFeature>,
     layout: GestureRegisterLayout,
+    targets: GestureFamilyTargets,
 ) {
     val instructions = implementation!!.instructions
     check(instructions.size >= 2) { "Gesture-family wrapper is incomplete" }
@@ -625,10 +649,10 @@ private fun MutableMethod.requireExactGestureWrapper(
     check(
         invoke.opcode == Opcode.INVOKE_DIRECT_RANGE &&
             reference != null &&
-            reference.definingClass == GboardVersionBindings.gestureDispatch.ownerDescriptor &&
+            reference.definingClass == targets.dispatch.ownerDescriptor &&
             reference.name == selected.entryHelperName() &&
-            reference.parameterTypes == GboardVersionBindings.gestureDispatch.parameterTypes &&
-            reference.returnType == GboardVersionBindings.gestureDispatch.returnType &&
+            reference.parameterTypes == targets.dispatch.parameterTypes &&
+            reference.returnType == targets.dispatch.returnType &&
             range?.startRegister == expectedStart &&
             range.registerCount == layout.rangeRegisterCount &&
             instructions[1].opcode == Opcode.RETURN_VOID
@@ -645,10 +669,10 @@ private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction
 }
 
 private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction
-    .gestureHelperCallName(): String? {
+    .gestureHelperCallName(targets: GestureFamilyTargets): String? {
     val reference = (this as? ReferenceInstruction)?.reference as? MethodReference ?: return null
     return reference.name.takeIf { name ->
-        reference.definingClass == GboardVersionBindings.gestureDispatch.ownerDescriptor &&
+        reference.definingClass == targets.dispatch.ownerDescriptor &&
             name in GESTURE_HELPER_NAMES
     }
 }

@@ -50,7 +50,7 @@ with zipfile.ZipFile(io.BytesIO(body)) as z:
     assert dex.startswith(b"dex\n") and int.from_bytes(dex[32:36],"little")==len(dex)
     assert b"NativeCaptionBridge" in dex
     if tuple(map(int,v.split("-")[0].split("."))) >= (1,3,5):
-        assert b"RebuildController" in dex and b"CaptionDiagnosticArchive" in dex
+        assert b"RebuildController" in dex and b"CaptionDiagnostics" in dex
     else:
         assert b"AnchoredCaptionPlan" in dex
     assert b"SemanticLedgerCaptionController" not in dex and b"LocalDisplaySliceFallback" not in dex

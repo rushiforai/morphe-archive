@@ -1,0 +1,183 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.morphe.patches.instagram.download.profile
+
+import app.morphe.ExtensionDex
+import app.morphe.Fixtures
+import app.morphe.PatchContexts
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patches.instagram.FixtureDex
+import app.morphe.patches.instagram.NeutralNativePath
+import app.morphe.patches.instagram.profile.threads.PROFILE_ACTION_BAR
+import app.morphe.patches.instagram.profile.threads.USER_DETAIL
+import app.morphe.patches.instagram.profile.threads.USER_SESSION
+import app.morphe.patches.shared.compat.AppCompatibilities
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.patches.instagram.download.USER
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
+import org.junit.Test
+import java.io.File
+
+/**
+ * Profile extras button (#234): the extension gets the bar and its right row first thing in the
+ * bar's bind, and the bar with the profile screen right after each call that binds it.
+ */
+class ProfileExtrasHookTest {
+    @Test
+    fun theHooksAreInTheExtension() {
+        val declared = ExtensionDex.classDef(PROFILE_EXTRAS).methods
+            .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
+            .map { "$PROFILE_EXTRAS->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
+        for (hook in listOf(EXTRAS_BOUND, EXTRAS_SCREEN)) assertTrue("$hook is not in the extension: $declared", hook in declared)
+    }
+
+    @Test
+    fun aBuildThePatchCantReadFailsBeforeAnythingChanges() {
+        val noBar = assertThrows(PatchException::class.java) { PatchContexts.of(listOf(ExtensionDex.classDef(PROFILE_EXTRAS))).findProfileExtras() }
+        assertTrue(noBar.message, noBar.message!!.contains("this Instagram build has no $PROFILE_ACTION_BAR"))
+    }
+
+    /** The entry hook hands over the bar in p0 and the bind's first argument in p1, so a static bind fails the patch. */
+    @Test
+    fun aStaticBindFailsThePatch() {
+        val bundle = Fixtures.files { it.extension == "apks" }.first()
+        val bar = FixtureDex.classes(bundle, setOf(PROFILE_ACTION_BAR)).getValue(PROFILE_ACTION_BAR)
+        val stock = assertThrows(PatchException::class.java) { PatchContexts.of(listOf(bar)).findProfileExtras() }
+        assertTrue("the real bind passes: ${stock.message}", stock.message!!.contains("this Instagram build has no $USER_DETAIL"))
+        val static = ImmutableClassDef(
+            bar.type, bar.accessFlags, bar.superclass, bar.interfaces, bar.sourceFile, bar.annotations, bar.fields,
+            bar.methods.map {
+                ImmutableMethod(
+                    it.definingClass, it.name, it.parameters, it.returnType, it.accessFlags or AccessFlags.STATIC.value,
+                    it.annotations, it.hiddenApiRestrictions, it.implementation,
+                )
+            },
+        )
+        val refused = assertThrows(PatchException::class.java) { PatchContexts.of(listOf(static)).findProfileExtras() }
+        assertTrue(refused.message, refused.message!!.contains("isn't an instance method whose first argument is an object"))
+    }
+
+    @Test
+    fun eachDeclaredBuildHooksTheBindAndItsCallers() {
+        val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
+        val checked = mutableSetOf<String>()
+        for (version in versions) {
+            for (bundle in Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") }) {
+                hooks(bundle, bundle.name)
+                checked += version
+            }
+        }
+        assertEquals("a declared build has no fixture", versions, checked)
+    }
+
+    @Test
+    fun eachOtherBuildHooksTheBindAndItsCallersToo() {
+        for (base in Fixtures.otherBuilds()) hooks(base, base.parentFile.name)
+    }
+
+    private fun hooks(bundle: File, label: String) {
+        val base = FixtureDex.classes(bundle, setOf(PROFILE_ACTION_BAR, USER_DETAIL, USER_DETAIL_MODEL)).values
+        val callers = FixtureDex.methodsWhere(bundle, { true }) { method ->
+            method.definingClass != PROFILE_ACTION_BAR &&
+                method.implementation?.instructions?.any { ((it as? ReferenceInstruction)?.reference as? MethodReference)?.definingClass == PROFILE_ACTION_BAR } == true
+        }.map { it.definingClass }.toSet()
+        val callerClasses = FixtureDex.classes(bundle, callers).values
+        val modelReads = accountReadClasses(bundle, base)
+        val aboutClasses = FixtureDex.classesLoading(bundle, ABOUT_SCREEN) + FixtureDex.classes(bundle, setOf(USER_SESSION)).values
+        val context = PatchContexts.of((base + callerClasses + modelReads + aboutClasses).distinctBy { it.type } + ExtensionDex.classDef(PROFILE_EXTRAS))
+        val site = context.findProfileExtras()
+        assertTrue("$label: a caller binds the bar", site.ties.isNotEmpty())
+
+        val binderBefore = NeutralNativePath(context.method(PROFILE_ACTION_BAR, site.name, site.parameters))
+        val tiesBefore = site.ties.associateWith { NeutralNativePath(context.method(it.owner, it.method, it.parameters)) }
+
+        context.applyProfileExtras(site)
+
+        val binder = context.method(PROFILE_ACTION_BAR, site.name, site.parameters)
+        val code = binder.code()
+        assertEquals("$label: the bind hands over first", listOf(Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_FROM16, Opcode.IGET_OBJECT, Opcode.INVOKE_STATIC),
+            code.take(4).map { it.opcode })
+        assertEquals("$label: bound", EXTRAS_BOUND, code[3].referenceText())
+        assertEquals("$label: the right row", site.right, code[2].referenceText())
+        assertEquals("$label: bound once", 1, code.count { it.referenceText() == EXTRAS_BOUND })
+        binderBefore.assertPreserved(label, binder, setOf(0, 1, 2, 3))
+
+        for (tie in site.ties) {
+            val method = context.method(tie.owner, tie.method, tie.parameters)
+            val steps = method.code()
+            val where = "$label: ${tie.owner}->${tie.method}"
+            val hooked = steps.indices.filter { steps[it].referenceText() == EXTRAS_SCREEN }
+            assertEquals("$where: hooks", listOf(tie.call + 1), hooked)
+            assertEquals("$where: hands the bar and the screen", listOf(tie.bar, tie.screen), steps[tie.call + 1].arguments())
+            tiesBefore.getValue(tie).assertPreserved(where, method, setOf(tie.call + 1))
+        }
+
+        // #234: on a build keeping the account in live data, the read goes through that live data and
+        // its holder to the user. The field walk it replaced stopped a level short and found nothing.
+        val read = context.method(PROFILE_EXTRAS, EXTRAS_MODEL_USER, listOf("Ljava/lang/Object;")).code().mapNotNull { it.referenceText() }
+        assertEquals("$label: the account read starts at the view model", USER_DETAIL_MODEL, read.first())
+        val steps = listOfNotNull(site.user.field, site.user.live, site.user.getValue, site.user.holderField).map { it.toString() }
+        assertTrue("$label: the account read's steps: $read", read.containsAll(steps))
+        assertEquals("$label: ends at the account", "Lcom/instagram/user/model/User;", read.last())
+
+        // #492: the About this account button. Every build has the call, and the account's id getter even
+        // where Redex inlined it into hashCode, so both must be found; the stubs then answer yes, read the
+        // account's id and call Instagram's own opener with the session.
+        val about = site.about
+        assertNotNull("$label: the About this account call and the id getter", about)
+        val available = context.method(PROFILE_EXTRAS, "aboutAvailable", emptyList()).code()
+        assertEquals("$label: aboutAvailable says yes", Opcode.CONST_4, available.first().opcode)
+        val opener = context.method(PROFILE_EXTRAS, "openAbout", listOf("Landroid/content/Context;", "Ljava/lang/Object;", "Ljava/lang/String;", "Ljava/lang/String;"))
+        val calls = opener.code().mapNotNull { it.referenceText() }
+        assertTrue("$label: openAbout calls ${about!!.owner}->${about.name}: $calls", calls.any { it.startsWith("${about.owner}->${about.name}(") })
+        val id = context.method(PROFILE_EXTRAS, "userId", listOf("Ljava/lang/Object;")).code().mapNotNull { it.referenceText() }
+        assertEquals("$label: userId reads the id getter", "$USER->${about.idGetter}()Ljava/lang/String;", id.last())
+    }
+
+    /** What the model's fields and methods name, with the classes above those and what those classes keep, which the read is found through. */
+    private fun accountReadClasses(bundle: File, base: Collection<ClassDef>): Collection<ClassDef> {
+        val model = base.single { it.type == USER_DETAIL_MODEL }
+        val wanted = model.fields.map { it.type }.filter { it.startsWith("L") }.toMutableSet()
+        model.methods.flatMap { it.implementation?.instructions?.toList().orEmpty() }.forEach { step ->
+            ((step as? ReferenceInstruction)?.reference as? FieldReference)?.let { wanted += it.definingClass }
+            // The holders it makes: 386214562's user setter reads its holder's field in the holder's own getter.
+            if (step.opcode == Opcode.NEW_INSTANCE) wanted += (step as ReferenceInstruction).reference.toString()
+        }
+        wanted += "Lcom/instagram/user/model/User;"
+        val found = FixtureDex.classes(bundle, wanted).values
+        val above = FixtureDex.classes(bundle, found.flatMap { it.interfaces.map(CharSequence::toString) + listOfNotNull(it.superclass) }.toSet()).values
+        val kept = (found + above).flatMap { classDef -> classDef.fields.map { it.type } }.filter { it.startsWith("L") }.toSet()
+        return found + above + FixtureDex.classes(bundle, kept).values
+    }
+
+    private fun BytecodePatchContext.method(type: String, name: String, parameters: List<String>): MutableMethod =
+        mutableClassDefBy(type).methods.single { it.name == name && it.parameterTypes.map(CharSequence::toString) == parameters }
+
+    private fun Method.code(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
+
+    private fun Instruction.referenceText(): String? = (this as? ReferenceInstruction)?.reference?.toString()
+
+    private fun Instruction.arguments(): List<Int> = when (this) {
+        is FiveRegisterInstruction -> listOf(registerC, registerD, registerE, registerF, registerG).take(registerCount)
+        is RegisterRangeInstruction -> (startRegister until startRegister + registerCount).toList()
+        else -> emptyList()
+    }
+}

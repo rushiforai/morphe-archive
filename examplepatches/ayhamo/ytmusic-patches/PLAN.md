@@ -1,5 +1,9 @@
 # YouTube Music private patch bundle — plan
 
+> **A historical log.** This file records the plan and each step as it was made, so its summaries (versions,
+> patch counts, the settings screen, the song-version patch, what was skipped) describe their own date.
+> For what the bundle does now, read `README.md`, `docs/phone-vs-spec.md` and `docs/morphe-notes.md`.
+
 Our own patch bundle, applied next to the full official Morphe bundle in Morphe Manager, in one patch run. Not a fork: we never change Morphe's code.
 Public GitHub repo while testing, private once it's ready. After each major Morphe or YT Music release: re-patch, check every feature, fix what broke.
 

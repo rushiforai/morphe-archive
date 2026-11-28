@@ -6,7 +6,7 @@
 package app.fakh.patches.github
 
 import app.fakh.patches.shared.register
-import app.fakh.patches.github.shared.Constants.RECENTLY_UPDATED
+import app.fakh.patches.github.shared.Constants.SORT_BY_RECENTLY_UPDATED
 import app.fakh.patches.github.shared.Constants.COMPATIBILITY_GITHUB
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
@@ -48,8 +48,8 @@ private object SortFilterInitFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
-val recentlyUpdatedFirstPatch = patch(
-    name = "Recently updated first",
+val sortByRecentlyUpdatedPatch = patch(
+    name = "Sort by Recently updated first",
     description = "Sorts issue and pull request lists by Recently updated instead of Newest. Another sort you pick " +
         "lasts until you leave the list.",
     default = true,
@@ -60,7 +60,7 @@ val recentlyUpdatedFirstPatch = patch(
     extendWith("extensions/extension.mpe")
 
     execute {
-        register(RECENTLY_UPDATED)
+        register(SORT_BY_RECENTLY_UPDATED)
 
         // Every default filter set builds `new SortFilter()`, which takes the sort from this static field, and the
         // filter bar counts a sort as changed only when it differs from it. Storing UpdatedDescending there

@@ -1,10 +1,9 @@
 package semicoloncolonel.mobilestream.patches.mgm.ads
 
+import semicoloncolonel.mobilestream.patches.shared.misc.isOptionOn
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
-import semicoloncolonel.mobilestream.patches.mgm.shared.Constants
-import semicoloncolonel.mobilestream.patches.shared.misc.phoneOnly
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Skip the MGM+ pre-roll promo.
@@ -31,17 +30,12 @@ internal object UpdatePositionFingerprint : Fingerprint(
     },
 )
 
-@Suppress("unused")
-val skipPrerollPromoPatch = bytecodePatch(
-    name = "Skip pre-roll promo",
-    description = "Skips the MGM+ promo that plays before a title.",
-) {
-    category("Ads")
-    compatibleWith(Constants.COMPATIBILITY.phoneOnly())
-
+// Part of skipAdsPatch: runs only when its "prerollPromo" option is on.
+internal val skipPrerollPromoPatch = bytecodePatch {
     extendWith("extensions/extension.mpe")
 
     execute {
+        if (!isOptionOn(skipAdsPatch, "prerollPromo")) return@execute
         // updatePosition()V has .registers 22, so `this` is p0 = v21. iget-object
         // cannot address v21 (its register fields are 4-bit), and the patcher
         // silently drops any instruction it cannot encode, so copy p0 into a low

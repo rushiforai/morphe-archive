@@ -666,9 +666,7 @@ final class EddiArchiveSearchUi {
                 try {
                     saveState(null);
                     if("n2ch.net".equals(Uri.parse(thread.url).getHost())){
-                        Intent intent=new Intent(activity,HissiMenuActivity.class);
-                        intent.setAction(Intent.ACTION_VIEW);intent.setData(Uri.parse(thread.url));
-                        intent.putExtra("haiagaru.eddi.web",true);activity.startActivity(intent);return;
+                        NukoArchive.resolve(activity,thread.url,url->opener.open(url));return;
                     }
                     EdgeArchiveLocalSearch.markArchiveResult(thread.url, thread.title);
                     if (opener.open(thread.url)) return;

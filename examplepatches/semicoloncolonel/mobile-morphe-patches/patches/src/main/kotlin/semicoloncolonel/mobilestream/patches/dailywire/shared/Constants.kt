@@ -3,6 +3,7 @@ package semicoloncolonel.mobilestream.patches.dailywire.shared
 import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
+import semicoloncolonel.mobilestream.patches.shared.misc.devTarget
 
 object Constants {
     val COMPATIBILITY = Compatibility(
@@ -15,6 +16,8 @@ object Constants {
         // update still get patches. The patches verified on both builds.
         targets = listOf(
             AppTarget("3.5.22", versionCode = 485),
+            devTarget("3.5.23", versionCode = 486),
+            devTarget("3.5.24", versionCode = 487),
             AppTarget("3.5.21", versionCode = 484),
         ),
     )

@@ -27,4 +27,5 @@ public class Dungeon {
 	public static void loadGame(int save) throws java.io.IOException { throw new RuntimeException("Stub"); }
 	public static Level loadLevel(int save) throws java.io.IOException { throw new RuntimeException("Stub"); }
 	public static void switchLevel(Level level, int pos) { throw new RuntimeException("Stub"); }
+	public static boolean levelHasBeenGenerated(int depth, int branch) { throw new RuntimeException("Stub"); }
 }

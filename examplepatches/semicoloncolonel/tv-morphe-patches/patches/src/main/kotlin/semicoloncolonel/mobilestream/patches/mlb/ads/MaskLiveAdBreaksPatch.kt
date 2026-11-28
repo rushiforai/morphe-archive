@@ -1,12 +1,16 @@
 package semicoloncolonel.mobilestream.patches.mlb.ads
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import semicoloncolonel.mobilestream.patches.mlb.shared.Constants
+import semicoloncolonel.mobilestream.patches.shared.misc.TRANSLATE_OPTION_DESCRIPTION
+import semicoloncolonel.mobilestream.patches.shared.misc.TRANSLATE_OPTION_TITLE
+import semicoloncolonel.mobilestream.patches.shared.misc.enableAdBreakTranslation
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MLB 26.21.0.49 — Mask live ad breaks (EXPERIMENTAL, OPT-IN, default OFF).
@@ -34,7 +38,16 @@ val maskLiveAdBreaksPatch = bytecodePatch(
 
     extendWith("extensions/extension.mpe")
 
+    val translate by booleanOption(
+        key = "translate",
+        default = false,
+        title = TRANSLATE_OPTION_TITLE,
+        description = TRANSLATE_OPTION_DESCRIPTION,
+    )
+
     execute {
+        if (translate == true) enableAdBreakTranslation()
+
         // Register the SSAI ad view group so the cover has something to attach
         // to: it is the result of the getAdViewGroup() call right before
         // createStreamDisplayContainer(). Best-effort — if the player layout

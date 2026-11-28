@@ -56,9 +56,15 @@ public final class WazeAlerts {
     public static final String KEY_KINDS = "waze_alerts_kinds";
     /** Issue #207: start Waze in the background while Maps is open (or navigating). */
     public static final String KEY_START = "waze_alerts_start";
-    /** To Waze's bridge, as the action of a bind of Waze's AIDLService (exported in Waze's own manifest). */
+    /**
+     * To Waze's bridge, as the action of a bind of Waze's AIDLService (exported in Waze's own manifest). A Waze
+     * patched since #207's fix also answers it as an intent filter, so Maps finds it under any package name.
+     */
     static final String ACTION_WAKE = "org.ungoogled.waze.WAKE";
-    private static final String WAZE = "com.waze";
+    /** Waze's own package and the service its bridge listens on, for a Waze found by neither of the above. */
+    private static final String WAZE = "com.waze", WAZE_SERVICE = "com.waze.AIDLService";
+    /** The package the last alerts came from: Waze, whatever it is called. */
+    private static final String KEY_FROM = "waze_alerts_from";
 
     /** The kinds Waze alert types offers; Waze's own alert types (AlerterType numbers) are grouped into them. */
     static final int POLICE = 0, CRASH = 1, HAZARD = 2, JAM = 3, CLOSURE = 4, CAMERA = 5, OTHER = 6;
@@ -95,6 +101,16 @@ public final class WazeAlerts {
     }
 
     private static volatile List<Alert> alerts = Collections.emptyList();
+    /**
+     * Alerts Waze has stopped tracking that are still ahead: Waze drops an alert from its list as soon as its own
+     * warning ends ("EndAlertDescriptor ... removing from repository"), which for a speed bump is a few seconds after
+     * it warned, long before the car gets there. Kept on the map until passed, at most KEEP_MS; never chimed again.
+     */
+    private static volatile List<Alert> kept = Collections.emptyList();
+    private static final Map<String, Long> keptSince = new HashMap<>();
+    private static final long KEEP_MS = 3 * 60 * 1000L;
+    /** Kept no farther away than this. */
+    private static final double KEEP_METERS = 2000.0;
     private static volatile long receivedAt;
     private static volatile int receivedCount;
     private static final Map<String, Long> alerted = new HashMap<>();
@@ -197,6 +213,7 @@ public final class WazeAlerts {
             tracking = true;
             ((Application) app).registerActivityLifecycleCallbacks(new Lifecycle());
         }
+        if (ON) Ahead.track(app);
         MAIN.post(() -> {
             receiver(app);
             listen();
@@ -242,11 +259,16 @@ public final class WazeAlerts {
                         android.util.Log.i("UA", "waze alerts: Waze closed");
                     }
                 };
+                ComponentName service = wazeService(c);
+                if (service == null) {
+                    android.util.Log.i("UA", "waze alerts: no Waze to start");
+                    return;
+                }
                 int flags = Context.BIND_AUTO_CREATE;
                 if (Build.VERSION.SDK_INT >= 30) flags |= Context.BIND_INCLUDE_CAPABILITIES;
-                Intent i = new Intent(ACTION_WAKE).setComponent(new ComponentName(WAZE, "com.waze.AIDLService"))
-                        .putExtra("from", c.getPackageName());
+                Intent i = new Intent(ACTION_WAKE).setComponent(service).putExtra("from", c.getPackageName());
                 if (c.bindService(i, conn, flags)) {
+                    android.util.Log.i("UA", "waze alerts: starting " + service.getPackageName());
                     waze = conn;
                 } else {
                     try {
@@ -263,6 +285,38 @@ public final class WazeAlerts {
             waze = null;
             android.util.Log.w("UA", "waze alerts: start Waze", t);
         }
+    }
+
+    /**
+     * Waze's wake-up service under whatever package name Waze has: the one answering ACTION_WAKE; else (a Waze
+     * patched before that, or a root mount install, whose stock manifest has no such filter) AIDLService in the
+     * package the last alerts came from, or in Waze's own package. Null when none is installed (or visible).
+     */
+    static ComponentName wazeService(Context c) {
+        PackageManager pm = c.getPackageManager();
+        try {
+            for (android.content.pm.ResolveInfo r : pm.queryIntentServices(new Intent(ACTION_WAKE), 0)) {
+                if (r.serviceInfo != null && r.serviceInfo.exported) return new ComponentName(r.serviceInfo.packageName, r.serviceInfo.name);
+            }
+        } catch (Throwable ignored) {
+        }
+        for (String pkg : new String[] {prefs(c).getString(KEY_FROM, null), WAZE}) {
+            if (pkg == null || pkg.isEmpty()) continue;
+            try {
+                ComponentName n = new ComponentName(pkg, WAZE_SERVICE);
+                if (pm.getServiceInfo(n, 0).exported) return n;
+            } catch (Throwable ignored) {
+            }
+        }
+        return null;
+    }
+
+    /** For Waze & external data source: why Start Waze with Maps can't be used now, or null. */
+    static String startUnusable(Context c) {
+        if (!Shapes.wazeAlertsPatched()) return "Needs Maps patched with Waze alerts";
+        if (!enabled(c)) return "Turn on Alerts from Waze first";
+        if (wazeService(c) == null) return "Needs Waze patched with Share alerts with Maps";
+        return null;
     }
 
     // ---- the list from Waze ------------------------------------------------------------
@@ -315,10 +369,15 @@ public final class WazeAlerts {
             out.add(new Alert(at(id, i, lat[i] + "," + lng[i]), type[i], lat[i] / 1e6, lng[i] / 1e6,
                     trigger != null && i < trigger.length ? trigger[i] : 0, at(title, i, ""), at(description, i, "")));
         }
+        keep(alerts, out);
         alerts = Collections.unmodifiableList(out);
         receivedAt = SystemClock.elapsedRealtime();
         receivedCount = out.size();
-        android.util.Log.i("UA", "waze alerts: " + out.size() + " from " + in.getStringExtra("from"));
+        String from = in.getStringExtra("from");
+        android.util.Log.i("UA", "waze alerts: " + out.size() + " from " + from);
+        if (from != null && host != null && !from.equals(prefs(host).getString(KEY_FROM, null))) {
+            prefs(host).edit().putString(KEY_FROM, from).apply();
+        }
         MAIN.removeCallbacks(EXPIRE);
         if (!out.isEmpty()) MAIN.postDelayed(EXPIRE, STALE_MS + 1000L);
         if (MAP) SavedOnMap.refresh();
@@ -369,8 +428,56 @@ public final class WazeAlerts {
         if (SystemClock.elapsedRealtime() - receivedAt >= STALE_MS) clear("nothing from Waze for 3 minutes");
     };
 
+    /** Main thread: the alerts of [before] that are not in [now] and still ahead join the kept ones. */
+    private static void keep(List<Alert> before, List<Alert> now) {
+        Map<String, Alert> next = new HashMap<>();
+        for (Alert a : kept) next.put(a.id, a);
+        for (Alert a : before) next.put(a.id, a);
+        for (Alert a : now) next.remove(a.id);
+        long t = SystemClock.elapsedRealtime();
+        List<Alert> out = new ArrayList<>();
+        for (Alert a : next.values()) {
+            Long since = keptSince.get(a.id);
+            if (since == null) keptSince.put(a.id, since = t);
+            if (t - since < KEEP_MS && !passed(a, last)) out.add(a);
+        }
+        keptSince.keySet().retainAll(next.keySet());
+        kept = Collections.unmodifiableList(out);
+    }
+
+    /** Behind the car, or too far away to matter; not known without a fix. */
+    private static boolean passed(Alert a, Location l) {
+        if (l == null) return false;
+        float[] r = new float[2];
+        Location.distanceBetween(l.getLatitude(), l.getLongitude(), a.lat, a.lng, r);
+        if (r[0] > KEEP_METERS) return true;
+        float heading = lastHeading;
+        if (Float.isNaN(heading) || r[0] < 40) return false;
+        return Math.abs(((r[1] - heading) % 360 + 540) % 360 - 180) > 100;
+    }
+
+    /** Main thread, at each fix: kept alerts passed or too old are dropped, and the map follows. */
+    private static void prune(Location l) {
+        List<Alert> list = kept;
+        if (list.isEmpty()) return;
+        long t = SystemClock.elapsedRealtime();
+        List<Alert> out = new ArrayList<>(list.size());
+        for (Alert a : list) {
+            Long since = keptSince.get(a.id);
+            if (since != null && t - since < KEEP_MS && !passed(a, l)) out.add(a);
+            else keptSince.remove(a.id);
+        }
+        if (out.size() == list.size()) return;
+        kept = Collections.unmodifiableList(out);
+        android.util.Log.i("UA", "waze alerts: " + (list.size() - out.size()) + " passed, " + out.size() + " kept");
+        if (MAP) SavedOnMap.refresh();
+    }
+
     private static void clear(String why) {
-        if (alerts.isEmpty()) return;
+        Ahead.none(Ahead.WAZE);
+        if (alerts.isEmpty() && kept.isEmpty()) return;
+        kept = Collections.emptyList();
+        keptSince.clear();
         alerts = Collections.emptyList();
         android.util.Log.i("UA", "waze alerts: dropped, " + why);
         SavedOnMap.refresh();
@@ -411,16 +518,26 @@ public final class WazeAlerts {
         last = l;
         try {
             alert(l);
+            prune(l);
         } catch (Throwable t) {
             android.util.Log.w("UA", "waze alerts: alert", t);
         }
     }
 
-    /** Chimes for the nearest alert of a chosen kind on the line we are driving along, once each. */
+    /** The heading worked out at the last fix that had one (NaN: none yet), for passed(). */
+    private static volatile float lastHeading = Float.NaN;
+
+    /**
+     * Chimes for the nearest alert of a chosen kind on the line we are driving along, once each, and tells the
+     * power saving screen the nearest one ahead (kept ones too).
+     */
     private static void alert(Location l) {
         if (!CHIME) return;
-        List<Alert> list = alerts;
-        if (list.isEmpty()) return;
+        List<Alert> list = alerts, still = kept;
+        if (list.isEmpty() && still.isEmpty()) {
+            Ahead.none(Ahead.WAZE);
+            return;
+        }
         // Speed and heading as the speed cameras work them out: the fix's own while it reports moving,
         // else from the last fix 8 m or more away.
         float speed = l.hasSpeed() ? l.getSpeed() : 0f;
@@ -438,12 +555,16 @@ public final class WazeAlerts {
                 previous = l;
             }
         }
+        if (!Float.isNaN(heading)) lastHeading = heading;
         if (speed < 3f || Float.isNaN(heading)) return;   // about 7 mph: walking, or stopped at the lights
 
-        Alert best = null;
-        double bestDistance = Double.MAX_VALUE;
+        Alert best = null, shown = null;
+        double bestDistance = Double.MAX_VALUE, shownDistance = Double.MAX_VALUE;
         float[] result = new float[2];
-        for (Alert a : list) {
+        List<Alert> all = new ArrayList<>(list.size() + still.size());
+        all.addAll(list);
+        all.addAll(still);
+        for (Alert a : all) {
             if ((KINDS & (1 << a.kind)) == 0) continue;
             Location.distanceBetween(l.getLatitude(), l.getLongitude(), a.lat, a.lng, result);
             double d = result[0];
@@ -453,11 +574,17 @@ public final class WazeAlerts {
             double off = Math.abs(((result[1] - heading) % 360 + 540) % 360 - 180);
             if (off > 80) continue;                                  // behind, or off to the side
             if (d * Math.sin(Math.toRadians(off)) > 80) continue;    // not on the line we are driving
-            if (d < bestDistance) {
+            if (d < shownDistance) {
+                shown = a;
+                shownDistance = d;
+            }
+            if (d < bestDistance && list.contains(a)) {
                 best = a;
                 bestDistance = d;
             }
         }
+        if (shown == null) Ahead.none(Ahead.WAZE);
+        else Ahead.report(Ahead.WAZE, KIND_EMOJI[shown.kind], label(shown), shownDistance);
         if (best == null) return;
         long now = SystemClock.elapsedRealtime();
         Long at = alerted.get(best.id);
@@ -482,7 +609,9 @@ public final class WazeAlerts {
         List<Object> out = new ArrayList<>();
         if (!MAP) return out;
         Map<Integer, Object> lists = new HashMap<>();
-        for (Alert a : alerts) {
+        List<Alert> all = new ArrayList<>(alerts);
+        all.addAll(kept);
+        for (Alert a : all) {
             if ((KINDS & (1 << a.kind)) == 0) continue;
             Object list = lists.get(a.kind);
             if (list == null && !lists.containsKey(a.kind)) {

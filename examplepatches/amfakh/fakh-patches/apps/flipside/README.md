@@ -1,7 +1,7 @@
 # FlipSide
 
 Patches for **FlipSide** (`com.dinoster.flipside`, "FlipSide: Cover Screen Player" on Google Play),
-versions `1.6` and `1.7.1`, as an APKS bundle (APKCube) or merged APK.
+versions `1.6`, `1.7.1` and `2.0`, as an APKS bundle (APKCube) or merged APK.
 
 ## Patches
 
@@ -38,10 +38,10 @@ See the [repo README](../../README.md).
 With [morphe-desktop](https://github.com/MorpheApp/morphe-cli/releases) (needs Java 21):
 
 ```bash
-java -jar morphe-desktop-1.19.1-all.jar patch -p patches/build/libs/patches-<version>.mpp -o flipside-patched.apk <FlipSide 1.7.1 APKS>
+java -jar morphe-desktop-2.2.0-all.jar patch -p patches/build/libs/patches-<version>.mpp -o flipside-patched.apk <FlipSide 2.0 APKS>
 ```
 
 ## Getting the APK
 
-Download the `1.7.1` APKS from APKCube by hand. Morphe Manager's own lookup only knows APKMirror
+Download the `2.0` APKS from APKCube by hand. Morphe Manager's own lookup only knows APKMirror
 and Uptodown pages.

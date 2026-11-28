@@ -1,5 +1,9 @@
 <div align="center">
 
+<img src=".github/assets/mergenv1-banner.png" alt="MergenV1 UI Enhancer Banner" width="100%">
+
+<br><br>
+
 # MergenV1 Patches
 
 **Modern UI & interaction enhancer for TikTok & TikTok You — 120Hz spring animations, gesture shortcuts, radial action menu, quick controls, Danmaku comments, and switchable visual themes** — *built for use with Morphe.*
@@ -20,6 +24,14 @@
 Add manually in **Morphe Manager** / **Morphe Desktop**: `https://github.com/d0r4nn/mergenv1-patches`
 
 </div>
+
+---
+
+## 📸 Visual Preview
+
+| Feed · Kinetic Seekbar & Telemetry Ring | 6-Node Radial Action Menu | Swiss-Kinetic Welcome & `TT YOU` Shortcut |
+| :---: | :---: | :---: |
+| <img src=".github/assets/screenshots/feed-seekbar.jpg" width="240" alt="Feed with Kinetic Seekbar and Telemetry Ring"> | <img src=".github/assets/screenshots/radial-menu.jpg" width="240" alt="6-Node Radial Action Menu"> | <img src=".github/assets/screenshots/welcome-settings.jpg" width="240" alt="Swiss-Kinetic Welcome and TT YOU Shortcut"> |
 
 ---
 
@@ -46,7 +58,7 @@ Add manually in **Morphe Manager** / **Morphe Desktop**: `https://github.com/d0r
 | --- | --- | --- |
 | **Quick Controls Sheet** | Swipe **UP** from bottom bar | Volume & brightness sliders, Clean Screen toggle, Auto-Scroll, instant theme flip |
 | **Creator Peek Drawer** | Swipe **LEFT** from creator avatar | Right-docked creator stats (`Following / Followers / Likes / Videos`), Bio, Follow, Share, Sound, `@Copy`, Not Interested |
-| **Radial Action Menu** | **Long-press** center of video | 6-node rotary dial (Like, Bookmark, Share, Download, Speed, Clean Screen) with magnetic hub lean & haptic snap |
+| **Radial Action Menu** | **Long-press** center of video | 6-node rotary dial (`Save`, `Share`, `Auto Scroll`, `Not Interested`, `Clean Screen`, `Speed · Menu`) with draggable `Full Menu` hub & haptic snap |
 | **Kinetic Seekbar & Ring** | Above bar / Top-right corner | Responsive scrub slider + live player telemetry ring (auto-hides during comment sheets) |
 | **Dynamic Notch Alerts** | Front camera punch-hole | Zero-footprint alerts that bloom directly from your calibrated camera position |
 | **Danmaku Comments** | Top overlay lanes | Live scrolling video comments with `LOW / MID / HIGH` density & **1:1 reversible finger scrub** on vertical feed swipes |

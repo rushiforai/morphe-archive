@@ -1,5 +1,7 @@
 package semicoloncolonel.mobilestream.patches.abcnews.ads
 
+import app.morphe.patcher.patch.booleanOption
+import app.morphe.patcher.patch.BytecodePatch
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
@@ -15,6 +17,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import semicoloncolonel.mobilestream.patches.abcnews.shared.Constants
+import semicoloncolonel.mobilestream.patches.shared.misc.TRANSLATE_OPTION_DESCRIPTION
+import semicoloncolonel.mobilestream.patches.shared.misc.TRANSLATE_OPTION_TITLE
 import semicoloncolonel.mobilestream.patches.shared.misc.returnEarly
 
 // ABC News 8.98.2 is heavily obfuscated, so the hooks rely on names R8 kept:
@@ -82,11 +86,28 @@ private fun MutableMethod.answerEmptyPod() {
 }
 
 @Suppress("unused")
-val skipAdsPatch = bytecodePatch(
+val skipAdsPatch: BytecodePatch = bytecodePatch(
     name = "Skip ads",
     description = "Removes the ads in on-demand videos, the feeds, and articles.",
 ) {
+    category("Ads")
     compatibleWith(Constants.COMPATIBILITY)
+    extendWith("extensions/extension.mpe")
+    dependsOn(maskLiveAdBreaksPatch)
+
+    booleanOption(
+        key = "maskLiveAds",
+        default = true,
+        title = "Mask live ad breaks",
+        description = "Covers live ad breaks with a \"We'll be right back!\" screen and mutes them.",
+    )
+
+    booleanOption(
+        key = "translate",
+        default = false,
+        title = TRANSLATE_OPTION_TITLE,
+        description = TRANSLATE_OPTION_DESCRIPTION,
+    )
 
     execute {
         PodHandlerFingerprint.method.answerEmptyPod()

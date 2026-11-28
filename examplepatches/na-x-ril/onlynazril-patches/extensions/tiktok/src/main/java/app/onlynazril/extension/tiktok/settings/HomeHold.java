@@ -66,7 +66,7 @@ public final class HomeHold {
             activity.getWindow().getDecorView().getViewTreeObserver()
                     .addOnGlobalLayoutListener(() -> attach(activity));
         } catch (Throwable t) {
-            Debug.print("home hold: cannot watch layout (" + t + ")");
+            Debug.print("home hold: cannot watch layout (" + t + ")" + Debug.by(4));
         }
         attach(activity);
     }
@@ -82,7 +82,7 @@ public final class HomeHold {
             if (home == null) {
                 if (!toldMissing) {
                     toldMissing = true;
-                    Debug.print("home hold: no tab-sized view at the bottom");
+                    Debug.print("home hold: no tab-sized view at the bottom" + Debug.by(4));
                 }
                 return;
             }
@@ -98,10 +98,10 @@ public final class HomeHold {
             if (!toldInstalled) {
                 toldInstalled = true;
                 Debug.print("home hold: long press on " + home.getClass().getName()
-                        + " (" + home.getWidth() + " wide)");
+                        + " (" + home.getWidth() + " wide)" + Debug.by(4));
             }
         } catch (Throwable t) {
-            Debug.print("home hold: " + t);
+            Debug.print("home hold: " + t + Debug.by(4));
         }
     }
 

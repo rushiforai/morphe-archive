@@ -42,6 +42,8 @@ public final class Teleport {
 	private static final int GAP = 2;
 	static final int ENTRANCE = -1;
 	static final int EXIT = -2;
+	static final int MAIN_BRANCH = 0;
+	static final int QUEST_BRANCH = 1;
 
 	private static int pendingArrival;
 
@@ -127,18 +129,23 @@ public final class Teleport {
 		}
 	}
 
+	/**
+	 * The floor of the header tapped at [x], [y], or 0 for none. The game lays every header out the full width of the list, so when two
+	 * floors share a row the left header reaches under the right one; the tap belongs to the header starting furthest right.
+	 */
 	private static int floorHeaderAt(Object grid, float x, float y) throws ReflectiveOperationException {
 		Field itemsField = Reflect.field(Reflect.require(GRID_CLASS), "items");
 		Field textField = Reflect.field(Reflect.require(GRID_CLASS + "$GridHeader"), "text");
+		Component tapped = null;
 		for (Object item : (List<?>) itemsField.get(grid)) {
 			if (!item.getClass().getName().equals(GRID_CLASS + "$GridHeader")) continue;
 			Component header = (Component) item;
 			if (x < header.left() || x >= header.right() || y < header.top() || y >= header.bottom()) continue;
-			Object text = textField.get(header);
-			if (!(text instanceof RenderedTextBlock)) return 0;
-			return floorNumber(((RenderedTextBlock) text).text());
+			if (tapped == null || header.left() > tapped.left()) tapped = header;
 		}
-		return 0;
+		if (tapped == null) return 0;
+		Object text = textField.get(tapped);
+		return text instanceof RenderedTextBlock ? floorNumber(((RenderedTextBlock) text).text()) : 0;
 	}
 
 	/**
@@ -163,11 +170,18 @@ public final class Teleport {
 	 * Takes the hero to [depth], arriving at its entrance or its exit.
 	 */
 	static void toDepth(int depth, int arrival) {
+		toDepth(depth, MAIN_BRANCH, arrival);
+	}
+
+	/**
+	 * Takes the hero to [depth] of [branch], the main dungeon or a quest floor beside it, arriving at its entrance or its exit.
+	 */
+	static void toDepth(int depth, int branch, int arrival) {
 		if (Dungeon.hero == null || !Dungeon.hero.isAlive()) return;
 		try {
 			InterlevelScene.mode = InterlevelScene.Mode.RETURN;
 			InterlevelScene.returnDepth = Math.max(1, Math.min(MAX_DEPTH, depth));
-			InterlevelScene.returnBranch = 0;
+			InterlevelScene.returnBranch = branch;
 			InterlevelScene.returnPos = arrival;
 			pendingArrival = arrival;
 			Game.switchScene(InterlevelScene.class);

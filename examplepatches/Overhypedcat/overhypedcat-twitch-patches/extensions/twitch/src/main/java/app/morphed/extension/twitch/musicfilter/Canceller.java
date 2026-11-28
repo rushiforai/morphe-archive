@@ -52,6 +52,8 @@ public class Canceller {
     private final double[] xr = new double[BINS], xi = new double[BINS];
     private final double[] er = new double[BINS], ei = new double[BINS];
     private final double[] back = new double[SIZE];
+    /** The HOP samples handed out by process: the same array each time (copied by the caller before the next). */
+    private final float[] out = new float[HOP];
     private final double[] share = new double[BINS];
     private final double[] sr = new double[BINS], si = new double[BINS];
     private final double[] heard = new double[BINS];
@@ -102,19 +104,19 @@ public class Canceller {
         if (songHop != null) System.arraycopy(songHop, 0, song, SIZE - HOP, HOP);
         else java.util.Arrays.fill(song, SIZE - HOP, SIZE, 0f);
         for (int i = 0; i < SIZE; i++) frame[i] = (float) ((double) stream[i] * WINDOW[i]);
-        fft.rfft(frame, yr, yi);
         if (songHop == null) {
-            System.arraycopy(yr, 0, er, 0, BINS);
-            System.arraycopy(yi, 0, ei, 0, BINS);
+            // No song: nothing to take out, the frame goes back as it is (an FFT there and back would give the
+            // same, to rounding: most of the time no song plays, and that's two FFTs per channel each hop saved).
+            for (int i = 0; i < SIZE; i++) back[i] = frame[i];
         } else {
+            fft.rfft(frame, yr, yi);
             for (int i = 0; i < SIZE; i++) frame[i] = (float) ((double) song[i] * WINDOW[i]);
             fft.rfft(frame, xr, xi);
             cancel();
+            fft.irfft(er, ei, back);
         }
-        fft.irfft(er, ei, back);
         for (int i = 0; i < SIZE; i++) overlap[i] = (float) (overlap[i] + (double) (float) back[i] * WINDOW[i] / NORM);
-        float[] out = new float[HOP];
-        System.arraycopy(overlap, 0, out, 0, HOP);
+        System.arraycopy(overlap, 0, out, 0, HOP); // (reused each hop: the caller copies it before the next)
         System.arraycopy(overlap, HOP, overlap, 0, SIZE - HOP);
         java.util.Arrays.fill(overlap, SIZE - HOP, SIZE, 0f);
         return out;

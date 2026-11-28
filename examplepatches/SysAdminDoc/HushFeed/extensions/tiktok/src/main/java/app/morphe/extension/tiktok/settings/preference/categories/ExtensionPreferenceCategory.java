@@ -16,6 +16,7 @@ import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.preference.AppIconPreference;
 import app.morphe.extension.tiktok.settings.preference.ChoicePreference;
+import app.morphe.extension.tiktok.settings.preference.CustomBadgePreference;
 import app.morphe.extension.tiktok.settings.preference.FollowListExportPreference;
 import app.morphe.extension.tiktok.settings.preference.ImportedFontPreference;
 import app.morphe.extension.tiktok.settings.preference.InputTextPreference;
@@ -324,6 +325,10 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                             + "and videos changed since you last opened it. The counts are kept on "
                             + "this phone only.",
                     Settings.SHOW_PROFILE_CHANGES));
+            addPreference(new TogglePreference(context, "Yellow counts for private lists",
+                    "On a profile that keeps its followers or following list private, that count "
+                            + "shows in yellow, so you can tell it's private before you tap it. Yours too.",
+                    Settings.YELLOW_PRIVATE_LISTS));
             addPreference(new TogglePreference(context, "Local profile counts",
                     "Show chosen counts on your own profile on this phone. Other people see the real counts.",
                     Settings.LOCAL_PROFILE_COUNTS));
@@ -331,6 +336,8 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new TogglePreference(context, "Local verified badge",
                     "Show a verified badge on your own profile on this phone. Other people see your real status.",
                     Settings.LOCAL_PROFILE_VERIFIED_BADGE));
+            addPreference(CustomBadgePreference.pickRow(context));
+            addPreference(CustomBadgePreference.removeRow(context));
             addPreference(new TogglePreference(context, "Hide your account warning",
                     "Hide the restriction notice on your own profile on this phone. TikTok's restrictions and appeals still apply.",
                     Settings.HIDE_OWN_PROFILE_RESTRICTION_NOTICE));
@@ -353,7 +360,8 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                             + "sent about the account: when it joined, its region and language, its gifter "
                             + "level and SecUID, how many posts, liked videos, favorites and reposts it has, "
                             + "when its username and display name last changed, whether it's private and "
-                            + "whether its liked videos are public. Nothing extra is fetched.",
+                            + "whether its liked videos are public. Links to its profile picture and cover "
+                            + "come last. Tap a value to copy just that one. Nothing extra is fetched.",
                     Settings.ACCOUNT_FACTS
             ));
             addPreference(new TogglePreference(
@@ -370,6 +378,14 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                             + "A full name typed after an @ opens a search for that name. "
                             + "The rest of the bio still translates on a tap.",
                     Settings.BIO_MENTION_LINKS
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Links to other apps in bios",
+                    "A username named after IG, Snap, YT, X, Twitch, Threads or FB in a bio turns "
+                            + "into a pill in that app's color. Tapping it opens that account's public "
+                            + "page in the app or your browser. Nothing is looked up before you tap.",
+                    Settings.BIO_SOCIAL_LINKS
             ));
         }
         if (SettingsStatus.promotionalBannersEnabled) {
@@ -416,12 +432,12 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                         Settings.HIDE_PROFILE_THOUGHTS
                 ));
             }
-            if (SettingsStatus.addBioEnabled) {
+            if (SettingsStatus.addBioEnabled || SettingsStatus.profileTipsEnabled) {
                 addPreference(new TogglePreference(
                         context,
-                        "Hide Add bio",
-                        "Hide the Add bio prompt TikTok shows on your own profile while it has no bio. "
-                                + "You can still add one from Edit profile.",
+                        "Hide tips on your profile",
+                        "Hide the Add bio prompt and the tip bubbles TikTok points at things on your own profile. "
+                                + "You can still add a bio from Edit profile.",
                         Settings.HIDE_ADD_BIO
                 ));
             }
@@ -588,6 +604,19 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                 Settings.HIDE_SETTINGS_ROW
         ));
         addPreference(new SettingsRowChecklistPreference(context));
+        // Every bundle shows notices of its own (a save, a block's Undo, a reminder), so these stay.
+        addPreference(new TogglePreference(
+                context,
+                "Show notices at the top",
+                "Put Hushfeed's notices, like a finished save or a block's Undo, just under the status bar instead of above the tab bar. Swipe a notice left or right to close it.",
+                Settings.NOTICES_AT_TOP
+        ));
+        addPreference(new TogglePreference(
+                context,
+                "Blur behind notices",
+                "Blur the video behind Hushfeed's notices so they look like frosted glass. Needs Android 12 and up. Away from a video they keep the plain dark look.",
+                Settings.NOTICE_BLUR
+        ));
         // Shown from the same start of TikTok's main screen as the settings row, so every bundle has it.
         addPreference(new TogglePreference(
                 context,

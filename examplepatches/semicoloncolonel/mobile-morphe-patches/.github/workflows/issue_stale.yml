@@ -1,10 +1,11 @@
 name: Close untargeted and incomplete reports
 
-# Closes issues labeled "untargeted version" or "incomplete" after 7 days
-# without an update. The triage workflow's comment already says so, so nothing
-# more is posted. An edit that fixes the report removes the label first.
+# Closes issues labeled "status: untargeted version" or "status: needs info"
+# after 7 days without an update. The triage workflow's comment already says
+# so, so nothing more is posted. An edit that fixes the report removes the
+# label first.
 #
-# It also removes "may reopen" from closed issues after 7 days without a new
+# It also removes "status: may reopen" from closed issues after 7 days without a new
 # comment. See .github/scripts/expire_may_reopen.py.
 
 on:
@@ -24,7 +25,7 @@ jobs:
       - name: Close reports untouched for 7 days
         uses: actions/stale@v11
         with:
-          any-of-labels: untargeted version,incomplete
+          any-of-labels: "status: untargeted version,status: needs info"
           days-before-issue-stale: 7
           days-before-issue-close: 0
           days-before-pr-stale: -1
@@ -34,7 +35,7 @@ jobs:
           close-issue-reason: not_planned
 
   may-reopen:
-    name: Expire "may reopen"
+    name: 'Expire "status: may reopen"'
     permissions:
       contents: read
       issues: write

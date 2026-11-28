@@ -16,6 +16,46 @@ object Constants {
         targets = listOf(AppTarget(version = "2.135.1", versionCode = 2709))
     )
 
+    val SKILLSHARE_COMPATIBILITY = Compatibility(
+        name = "Skillshare",
+        packageName = "com.skillshare.Skillshare",
+        // Single signed APK (no split splits), minSdk 21 / targetSdk 36.
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x00C06F,
+        // Signer of the analyzed 5.4.81 build (CN=fuze.cc).
+        signatures = setOf("da27959206fe1efefc8cbeb8922f6ff3a88f615135e663afef9fdfd82b83aaf4"),
+        targets = listOf(
+            AppTarget(version = "5.4.81", versionCode = 7706, minSdk = 21)
+        )
+    )
+
+
+    val PLURALSIGHT_COMPATIBILITY = Compatibility(
+        name = "Pluralsight",
+        packageName = "com.pluralsight",
+        // Split bundle (.apks) extracted from the Play store.
+        apkFileType = ApkFileType.APKS,
+        appIconColor = 0xF05A28,
+        // Signer of the analyzed 2026.11.05 base APK (CN=Android, O=Google Inc.).
+        signatures = setOf("8f7fc4fb327d54d6669dad0715f792fded4d353ffc6055b9750524b76ae31bcf"),
+        targets = listOf(
+            AppTarget(version = "2026.11.05", versionCode = 903935, minSdk = 32)
+        )
+    )
+
+    val WE_LOVE_DEALS_COMPATIBILITY = Compatibility(
+        name = "We Love Deals",
+        packageName = "com.thina.welovedeals",
+        // Split bundle (.apks): base + 30 config splits (languages/densities).
+        apkFileType = ApkFileType.APKS,
+        appIconColor = 0xE4002B,
+        // Signer of the analyzed 1.2.0 base APK (CN=Android, O=Google Inc.).
+        signatures = setOf("eb7eaf29abbe462c70dddc9e6ddead80a9ee53fbbbb32a0e02bd4c7c2836953a"),
+        targets = listOf(
+            AppTarget(version = "1.2.0", versionCode = 87, minSdk = 24)
+        )
+    )
+
     val MYDIALOG_COMPATIBILITY = Compatibility(
         name = "MyDialog",
         packageName = "net.omobio.dialogsc",
@@ -54,40 +94,6 @@ object Constants {
         )
     )
 
-    val TEXTNOW_COMPATIBILITY = Compatibility(
-        name = "TextNow",
-        packageName = "com.enflick.android.TextNow",
-        // Split bundle: base.apk + split_config.arm64_v8a + density splits (.apks).
-        apkFileType = ApkFileType.APKS,
-        appIconColor = 0x00A8E1,
-        signatures = setOf("1428a295a31d63d9e9361cf6c7b71a76b71bf5ff254f7549c7e6d9341e476354"),
-        targets = listOf(
-            // Replaces the earlier 6.1.0.1 target, which was a wrong (very old) download.
-            AppTarget(version = "26.45.0.0", versionCode = 15780, minSdk = 29)
-        )
-    )
-
-    val ADIDAS_RUNNING_COMPATIBILITY = Compatibility(
-        name = "adidas Running",
-        packageName = "com.runtastic.android",
-        // Split-APK APKM bundle: base + config.arm64_v8a/xxxhdpi/xxhdpi + language splits.
-        apkFileType = ApkFileType.APKS,
-        appIconColor = 0x000000,
-        signatures = setOf("08c2c1b48f633287e72f1f29f0fe664348b3fce4c12ddc8cafa66494268d9427"),
-        targets = listOf(
-            AppTarget(
-                version = "14.12.1",
-                versionCodes = mapOf(SupportedAbi.ARM64_V8A to 2026110512),
-                minSdk = 29,
-            ),
-            AppTarget(
-                version = "14.4.0",
-                versionCodes = mapOf(SupportedAbi.ARM64_V8A to 2026011603),
-                minSdk = 28,
-            ),
-        )
-    )
-
     val NIKE_RUN_CLUB_COMPATIBILITY = Compatibility(
         name = "Nike Run Club",
         packageName = "com.nike.plusgps",
@@ -98,36 +104,6 @@ object Constants {
         targets = listOf(
             AppTarget(version = "4.80.0", versionCode = 1717895889, minSdk = 29),
             AppTarget(version = "4.80.1", versionCode = 1717921629, minSdk = 29)
-        )
-    )
-
-    val FITBIT_COMPATIBILITY = Compatibility(
-        name = "Fitbit",
-        packageName = "com.fitbit.FitbitMobile",
-        // Split-APK APKM bundle: base + config.arm64_v8a/xxhdpi + 20 language splits.
-        apkFileType = ApkFileType.APKS,
-        appIconColor = 0x00B0B9,
-        // Play-signing certificate of the base APK ("CN=Android, O=Google Inc.").
-        signatures = setOf("2cc914da5a849426c1b591e12f0a8adb042fa2feade3a4762845ce6bfadcf313"),
-        targets = listOf(
-            AppTarget(
-                version = "5.11.1.health-mobile-1104134730-1009077909",
-                // The bundle ships only config.arm64_v8a native code.
-                versionCodes = mapOf(SupportedAbi.ARM64_V8A to 1104134730),
-                minSdk = 30,
-            )
-        )
-    )
-
-    val TEAMS_COMPATIBILITY = Compatibility(
-        name = "Microsoft Teams",
-        packageName = "com.microsoft.teams",
-        // XAPK bundle: base + config.arm64_v8a / mdpi / en splits.
-        apkFileType = ApkFileType.APKS,
-        appIconColor = 0x5059C9,
-        signatures = setOf("d49b848e0580370b89c4da712b8da7296782e866bcbfb58ccd873fd954725985"),
-        targets = listOf(
-            AppTarget(version = "1416/1.0.0.2026202302", versionCode = 2026202325, minSdk = 30)
         )
     )
 
@@ -178,10 +154,9 @@ object Constants {
         apkFileType = ApkFileType.APKS,
         appIconColor = 0xFC4C02,
         targets = listOf(
-            AppTarget(version = "480.15", versionCode = 12399564),
-            AppTarget(version = "485.12", versionCode = 12400090),
             AppTarget(version = "486.9", versionCode = 12400193),
-            AppTarget(version = "486.11", versionCode = 12400195)
+            AppTarget(version = "486.11", versionCode = 12400195),
+            AppTarget(version = "490.15", versionCode = 12400619),
         )
     )
 }

@@ -1,35 +1,38 @@
 name: ✨ Improve a working patch
-description: A patch works, but it misses something, such as an ad, a prompt, or a tracker, or it leaves an empty space behind. Not for problems.
+description: Ask for a new feature or a change to how a working patch behaves, such as a new option. Not for something that does not work, such as an ad that still plays or a side effect of a patch.
 title: "enhancement: "
-labels: ["enhancement"]
+labels: ["type: enhancement"]
 body:
   - type: markdown
     attributes:
       value: |
-        Use this form only when a patch works as described and you would like it to do more, for example hide an ad or prompt it misses, or remove an empty space it leaves behind.
+        Use this form to ask for a new feature or a change to how a working patch behaves, for example a new option or a different default.
 
         This form is not for anything that does not work. Use the [Bug report](https://github.com/semicoloncolonel/mobile-morphe-patches/issues/new?template=1-bug-report.yml) form when:
 
         - Morphe Manager does not accept your app version or build.
         - A patch fails to apply.
         - The patched app will not install, open, play, or sign in, or it crashes.
+        - A patch misses something it should remove, such as an ad, a prompt, or a tracker, or it leaves an empty space behind.
+        - A patch causes a new problem, such as out-of-sync subtitles.
         - A patch does not do what [What the patches do](https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/docs/patches.md) says it does.
 
         To ask for a new app, a new patch, or another app version, use the [New app or patch request](https://github.com/semicoloncolonel/mobile-morphe-patches/issues/new?template=3-new-app-or-patch.yml) form.
 
-        Thank you for helping improve a patch. I maintain these patches as a volunteer, so complete requests are the quickest to act on. A screenshot of what the patch misses helps the most. Before you submit, remove or cover any private information, such as your email address, account name, phone number, or location, in text and screenshots.
+        Thank you for helping improve a patch. I maintain these patches as a volunteer, so complete requests are the quickest to act on. A screenshot of the part of the app you would like changed helps the most. Before you submit, remove or cover any private information, such as your email address, account name, phone number, or location, in text and screenshots.
 
-        Required fields are marked with an asterisk. A request that is incomplete, or that does not show what the patch misses, may be closed without a change.
+        Required fields are marked with an asterisk. A request that is incomplete, or that does not say what should change, may be closed without a change.
   - type: checkboxes
     id: before
     attributes:
       label: Before you submit
+      description: "New to this tracker? [Issue labels](https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/docs/issue-labels.md) explains how issues are sorted, tracked, and closed."
       options:
         - label: "I read [What the patches do](https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/docs/patches.md) and the [Known issues](https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/docs/known-issues.md)."
           required: true
         - label: "I searched the [open and closed issues](https://github.com/semicoloncolonel/mobile-morphe-patches/issues?q=is%3Aissue) and did not find this enhancement."
           required: true
-        - label: "I understand that the patches do not currently remove paywalls or unlock paid content."
+        - label: "Unless otherwise stated, I understand that none of the patches bypass paywalls or unlock paid content."
           required: true
         - label: "The patch works. This request asks it to do more, and it is not a report of something that does not work."
           required: true
@@ -40,16 +43,21 @@ body:
       description: The app the patch is for.
       options:
         - "ABC News"
+        - "Al Jazeera"
         - "Amazon Shopping"
         - "AMC+"
         - "AP News"
         - "Apple TV"
+        - "BBC: World News & Stories"
         - "Best Buy"
         - "C-SPAN Now"
         - "CBS News"
+        - "CGTN"
         - "Checkout 51"
+        - "CNA"
         - "CNBC"
         - "CNN"
+        - "Consumer Reports"
         - "Costco"
         - "CVS"
         - "DealNews"
@@ -58,6 +66,7 @@ body:
         - "eBay"
         - "ESPN"
         - "Fandango at Home"
+        - "Fawesome"
         - "FEMA"
         - "Flipp"
         - "Fox Local"
@@ -68,11 +77,13 @@ body:
         - "JustWatch"
         - "Kanopy"
         - "Koupon"
+        - "Libby"
         - "Lowe's"
         - "MGM+"
         - "Mint Mobile"
         - "MLB"
         - "Moviebase"
+        - "Movies Anywhere"
         - "MS NOW"
         - "My Verizon"
         - "myAT&T"
@@ -84,6 +95,8 @@ body:
         - "NewsBreak"
         - "NewsNation"
         - "NFL"
+        - "NHK WORLD-JAPAN"
+        - "Nikkei Asia"
         - "NPR"
         - "NPS"
         - "Paramount+"
@@ -99,6 +112,7 @@ body:
         - "Shudder"
         - "SiriusXM"
         - "Slickdeals"
+        - "South China Morning Post"
         - "Starz"
         - "Substack"
         - "Sundance Now"
@@ -108,20 +122,24 @@ body:
         - "The Daily Wire"
         - "The Home Depot"
         - "The New York Times"
+        - "The Straits Times"
         - "The Wall Street Journal"
         - "The Washington Post"
         - "theScore"
         - "Truth Social"
         - "Tubi"
         - "USA TODAY"
+        - "Viki"
         - "Visible"
         - "Walgreens"
         - "Walmart"
         - "White House"
         - "Xfinity"
+        - "Xinhua News"
         - "Xumo Play"
         - "Yahoo Finance"
         - "Yahoo News"
+        - "Yonhap News English"
         - "YouTube TV"
         - "Other (name it in the description)"
     validations:
@@ -139,6 +157,17 @@ body:
     attributes:
       label: App version
       placeholder: "17.3.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: beta
+    attributes:
+      label: Are you enrolled as a beta tester for this app?
+      description: On Google Play, the app's page says "You're a beta tester" when you are. A beta tester can get a version that is not public yet, and I can only support a beta that I can install myself.
+      options:
+        - "No"
+        - "Yes"
+        - "I do not know"
     validations:
       required: true
   - type: dropdown
@@ -203,14 +232,14 @@ body:
     id: description
     attributes:
       label: What could be better
-      description: What the patch misses or leaves behind, and where in the app you see it.
+      description: The feature or change you would like, and where in the app it would apply.
     validations:
       required: true
   - type: textarea
     id: screenshots
     attributes:
       label: Screenshots or video
-      description: Drag files here to attach them. A screenshot of what is left behind helps the most.
+      description: Drag files here to attach them. A screenshot of the part of the app you would like changed helps the most.
   - type: textarea
     id: context
     attributes:

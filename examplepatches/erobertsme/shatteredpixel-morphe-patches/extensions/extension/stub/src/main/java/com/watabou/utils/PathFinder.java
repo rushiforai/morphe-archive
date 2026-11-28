@@ -9,4 +9,5 @@ public class PathFinder {
 
 	public static class Path extends LinkedList<Integer> {
 	}
+	public static int[] NEIGHBOURS9;
 }

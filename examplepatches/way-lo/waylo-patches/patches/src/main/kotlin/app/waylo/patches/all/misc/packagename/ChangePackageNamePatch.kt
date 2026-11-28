@@ -54,20 +54,23 @@ val changePackageNamePatch = resourcePatch(
         value == "Default" || value!!.matches(Regex("^[a-z]\\w*(\\.[a-z]\\w*)+\$"))
     }
 
+    // Both default to true: a renamed app that keeps the original app's permission or provider
+    // names cannot be installed next to the original (INSTALL_FAILED_DUPLICATE_PERMISSION,
+    // INSTALL_FAILED_CONFLICTING_PROVIDER). See way-lo/waylo-patches#4.
     val updatePermissions by booleanOption(
         key = "updatePermissions",
-        default = false,
+        default = true,
         title = "Update permissions",
-        description = "Update compatibility receiver permissions. " +
-                "Enabling this can fix installation errors, but this can also break features in certain apps.",
+        description = "Rename the permissions the app declares under its package name, so it can be " +
+                "installed next to the original app. Disabling this can cause installation errors.",
     )
 
     val updateProviders by booleanOption(
         key = "updateProviders",
-        default = false,
+        default = true,
         title = "Update providers",
-        description = "Update provider names declared by the app. " +
-                "Enabling this can fix installation errors, but this can also break features in certain apps.",
+        description = "Rename the content provider authorities the app declares under its package name, so " +
+                "it can be installed next to the original app. Disabling this can cause installation errors.",
     )
 
     finalize {
@@ -77,6 +80,9 @@ val changePackageNamePatch = resourcePatch(
             "com.twitter.android",
             "tv.twitch.android.app",
         )
+
+        // Provider authorities renamed in the manifest, old to new.
+        val renamedAuthorities = mutableMapOf<String, String>()
 
         document("AndroidManifest.xml").use { document ->
             val manifest = document.getElementsByTagName("manifest").item(0) as Element
@@ -97,30 +103,68 @@ val changePackageNamePatch = resourcePatch(
 
             manifest.setAttribute("package", newPackageName)
 
-            if (updatePermissions == true) {
-                val receiverNotExported = "DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
-                val androidName = "android:name"
-                val oldName = "$packageName.$receiverNotExported"
-                val newName = "$newPackageName.$receiverNotExported"
+            // "com.example.app" or "com.example.app.anything", renamed to the new package.
+            fun renamed(name: String): String? = when {
+                name == packageName -> newPackageName
+                name.startsWith("$packageName.") -> newPackageName + name.substring(packageName.length)
+                else -> null
+            }
 
-                (document.getElementsByTagName("permission").elements() +
-                    document.getElementsByTagName("uses-permission").elements())
-                    .filter { it.getAttribute(androidName) == oldName }
-                    .forEach { it.setAttribute(androidName, newName) }
+            if (updatePermissions == true) {
+                val androidName = "android:name"
+
+                // Every permission the app declares under its package name. A copy installed next to
+                // the original must not declare the same permission (signature permissions are owned
+                // by the first app that declares them).
+                val renamedPermissions = document.getElementsByTagName("permission").elements()
+                    .mapNotNull { permission ->
+                        val name = permission.getAttribute(androidName)
+                        renamed(name)?.let { newName -> name to newName }
+                    }
+                    .toMap()
+
+                if (renamedPermissions.isNotEmpty()) {
+                    // The declarations, their uses, and components protected by them.
+                    val permissionAttributes = listOf(
+                        "android:name", "android:permission", "android:readPermission", "android:writePermission",
+                    )
+                    document.getElementsByTagName("*").elements().forEach { element ->
+                        permissionAttributes.forEach { attribute ->
+                            renamedPermissions[element.getAttribute(attribute)]?.let { newName ->
+                                if (element.tagName == "permission" ||
+                                    element.tagName == "uses-permission" ||
+                                    attribute != "android:name"
+                                ) {
+                                    element.setAttribute(attribute, newName)
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             if (updateProviders == true) {
                 val androidAuthority = "android:authorities"
-                val authorityPrefix = "$packageName."
 
                 document.getElementsByTagName("provider").elements().forEach { provider ->
-                    val authorities = provider.getAttribute(androidAuthority)
-                    if (authorities.startsWith(authorityPrefix)) {
-                        provider.setAttribute(
-                            androidAuthority,
-                            authorities.replace(packageName, newPackageName)
-                        )
+                    val authorities = provider.getAttribute(androidAuthority).split(";")
+                    val newAuthorities = authorities.map { authority ->
+                        renamed(authority)?.also { renamedAuthorities[authority] = it } ?: authority
                     }
+                    if (newAuthorities != authorities) {
+                        provider.setAttribute(androidAuthority, newAuthorities.joinToString(";"))
+                    }
+                }
+            }
+        }
+
+        // Some apps read a provider authority from a string resource instead of building it from
+        // their package name (Google News: content_authority). Rename those too, so the app keeps
+        // finding its own provider.
+        if (renamedAuthorities.isNotEmpty()) {
+            document("res/values/strings.xml").use { document ->
+                document.getElementsByTagName("string").elements().forEach { string ->
+                    renamedAuthorities[string.textContent]?.let { newAuthority -> string.textContent = newAuthority }
                 }
             }
         }

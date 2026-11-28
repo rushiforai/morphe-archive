@@ -135,7 +135,7 @@ final class Verdicts {
                 ? Collections.singletonList(profile.website) : Collections.emptyList();
         return new FilterSubject(handle, userId, ModelBridge.displayName(user), ModelBridge.bio(user),
                 profile != null ? profile.location : null, website, links(ModelBridge.bioLinks(user)),
-                ModelBridge.label(user), ModelBridge.isGovernment(user), ModelBridge.affiliation(user),
+                ModelBridge.label(user), ModelBridge.verification(user) == ModelBridge.VERIFIED_GOVERNMENT, ModelBridge.affiliation(user),
                 ModelBridge.following(user), profile != null ? profile.posts : -1, ModelBridge.followedByMe(user));
     }
 

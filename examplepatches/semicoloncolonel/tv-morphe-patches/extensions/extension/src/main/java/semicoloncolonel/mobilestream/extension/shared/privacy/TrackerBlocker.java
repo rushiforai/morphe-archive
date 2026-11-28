@@ -133,6 +133,9 @@ public final class TrackerBlocker {
             // Fox News phone (5.49.2)
             "pyxis.atp.fox", // Fox ad telemetry
             "xid.atp.fox", "idgraph.dt.fox", // Fox ad-ID graph
+            // Fox Local Android TV (2.18.1)
+            "fox-client-player-intake.hydrolix.live", // Fox player telemetry
+            "loki-ingest.fox.com", // Fox app log shipping
             "uidapi.com", // Unified ID 2.0
             // MS NOW (14.6.0)
             "api2.amplitude.com", // Amplitude event upload (not the Experiment flag hosts)

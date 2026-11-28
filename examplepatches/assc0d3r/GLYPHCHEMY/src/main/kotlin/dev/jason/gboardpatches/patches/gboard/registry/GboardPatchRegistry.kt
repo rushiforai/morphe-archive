@@ -20,6 +20,7 @@ import dev.jason.gboardpatches.patches.gboard.features.bluetoothmicrophone.gboar
 import dev.jason.gboardpatches.patches.gboard.features.bluetoothmicrophone.gboardBluetoothMicrophoneFlagValuePatch
 import dev.jason.gboardpatches.patches.gboard.features.backuprestore.gboardBackupRestoreFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.backuprestore.gboardBackupRestoreManifestPatch
+import dev.jason.gboardpatches.patches.gboard.features.backuprestore.gboardDataBackupFlagValuePatch
 import dev.jason.gboardpatches.patches.gboard.features.calculator.gboardCalculatorFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.calculator.gboardCalculatorLifecyclePatch
 import dev.jason.gboardpatches.patches.gboard.features.about.gboardAboutPageResourcePatch
@@ -105,6 +106,10 @@ import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardTargetAdmis
 import dev.jason.gboardpatches.patches.gboard.features.zhuyinbottomrow.gboardZhuyinBottomRowWeightFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.zhuyinbottomrow.gboardZhuyinBottomRowWeightSoftKeyPatch
 import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
+import dev.srwi.gintype.patches.gboard.registry.gintypeCustomHoldPopupsPatch
+import dev.srwi.gintype.patches.gboard.registry.gintypeMultiglidePatch
+import dev.srwi.gintype.patches.gboard.registry.gintypeThiccTopBarPatch
+import dev.srwi.gintype.patches.gboard.registry.gintypeTypingEffectsPatch
 import dev.jason.gboardpatches.patches.gboard.features.cursortrackpad.gboardCursorTrackpadPreferencePatch
 
 @Suppress("unused")
@@ -192,7 +197,7 @@ val gboardLongPressQuickActionsPatch = gboardPublicResourcePatch(
         "to English QWERTY and Zhuyin.",
     default = true,
 ) {
-    compatibleWith(COMPATIBILITY_GBOARD)
+    compatibleWith(gboardCompatibility18_8())
 
     dependsOn(
         gboardPatchesSettingsPatch,
@@ -505,6 +510,7 @@ val gboardBackupRestorePatch = gboardPublicResourcePatch(
         gboardPatchesSettingsPatch,
         gboardBackupRestoreFeatureMarkerPatch,
         gboardBackupRestoreManifestPatch,
+        gboardDataBackupFlagValuePatch,
     )
 }
 
@@ -632,7 +638,7 @@ val gboardSettingsHomepagePatch = gboardPublicResourcePatch(
     description = "允許切換新版或舊版 Gboard 設定頁面\nAllow switching between the new and legacy Gboard settings pages.",
     default = true
 ) {
-    compatibleWith(COMPATIBILITY_GBOARD)
+    compatibleWith(gboardCompatibility18_8())
 
     dependsOn(
         gboardPatchesSettingsPatch,
@@ -965,6 +971,10 @@ object GboardPublishedPatchCatalog {
         gboardGlassPressEffectPublicPatch,
         gboardThemeFollowsDarkModePublicPatch,
         gboardKeyMapperWatchdogPublicPatch,
+        gintypeMultiglidePatch,
+        gintypeThiccTopBarPatch,
+        gintypeCustomHoldPopupsPatch,
+        gintypeTypingEffectsPatch,
     ).filterTo(linkedSetOf()) { patch -> patch.name != null }
 
     fun publishedInventory(version: String): String {

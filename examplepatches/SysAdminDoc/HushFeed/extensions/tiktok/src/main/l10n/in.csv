@@ -275,6 +275,8 @@ Blocked %1$s,%1$s diblokir
 Blocked %1$s. Unblock,%1$s diblokir. Buka blokir
 Couldn't confirm blocking %1$s. Check their profile.,Tak bisa memastikan blokir %1$s. Cek profilnya.
 Blocked caption words,Kata yang diblokir di keterangan
+Only show videos with these words,Hanya tampilkan video dengan kata-kata ini
+"For You only. Separate words or phrases with commas, like #recipe, cooking. A video stays only when its caption or hashtags match one, with the same rules as Blocked caption words. A batch with no match keeps one video so the feed keeps moving. Leave it empty to show everything.","Hanya Untuk Kamu. Pisahkan kata atau frasa dengan koma, seperti #recipe, cooking. Video tetap ada hanya jika keterangan atau tagarnya cocok dengan salah satunya, dengan aturan yang sama seperti Kata yang diblokir di keterangan. Kelompok tanpa yang cocok menyisakan satu video agar feed terus berjalan. Biarkan kosong untuk menampilkan semuanya."
 Blocked comment words,Kata komentar yang diblokir
 Blocked creators,Kreator yang diblokir
 Blocked sound ids,Id suara yang diblokir
@@ -2870,6 +2872,8 @@ Crop and stretch to fill the screen,Potong dan regangkan untuk memenuhi layar
 "Cover the whole window with half the crop of Fill and half the stretch of Stretch, so neither is easy to spot. A video far from the screen's shape keeps TikTok's size.","Menutupi seluruh jendela dengan separuh potongan Penuhi dan separuh regangan Regangkan, jadi keduanya tidak terlalu terlihat. Video yang bentuknya jauh berbeda dari layar tetap memakai ukuran TikTok."
 Watch LIVEs unseen,Tonton LIVE tanpa terlihat
 You stay off the viewer list of LIVEs you open. Tap the eye in a LIVE to let that host see you. Needs Ghost mode on.,Kamu tidak akan muncul di daftar penonton LIVE yang kamu buka. Ketuk ikon mata di LIVE agar host bisa melihatmu. Mode siluman harus menyala.
+Double tap to let the host see you,Ketuk dua kali agar host bisa melihatmu
+"No eye on the video. Double tap a LIVE to let that host see you, and the next LIVE you open hides you again. Needs Watch LIVEs unseen on.","Tidak ada ikon mata di video. Ketuk dua kali LIVE agar host bisa melihatmu, dan LIVE berikutnya yang kamu buka menyembunyikanmu lagi. Tonton LIVE tanpa terlihat harus menyala."
 Keep likes on this phone,Simpan suka di ponsel ini
 "A like you give a video stays on this phone. The heart turns red, but TikTok isn't told, so the creator never sees it and it isn't on your profile. Needs Ghost mode on.","Suka yang kamu berikan ke video tetap di ponsel ini. Hatinya jadi merah, tapi TikTok tidak diberi tahu, jadi kreator tidak pernah melihatnya dan suka itu tidak ada di profilmu. Mode siluman harus menyala."
 My likes on this phone,Suka saya di ponsel ini
@@ -2993,8 +2997,8 @@ Sort pinned videos with the rest,Urutkan video yang disematkan bersama lainnya
 "Pinned videos take their place in the order instead of staying at the top, so Newest first puts them at the date they were posted.","Video yang disematkan menempati tempatnya dalam urutan, tidak tetap di atas, jadi Terbaru dulu menaruhnya sesuai tanggal diunggah."
 Hide or reorder profile tabs,Sembunyikan atau urutkan ulang tab profil
 "Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos, and use the arrows to put the rest in your order. One tab always stays. Restart TikTok to apply this.","Pilih tab yang disembunyikan dari strip di atas video profil, misalnya Postingan ulang atau Video yang disukai, lalu pakai tanda panah untuk mengatur urutan tab lainnya. Satu tab selalu tetap ada. Mulai ulang TikTok agar berlaku."
-Hide Add bio,Sembunyikan Tambahkan bio
-Hide the Add bio prompt TikTok shows on your own profile while it has no bio. You can still add one from Edit profile.,Sembunyikan ajakan Tambahkan bio yang ditampilkan TikTok di profil Anda sendiri selama belum ada bio. Anda tetap bisa menambahkannya dari Edit profil.
+Hide tips on your profile,Sembunyikan tips di profil Anda
+Hide the Add bio prompt and the tip bubbles TikTok points at things on your own profile. You can still add a bio from Edit profile.,Sembunyikan ajakan Tambahkan bio dan gelembung tips yang ditunjukkan TikTok ke berbagai hal di profil Anda sendiri. Anda tetap bisa menambahkan bio dari Edit profil.
 Show the picture before saving,Tampilkan foto sebelum menyimpan
 "With the long press save on, holding a profile picture opens it full screen at full size, with a Save button under it.","Saat simpan dengan tekan lama aktif, menahan foto profil membukanya di layar penuh dalam ukuran penuh, dengan tombol Simpan di bawahnya."
 The profile picture couldn't be loaded. Try again.,Foto profilnya tidak bisa dimuat. Coba lagi.
@@ -3009,7 +3013,6 @@ Round the corners on profile grids,Bulatkan sudut di kisi profil
 Gifter level,Level pemberi hadiah
 SecUID,SecUID
 Unknown (TikTok didn't send it),Tidak diketahui (TikTok tidak mengirimnya)
-"A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, how many posts, liked videos, favorites and reposts it has, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.","Lembar bagikan profil mendapat tombol Fakta akun. Tombol ini menampilkan apa yang sudah dikirim TikTok tentang akun itu: kapan bergabung, wilayah dan bahasanya, level pemberi hadiah dan SecUID-nya, berapa banyak postingan, video yang disukai, favorit, dan postingan ulangnya, kapan nama pengguna dan nama tampilannya terakhir diubah, apakah akunnya privat, dan apakah video yang disukainya publik. Tidak ada data tambahan yang diambil."
 Show the room ID and your connection,Tampilkan ID ruang dan koneksimu
 Show the room line,Tampilkan baris ruang
 "Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to shrink it to a dot, and tap the dot to bring it back. Hold the line to copy the room ID.","Menambahkan baris kecil di ruang LIVE berisi ID ruang dan kondisi koneksimu sendiri ke siaran, sesuai ukuran pemutar TikTok: ping, latensi, dan kecepatan unduh. Ketuk baris itu untuk mengecilkannya jadi titik, lalu ketuk titiknya untuk menampilkannya lagi. Tekan lama baris itu untuk menyalin ID ruang."
@@ -3104,3 +3107,46 @@ Unavailable saved video,Video tersimpan tidak tersedia
 Posted %1$s,Diposting %1$s
 Remembered %1$s,Diingat %1$s
 Unavailable since %1$s,Tidak tersedia sejak %1$s
+Corner size on profile grids,Ukuran sudut di kisi profil
+"How round the corners are, in dp. TikTok's own cards use about 8.","Seberapa bulat sudutnya, dalam dp. Kartu TikTok sendiri memakai sekitar 8."
+Gap between videos on profile grids,Jarak antar video di kisi profil
+"Adds space between the videos on profile grids, on top of TikTok's own thin line. Use 0 for TikTok's spacing.","Menambahkan jarak antar video di kisi profil, di luar garis tipis milik TikTok. Gunakan 0 untuk jarak bawaan TikTok."
+Gifter points,Poin pemberi hadiah
+Gifter points for the next level,Poin pemberi hadiah untuk level berikutnya
+Gifter points in total,Total poin pemberi hadiah
+Profile picture (small),Foto profil (kecil)
+Profile picture (medium),Foto profil (sedang)
+Profile picture (large),Foto profil (besar)
+Profile cover,Sampul profil
+Copied to the clipboard,Disalin ke papan klip
+"A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, how many posts, liked videos, favorites and reposts it has, when its username and display name last changed, whether it's private and whether its liked videos are public. Links to its profile picture and cover come last. Tap a value to copy just that one. Nothing extra is fetched.","Lembar bagikan profil mendapat tombol Fakta akun. Tombol ini menampilkan apa yang sudah dikirim TikTok tentang akun itu: kapan bergabung, wilayah dan bahasanya, level pemberi hadiah dan SecUID-nya, berapa banyak postingan, video yang disukai, favorit, dan postingan ulangnya, kapan nama pengguna dan nama tampilannya terakhir diubah, apakah akunnya privat, dan apakah video yang disukainya publik. Tautan foto profil dan sampulnya ada di bagian akhir. Ketuk sebuah nilai untuk menyalin nilai itu saja. Tidak ada data tambahan yang diambil."
+Yellow counts for private lists,Angka kuning untuk daftar privat
+"On a profile that keeps its followers or following list private, that count shows in yellow, so you can tell it's private before you tap it. Yours too.","Di profil yang menyembunyikan daftar pengikut atau yang diikutinya, angka itu tampil kuning, jadi kamu tahu itu privat sebelum mengetuknya. Punyamu juga."
+Links to other apps in bios,Tautan ke aplikasi lain di bio
+"A username named after IG, Snap, YT, X, Twitch, Threads or FB in a bio turns into a pill in that app's color. Tapping it opens that account's public page in the app or your browser. Nothing is looked up before you tap.","Nama pengguna yang ditulis setelah IG, Snap, YT, X, Twitch, Threads, atau FB di bio berubah menjadi pil berwarna aplikasi itu. Mengetuknya membuka halaman publik akun itu di aplikasinya atau browser kamu. Tidak ada yang dicari sebelum kamu mengetuk."
+Badge picture,Gambar lencana
+Remove the badge picture,Hapus gambar lencana
+Pick a picture to show in place of the blue check while Local verified badge is on. It's kept on this phone only and nobody else sees it.,Pilih gambar untuk ditampilkan sebagai pengganti centang biru saat Lencana verifikasi lokal aktif. Gambar hanya disimpan di ponsel ini dan tidak ada orang lain yang melihatnya.
+Reading the picture,Membaca gambar
+"Deletes the picture, and the blue check comes back.","Menghapus gambar, lalu centang biru kembali."
+No badge picture is kept,Tidak ada gambar lencana yang disimpan
+Badge picture saved. Open your profile to see it.,Gambar lencana disimpan. Buka profilmu untuk melihatnya.
+Badge picture saved. Turn on Local verified badge to see it.,Gambar lencana disimpan. Aktifkan Lencana verifikasi lokal untuk melihatnya.
+Couldn't save the picture in TikTok's storage. Free up some space and try again.,Tidak bisa menyimpan gambar di penyimpanan TikTok. Kosongkan sedikit ruang lalu coba lagi.
+That picture is larger than %1$s MB. Choose a smaller one.,Gambar itu lebih besar dari %1$s MB. Pilih yang lebih kecil.
+"That file isn't a picture this phone can open. Choose a PNG, JPEG or WebP.","File itu bukan gambar yang bisa dibuka ponsel ini. Pilih PNG, JPEG, atau WebP."
+Badge picture removed. Your profile shows the blue check again.,Gambar lencana dihapus. Profilmu menampilkan centang biru lagi.
+Couldn't remove the badge picture. Try again.,Tidak bisa menghapus gambar lencana. Coba lagi.
+Keep the letters after the flag,Pertahankan huruf setelah bendera
+"Shows the country's two letters next to its flag, so a flag you don't recognize still tells you where it is.","Menampilkan dua huruf negara di sebelah benderanya, jadi bendera yang tidak kamu kenali tetap memberi tahu asalnya."
+Write grid dates the way TikTok does,Tulis tanggal kisi seperti TikTok
+"Profile grids show the date the way TikTok writes it by the creator's name, like 2d ago or 10-12, in place of Oct 12. Day before month, Write the month as a word and Date instead of age change it the same way.","Kisi profil menampilkan tanggal seperti yang ditulis TikTok di samping nama kreator, seperti 2 hr lalu atau 10-12, alih-alih Oct 12. Hari sebelum bulan, Tulis bulan sebagai kata, dan Tanggal alih-alih usia mengubahnya dengan cara yang sama."
+Where the date goes on grids,Letak tanggal di kisi
+Under the view count,Di bawah jumlah tayangan
+After the view count,Setelah jumlah tayangan
+Above the view count,Di atas jumlah tayangan
+Above the view count takes the video length along with the date.,Di atas jumlah tayangan juga membawa durasi video bersama tanggal.
+Show notices at the top,Tampilkan pemberitahuan di atas
+"Put Hushfeed's notices, like a finished save or a block's Undo, just under the status bar instead of above the tab bar. Swipe a notice left or right to close it.","Taruh pemberitahuan Hushfeed, seperti simpanan yang selesai atau Urungkan setelah memblokir, tepat di bawah bilah status, bukan di atas bilah tab. Geser pemberitahuan ke kiri atau kanan untuk menutupnya."
+Blur behind notices,Buramkan di belakang pemberitahuan
+Blur the video behind Hushfeed's notices so they look like frosted glass. Needs Android 12 and up. Away from a video they keep the plain dark look.,"Buramkan video di belakang pemberitahuan Hushfeed sehingga terlihat seperti kaca buram. Perlu Android 12 ke atas. Jauh dari video, pemberitahuan tetap berwarna gelap biasa."

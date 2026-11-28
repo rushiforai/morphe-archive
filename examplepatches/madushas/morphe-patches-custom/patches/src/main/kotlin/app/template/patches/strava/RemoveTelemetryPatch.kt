@@ -58,11 +58,13 @@ import org.w3c.dom.Element
 //                         killing it breaks a user-facing feature. The GAID
 //                         emptying above strips its ad-id telemetry while
 //                         link creation keeps working.
-//   com.strava.analytics — first-party pipeline (Room AnalyticsCacheDatabase
-//                         + deeply obfuscated sender + experiment/remote-config
-//                         system). Ripping it blind risks feature-gate breakage
-//                         (LoggedOutExperiment drives real behavior). Accepted
-//                         residual — see recon doc §2.
+//   com.strava.analytics — first-party network sender and experiment/remote-
+//                         config system. Only the local Room
+//                         AnalyticsEventEntry cache insert is suppressed below;
+//                         the network sender remains active by design. Ripping
+//                         the sender or feature gates blind risks user-facing
+//                         behavior breakage (LoggedOutExperiment drives real
+//                         behavior). Accepted residual — see recon doc §2.
 // ─────────────────────────────────────────────────────────────────────────────
 
 internal val removeTelemetryManifestPatch = resourcePatch {
@@ -138,7 +140,7 @@ internal val removeTelemetryManifestPatch = resourcePatch {
 @Suppress("unused")
 val removeTelemetryPatch = bytecodePatch(
     name = "Remove telemetry",
-    description = "Strips Sentry, Embrace and Facebook analytics, disables Firebase analytics, and empties the advertising ID (push notifications keep working).",
+    description = "Strips Sentry, Embrace and Facebook analytics, disables Firebase analytics, empties the advertising ID, and suppresses the local Strava analytics-event cache (push notifications keep working; the first-party Strava network sender remains active).",
     default = true,
 ) {
     compatibleWith(STRAVA_COMPATIBILITY)
@@ -219,15 +221,22 @@ val removeTelemetryPatch = bytecodePatch(
                 addInstructions(0, "return-void")
             }
 
-        // ── First-party Strava analytics gateway ──────────────────────────
-        // AnalyticsEventEntry Room DAO (wy0) insert c(Lnz0;)V — events are
-        // never persisted, so the periodic flush ships an empty queue. The
-        // Room callers just continue (insert is fire-and-forget).
-        mutableClassDefBy("Lwy0;")
+        // ── First-party Strava local analytics cache ──────────────────────
+        // AnalyticsEventEntry Room DAO insert — events are never persisted,
+        // so the local cache stays empty. The Room callers just continue
+        // (insert is fire-and-forget). This does not suppress the first-party
+        // network sender. Resolve the concrete DAO overload exactly; the
+        // abstract DAO interface has the same method shape.
+        val analyticsDao = resolveStravaMethod(
+            "Strava telemetry AnalyticsEventEntry DAO",
+            StravaTargets.telemetryDao,
+        )
+        mutableClassDefBy(analyticsDao.classDef)
             .methods
             .first {
-                it.name == "c" && it.returnType == "V" &&
-                    it.parameters.size == 1 && it.parameters[0].type == "Lnz0;"
+                it.name == analyticsDao.method.name &&
+                    it.returnType == analyticsDao.method.returnType &&
+                    it.parameterTypes == analyticsDao.method.parameterTypes
             }
             .apply {
                 clearBody()

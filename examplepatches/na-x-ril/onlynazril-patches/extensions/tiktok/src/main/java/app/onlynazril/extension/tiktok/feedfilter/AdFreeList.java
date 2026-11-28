@@ -1,31 +1,31 @@
 package app.onlynazril.extension.tiktok.feedfilter;
 
-import androidx.annotation.NonNull;
-
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
- * The pager storage's item list, with ads refused at insertion.
+ * A list's item storage, with ads refused at insertion.
  * <p>
- * The pager storage is a plain {@code ArrayList} that the ad SDK can also add to directly, without
- * going through the setter or any of the insert callbacks the filter hooks. Wrapping the field
- * itself is the only point every path shares: a direct {@code add}, an insert callback and a page
- * restore all end here. The list is still an {@code ArrayList}, so existing casts and iteration are
- * unchanged.
+ * An ad can be added straight into the pager's own {@code ArrayList}, without a setter, a fetch or
+ * an insert callback the page hooks see. The profile feed does exactly that: the log shows the ad
+ * rendered with no page or setter line before it, so the only point it passes is the list itself.
+ * Replacing the field at construction makes every path share one refusal, and the list is still an
+ * {@code ArrayList}, so casts and iteration are unchanged.
  * <p>
- * Only ads are refused. The same storage class backs the detail feed and the profile's own feed;
- * refusing a LIVE or drama item there removes the video the user just opened, which is a black
- * screen and, when the list keeps its previous items, the wrong video. The feed's own hooks remove
- * those items from the feed.
+ * **Ads only.** The same storage class backs the detail feed and a profile's own feed; refusing a
+ * LIVE, drama or out-of-range item there would drop the video the user just opened. Those filters
+ * belong to the feed's pages, which is where they run.
  */
 public final class AdFreeList extends ArrayList<Object> {
     public AdFreeList(Collection<?> source) {
         super(source == null ? 0 : source.size());
         if (source == null) return;
+        List<Object> kept = new ArrayList<>(source.size());
         for (Object item : source) {
-            if (!FeedFilter.shouldRefuse(item)) super.add(item);
+            if (!FeedFilter.shouldRefuse(item)) kept.add(item);
         }
+        super.addAll(kept);
     }
 
     @Override
@@ -48,9 +48,15 @@ public final class AdFreeList extends ArrayList<Object> {
 
     @Override
     public boolean addAll(Collection<?> items) {
-        boolean changed = false;
         if (items == null) return false;
-        for (Object item : items) changed |= add(item);
+        boolean changed = false;
+        for (Object item : items) {
+            if (FeedFilter.shouldRefuse(item)) {
+                FeedFilter.logRefusedItem(item);
+                continue;
+            }
+            changed |= super.add(item);
+        }
         return changed;
     }
 

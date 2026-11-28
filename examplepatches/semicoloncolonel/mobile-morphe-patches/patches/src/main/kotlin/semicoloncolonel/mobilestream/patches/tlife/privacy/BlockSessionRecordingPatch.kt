@@ -1,10 +1,10 @@
 package semicoloncolonel.mobilestream.patches.tlife.privacy
 
+import semicoloncolonel.mobilestream.patches.shared.misc.isOptionOn
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import semicoloncolonel.mobilestream.patches.shared.misc.forEachMatchingMethod
 import semicoloncolonel.mobilestream.patches.shared.misc.returnEarly
-import semicoloncolonel.mobilestream.patches.tlife.shared.Constants
 
 // T-Life 12.3.1 runs Quantum Metric, which records each session (screens,
 // taps, and typing) and is sent the phone number, email, billing account
@@ -13,14 +13,10 @@ import semicoloncolonel.mobilestream.patches.tlife.shared.Constants
 
 private const val QUANTUM_METRIC = "Lcom/quantummetric/instrument/QuantumMetric"
 
-@Suppress("unused")
-val blockSessionRecordingPatch = bytecodePatch(
-    name = "Block session recording",
-    description = "Stops Quantum Metric, which records what you do in T-Life.",
-) {
-    compatibleWith(Constants.COMPATIBILITY)
-
+// Part of blockAnalyticsPatch: runs only when its "sessionRecording" option is on.
+internal val blockSessionRecordingPatch = bytecodePatch {
     execute {
+        if (!isOptionOn(blockAnalyticsPatch, "sessionRecording")) return@execute
         val count = forEachMatchingMethod(
             { it.type == "$QUANTUM_METRIC;" || it.type == "$QUANTUM_METRIC\$Builder;" },
             { method ->

@@ -207,9 +207,11 @@ public final class StreamCache {
             String u = url;
             if (u == null) throw new IOException("no stream for the missing part");
             long from = (long) c * CHUNK, to = from + CHUNK - 1;
-            HttpURLConnection h = HttpTransport.open(Protocol.audio(u, headers, "bytes=" + from + "-" + to));
+            Protocol.Request q = Protocol.audio(u, headers, "bytes=" + from + "-" + to);
+            HttpURLConnection h = HttpTransport.open(q);
             h.setConnectTimeout(15_000);
             h.setReadTimeout(20_000);
+            h = HttpTransport.follow(h, q);   // each redirect checked before it is asked (audit B2-04)
             try {
                 int code = h.getResponseCode();
                 // a redirect onto this device: refused like the link itself (extension audit M8)

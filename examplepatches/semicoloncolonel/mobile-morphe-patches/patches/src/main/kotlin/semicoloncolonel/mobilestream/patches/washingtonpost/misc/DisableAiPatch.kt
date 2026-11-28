@@ -103,6 +103,7 @@ val disableAiPatch = bytecodePatch(
     description = "Turns off Ask The Post AI, its tab, and AI article summaries.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

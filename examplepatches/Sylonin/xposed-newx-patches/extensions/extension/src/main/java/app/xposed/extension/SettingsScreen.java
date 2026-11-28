@@ -51,10 +51,12 @@ final class SettingsScreen {
                 new String[]{"Small", "Medium", "Large"}, new String[]{"small", "medium", "large"}, "medium");
         toggle("Show badge background", "Turn off the background and border for icons only.", Settings.BADGE_BACKGROUND, true);
         toggle("Show country flags", "Display country flags next to names.", Settings.BADGE_FLAGS, true);
-        toggle("Show device icons", "Display device type icons (Apple, Android, Web).", Settings.BADGE_DEVICES, false);
-        toggle("Show VPN/proxy indicator", "Show a shield when the location may not be accurate.", Settings.BADGE_VPN, false);
+        toggle("Show device icons", "Display device type icons (Apple, Android, Web).", Settings.BADGE_DEVICES, true);
+        toggle("Show VPN/proxy indicator", "Show a shield when the location may not be accurate.", Settings.BADGE_VPN, true);
         toggle("Show info icon", "Show the circled-i at the end of each badge. Turn it off to free space for long names.",
                 Settings.BADGE_INFO, true);
+        toggle("Show share button", "Add a button after badges on posts to share the post as an image.",
+                Settings.BADGE_SHARE, false);
 
         page.section("Filters");
         FilterRules rules = Filters.rules();
@@ -139,6 +141,15 @@ final class SettingsScreen {
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ui.dp(22 * badge.spanScale()));
         lp.setMarginStart(ui.dp(6));
         preview.addView(image, lp);
+        if (Settings.badge().share) {
+            ImageView share = new ImageView(page.context);
+            share.setImageDrawable(BadgeDrawable.shareButton());
+            share.setAdjustViewBounds(true);
+            LinearLayout.LayoutParams shareLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ui.dp(22 * badge.spanScale()));
+            shareLp.setMarginStart(ui.dp(4));
+            preview.addView(share, shareLp);
+        }
     }
 
     /** A post as it would look when highlighted, for the contrast setting. */

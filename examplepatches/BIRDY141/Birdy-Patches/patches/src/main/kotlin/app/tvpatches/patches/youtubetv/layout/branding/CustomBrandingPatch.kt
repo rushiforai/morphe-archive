@@ -57,11 +57,37 @@ private val brandingResourcePatch = resourcePatch {
         }
 
         // Turn off Cobalt's built-in splash (YouTube logo); SplashOverlay shows FaroTV's instead.
+        // Also point AndroidManifest.xml icon/banner to un-obfuscated birdy_red_* resources so aapt
+        // compiles and links them into resources.arsc even when the base APK uses obfuscated res/ filenames.
         resourceXml("AndroidManifest.xml").use { manifest ->
             manifest.root.elements("meta-data")
                 .filter { it.attribute("android:name") == "cobalt.ENABLE_SPLASH_SCREEN" }
                 .forEach { it.setAttribute("android:value", "false") }
+
+            manifest.root.elements("application").forEach { app ->
+                app.setAttribute("android:icon", "@mipmap/birdy_red_launcher")
+                if (app.attribute("android:roundIcon") != null) {
+                    app.setAttribute("android:roundIcon", "@mipmap/birdy_red_launcher")
+                }
+                app.setAttribute("android:banner", "@drawable/birdy_red_banner")
+                app.elements("activity").forEach { act ->
+                    act.setAttribute("android:icon", "@mipmap/birdy_red_launcher")
+                    if (act.attribute("android:roundIcon") != null) {
+                        act.setAttribute("android:roundIcon", "@mipmap/birdy_red_launcher")
+                    }
+                    act.setAttribute("android:banner", "@drawable/birdy_red_banner")
+                }
+            }
         }
+
+        val iconTargets = mapOf(
+            "mipmap-mdpi/ic_launcher.png" to "mipmap-mdpi/birdy_red_launcher.png",
+            "mipmap-hdpi/ic_launcher.png" to "mipmap-hdpi/birdy_red_launcher.png",
+            "mipmap-xhdpi/ic_launcher.png" to "mipmap-xhdpi/birdy_red_launcher.png",
+            "mipmap-xxhdpi/ic_launcher.png" to "mipmap-xxhdpi/birdy_red_launcher.png",
+            "mipmap-xxxhdpi/ic_launcher.png" to "mipmap-xxxhdpi/birdy_red_launcher.png",
+            "drawable/app_banner.png" to "drawable/birdy_red_banner.png",
+        )
 
         IMAGES.forEach { image ->
             val bundled = object {}.javaClass.classLoader.getResourceAsStream("youtubetv/branding/$image")
@@ -69,6 +95,57 @@ private val brandingResourcePatch = resourcePatch {
             val target = resourceFile("res/$image", false)
             target.parentFile.mkdirs()
             bundled.use { input -> target.outputStream().use { input.copyTo(it) } }
+
+            val alias = iconTargets[image]
+            if (alias != null) {
+                val aliasStream = object {}.javaClass.classLoader.getResourceAsStream("youtubetv/branding/$image")
+                val aliasTarget = resourceFile("res/$alias", true)
+                aliasTarget.parentFile.mkdirs()
+                aliasStream?.use { input -> aliasTarget.outputStream().use { input.copyTo(it) } }
+            }
+        }
+
+        val bannerBytes = object {}.javaClass.classLoader.getResourceAsStream("youtubetv/branding/drawable/app_banner.png")
+            ?.use { it.readBytes() }
+            ?: throw IllegalStateException("Bundled image drawable/app_banner.png missing")
+
+        val iconBytes = object {}.javaClass.classLoader.getResourceAsStream("youtubetv/branding/mipmap-xhdpi/ic_launcher.png")
+            ?.use { it.readBytes() }
+
+        // Overwrite stock Android TV banner (320x180) obfuscated as res/dN.png in stock APK
+        listOf("res/dN.png", "res/drawable/dN.png", "res/drawable-xhdpi/dN.png").forEach { path ->
+            try {
+                resourceFile(path, false).writeBytes(bannerBytes)
+            } catch (e: Exception) {}
+        }
+
+        // Overwrite stock obfuscated launcher icons across all densities
+        if (iconBytes != null) {
+            listOf("res/o-.png", "res/fN.png", "res/RJ.png", "res/D0.png", "res/L-.png", "res/FS.png", "res/KG.png", "res/yn.png").forEach { path ->
+                try {
+                    resourceFile(path, false).writeBytes(iconBytes)
+                } catch (e: Exception) {}
+            }
+        }
+
+        // Overwrite any decoded file containing 'banner' in all densities
+        listDecodableFiles("res/**").forEach { path ->
+            if (path.contains("banner", ignoreCase = true) && path.endsWith(".png", ignoreCase = true)) {
+                try {
+                    resourceFile(path, false).writeBytes(bannerBytes)
+                } catch (e: Exception) {}
+            }
+        }
+
+        listOf(
+            "drawable", "drawable-xhdpi", "drawable-hdpi", "drawable-tvdpi",
+            "drawable-mdpi", "drawable-xhdpi-v4", "drawable-v4", "drawable-xxhdpi"
+        ).forEach { dir ->
+            try {
+                val target = resourceFile("res/$dir/app_banner.png", false)
+                target.parentFile.mkdirs()
+                target.writeBytes(bannerBytes)
+            } catch (e: Exception) {}
         }
     }
 }

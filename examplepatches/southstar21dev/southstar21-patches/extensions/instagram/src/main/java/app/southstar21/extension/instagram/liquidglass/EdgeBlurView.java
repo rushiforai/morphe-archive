@@ -107,6 +107,18 @@ final class EdgeBlurView extends View {
         return Color.alpha(background) == 0xFF ? background : dark ? Color.BLACK : Color.WHITE;
     }
 
+    /** A solid fill instead of the blur (0 for the blur), for a header that's opaque for now. */
+    private final Paint solidPaint = new Paint();
+
+    void setSolid(int color) {
+        if (solidPaint.getColor() == color && (color != 0) == solid) return;
+        solid = color != 0;
+        solidPaint.setColor(color);
+        invalidate();
+    }
+
+    private boolean solid;
+
     void setDark(boolean dark) {
         if (this.dark == dark) return;
         this.dark = dark;
@@ -118,6 +130,10 @@ final class EdgeBlurView extends View {
         int w = getWidth();
         int h = getHeight();
         if (w <= 0 || h <= 0) return;
+        if (solid) {
+            canvas.drawRect(0, 0, w, h, solidPaint);
+            return;
+        }
         updateGradients(h);
         // The top variant's band can be shorter than the view: squeeze the gradients towards the
         // top edge and leave the rest of the view untouched.

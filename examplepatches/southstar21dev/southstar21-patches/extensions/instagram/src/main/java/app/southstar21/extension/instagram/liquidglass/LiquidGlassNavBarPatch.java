@@ -76,6 +76,12 @@ public final class LiquidGlassNavBarPatch {
             .help("Like the blur behind the bar at the bottom: on Home and Explore the feed runs under the "
                     + "header and the status bar, and is blurred and faded towards the top edge of the "
                     + "screen. Takes effect after Instagram restarts.");
+    static final BooleanSetting WHITE_HEADER_TITLE = new BooleanSetting("liquid_glass_header_white_title",
+            "White title", "The Home header's title turns white once posts scroll under it.", false, true)
+            .help("The header on Home sits right over the feed, so Instagram's dark \"For you\" all but "
+                    + "disappeared over dark photos. With this on it turns white, with a soft shadow, once "
+                    + "posts scroll under it, and keeps Instagram's own color at the top of the feed and "
+                    + "while the stories tray hangs below the header.");
     static final BooleanSetting GLASS_HEADER_BUTTONS = new BooleanSetting("liquid_glass_header_buttons",
             "Glass header buttons", "The header's icons get glass circles once you scroll, like iOS.", true, true)
             .help("On iOS 26 the buttons in the Home and Explore headers (new post, notifications, saved, "
@@ -88,6 +94,13 @@ public final class LiquidGlassNavBarPatch {
                     + "it under the caption is a frosted copy of the video. The strip is part of the reel, so "
                     + "it slides away with it while you scroll. Needs the liquid glass bar and Blur videos "
                     + "behind the bar. Takes effect after Instagram restarts.");
+    static final BooleanSetting REELS_FULL_SCREEN = new BooleanSetting("liquid_glass_reels_full_screen",
+            "Full screen", "Reels fill the whole screen, up behind the status bar, like on iOS 26.", false, true)
+            .help("Like on iOS 26: each reel is zoomed to fill the screen from top to bottom, so the video "
+                    + "also shows behind the status bar and the clock, and only a little of its sides is cut "
+                    + "off. While you swipe between reels the strip behind the status bar holds still, blurred, "
+                    + "and comes into focus on the next reel as it arrives. Off, reels fill the page below the "
+                    + "status bar, which stays black.");
     static final BooleanSetting REELS_CLEAR_GLASS = new BooleanSetting("liquid_glass_reels_clear_glass",
             "Clear glass on Reels", "The bar turns to clearer glass over Reels, so the video shows "
             + "through it.", false, true)
@@ -128,6 +141,12 @@ public final class LiquidGlassNavBarPatch {
                     + "glass with the feed blurred behind it, reaching down to the bottom of the screen. Its "
                     + "search field and the grey share buttons (Add to story, Copy link and the rest) get "
                     + "glass too. Other menus stay as they are. Takes effect the next time you open the menu.");
+    static final BooleanSetting GLASS_COMMENTS = new BooleanSetting("liquid_glass_comments",
+            "Glass comments", "The comments become a sheet of frosted glass, like the share menu.", false, false)
+            .help("The comments that open from the speech bubble on a reel or a post become a sheet of "
+                    + "frosted glass with the reel or the feed blurred behind it, reaching down to the bottom "
+                    + "of the screen, like the share menu. The field you type a comment in gets glass too. "
+                    + "Takes effect the next time you open the comments.");
     static final BooleanSetting SWITCH_AFTER_GLIDE = new BooleanSetting("liquid_glass_switch_after_glide",
             "Switch after the glide", "A tapped tab opens once the selection has glided to it, so the "
             + "page switch doesn't stutter the glide.", false, true)
@@ -183,25 +202,28 @@ public final class LiquidGlassNavBarPatch {
                     + "how anything works.");
 
     /**
-     * The glass beyond the tab bar: the header and the share menu. Its own entry in the menu, but
+     * The glass beyond the tab bar: the header, Reels and the sheets. Its own entry in the menu, but
      * part of the same patch, and it works together with the navigation bar.
      */
     public static final PatchSettings EFFECTS = new PatchSettings("glass_effects",
             "Liquid Glass",
-            "iOS 26 style glass on the header, Reels and the share menu.",
+            "iOS 26 style glass on the header, Reels, the share menu and comments.",
             LiquidGlassNavBarPatch::isIncluded,
             new SettingsGroup("Header", "Works together with the navigation bar, which needs to be on.",
-                    HEADER_BLUR, GLASS_HEADER_BUTTONS.shownWhen(HEADER_BLUR)),
-            new SettingsGroup("Reels", REELS_BLUR, REELS_CLEAR_GLASS.shownWhen(REELS_BLUR)),
-            new SettingsGroup("Menus", GLASS_SHARE_MENU))
+                    HEADER_BLUR, GLASS_HEADER_BUTTONS.shownWhen(HEADER_BLUR),
+                    WHITE_HEADER_TITLE.shownWhen(HEADER_BLUR)),
+            new SettingsGroup("Reels", REELS_BLUR, REELS_FULL_SCREEN.shownWhen(REELS_BLUR),
+                    REELS_CLEAR_GLASS.shownWhen(REELS_BLUR)),
+            new SettingsGroup("Sheets", GLASS_SHARE_MENU, GLASS_COMMENTS))
             .demos(NavbarPreview::demo)
             .icon(Icons.Glyph.DROP, 0xFF32ADE6)
             .about("Brings iOS 26's glass to more of Instagram. On Home and Explore the feed runs on under the "
                     + "header and the status bar and is blurred towards the top of the screen, and the "
                     + "header's buttons get round pieces of glass once you scroll. On Reels each reel runs "
-                    + "behind the bar with a frosted strip under its caption that scrolls with it, and the "
-                    + "bar turns to clearer glass. The share menu becomes a "
-                    + "sheet of frosted glass.",
+                    + "behind the bar with a frosted strip under its caption that scrolls with it, filling "
+                    + "the screen up behind the status bar, and the bar turns to clearer glass. The share "
+                    + "menu, and if you like the comments, become "
+                    + "sheets of frosted glass.",
                     "It's a look, like the navigation bar's. It doesn't change how anything works.");
 
     /** Whether one of the {@link #EFFECTS} is switched on, with the entry itself on. */

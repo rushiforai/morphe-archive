@@ -8,9 +8,11 @@ import java.security.MessageDigest
 // for patches that change what a named JavaScript function returns.
 //
 // Hermes keeps each function's source name in the bundle, so a function is
-// found by name rather than by its position or bytes. Bytecode versions 96 and
-// 98 are read; any other version fails the patch rather than guessing at a
-// layout. After editing, the SHA-1 footer at the end of the file is
+// found by name rather than by its position or bytes. Bytecode versions 96,
+// 98, and 99 are read; any other version fails the patch rather than guessing
+// at a layout. Version 99 (Al Jazeera 12.2.0) keeps the version 98 layout and
+// the LoadConst and Ret opcodes that returnAtStart writes, so it is read as
+// version 98. After editing, the SHA-1 footer at the end of the file is
 // recomputed.
 //
 // Layout: a 128-byte file header; one header per function, 16 bytes in
@@ -41,7 +43,7 @@ internal class HermesBundle(private val bytes: ByteArray) {
             throw PatchException("Not a Hermes bytecode bundle")
         }
         version = u32(8)
-        if (version != 96 && version != 98) throw PatchException("Unsupported Hermes bytecode version $version")
+        if (version != 96 && version != 98 && version != 99) throw PatchException("Unsupported Hermes bytecode version $version")
         val headerSize = if (version == 96) 16 else 12
 
         val functionCount = u32(40)
@@ -196,6 +198,72 @@ internal class HermesBundle(private val bytes: ByteArray) {
     }
 
     /**
+     * Like [replaceInstructions], but a byte of -1 in [pattern] matches any
+     * byte. Use it to skip the operands that move between app versions, such as
+     * string ids, property-cache slots, and closure function ids, while the
+     * opcodes and registers around them still pin the one instruction. In
+     * [replacement] a -1 leaves the matched byte in place and any other value
+     * is written. [pattern] and [replacement] must be the same length and hold
+     * bytecode of version [forVersion]; the patch fails on any other version or
+     * when the pattern is not found exactly once.
+     */
+    fun replaceMaskedInstructions(
+        name: String,
+        using: List<String>,
+        forVersion: Int,
+        pattern: IntArray,
+        replacement: IntArray,
+    ) {
+        if (version != forVersion) throw PatchException("Expected Hermes bytecode version $forVersion, found $version")
+        if (pattern.size != replacement.size) throw PatchException("Replacement must keep the instruction length")
+        val function = single(name, using)
+        fun matches(at: Int) = pattern.indices.all { pattern[it] < 0 || bytes[at + it] == pattern[it].toByte() }
+        val hits = (function.offset..function.offset + function.size - pattern.size).filter(::matches)
+        if (hits.size != 1) {
+            throw PatchException("Hermes function \"$name\": expected the instructions once, found ${hits.size}")
+        }
+        val at = hits.single()
+        replacement.forEachIndexed { i, v -> if (v >= 0) bytes[at + i] = v.toByte() }
+    }
+
+    /**
+     * In the one function named [name] that loads every string in [using] (a
+     * type dispatcher: a chain of LoadConstString r5, <type>; JStrictEqualLong
+     * <branch>, r5, r33), redirects the branch for element type [type] to the
+     * function's null return, so that element renders nothing. The branch's
+     * 32-bit jump offset is the only change. Bytecode version 96 only.
+     *
+     * The target is the first "Ret r32" (5C 20) after the dispatch chain; r32
+     * holds null there. Finding the type by its string id and the target by
+     * structure keeps this working across app versions, where the ids and the
+     * handler offsets move but the chain and its null return keep their shape.
+     */
+    fun dropTypeBranch(name: String, using: List<String>, type: String) {
+        if (version != 96) throw PatchException("Expected Hermes bytecode version 96, found $version")
+        val function = single(name, using)
+        val start = function.offset
+        val last = function.offset + function.size
+        val id = stringId(type)
+        // LoadConstString r5, <type>: 73 05 <id lo> <id hi>, then
+        // JStrictEqualLong <off32>, r5, r33: BD <4 bytes> 05 21.
+        fun isBranch(at: Int) =
+            u8(at) == 0x73 && u8(at + 1) == 0x05 && u8(at + 4) == 0xBD &&
+                u8(at + 9) == 0x05 && u8(at + 10) == 0x21
+        val branches = (start..last - 11).filter(::isBranch)
+        val hits = branches.filter { u8(it + 2) == (id and 0xFF) && u8(it + 3) == ((id ushr 8) and 0xFF) }
+        if (hits.size != 1) {
+            throw PatchException("Hermes type branch \"$type\" in \"$name\": expected 1, found ${hits.size}")
+        }
+        val at = hits.single()
+        val chainEnd = (branches.max()) + 11
+        val nullReturn = (chainEnd..last - 2).firstOrNull { u8(it) == 0x5C && u8(it + 1) == 0x20 }
+            ?: throw PatchException("Hermes type branch \"$type\" in \"$name\": no null return found")
+        // The JStrictEqualLong offset is relative to the instruction (at + 4).
+        val offset = nullReturn - (at + 4)
+        for (i in 0 until 4) bytes[at + 5 + i] = ((offset ushr (8 * i)) and 0xFF).toByte()
+    }
+
+    /**
      * Makes the one function named [name] return [value] at once: its first
      * four bytes become "LoadConst<value> r0; Ret r0". The function must have
      * a frame of at least one register, and the rest of its body is left
@@ -207,6 +275,17 @@ internal class HermesBundle(private val bytes: ByteArray) {
             throw PatchException("Hermes function $name: expected 1, found ${matches.size}")
         }
         patch(matches.single(), name, value)
+    }
+
+    /**
+     * Like [returnAtStart], for a function the bundle may hold more than once
+     * (a module bundled twice): every function named [name] returns [value]
+     * at once. Fails when none has that name.
+     */
+    fun returnAtStartEvery(name: String, value: Value) {
+        val matches = functions.filter { it.name == name }
+        if (matches.isEmpty()) throw PatchException("Hermes function $name not found")
+        matches.forEach { patch(it, name, value) }
     }
 
     /**

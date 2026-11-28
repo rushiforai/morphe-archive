@@ -21,18 +21,20 @@ import java.util.ArrayList;
 import java.util.WeakHashMap;
 
 /**
- * Liquid Glass for Instagram's share menu, the bottom sheet that opens from a post's or reel's
- * paper plane.
+ * Liquid Glass for two of Instagram's bottom sheets: the share menu, which opens from a post's or
+ * reel's paper plane, and the comments, which open from its speech bubble (on Reels, the feed,
+ * profiles, anywhere in the main activity). Each has its own setting.
  * <p>
  * Instagram shows every bottom sheet in the same two views, created once: the activity's
  * bottom_sheet_container holds a dimmer and a panel, and only the content inside the panel is
  * new for each sheet. The visible sheet is that content root, which Instagram slides with
  * translationY. So a pre-draw listener on the window checks, cheaply each frame, which content
- * the panel holds. When it is a share sheet, a {@link Session} styles it before its first frame
- * is drawn: the content root gets the glass ({@link ShareGlassDrawable}), the opaque backgrounds
- * inside are cleared, the search field becomes a glass capsule and the action row sits on the
- * same glass. Everything changed is saved first and put back when the content changes or the
- * container hides, so other bottom sheets (the three dot menu, comments) stay stock.
+ * the panel holds. When it is a share sheet or the comments, a {@link Session} styles it before
+ * its first frame is drawn: the content root gets the glass ({@link ShareGlassDrawable}) and the
+ * opaque backgrounds inside are cleared. On the share sheet the search field becomes a glass
+ * capsule and the action row sits on the same glass; on the comments the field you type in
+ * becomes the capsule. Everything changed is saved first and put back when the content changes
+ * or the container hides, so other bottom sheets (the three dot menu and the rest) stay stock.
  */
 final class ShareSheetGlass {
     /** How often to look again for the activity's bottom sheet container while it is missing. */
@@ -56,7 +58,7 @@ final class ShareSheetGlass {
     /** Resource ids, resolved once. 0 when Instagram doesn't have one. */
     static final class Ids {
         final int host, hostParent, dimmer, panel, share, recycler, stickySearch, searchRow, bottomControl,
-                reshareRow, reshareRowTop, buttonContainer;
+                reshareRow, reshareRowTop, buttonContainer, comments, commentField;
         final int[] dividers;
 
         Ids(Activity activity) {
@@ -74,6 +76,9 @@ final class ShareSheetGlass {
             reshareRow = id(res, pkg, "direct_external_reshare_row");
             reshareRowTop = id(res, pkg, "direct_external_reshare_row_top");
             buttonContainer = id(res, pkg, "button_container");
+            // The comment list's pull-to-dismiss frame: only the comments sheet has one.
+            comments = id(res, pkg, "comment_overswipe_dismiss_container");
+            commentField = id(res, pkg, "comment_composer_text_parent");
             dividers = new int[]{
                     id(res, pkg, "direct_private_share_title_divider"),
                     id(res, pkg, "direct_private_share_bottom_control_container_divider"),
@@ -111,7 +116,7 @@ final class ShareSheetGlass {
                 frame();
             } catch (Throwable t) {
                 decor.getViewTreeObserver().removeOnPreDrawListener(this);
-                Log.e(LiquidGlassNavBarPatch.TAG, "Share sheet glass failed", t);
+                Log.e(LiquidGlassNavBarPatch.TAG, "Sheet glass failed", t);
                 Session s = session;
                 session = null;
                 if (s != null) {
@@ -179,8 +184,9 @@ final class ShareSheetGlass {
 
 
         private void frame() {
-            boolean on = LiquidGlassNavBarPatch.effect(LiquidGlassNavBarPatch.GLASS_SHARE_MENU);
-            ViewGroup h = on ? host() : null;
+            boolean share = LiquidGlassNavBarPatch.effect(LiquidGlassNavBarPatch.GLASS_SHARE_MENU);
+            boolean comments = LiquidGlassNavBarPatch.effect(LiquidGlassNavBarPatch.GLASS_COMMENTS);
+            ViewGroup h = share || comments ? host() : null;
             ViewGroup panel = null;
             View content = null;
             if (h != null && h.getVisibility() == View.VISIBLE) {
@@ -189,7 +195,7 @@ final class ShareSheetGlass {
                     content = panel.getChildAt(0);
                 }
             }
-            if (session != null && !session.isFor(panel, content)) {
+            if (session != null && (!session.isFor(panel, content) || !(session.comments ? comments : share))) {
                 Session s = session;
                 session = null;
                 s.end();
@@ -206,10 +212,15 @@ final class ShareSheetGlass {
                 }
                 if (checks >= MAX_CHECKS) return;
                 checks++;
-                View share = ids.share != 0 ? content.findViewById(ids.share) : null;
-                if (share == null) return;
+                boolean isComments = false;
+                View found = share && ids.share != 0 ? content.findViewById(ids.share) : null;
+                if (found == null && comments && ids.comments != 0) {
+                    found = content.findViewById(ids.comments);
+                    isComments = found != null;
+                }
+                if (found == null) return;
                 checks = MAX_CHECKS;
-                session = new Session(activity, ids, h, panel, content);
+                session = new Session(activity, ids, h, panel, content, isComments);
             }
             session.frame();
         }
@@ -273,7 +284,7 @@ final class ShareSheetGlass {
         }
     }
 
-    /** One share sheet on screen: styles it, keeps its glass current and undoes it all at the end. */
+    /** One glass sheet on screen: styles it, keeps its glass current and undoes it all at the end. */
     private static final class Session implements ViewTreeObserver.OnGlobalLayoutListener {
         /** The least time between two restyles after a layout, so typing doesn't walk the tree. */
         private static final long RESTYLE_MS = 300;
@@ -289,6 +300,8 @@ final class ShareSheetGlass {
         private final ViewGroup host;
         private final ViewGroup panel;
         private final View content;
+        /** The comments sheet, else the share sheet. */
+        final boolean comments;
         private final View decor;
         private final float density;
         private final ArrayList<Saved> saved = new ArrayList<>();
@@ -309,12 +322,13 @@ final class ShareSheetGlass {
         private final float[] bandOff = new float[2];
         private float lastBandX = Float.NaN, lastBandY = Float.NaN;
 
-        Session(Activity activity, Ids ids, ViewGroup host, ViewGroup panel, View content) {
+        Session(Activity activity, Ids ids, ViewGroup host, ViewGroup panel, View content, boolean comments) {
             this.activity = activity;
             this.ids = ids;
             this.host = host;
             this.panel = panel;
             this.content = content;
+            this.comments = comments;
             this.decor = activity.getWindow().getDecorView();
             this.density = activity.getResources().getDisplayMetrics().density;
         }
@@ -389,6 +403,10 @@ final class ShareSheetGlass {
                     v.setAlpha(0f);
                 }
             }
+            if (comments) {
+                commentField();
+                return;
+            }
             searchField();
             actionRow();
             View r = ids.recycler != 0 ? content.findViewById(ids.recycler) : null;
@@ -439,6 +457,20 @@ final class ShareSheetGlass {
                 ((ShareCapsuleDrawable) bg).setDark(dark);
                 return;
             }
+            save(field);
+            field.setBackground(new ShareCapsuleDrawable(density, dark, solidInsets(bg)));
+        }
+
+        /** The comment field's outlined pill becomes a glass capsule. */
+        private void commentField() {
+            View field = ids.commentField != 0 ? content.findViewById(ids.commentField) : null;
+            if (field == null) return;
+            Drawable bg = field.getBackground();
+            if (bg instanceof ShareCapsuleDrawable) {
+                ((ShareCapsuleDrawable) bg).setDark(dark);
+                return;
+            }
+            if (bg == null) return;
             save(field);
             field.setBackground(new ShareCapsuleDrawable(density, dark, solidInsets(bg)));
         }

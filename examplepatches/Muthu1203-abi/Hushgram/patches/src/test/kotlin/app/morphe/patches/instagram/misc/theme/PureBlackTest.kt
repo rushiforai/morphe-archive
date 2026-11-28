@@ -1,0 +1,1678 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.morphe.patches.instagram.misc.theme
+
+import app.morphe.Fixtures
+import app.morphe.PatchContexts
+import app.morphe.patcher.Patcher
+import app.morphe.patcher.PatcherConfig
+import app.morphe.patcher.PatcherContext
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.ResourcePatchContext
+import app.morphe.patcher.resource.ResourceMode
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patches.instagram.FixtureDex
+import app.morphe.patches.shared.compat.AppCompatibilities
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction3rc
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
+import com.android.tools.smali.dexlib2.immutable.ImmutableField
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
+import org.junit.Test
+import org.w3c.dom.Document
+import org.w3c.dom.Element
+import javax.xml.parsers.DocumentBuilderFactory
+import java.io.File
+import java.nio.file.Files
+import java.util.zip.ZipFile
+
+private const val FAKE_THEME = "Lfixture/Theme;"
+
+class PureBlackTest {
+    private val bottomTabTint = "Lfixture/BottomTabTint;"
+    private val extension = "Lapp/hushgram/extension/instagram/settings/Colors;"
+
+    /**
+     * A background Prism's black fills goes to the stock pure black; the light theme's text, another
+     * color and the sheet's gray, which blackenSheets owns, stay.
+     */
+    @Test
+    fun theStylesGetPureBlack() {
+        val styles = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
+            """
+                <resources>
+                    <style name="IgdsPrismGrayOverridesDark" parent="IgdsPrismSemanticColorsDark">
+                        <item name="igds_color_primary_background">@color/igds_prism_black</item>
+                        <item name="status_bar_background">@color/igds_prism_black</item>
+                        <item name="igds_color_elevated_background">@color/igds_prism_gray_1500</item>
+                    </style>
+                    <style name="IgdsPrismSemanticColorsLight">
+                        <item name="igds_color_primary_text">@color/igds_prism_black</item>
+                        <item name="igds_color_media_background">@color/igds_prism_black</item>
+                    </style>
+                    <style name="IgdsSemanticColorsLight">
+                        <item name="igds_color_primary_background">@color/bds_white</item>
+                        <item name="igds_color_form_field_background_focussed_color">@color/igds_prism_black</item>
+                    </style>
+                </resources>
+            """.trimIndent().byteInputStream(),
+        )
+
+        assertEquals(listOf("IgdsPrismGrayOverridesDark", "IgdsPrismSemanticColorsLight"), blackenStyles(styles))
+
+        val items = styles.getElementsByTagName("item").let { list ->
+            (0 until list.length).map { list.item(it) as Element }.map { it.getAttribute("name") to it.textContent }
+        }
+        assertEquals(
+            listOf(
+                "igds_color_primary_background" to PURE_BLACK_COLOR,
+                "status_bar_background" to PURE_BLACK_COLOR,
+                "igds_color_elevated_background" to "@color/igds_prism_gray_1500",
+                "igds_color_primary_text" to PRISM_BLACK_COLOR,
+                "igds_color_media_background" to PURE_BLACK_COLOR,
+                "igds_color_primary_background" to "@color/bds_white",
+                "igds_color_form_field_background_focussed_color" to PRISM_BLACK_COLOR,
+            ),
+            items,
+        )
+        assertEquals("a second pass finds nothing", emptyList<String>(), blackenStyles(styles))
+    }
+
+    /**
+     * The sheet's surface goes pure black in each dark style that sets it (#171). What sits on a
+     * sheet, the surfaces Instagram keeps dark in both themes, the light theme's white sheet and
+     * another screen's dark style stay.
+     */
+    @Test
+    fun theDarkSheetsGetPureBlack() {
+        val styles = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
+            """
+                <resources>
+                    <style name="IgdsPrismSemanticColorsExperimentDark" parent="IgdsSemanticColorsDark">
+                        <item name="igds_color_elevated_background">@color/igds_prism_gray_10</item>
+                        <item name="igds_color_secondary_background">@color/igds_prism_gray_09</item>
+                    </style>
+                    <style name="IgdsPrismGrayOverridesDark">
+                        <item name="igds_color_elevated_background">@color/igds_prism_gray_1500</item>
+                        <item name="igds_color_elevated_highlight_background">@color/igds_prism_gray_08</item>
+                        <item name="igds_color_elevated_separator">@color/igds_prism_gray_08</item>
+                        <item name="igds_color_secondary_background_on_media">@color/igds_prism_gray_1500</item>
+                    </style>
+                    <style name="IgdsElevatedBackgroundFixDark">
+                        <item name="igds_color_elevated_background">@color/igds_prism_gray_1500</item>
+                        <item name="igds_color_elevated_background_dark">@color/igds_prism_gray_1500</item>
+                        <item name="igds_color_elevated_background_dark_pressed">@color/igds_prism_gray_09</item>
+                    </style>
+                    <style name="IgdsElevatedBackgroundFixLight">
+                        <item name="igds_color_elevated_background_dark">@color/igds_prism_gray_1500</item>
+                    </style>
+                    <style name="IgdsPrismSemanticColorsExperimentLight">
+                        <item name="igds_color_elevated_background">@color/abc_decor_view_status_guard_light</item>
+                    </style>
+                    <style name="StoryCommentColorsDark" parent="IgdsSemanticColorsDark">
+                        <item name="igds_color_elevated_background">@color/bds_grey_9_95_transparent</item>
+                    </style>
+                    <style name="IgdsSemanticColorsDark">
+                        <item name="igds_color_elevated_background">@color/bds_grey_9</item>
+                        <item name="igds_color_highlight_background">@color/bds_grey_9</item>
+                    </style>
+                </resources>
+            """.trimIndent().byteInputStream(),
+        )
+
+        // The base dark palette last: an install without Prism reads its #ff262626 (#835).
+        assertEquals(DARK_SHEETS, blackenSheets(styles))
+
+        val items = styles.getElementsByTagName("item").let { list ->
+            (0 until list.length).map { list.item(it) as Element }.map { it.getAttribute("name") to it.textContent }
+        }
+        assertEquals(
+            listOf(
+                "igds_color_elevated_background" to PURE_BLACK_COLOR,
+                "igds_color_secondary_background" to "@color/igds_prism_gray_09",
+                "igds_color_elevated_background" to PURE_BLACK_COLOR,
+                "igds_color_elevated_highlight_background" to "@color/igds_prism_gray_08",
+                "igds_color_elevated_separator" to "@color/igds_prism_gray_08",
+                "igds_color_secondary_background_on_media" to "@color/igds_prism_gray_1500",
+                "igds_color_elevated_background" to PURE_BLACK_COLOR,
+                "igds_color_elevated_background_dark" to "@color/igds_prism_gray_1500",
+                "igds_color_elevated_background_dark_pressed" to "@color/igds_prism_gray_09",
+                "igds_color_elevated_background_dark" to "@color/igds_prism_gray_1500",
+                "igds_color_elevated_background" to "@color/abc_decor_view_status_guard_light",
+                "igds_color_elevated_background" to "@color/bds_grey_9_95_transparent",
+                "igds_color_elevated_background" to PURE_BLACK_COLOR,
+                "igds_color_highlight_background" to "@color/bds_grey_9",
+            ),
+            items,
+        )
+        assertEquals("a second pass finds nothing", emptyList<String>(), blackenSheets(styles))
+    }
+
+    /**
+     * The story viewer's gray goes pure black in each dark style that sets it (#279), the base dark
+     * palette an install without Prism reads included (#835). The light theme's style, a story's
+     * other grays and the sheets, which blackenSheets owns, stay.
+     */
+    @Test
+    fun theDarkStoriesGetPureBlack() {
+        val styles = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
+            """
+                <resources>
+                    <style name="IgdsPrismGrayOverridesDark" parent="IgdsPrismSemanticColorsDark">
+                        <item name="igds_color_stories_loading_background">@color/igds_prism_gray_09</item>
+                        <item name="igds_color_elevated_background">@color/igds_prism_gray_1500</item>
+                    </style>
+                    <style name="IgdsPrismSemanticColorsExperimentDark" parent="IgdsSemanticColorsDark">
+                        <item name="igds_color_creation_tools_grey_09">@color/igds_prism_gray_09</item>
+                        <item name="igds_color_stories_loading_background">@color/igds_prism_gray_09</item>
+                    </style>
+                    <style name="IgdsPrismSemanticColorsExperimentLight">
+                        <item name="igds_color_stories_loading_background">@color/igds_prism_gray_09</item>
+                    </style>
+                    <style name="IgdsSemanticColorsDark">
+                        <item name="igds_color_stories_loading_background">@color/bds_grey_9</item>
+                    </style>
+                </resources>
+            """.trimIndent().byteInputStream(),
+        )
+
+        // The base dark palette too: an install without Prism reads its gray (#835).
+        assertEquals(
+            listOf("IgdsPrismGrayOverridesDark", "IgdsPrismSemanticColorsExperimentDark", "IgdsSemanticColorsDark"),
+            blackenStories(styles),
+        )
+
+        val items = styles.getElementsByTagName("item").let { list ->
+            (0 until list.length).map { list.item(it) as Element }.map { it.getAttribute("name") to it.textContent }
+        }
+        assertEquals(
+            listOf(
+                "igds_color_stories_loading_background" to PURE_BLACK_COLOR,
+                "igds_color_elevated_background" to "@color/igds_prism_gray_1500",
+                "igds_color_creation_tools_grey_09" to "@color/igds_prism_gray_09",
+                "igds_color_stories_loading_background" to PURE_BLACK_COLOR,
+                "igds_color_stories_loading_background" to "@color/igds_prism_gray_09",
+                "igds_color_stories_loading_background" to PURE_BLACK_COLOR,
+            ),
+            items,
+        )
+        assertEquals("a second pass finds nothing", emptyList<String>(), blackenStories(styles))
+    }
+
+    /**
+     * The menu you get by holding a message or a chat goes pure black in both dark styles that set
+     * it (#543). The light theme's menu and the overlay's other colors stay.
+     */
+    @Test
+    fun theDarkMenusGetPureBlack() {
+        val styles = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
+            """
+                <resources>
+                    <style name="IgdsPrismBGBlurFallbackFixDark">
+                        <item name="igds_color_background_blur_fallback_dark">@color/igds_prism_gray_09_alpha_95</item>
+                        <item name="igds_context_menu_background_color">?attr/igds_color_background_blur_fallback_dark</item>
+                    </style>
+                    <style name="IgdsSemanticColorsDark">
+                        <item name="igds_context_menu_background_color">@color/igds_prism_gray_10_alpha_95</item>
+                    </style>
+                    <style name="IgdsSemanticColorsLight">
+                        <item name="igds_context_menu_background_color">@color/igds_context_menu_background_color</item>
+                    </style>
+                </resources>
+            """.trimIndent().byteInputStream(),
+        )
+
+        assertEquals(DARK_MENUS, blackenMenus(styles))
+
+        val items = styles.getElementsByTagName("item").let { list ->
+            (0 until list.length).map { (list.item(it) as Element).textContent }
+        }
+        assertEquals(
+            listOf(
+                "@color/igds_prism_gray_09_alpha_95", PURE_BLACK_COLOR, PURE_BLACK_COLOR,
+                "@color/igds_context_menu_background_color",
+            ),
+            items,
+        )
+        assertEquals("a second pass finds nothing", emptyList<String>(), blackenMenus(styles))
+    }
+
+    /**
+     * The toasts and snackbars go pure black in the dark theme's two palettes (#816), and the light
+     * theme's keep their gray, as does anything else those styles set.
+     */
+    @Test
+    fun theDarkToastsGetPureBlack() {
+        val styles = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
+            """
+                <resources>
+                    <style name="IgdsPrismSemanticColorsExperimentDark">
+                        <item name="igds_color_tag_or_toast_background">@color/igds_prism_gray_09_alpha_95</item>
+                        <item name="igds_color_banner_background">@color/igds_prism_gray_09_alpha_95</item>
+                    </style>
+                    <style name="IgdsSemanticColorsDark">
+                        <item name="igds_color_tag_or_toast_background">@color/bds_grey_9_95_transparent</item>
+                        <item name="igds_color_toast_95_alpha_background">@color/igds_prism_gray_10_alpha_95</item>
+                        <item name="igds_color_toast_background">@color/igds_prism_gray_10_alpha_50</item>
+                    </style>
+                    <style name="IgdsSemanticColorsLight">
+                        <item name="igds_color_toast_95_alpha_background">@color/igds_prism_gray_10_alpha_95</item>
+                    </style>
+                </resources>
+            """.trimIndent().byteInputStream(),
+        )
+
+        assertEquals(TOAST_BACKGROUNDS, blackenToasts(styles))
+
+        val items = styles.getElementsByTagName("item").let { list ->
+            (0 until list.length).map { (list.item(it) as Element).textContent }
+        }
+        assertEquals(
+            listOf(
+                PURE_BLACK_COLOR, "@color/igds_prism_gray_09_alpha_95",
+                PURE_BLACK_COLOR, PURE_BLACK_COLOR, PURE_BLACK_COLOR,
+                "@color/igds_prism_gray_10_alpha_95",
+            ),
+            items,
+        )
+        assertEquals("a second pass finds nothing", emptyList<String>(), blackenToasts(styles))
+    }
+
+    /**
+     * The newer comments screen's theme gets pure black behind the comments and on the sheet, so a
+     * picture's rounded corners stop showing gray (#538). Its dividers, its text and another style's
+     * backgrounds stay.
+     */
+    @Test
+    fun theCommentsThemeGetsPureBlack() {
+        val styles = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
+            """
+                <resources>
+                    <style name="$COMMENT_COLORS" parent="IgdsSemanticColorsDark">
+                        <item name="dividerColor">@color/bds_grey_9_95_transparent</item>
+                        <item name="igds_color_elevated_background">@color/bds_grey_9_95_transparent</item>
+                        <item name="igds_color_elevated_separator">@color/bds_grey_9_95_transparent</item>
+                        <item name="igds_color_primary_background">@color/bds_grey_9_95_transparent</item>
+                        <item name="igds_color_primary_text">@color/bds_white</item>
+                    </style>
+                    <style name="${COMMENT_COLORS}Legacy" parent="$COMMENT_COLORS">
+                        <item name="igds_color_link">@color/bds_blue_1</item>
+                    </style>
+                    <style name="IgdsSemanticColorsDarkBanner">
+                        <item name="igds_color_primary_background">@color/bds_grey_9_95_transparent</item>
+                    </style>
+                </resources>
+            """.trimIndent().byteInputStream(),
+        )
+
+        assertEquals(COMMENT_BACKGROUNDS, blackenComments(styles))
+
+        val items = styles.getElementsByTagName("item").let { list ->
+            (0 until list.length).map { (list.item(it) as Element).textContent }
+        }
+        val gray = "@color/bds_grey_9_95_transparent"
+        assertEquals(
+            listOf(gray, PURE_BLACK_COLOR, gray, PURE_BLACK_COLOR, "@color/bds_white", "@color/bds_blue_1", gray),
+            items,
+        )
+        assertEquals("a second pass finds nothing", emptyList<String>(), blackenComments(styles))
+    }
+
+    /**
+     * A Likes row's normal fill goes to HushGram's own attribute (#248, #639), in the form a decoded
+     * file may spell it, and its pressed fill keeps its own attribute so a press still shows.
+     */
+    @Test
+    fun theLikesRowFillsWithItsOwnAttributeAndKeepsItsPress() {
+        for (spelled in listOf("?$ROW_BACKGROUND", "?attr/$ROW_BACKGROUND")) {
+            val row = parse(
+                """
+                    <selector xmlns:android="http://schemas.android.com/apk/res/android">
+                        <item android:state_pressed="true">
+                            <shape><solid android:color="?${ROW_BACKGROUND}_pressed"/></shape>
+                        </item>
+                        <item>
+                            <shape><solid android:color="$spelled"/></shape>
+                        </item>
+                    </selector>
+                """,
+            )
+
+            assertEquals(1, routeRow(row))
+
+            val solids = row.getElementsByTagName("solid").let { list ->
+                (0 until list.length).map { (list.item(it) as Element).getAttribute("android:color") }
+            }
+            assertEquals(listOf("?${ROW_BACKGROUND}_pressed", "?attr/$ROW_ATTRIBUTE"), solids)
+            assertEquals("a second pass finds nothing", 0, routeRow(row))
+        }
+    }
+
+    /**
+     * Every style that sets the row's old attribute gives the row's own one pure black, the light
+     * theme's too, as the row was before (#248). A style setting only the pressed shade, or the row's
+     * attribute already, keeps what it had.
+     */
+    @Test
+    fun theRowStylesGetPureBlack() {
+        val styles = parse(
+            """
+                <resources>
+                    <style name="IgdsPrismGrayOverridesDark">
+                        <item name="$ROW_BACKGROUND">@color/igds_prism_gray_09</item>
+                    </style>
+                    <style name="IgdsSemanticColorsLight">
+                        <item name="$ROW_BACKGROUND">@color/bds_grey_9</item>
+                    </style>
+                    <style name="Pressed">
+                        <item name="${ROW_BACKGROUND}_pressed">@color/igds_prism_gray_08</item>
+                    </style>
+                    <style name="HushGramClassicBackgrounds_dark">
+                        <item name="$ROW_BACKGROUND">@color/hushgram_classic_background_dark_raised</item>
+                        <item name="$ROW_ATTRIBUTE">@color/hushgram_classic_background_dark_raised</item>
+                    </style>
+                </resources>
+            """,
+        )
+
+        assertEquals(listOf("IgdsPrismGrayOverridesDark", "IgdsSemanticColorsLight"), blackenRowStyles(styles))
+
+        assertEquals(
+            mapOf(
+                "IgdsPrismGrayOverridesDark" to listOf(ROW_BACKGROUND to "@color/igds_prism_gray_09", ROW_ATTRIBUTE to PURE_BLACK_COLOR),
+                "IgdsSemanticColorsLight" to listOf(ROW_BACKGROUND to "@color/bds_grey_9", ROW_ATTRIBUTE to PURE_BLACK_COLOR),
+                "Pressed" to listOf("${ROW_BACKGROUND}_pressed" to "@color/igds_prism_gray_08"),
+                "HushGramClassicBackgrounds_dark" to listOf(
+                    ROW_BACKGROUND to "@color/hushgram_classic_background_dark_raised",
+                    ROW_ATTRIBUTE to "@color/hushgram_classic_background_dark_raised",
+                ),
+            ),
+            styleItems(styles),
+        )
+        assertEquals("a second pass finds nothing", emptyList<String>(), blackenRowStyles(styles))
+
+        val attrs = parse("<resources><attr name=\"$ROW_BACKGROUND\" format=\"reference|color\" /></resources>")
+        assertTrue(declareRowAttribute(attrs))
+        assertTrue("declared once", !declareRowAttribute(attrs))
+        val declared = attrs.getElementsByTagName("attr").let { list -> (0 until list.length).map { list.item(it) as Element } }
+        assertEquals(listOf(ROW_BACKGROUND, ROW_ATTRIBUTE), declared.map { it.getAttribute("name") })
+        assertEquals("color", declared.last().getAttribute("format"))
+    }
+
+    /**
+     * With Classic colors and Backgrounds in the accent color, a dark style's Likes row takes the
+     * sheet's raised shade whichever patch runs first, Instagram's own styles keep pure black, and the
+     * light styles leave the row alone (#639).
+     */
+    @Test
+    fun theDarkBackgroundStylesGiveTheRowTheirRaisedShadeInEitherOrder() {
+        val uses = setOf(AccentUse("igds_color_link", AccentRole.LINK_ON_DARK, 0xff))
+        val instagram = """
+            <style name="IgdsPrismGrayOverridesDark">
+                <item name="$ROW_BACKGROUND">@color/igds_prism_gray_09</item>
+            </style>
+        """
+        val raised = "@color/${classicColor(IconTheme.DARK, BackgroundStep.RAISED)}"
+        for (pureBlackFirst in listOf(true, false)) {
+            val attrs = parse(
+                "<resources>" + listOf("igds_color_primary_background", "igds_color_elevated_background", ROW_BACKGROUND)
+                    .joinToString("") { "<attr name=\"$it\" format=\"reference|color\" />" } + "</resources>",
+            )
+            val styles = parse("<resources>$instagram</resources>")
+            val colors = parse("<resources />")
+            fun accent() {
+                addAccentResources(uses, attrs, colors, styles)
+                addWallpaperResources(uses, attrs, colors, parse("<resources />"), styles)
+            }
+            if (pureBlackFirst) {
+                declareRowAttribute(attrs)
+                assertEquals(listOf("IgdsPrismGrayOverridesDark"), blackenRowStyles(styles))
+                accent()
+            } else {
+                accent()
+                assertEquals(listOf("IgdsPrismGrayOverridesDark"), blackenRowStyles(styles))
+                declareRowAttribute(attrs)
+            }
+            val items = styleItems(styles).mapValues { it.value.toMap() }
+            val what = if (pureBlackFirst) "Pure black first" else "the accent first"
+            assertEquals("$what: Instagram's row", PURE_BLACK_COLOR, items.getValue("IgdsPrismGrayOverridesDark")[ROW_ATTRIBUTE])
+            assertEquals("$what: the classic row", raised, items.getValue(classicStyle(IconTheme.DARK))[ROW_ATTRIBUTE])
+            assertEquals(
+                "$what: the classic sheet",
+                raised,
+                items.getValue(classicStyle(IconTheme.DARK))["igds_color_elevated_background"],
+            )
+            assertEquals(
+                "$what: the accent row",
+                "@color/${backgroundColor("PURPLE", IconTheme.DARK, BackgroundStep.RAISED)}",
+                items.getValue(backgroundStyle("PURPLE", IconTheme.DARK))[ROW_ATTRIBUTE],
+            )
+            assertTrue("$what: the wallpaper row", ROW_ATTRIBUTE in items.getValue(backgroundStyle(WALLPAPER, IconTheme.DARK)))
+            assertTrue(
+                "$what: no light style sets the row",
+                items.filterKeys { it.endsWith("_light") }.values.none { ROW_ATTRIBUTE in it },
+            )
+            assertEquals(
+                "$what: declared once",
+                1,
+                attrs.getElementsByTagName("attr").let { list -> (0 until list.length).count { (list.item(it) as Element).getAttribute("name") == ROW_ATTRIBUTE } },
+            )
+        }
+    }
+
+    /**
+     * The dark launch theme's gray goes pure black wherever it names the splash color (#410), its
+     * icon and branding stay, and another style naming the same color is left alone.
+     */
+    @Test
+    fun theDarkLaunchScreenGetsPureBlack() {
+        val styles = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
+            """
+                <resources>
+                    <style name="$INSTAGRAM_LAUNCH_THEME" parent="Theme.Instagram">
+                        <item name="android:windowSplashScreenBackground">$SPLASH_BACKGROUND_COLOR</item>
+                        <item name="android:windowSplashScreenAnimatedIcon">@drawable/instagram_padded</item>
+                        <item name="android:windowSplashScreenBrandingImage">@drawable/from_meta_gradient_padded</item>
+                        <item name="android:windowSplashScreenIconBackgroundColor">$SPLASH_BACKGROUND_COLOR</item>
+                    </style>
+                    <style name="Theme.Instagram.Other">
+                        <item name="android:windowBackground">$SPLASH_BACKGROUND_COLOR</item>
+                    </style>
+                </resources>
+            """.trimIndent().byteInputStream(),
+        )
+
+        assertEquals(2, blackenLaunchScreen(styles))
+
+        val items = styles.getElementsByTagName("item").let { list ->
+            (0 until list.length).map { list.item(it) as Element }.map { it.textContent }
+        }
+        assertEquals(
+            listOf(PURE_BLACK_COLOR, "@drawable/instagram_padded", "@drawable/from_meta_gradient_padded", PURE_BLACK_COLOR, SPLASH_BACKGROUND_COLOR),
+            items,
+        )
+        assertEquals("a second pass finds nothing", 0, blackenLaunchScreen(styles))
+        assertTrue(isNightValues("values-night") && isNightValues("values-night-v31"))
+        assertTrue("the light theme's folders", listOf("values", "values-v31", "values-ne").none(::isNightValues))
+    }
+
+    /**
+     * On every build of Instagram 452, decoded as Manager decodes it: the four dark styles hold
+     * a sheet's gray (on the two overlays the #ff191c1f a reel's menu showed, #171, and on the base
+     * palette an install without Prism reads, #ff262626, #835) and lose it to pure black, and every
+     * other style that sets a sheet's color, the light theme's among them, keeps the one it had. The
+     * three dark styles that set the story viewer's gray (#279) lose it the same way, and the light
+     * theme's stories keep it.
+     */
+    @Test
+    fun eachBuildsDarkSheetsGoPureBlackAndEveryOtherSheetStays() {
+        val dark = DARK_SHEETS.map { "values/$it" }
+        val darkStories = DARK_STORIES.map { "values/$it" }
+        val darkMenus = DARK_MENUS.map { "values/$it" }
+        val lightMenu = "values/IgdsSemanticColorsLight"
+        val light = "values/IgdsPrismSemanticColorsExperimentLight"
+        val builds = resourceBuilds()
+        assertEquals("every build of Instagram ${Fixtures.VERSION} has a fixture", Fixtures.BUILDS, builds.size)
+        for ((code, build) in builds) {
+            val work = Files.createTempDirectory("hushgram-black-$code").toFile()
+            try {
+                val apk = if (build.extension == "apks") File(work, "base.apk").also { base ->
+                    ZipFile(build).use { bundle ->
+                        bundle.getInputStream(bundle.getEntry("base.apk")).use { input -> base.outputStream().use(input::copyTo) }
+                    }
+                } else build
+                decoded(apk, File(work, "patch")) { context ->
+                    val res = context.get("res")
+                    assertTrue(
+                        "$code: the sheet's gray is #ff191c1f",
+                        Regex("""<color name="igds_prism_gray_1500">#(ff)?191c1f</color>""", RegexOption.IGNORE_CASE)
+                            .containsMatchIn(File(res, "values/colors.xml").readText()),
+                    )
+                    // 457 folded igds_prism_gray_09 into the camera settings' gray of the same value.
+                    val storyGray = "camera_settings_secondary_background"
+                    assertTrue(
+                        "$code: the story viewer's gray is #ff25292e",
+                        Regex("""<color name="$storyGray">#(ff)?25292e</color>""", RegexOption.IGNORE_CASE)
+                            .containsMatchIn(File(res, "values/colors.xml").readText()),
+                    )
+                    val before = attributeColors(res, SHEET_BACKGROUND)
+                    val storiesBefore = attributeColors(res, STORY_BACKGROUND)
+                    assertEquals(
+                        "$code: the dark stories' gray",
+                        mapOf(
+                            "values/IgdsPrismSemanticColorsExperimentDark" to "@color/$storyGray",
+                            "values/IgdsPrismGrayOverridesDark" to "@color/$storyGray",
+                            "values/IgdsSemanticColorsDark" to "@color/bds_grey_9",
+                        ),
+                        storiesBefore.filterKeys { it in darkStories },
+                    )
+                    assertEquals("$code: the light stories' gray", "@color/$storyGray", storiesBefore[light])
+                    val menusBefore = attributeColors(res, MENU_BACKGROUND)
+                    assertEquals(
+                        "$code: the dark menus' grays",
+                        mapOf(
+                            "values/IgdsPrismBGBlurFallbackFixDark" to true,
+                            "values/IgdsSemanticColorsDark" to true,
+                        ),
+                        menusBefore.filterKeys { it in darkMenus }.mapValues { (_, color) ->
+                            color == "@color/igds_prism_gray_10_alpha_95" || color.endsWith("igds_color_background_blur_fallback_dark")
+                        },
+                    )
+                    assertTrue("$code: the light theme sets a menu's color", lightMenu in menusBefore)
+                    val toastsBefore = TOAST_BACKGROUNDS.associateWith { attributeColors(res, it) }
+                    assertEquals(
+                        "$code: the dark toasts' grays",
+                        mapOf(
+                            "igds_color_toast_95_alpha_background" to mapOf("values/IgdsSemanticColorsDark" to "@color/igds_prism_gray_10_alpha_95"),
+                            "igds_color_toast_background" to mapOf("values/IgdsSemanticColorsDark" to "@color/igds_prism_gray_10_alpha_50"),
+                            "igds_color_tag_or_toast_background" to mapOf(
+                                "values/IgdsSemanticColorsDark" to "@color/bds_grey_9_95_transparent",
+                                "values/IgdsPrismSemanticColorsExperimentDark" to "@color/igds_prism_gray_09_alpha_95",
+                            ),
+                        ),
+                        toastsBefore.mapValues { (_, styles) -> styles.filterKeys { it.removePrefix("values/") in DARK_TOASTS } },
+                    )
+                    assertTrue("$code: the light theme sets a toast's color", toastsBefore.values.all { lightMenu in it })
+                    assertEquals(
+                        "$code: the dark sheets' grays",
+                        mapOf(
+                            "values/IgdsPrismSemanticColorsExperimentDark" to "@color/igds_prism_gray_10",
+                            "values/IgdsPrismGrayOverridesDark" to "@color/igds_prism_gray_1500",
+                            "values/IgdsElevatedBackgroundFixDark" to "@color/igds_prism_gray_1500",
+                            "values/IgdsSemanticColorsDark" to "@color/bds_grey_9",
+                        ),
+                        before.filterKeys { it in dark },
+                    )
+                    assertTrue(
+                        "$code: the base dark palette's sheet gray is #ff262626 (#835)",
+                        Regex("""<color name="bds_grey_9">#(ff)?262626</color>""", RegexOption.IGNORE_CASE)
+                            .containsMatchIn(File(res, "values/colors.xml").readText()),
+                    )
+                    assertTrue("$code: the light theme sets a sheet's color", light in before)
+                    val darkLaunch = "values-night-v31/$INSTAGRAM_LAUNCH_THEME"
+                    val lightLaunch = "values-v31/$INSTAGRAM_LAUNCH_THEME"
+                    val launchBefore = attributeColors(res, "windowSplashScreenBackground")
+                    assertEquals("$code: the launch screen's color", SPLASH_BACKGROUND_COLOR, launchBefore[darkLaunch])
+                    assertEquals("$code: the light launch screen's color", SPLASH_BACKGROUND_COLOR, launchBefore[lightLaunch])
+                    val comments = "values/$COMMENT_COLORS"
+                    val commentGray = "@color/bds_grey_9_95_transparent"
+                    assertTrue(
+                        "$code: the comments' gray is #f2262626",
+                        Regex("""<color name="bds_grey_9_95_transparent">#f2262626</color>""", RegexOption.IGNORE_CASE)
+                            .containsMatchIn(File(res, "values/colors.xml").readText()),
+                    )
+                    val commentAttributes = COMMENT_BACKGROUNDS + listOf("dividerColor", "igds_color_elevated_separator")
+                    assertEquals(
+                        "$code: the comments theme's grays",
+                        commentAttributes.associateWith { commentGray },
+                        commentAttributes.associateWith { attributeColors(res, it)[comments] },
+                    )
+                    val primaryBefore = attributeColors(res, "igds_color_primary_background")
+                    val rowBefore = attributeColors(res, ROW_BACKGROUND)
+                    assertTrue("$code: some style sets the row's gray", rowBefore.isNotEmpty())
+                    assertTrue("$code: no style sets the row's own attribute yet", attributeColors(res, ROW_ATTRIBUTE).isEmpty())
+
+                    context.blackenThemes()
+
+                    val launchAfter = attributeColors(res, "windowSplashScreenBackground")
+                    assertEquals("$code: the dark launch screen (#410)", PURE_BLACK_COLOR, launchAfter[darkLaunch])
+                    assertEquals("$code: the light launch screen", SPLASH_BACKGROUND_COLOR, launchAfter[lightLaunch])
+                    assertEquals(
+                        "$code: the dark launch icon's backdrop",
+                        PURE_BLACK_COLOR,
+                        attributeColors(res, "windowSplashScreenIconBackgroundColor")[darkLaunch],
+                    )
+
+                    val after = attributeColors(res, SHEET_BACKGROUND)
+                    assertEquals("$code: the dark sheets", dark.associateWith { PURE_BLACK_COLOR }, after.filterKeys { it in dark })
+                    assertEquals("$code: every other sheet", before - dark - comments, after - dark - comments)
+                    assertNotEquals("$code: the light sheet", PURE_BLACK_COLOR, after[light])
+                    val storiesAfter = attributeColors(res, STORY_BACKGROUND)
+                    assertEquals(
+                        "$code: the dark stories",
+                        darkStories.associateWith { PURE_BLACK_COLOR },
+                        storiesAfter.filterKeys { it in darkStories },
+                    )
+                    assertEquals("$code: every other story style", storiesBefore - darkStories, storiesAfter - darkStories)
+                    val menusAfter = attributeColors(res, MENU_BACKGROUND)
+                    assertEquals(
+                        "$code: the dark menus (#543)",
+                        darkMenus.associateWith { PURE_BLACK_COLOR },
+                        menusAfter.filterKeys { it in darkMenus },
+                    )
+                    assertEquals("$code: every other menu style", menusBefore - darkMenus, menusAfter - darkMenus)
+                    assertNotEquals("$code: the light menu", PURE_BLACK_COLOR, menusAfter[lightMenu])
+                    for ((attribute, stylesBefore) in toastsBefore) {
+                        val stylesAfter = attributeColors(res, attribute)
+                        val darkToasts = stylesBefore.keys.filter { it.removePrefix("values/") in DARK_TOASTS }
+                        assertEquals("$code: the dark $attribute (#816)", darkToasts.associateWith { PURE_BLACK_COLOR }, stylesAfter.filterKeys { it in darkToasts })
+                        assertEquals("$code: every other style's $attribute", stylesBefore - darkToasts, stylesAfter - darkToasts)
+                    }
+                    assertEquals(
+                        "$code: the comments theme (#538)",
+                        mapOf(
+                            "igds_color_primary_background" to PURE_BLACK_COLOR,
+                            SHEET_BACKGROUND to PURE_BLACK_COLOR,
+                            "dividerColor" to commentGray,
+                            "igds_color_elevated_separator" to commentGray,
+                        ),
+                        commentAttributes.associateWith { attributeColors(res, it)[comments] },
+                    )
+                    val primaryAfter = attributeColors(res, "igds_color_primary_background")
+                    // 457 names Prism's black camera_settings_background, a color of the same value.
+                    val blacks = setOf(PRISM_BLACK_COLOR) + prismBlackColors(File(res, "values/colors.xml").readText())
+                    assertEquals(
+                        "$code: every other style's background but the prism black ones",
+                        (primaryBefore - comments).filterValues { it !in blacks },
+                        (primaryAfter - comments).filterKeys { primaryBefore[it] !in blacks },
+                    )
+                    val row = File(res, "drawable/$ROW_DRAWABLE.xml").readText()
+                    assertTrue("$code: the Likes row fills with its own attribute (#639)\n$row", "?attr/$ROW_ATTRIBUTE" in row)
+                    assertTrue("$code: its press keeps its gray\n$row", "${ROW_BACKGROUND}_pressed" in row)
+                    assertTrue("$code: its normal fill is gone\n$row", !Regex("""$ROW_BACKGROUND\b""").containsMatchIn(row))
+                    assertEquals(
+                        "$code: every style setting the row's gray makes the row black (#248)",
+                        rowBefore.keys.associateWith { PURE_BLACK_COLOR },
+                        attributeColors(res, ROW_ATTRIBUTE),
+                    )
+                    assertEquals("$code: the row's gray itself stays", rowBefore, attributeColors(res, ROW_BACKGROUND))
+                    assertTrue(
+                        "$code: attrs.xml declares the row's attribute",
+                        Regex("""<attr [^>]*name="$ROW_ATTRIBUTE"""").containsMatchIn(File(res, "values/attrs.xml").readText()),
+                    )
+                }
+            } finally {
+                work.deleteRecursively()
+            }
+        }
+    }
+
+    /**
+     * Both literal forms go pure black on their own registers in each palette; other colors, a tab
+     * tint and the extension's own stay.
+     */
+    @Test
+    fun theLiteralsGetPureBlack() {
+        val (first, second) = COMPOSE_PALETTES
+        val patch = PatchContexts.of(listOf(
+            classDef(first, """
+                const v0, 0xff0c1014
+                const-wide v2, 0xff0c1014L
+                const v4, 0xff25292e
+                const-wide v2, 0xff25292eL
+                return-void
+            """),
+            classDef(second, """
+                const-wide v0, 0xff0c1014L
+                const-wide v2, 0xffa2aab4L
+                return-void
+            """),
+            classDef(bottomTabTint, """
+                const v0, 0xff0c1014
+                return-void
+            """),
+            classDef(extension, """
+                const v0, 0xff0c1014
+                return-void
+            """),
+        ))
+
+        assertEquals(setOf("$first->colors", "$second->colors"), patch.blackenLiterals().toSet())
+
+        val code = patch.code(first)
+        assertEquals(Opcode.CONST, code[0].opcode)
+        assertEquals(0, (code[0] as OneRegisterInstruction).registerA)
+        assertEquals(PURE_BLACK.toInt(), (code[0] as WideLiteralInstruction).wideLiteral.toInt())
+        assertEquals(Opcode.CONST_WIDE, code[1].opcode)
+        assertEquals(2, (code[1] as OneRegisterInstruction).registerA)
+        assertEquals(PURE_BLACK, (code[1] as WideLiteralInstruction).wideLiteral)
+        assertEquals(0xff25292e.toInt(), (code[2] as WideLiteralInstruction).wideLiteral.toInt())
+        assertEquals(0xff25292eL, (code[3] as WideLiteralInstruction).wideLiteral)
+        val v2 = patch.code(second)
+        assertEquals(Opcode.CONST_WIDE, v2[0].opcode)
+        assertEquals(0, (v2[0] as OneRegisterInstruction).registerA)
+        assertEquals(PURE_BLACK, (v2[0] as WideLiteralInstruction).wideLiteral)
+        assertEquals(0xffa2aab4L, (v2[1] as WideLiteralInstruction).wideLiteral)
+        assertTrue("bottom tab tint must keep Prism black", patch.code(bottomTabTint).any(::isPrismBlack))
+        assertTrue("the extension's own color", patch.code(extension).any(::isPrismBlack))
+    }
+
+    /**
+     * The getColor the story animator stores in its black backdrop field loads black instead (#360);
+     * a getColor into another field and the same shape in a class without the animator's tag stay.
+     */
+    @Test
+    fun theStoryBackdropGetsPureBlack() {
+        val story = "Lfixture/StoryAnimator;"
+        val other = "Lfixture/OtherViewer;"
+        fun body(type: String, tag: Boolean) = """
+            ${if (tag) "const-string v0, \"$STORY_ANIMATOR_TAG\"" else "const/4 v0, 0x0"}
+            const/high16 v0, -0x1000000
+            iput v0, v5, $type->backdrop:I
+            const v0, 0x7f0602c1
+            invoke-virtual { v4, v0 }, Landroid/content/Context;->getColor(I)I
+            move-result v0
+            iput v0, v5, $type->backdrop:I
+            invoke-virtual { v4, v0 }, Landroid/content/Context;->getColor(I)I
+            move-result v1
+            iput v1, v5, $type->tint:I
+            return-void
+        """
+        val patch = PatchContexts.of(listOf(classDef(story, body(story, true)), classDef(other, body(other, false))))
+
+        val found = patch.findStoryBackdrops()
+        assertEquals(listOf(5), found.map { it.index })
+        patch.blackenStoryBackdrops(found)
+
+        val code = patch.code(story)
+        assertEquals(Opcode.INVOKE_VIRTUAL, code[4].opcode)
+        assertEquals(Opcode.CONST_HIGH16, code[5].opcode)
+        assertEquals(0, (code[5] as OneRegisterInstruction).registerA)
+        assertEquals(PURE_BLACK.toInt(), (code[5] as WideLiteralInstruction).wideLiteral.toInt())
+        assertEquals(Opcode.IPUT, code[6].opcode)
+        assertEquals("the tint keeps its color", Opcode.MOVE_RESULT, code[8].opcode)
+        assertEquals("a class without the tag", Opcode.MOVE_RESULT, patch.code(other)[5].opcode)
+    }
+
+    /** No getColor into the black field means an update the patch hasn't seen, so it fails. */
+    @Test
+    fun aStoryAnimatorWithoutItsGetColorFails() {
+        val story = "Lfixture/StoryAnimator;"
+        val patch = PatchContexts.of(listOf(classDef(story, """
+            const-string v0, "$STORY_ANIMATOR_TAG"
+            const/high16 v0, -0x1000000
+            iput v0, v5, $story->backdrop:I
+            return-void
+        """)))
+
+        val failure = assertThrows(PatchException::class.java) { patch.findStoryBackdrops() }
+        assertTrue(failure.message!!, "no getColor reaches $story->backdrop" in failure.message!!)
+    }
+
+    /**
+     * Each read of the theme's new row tint in a method with a Notifications label goes through the
+     * hook (#374). Another color in the same method and the same tint in a comment row stay.
+     */
+    @Test
+    fun aNewRowTintReadGoesThroughTheHook() {
+        val avatar = "Lfixture/Avatar;"
+        val row = "Lfixture/Row;"
+        val comment = "Lfixture/CommentRow;"
+        val patch = newRowContext(
+            classDef(avatar, """
+                const-string v0, "com.instagram.newsfeed.compose.ui.StartAvatar.<anonymous> (NewsfeedStoryRow.kt:359)"
+                iget-wide v1, v5, $FAKE_THEME->tint:J
+                return-void
+            """),
+            classDef(row, """
+                const-string v0, "com.instagram.newsfeed.fragment.NewsfeedRow.<anonymous> (NewsfeedYouComposeFragment.kt:3634)"
+                iget-wide v1, v5, $FAKE_THEME->tint:J
+                iget-wide v3, v5, $FAKE_THEME->f0:J
+                iget-wide v0, v5, $FAKE_THEME->tint:J
+                return-void
+            """),
+            classDef(comment, """
+                const-string v0, "com.instagram.comments.CommentRow (CommentRow.kt:292)"
+                iget-wide v1, v5, $FAKE_THEME->tint:J
+                return-void
+            """),
+        )
+
+        val found = patch.findNewRowTintReads()
+        assertEquals(listOf(avatar to 1, row to 1, row to 3), found.map { it.type to it.index })
+        patch.blackenNewRowTints(found)
+
+        patch.code(avatar).let { code ->
+            assertEquals(5, code.size)
+            assertHooked(code, 1, 1)
+        }
+        patch.code(row).let { code ->
+            assertEquals(9, code.size)
+            assertHooked(code, 1, 1)
+            assertEquals("another color stays", Opcode.IGET_WIDE, code[4].opcode)
+            assertEquals("another color stays", Opcode.IGET_WIDE, code[5].opcode)
+            assertHooked(code, 5, 0)
+        }
+        assertEquals("a comment row keeps its tint", 3, patch.code(comment).size)
+    }
+
+    /** A pooled Notifications label counts, since which strings Redex pools differs per build (#77). */
+    @Test
+    fun aPooledNotificationsLabelCounts() {
+        val pool = "Lfixture/Pool;"
+        val avatar = "Lfixture/Avatar;"
+        val poolClass = classDef(pool, """
+            packed-switch v0, :cases
+            const/4 v0, 0x0
+            return-object v0
+            :name
+            const-string v0, "com.instagram.newsfeed.compose.ui.StartAvatar.<anonymous> (NewsfeedStoryRow.kt:359)"
+            return-object v0
+            :cases
+            .packed-switch 0x7
+                :name
+            .end packed-switch
+        """, parameters = listOf("I"), returns = "Ljava/lang/String;", name = "A00")
+        val patch = newRowContext(poolClass, classDef(avatar, """
+            const/4 v0, 0x7
+            invoke-static { v0 }, $pool->A00(I)Ljava/lang/String;
+            iget-wide v1, v5, $FAKE_THEME->tint:J
+            return-void
+        """))
+
+        assertEquals(listOf(avatar to 2), patch.findNewRowTintReads().map { it.type to it.index })
+    }
+
+    /**
+     * Redex moves the row lambda's body out of invoke into a static of its class, and the label stays
+     * in invoke (`LX/0X9f;->A01` on 386014758). The body takes invoke's label, while a body another arm
+     * of the switch calls, or one a class elsewhere also calls, keeps its tint.
+     */
+    @Test
+    fun anOutlinedRowBodyTakesItsLambdasLabel() {
+        val avatar = classDef("Lfixture/Avatar;", """
+            const-string v0, "com.instagram.newsfeed.compose.ui.StartAvatar.<anonymous> (NewsfeedStoryRow.kt:359)"
+            iget-wide v1, v5, $FAKE_THEME->tint:J
+            return-void
+        """)
+        val lambda = "Lfixture/RowLambda;"
+        val reads = """
+            iget-wide v1, v5, $FAKE_THEME->tint:J
+            return-void
+        """
+        val row = lambdaClass(lambda,
+            classDef(lambda, """
+                if-eqz v0, :row
+                invoke-static { }, $lambda->A02()V
+                return-void
+                :row
+                const-string v1, "com.instagram.newsfeed.fragment.NewsfeedRow.<anonymous> (NewsfeedYouComposeFragment.kt:3633)"
+                invoke-static { }, $lambda->A01()V
+                return-void
+            """, name = "invoke"),
+            classDef(lambda, reads, name = "A01"),
+            classDef(lambda, reads, name = "A02"),
+        )
+
+        val patch = newRowContext(avatar, row)
+        val found = patch.findNewRowTintReads()
+        assertEquals(listOf("Lfixture/Avatar;" to "colors", lambda to "A01"), found.map { it.type to it.method.name })
+        patch.blackenNewRowTints(found)
+        val body = patch.classDefBy(lambda).methods.single { it.name == "A01" }.implementation!!.instructions.toList()
+        assertHooked(body, 0, 1)
+
+        val elsewhere = classDef("Lfixture/Elsewhere;", """
+            invoke-static { }, $lambda->A01()V
+            return-void
+        """)
+        assertEquals("a body called from elsewhere keeps its tint", listOf("Lfixture/Avatar;"),
+            newRowContext(avatar, row, elsewhere).findNewRowTintReads().map { it.type })
+    }
+
+    /** No avatar means no way to tell which of the theme's colors is the tint, so it fails. */
+    @Test
+    fun notificationsWithoutTheAvatarFail() {
+        val patch = newRowContext(classDef("Lfixture/Row;", """
+            const-string v0, "com.instagram.newsfeed.fragment.NewsfeedRow.<anonymous> (NewsfeedYouComposeFragment.kt:3634)"
+            iget-wide v1, v5, $FAKE_THEME->tint:J
+            return-void
+        """))
+
+        val failure = assertThrows(PatchException::class.java) { patch.findNewRowTintReads() }
+        assertTrue(failure.message!!, "Notifications avatar" in failure.message!!)
+    }
+
+    /** An avatar reading two of the theme's colors doesn't say which is the tint, so it fails too. */
+    @Test
+    fun anAvatarReadingTwoColorsFails() {
+        val patch = newRowContext(classDef("Lfixture/Avatar;", """
+            const-string v0, "com.instagram.newsfeed.compose.ui.StartAvatar.<anonymous> (NewsfeedStoryRow.kt:359)"
+            iget-wide v1, v5, $FAKE_THEME->tint:J
+            iget-wide v3, v5, $FAKE_THEME->f0:J
+            return-void
+        """))
+
+        val failure = assertThrows(PatchException::class.java) { patch.findNewRowTintReads() }
+        assertTrue(failure.message!!, "color" in failure.message!!)
+    }
+
+    /**
+     * An avatar with both arms of its ring inlined reads the tint where its own "new" flag falls
+     * through and another color where it branches (`LX/0U2I;->invoke` on 386113918). The new arm's
+     * color is the tint, and the other one stays everywhere.
+     */
+    @Test
+    fun anAvatarReadingTwoColorsTakesItsNewArmsColor() {
+        val avatar = "Lfixture/Avatar;"
+        val row = "Lfixture/Row;"
+        val patch = newRowContext(
+            classDef(avatar, """
+                const-string v0, "com.instagram.newsfeed.compose.ui.StartAvatar.<anonymous> (NewsfeedStoryRow.kt:359)"
+                iget-boolean v0, v5, $avatar->isNew:Z
+                if-eqz v0, :old
+                iget-wide v1, v5, $FAKE_THEME->tint:J
+                goto :ring
+                :old
+                iget-wide v1, v5, $FAKE_THEME->f0:J
+                :ring
+                return-void
+            """),
+            classDef(row, """
+                const-string v0, "com.instagram.newsfeed.fragment.NewsfeedRow.<anonymous> (NewsfeedYouComposeFragment.kt:3634)"
+                iget-wide v1, v5, $FAKE_THEME->f0:J
+                iget-wide v3, v5, $FAKE_THEME->tint:J
+                return-void
+            """),
+        )
+
+        assertEquals(listOf(avatar to 3, row to 2), patch.findNewRowTintReads().map { it.type to it.index })
+    }
+
+    /** Two colors split by a flag that isn't the avatar's own still don't say which is the tint. */
+    @Test
+    fun anAvatarSplittingOnAnotherClassesFlagFails() {
+        val patch = newRowContext(classDef("Lfixture/Avatar;", """
+            const-string v0, "com.instagram.newsfeed.compose.ui.StartAvatar.<anonymous> (NewsfeedStoryRow.kt:359)"
+            iget-boolean v0, v5, Lfixture/Other;->isNew:Z
+            if-eqz v0, :old
+            iget-wide v1, v5, $FAKE_THEME->tint:J
+            goto :ring
+            :old
+            iget-wide v1, v5, $FAKE_THEME->f0:J
+            :ring
+            return-void
+        """))
+
+        val failure = assertThrows(PatchException::class.java) { patch.findNewRowTintReads() }
+        assertTrue(failure.message!!, "color" in failure.message!!)
+    }
+
+    /**
+     * A merged lambda's invoke holding an avatar label that reads no color isn't the avatar, even when
+     * another arm's body in its class reads the theme (`LX/0C5a;->invoke` beside `A04` on 386014714).
+     */
+    @Test
+    fun anAvatarLabelReadingNoColorIsNotTheAvatar() {
+        val avatar = classDef("Lfixture/Avatar;", """
+            const-string v0, "com.instagram.newsfeed.compose.ui.StartAvatar.<anonymous> (NewsfeedStoryRow.kt:359)"
+            iget-wide v1, v5, $FAKE_THEME->tint:J
+            return-void
+        """)
+        val merged = "Lfixture/MergedLambda;"
+        val image = lambdaClass(merged,
+            classDef(merged, """
+                const-string v0, "com.instagram.newsfeed.compose.ui.StartAvatar.<anonymous> (NewsfeedStoryRow.kt:371)"
+                return-void
+            """, name = "invoke"),
+            classDef(merged, """
+                iget-wide v1, v5, $FAKE_THEME->f1:J
+                return-void
+            """, name = "A04"),
+        )
+
+        assertEquals(listOf("Lfixture/Avatar;" to 1), newRowContext(avatar, image).findNewRowTintReads().map { it.type to it.index })
+    }
+
+    /** Two avatars reading the theme don't say which is the tint, so it fails. */
+    @Test
+    fun twoAvatarsReadingTheThemeFail() {
+        val avatar = { type: String ->
+            classDef(type, """
+                const-string v0, "com.instagram.newsfeed.compose.ui.StartAvatar.<anonymous> (NewsfeedStoryRow.kt:359)"
+                iget-wide v1, v5, $FAKE_THEME->tint:J
+                return-void
+            """)
+        }
+        val patch = newRowContext(avatar("Lfixture/Avatar;"), avatar("Lfixture/OtherAvatar;"))
+
+        val failure = assertThrows(PatchException::class.java) { patch.findNewRowTintReads() }
+        assertTrue(failure.message!!, "found 2" in failure.message!!)
+    }
+
+    /**
+     * 456 starts a trace with its key alone, so the avatar's and a new row's keys stand in for their
+     * labels (`LX/0R30;->invoke` and `LX/0OKO;->invoke` on 386214574). Another key reads as no label.
+     */
+    @Test
+    fun theTraceKeysOfTheAvatarAndARowStandInForTheirLabels() {
+        val avatar = "Lfixture/Avatar;"
+        val row = "Lfixture/Row;"
+        val other = "Lfixture/OtherRow;"
+        val patch = newRowContext(
+            classDef(avatar, """
+                const v0, 0x676a129d
+                iget-wide v1, v5, $FAKE_THEME->tint:J
+                return-void
+            """),
+            classDef(row, """
+                const v0, 0xabc6d658
+                iget-wide v1, v5, $FAKE_THEME->tint:J
+                return-void
+            """),
+            classDef(other, """
+                const v0, 0x676a129e
+                iget-wide v1, v5, $FAKE_THEME->tint:J
+                return-void
+            """),
+        )
+
+        assertEquals(listOf(avatar to 1, row to 1), patch.findNewRowTintReads().map { it.type to it.index }.sortedBy { it.first })
+    }
+
+    /** No class making a theme from Prism's tint means an update the patch hasn't seen. */
+    @Test
+    fun noThemeFails() {
+        val patch = PatchContexts.of(listOf(classDef("Lfixture/Palette;", """
+            sget-wide v0, $NEW_ROW_PALETTE->$NEW_ROW_PRISM_TINT:J
+            return-void
+        """)))
+
+        val failure = assertThrows(PatchException::class.java) { patch.findNewRowTintReads() }
+        assertTrue(failure.message!!, "theme" in failure.message!!)
+    }
+
+    /** A note's bubble hands the color its setter gets through the hook before keeping it (#543). */
+    @Test
+    fun aNoteBubbleTakesItsColorThroughTheHook() {
+        val patch = PatchContexts.of(listOf(noteBubbleView(NOTE_BUBBLE_SETTER)))
+
+        patch.blackenNoteBubbles()
+
+        val code = patch.classDefBy(NOTE_BUBBLE_VIEW).methods.single { it.name == NOTE_BUBBLE_SETTER }
+            .implementation!!.instructions.toList()
+        val call = code[0] as Instruction3rc
+        assertEquals(Opcode.INVOKE_STATIC_RANGE, call.opcode)
+        assertEquals(NOTE_BUBBLE, call.reference.toString())
+        assertEquals("the color is p1", 5, call.startRegister)
+        assertEquals(1, call.registerCount)
+        assertEquals(Opcode.MOVE_RESULT, code[1].opcode)
+        assertEquals(5, (code[1] as OneRegisterInstruction).registerA)
+        assertEquals("the setter's own code follows", Opcode.IPUT, code[2].opcode)
+        assertEquals(5, (code[2] as TwoRegisterInstruction).registerA)
+    }
+
+    /** A bubble whose setter was renamed would stay gray, so the patch fails instead. */
+    @Test
+    fun aNoteBubbleWithoutItsSetterFails() {
+        val patch = PatchContexts.of(listOf(noteBubbleView("setBubbleColor")))
+
+        val failure = assertThrows(PatchException::class.java) { patch.blackenNoteBubbles() }
+        assertTrue(failure.message!!, NOTE_BUBBLE_SETTER in failure.message!!)
+    }
+
+    @Test
+    fun aBuildWithoutTheNoteBubbleFails() {
+        val patch = PatchContexts.of(listOf(classDef("Lfixture/Other;", "return-void")))
+
+        val failure = assertThrows(PatchException::class.java) { patch.blackenNoteBubbles() }
+        assertTrue(failure.message!!, "gone" in failure.message!!)
+    }
+
+    /** The bubble view with one instance [setter] taking an int, which it keeps in a field. */
+    private fun noteBubbleView(setter: String): ClassDef {
+        val mutable = MutableMethod(
+            ImmutableMethod(
+                NOTE_BUBBLE_VIEW, setter, listOf(ImmutableMethodParameter("I", null, null)), "V",
+                AccessFlags.PUBLIC.value, null, null, ImmutableMethodImplementation(6, emptyList(), null, null),
+            ),
+        )
+        mutable.addInstructionsWithLabels(0, """
+            iput p1, p0, $NOTE_BUBBLE_VIEW->color:I
+            return-void
+        """.trimIndent())
+        return ImmutableClassDef(
+            NOTE_BUBBLE_VIEW, AccessFlags.PUBLIC.value, "Landroid/view/View;", null, null, null, emptyList(),
+            listOf(ImmutableMethod.of(mutable)),
+        )
+    }
+
+    /** Each build's note bubble has the one setter, and the hook goes in first on its color (#543). */
+    private fun noteBubblesGoBlack(bundle: File, label: String) {
+        val view = FixtureDex.classes(bundle, setOf(NOTE_BUBBLE_VIEW)).values.singleOrNull()
+        assertTrue("${label}: $NOTE_BUBBLE_VIEW is in the build", view != null)
+        val patch = PatchContexts.of(listOf(view!!))
+        val setter = { method: Method -> method.name == NOTE_BUBBLE_SETTER && method.parameterTypes.map(Any::toString) == listOf("I") }
+        val stock = view.methods.single(setter).implementation!!
+        val stockSize = stock.instructions.count { it.opcode != Opcode.NOP }
+
+        patch.blackenNoteBubbles()
+
+        val code = patch.classDefBy(NOTE_BUBBLE_VIEW).methods.single(setter)
+            .implementation!!.instructions.filter { it.opcode != Opcode.NOP }
+        val call = code[0] as Instruction3rc
+        assertEquals("${label}: the hook comes first", NOTE_BUBBLE, call.reference.toString())
+        assertEquals("${label}: on the color, p1", stock.registerCount - 1, call.startRegister)
+        assertEquals("${label}: the color comes back", stock.registerCount - 1, (code[1] as OneRegisterInstruction).registerA)
+        assertEquals("${label}: the setter keeps its own code", stockSize + 2, code.size)
+    }
+
+    /**
+     * The Instagram Plus card's one color read, its fill, goes through the hook before the card
+     * hands it on (#543). A class that doesn't load the tag keeps its reads.
+     */
+    @Test
+    fun thePlusCardTakesItsFillThroughTheHook() {
+        val card = "Lfixture/PeekCard;"
+        val other = "Lfixture/OtherCard;"
+        val read = { type: String, tag: String ->
+            classDef(type, """
+                const-string v0, "$tag"
+                iget-wide v2, v5, $FAKE_THEME->fill:J
+                invoke-static { v2, v3 }, Lfixture/Surface;->draw(J)V
+                return-void
+            """)
+        }
+        val patch = PatchContexts.of(listOf(read(card, PEEK_UPSELL_TAG), read(other, "message_peek")))
+
+        patch.blackenPeekCards()
+
+        val code = patch.code(card)
+        assertEquals(Opcode.IGET_WIDE, code[1].opcode)
+        val call = code[2] as Instruction3rc
+        assertEquals(Opcode.INVOKE_STATIC_RANGE, call.opcode)
+        assertEquals(PEEK_CARD, call.reference.toString())
+        assertEquals(2, call.startRegister)
+        assertEquals(2, call.registerCount)
+        assertEquals(Opcode.MOVE_RESULT_WIDE, code[3].opcode)
+        assertEquals(2, (code[3] as OneRegisterInstruction).registerA)
+        assertEquals("the surface gets what the hook answered", Opcode.INVOKE_STATIC, code[4].opcode)
+        assertEquals("a card without the tag", Opcode.INVOKE_STATIC, patch.code(other)[2].opcode)
+    }
+
+    /** A card reading two colors doesn't say which is its fill, so the patch fails. */
+    @Test
+    fun aPlusCardReadingTwoColorsFails() {
+        val patch = PatchContexts.of(listOf(classDef("Lfixture/PeekCard;", """
+            const-string v0, "$PEEK_UPSELL_TAG"
+            iget-wide v1, v5, $FAKE_THEME->fill:J
+            iget-wide v3, v5, $FAKE_THEME->text:J
+            return-void
+        """)))
+
+        val failure = assertThrows(PatchException::class.java) { patch.blackenPeekCards() }
+        assertTrue(failure.message!!, "reads 2 colors" in failure.message!!)
+    }
+
+    @Test
+    fun aBuildWithoutThePlusCardFails() {
+        val patch = PatchContexts.of(listOf(classDef("Lfixture/Other;", "return-void")))
+
+        val failure = assertThrows(PatchException::class.java) { patch.blackenPeekCards() }
+        assertTrue(failure.message!!, "found 0" in failure.message!!)
+    }
+
+    /**
+     * Each build has the one Plus card, its one color read takes the hook, and the hooked fill is
+     * what the card hands to its surface's long arguments (#543).
+     */
+    private fun plusCardsGoBlack(bundle: File, label: String) {
+        val classes = FixtureDex.classesLoading(bundle, PEEK_UPSELL_TAG)
+        val patch = PatchContexts.of(classes)
+
+        patch.blackenPeekCards()
+
+        val hooked = classes.flatMap { classDef ->
+            patch.classDefBy(classDef.type).methods.mapNotNull { method ->
+                method.implementation?.instructions?.toList()?.takeIf { code ->
+                    code.any { (it as? ReferenceInstruction)?.reference?.toString() == PEEK_CARD }
+                }
+            }
+        }
+        assertEquals("${label}: the Plus card's hooks", 1, hooked.size)
+        val code = hooked.single()
+        val at = code.indexOfFirst { (it as? ReferenceInstruction)?.reference?.toString() == PEEK_CARD }
+        val fill = (code[at - 1] as TwoRegisterInstruction).registerA
+        assertEquals("${label}: the hook follows the read", Opcode.IGET_WIDE, code[at - 1].opcode)
+        assertEquals("${label}: on the fill", fill, (code[at] as Instruction3rc).startRegister)
+        assertEquals("${label}: the fill comes back", fill, (code[at + 1] as OneRegisterInstruction).registerA)
+        assertTrue("${label}: the fill reaches a call after the hook",
+            code.drop(at + 2).any { instruction ->
+                instruction is Instruction3rc && fill in instruction.startRegister until instruction.startRegister + instruction.registerCount ||
+                    (instruction as? TwoRegisterInstruction)?.registerB == fill
+            })
+    }
+
+    private val NOTE_CARD_TYPE = "Lfixture/NoteCard;"
+
+    /**
+     * The inbox's note card picks its fill on three paths: the color it's handed, the theme's, or
+     * one made from the note's own theme. They meet where the hook goes, and both jumps into that
+     * spot land on the hook (#543). Another composable taking a note's theme keeps its code.
+     */
+    @Test
+    fun aNoteCardTakesItsFillThroughTheHook() {
+        val other = "Lfixture/NoteText;"
+        val patch = PatchContexts.of(listOf(
+            noteCard(NOTE_CARD_TYPE, "${NOTE_CARD_TRACE}NotesTrayBubbleCard.kt:88)"),
+            noteCard(other, "com.instagram.direct.inbox.notes.tray.compose.bubble.NotesTrayBubbleText (NotesTrayBubbleText.kt:40)"),
+        ))
+
+        patch.blackenNoteCards()
+
+        val code = patch.code(NOTE_CARD_TYPE)
+        val call = code[14] as Instruction3rc
+        assertEquals("the hook goes where the paths meet", NOTE_CARD, call.reference.toString())
+        assertEquals(Opcode.INVOKE_STATIC_RANGE, call.opcode)
+        assertEquals("on the fill", 16, call.startRegister)
+        assertEquals(2, call.registerCount)
+        assertEquals(Opcode.MOVE_RESULT_WIDE, code[15].opcode)
+        assertEquals(16, (code[15] as OneRegisterInstruction).registerA)
+        assertEquals("after the made color's write", 16, (code[13] as OneRegisterInstruction).registerA)
+        assertEquals("the card reads what the hook answered", 16, (code[16] as TwoRegisterInstruction).registerB)
+        assertEquals("the handed color jumps onto the hook", 14, (code[5] as BuilderOffsetInstruction).target.location.index)
+        assertEquals("so does the theme's", 14, (code[10] as BuilderOffsetInstruction).target.location.index)
+        assertEquals("a note's own theme still has its path", 6, (code[2] as BuilderOffsetInstruction).target.location.index)
+        assertTrue("another composable", patch.code(other).none { (it as? ReferenceInstruction)?.reference?.toString() == NOTE_CARD })
+    }
+
+    /** A card whose paths fill different registers doesn't say which is the fill, so the patch fails. */
+    @Test
+    fun aNoteCardWithoutOneFillFails() {
+        val patch = PatchContexts.of(listOf(noteCard(NOTE_CARD_TYPE, "${NOTE_CARD_TRACE}NotesTrayBubbleCard.kt:88)", themed = 18)))
+
+        val failure = assertThrows(PatchException::class.java) { patch.blackenNoteCards() }
+        assertTrue(failure.message!!, "one register" in failure.message!!)
+    }
+
+    @Test
+    fun aBuildWithoutTheNoteCardFails() {
+        val patch = PatchContexts.of(listOf(classDef("Lfixture/Other;", "return-void")))
+
+        val failure = assertThrows(PatchException::class.java) { patch.blackenNoteCards() }
+        assertTrue(failure.message!!, "found 0" in failure.message!!)
+    }
+
+    /**
+     * A note card the way 454 builds one: the handed color and the theme's are read into v16 (the
+     * theme's on the path where [themed] says), a text color goes to v30, and a note's own theme
+     * makes the color last, all meeting at :filled.
+     */
+    private fun noteCard(type: String, trace: String, themed: Int = 16): ClassDef {
+        val mutable = MutableMethod(
+            ImmutableMethod(
+                type, "A08", listOf(ImmutableMethodParameter(NOTE_CUSTOM_THEME, null, null)), "V",
+                AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null,
+                ImmutableMethodImplementation(34, emptyList(), null, null),
+            ),
+        )
+        mutable.addInstructionsWithLabels(0, """
+            const-string v0, "$trace"
+            move-object/from16 v1, p0
+            if-eqz v1, :themed
+            iget-wide v2, v1, $NOTE_CUSTOM_THEME->fill:J
+            move-wide/from16 v16, v2
+            goto :filled
+            :themed
+            iget-wide v4, v5, $FAKE_THEME->notes:J
+            move-wide/from16 v$themed, v4
+            iget-wide v6, v5, $FAKE_THEME->text:J
+            move-wide/from16 v30, v6
+            if-nez v0, :filled
+            invoke-static { v0 }, Lfixture/Compose;->parse(Ljava/lang/String;)J
+            move-result-wide v18
+            move-wide/from16 v16, v18
+            :filled
+            move-wide/from16 v20, v16
+            invoke-static/range { v20 .. v21 }, Lfixture/Surface;->draw(J)V
+            return-void
+        """.trimIndent())
+        return ImmutableClassDef(type, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null, emptyList(), listOf(ImmutableMethod.of(mutable)))
+    }
+
+    /**
+     * Each build has the one note card on the inbox's notes row. Its hook goes on the fill right
+     * after the fill's last write, the jumps there land on the hook, and the card reads the fill
+     * after it (#543).
+     */
+    private fun noteCardsGoBlack(cards: List<ClassDef>, label: String) {
+        assertEquals("${label}: the note cards", 1, cards.size)
+        val isCard = { method: Method -> NOTE_CUSTOM_THEME in method.parameterTypes.map(Any::toString) && tracesNoteCard(method) }
+        val stock = cards.single().methods.single(isCard).implementation!!.instructions.count { it.opcode != Opcode.NOP }
+        val patch = PatchContexts.of(cards)
+
+        patch.blackenNoteCards()
+
+        val code = patch.classDefBy(cards.single().type).methods.single(isCard).implementation!!.instructions.toList()
+        val hooks = code.indices.filter { (code[it] as? ReferenceInstruction)?.reference?.toString() == NOTE_CARD }
+        assertEquals("${label}: the card's hooks", 1, hooks.size)
+        val at = hooks.single()
+        val call = code[at] as Instruction3rc
+        val fill = call.startRegister
+        assertEquals("${label}: on the whole color", 2, call.registerCount)
+        assertEquals("${label}: the fill comes back", Opcode.MOVE_RESULT_WIDE, code[at + 1].opcode)
+        assertEquals("${label}: into the fill", fill, (code[at + 1] as OneRegisterInstruction).registerA)
+        assertEquals("${label}: right after the fill's last write", fill, (code[at - 1] as OneRegisterInstruction).registerA)
+        assertTrue("${label}: the jumps there land on the hook",
+            code.any { (it as? BuilderOffsetInstruction)?.target?.location?.index == at })
+        assertTrue("${label}: the card reads the fill after the hook",
+            code.drop(at + 2).any { (it as? TwoRegisterInstruction)?.registerB == fill && it.opcode != Opcode.IGET_WIDE })
+        assertEquals("${label}: the card keeps its own code", stock + 2, code.count { it.opcode != Opcode.NOP })
+    }
+
+    /** The theme class of these fake pages, its palette and [classes], in one patch context. */
+    private fun newRowContext(vararg classes: ClassDef): app.morphe.patcher.patch.BytecodePatchContext {
+        val fields = (listOf("tint") + (0 until NEW_ROW_THEME_COLORS).map { "f$it" }).map { name ->
+            ImmutableField(FAKE_THEME, name, "J", AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, null, null, null)
+        }
+        val theme = ImmutableClassDef(FAKE_THEME, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null, fields, emptyList())
+        val palette = classDef("Lfixture/DarkTheme;", """
+            sget-wide v0, $NEW_ROW_PALETTE->$NEW_ROW_PRISM_TINT:J
+            new-instance v0, $FAKE_THEME
+            return-void
+        """)
+        return PatchContexts.of(listOf(theme, palette) + classes)
+    }
+
+    /** One class holding the methods of [parts], each a one-method class of [type]. */
+    private fun lambdaClass(type: String, vararg parts: ClassDef): ClassDef =
+        ImmutableClassDef(type, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null, emptyList(), parts.flatMap { it.methods })
+
+    private fun assertHooked(code: List<Instruction>, read: Int, register: Int) {
+        assertEquals(Opcode.IGET_WIDE, code[read].opcode)
+        val call = code[read + 1] as Instruction3rc
+        assertEquals(Opcode.INVOKE_STATIC_RANGE, call.opcode)
+        assertEquals(NEW_ROW_TINT, call.reference.toString())
+        assertEquals(register, call.startRegister)
+        assertEquals(2, call.registerCount)
+        assertEquals(Opcode.MOVE_RESULT_WIDE, code[read + 2].opcode)
+        assertEquals(register, (code[read + 2] as OneRegisterInstruction).registerA)
+    }
+
+    /**
+     * In each build the Notifications page reads Prism's tint in its avatar, its row and the row's
+     * two swipe backgrounds, all four go through the hook, and nothing else that reads the tint does
+     * (#374). Prism's dark theme fills the field with BasePrismColors' white at 15 percent, the value
+     * the extension looks for, so a build where that moved fails here instead of staying gray.
+     */
+    private fun newRowTintsGoBlack(bundle: File, label: String, tinters: List<ClassDef>) {
+        val created = tinters.flatMap { classDef ->
+            classDef.methods.flatMap { method ->
+                method.implementation?.instructions?.filter { it.opcode == Opcode.NEW_INSTANCE }.orEmpty()
+                    .map { ((it as ReferenceInstruction).reference as TypeReference).type }
+            }
+        }.toSet()
+        val theme = FixtureDex.classes(bundle, created).values.single { classDef ->
+            classDef.instanceFields.count { it.type == "J" } >= NEW_ROW_THEME_COLORS
+        }
+        val readers = mutableListOf<ClassDef>()
+        FixtureDex.forEach(bundle) { dex ->
+            if (dex.typeSection.none { it == theme.type }) return@forEach
+            for (classDef in dex.classes) {
+                val reads = classDef.methods.any { method ->
+                    method.implementation?.instructions?.any { it.opcode == Opcode.IGET_WIDE && it.fieldOf() == theme.type } == true
+                }
+                if (reads) readers += ImmutableClassDef.of(classDef)
+            }
+        }
+        val patch = PatchContexts.of(FixtureDex.withStringPools(bundle, readers.filter { it.type != theme.type }) + tinters + theme)
+
+        val found = patch.findNewRowTintReads()
+
+        assertEquals("${label}: the tint's reads on Notifications", 4, found.size)
+        assertEquals("${label}: the methods reading it", 3, found.map { it.type to it.method.name }.toSet().size)
+        val tint = ((found.first().method.implementation!!.instructions.toList()[found.first().index] as ReferenceInstruction).reference as FieldReference).name
+        val before = found.associate { read ->
+            (read.type to read.method.name) to read.method.implementation!!.instructions.count { it.opcode != Opcode.NOP }
+        }
+        assertEquals("${label}: the theme's field Prism fills with white at 15 percent",
+            true, tint in prismTintFields(theme, tinters))
+
+        patch.blackenNewRowTints(found)
+
+        for ((key, size) in before) {
+            val method = patch.classDefBy(key.first).methods.single { it.name == key.second && it.parameterTypes.size == found.first { read -> read.type == key.first && read.method.name == key.second }.method.parameterTypes.size }
+            val code = method.implementation!!.instructions.filter { it.opcode != Opcode.NOP }
+            val hooks = code.indices.filter { (code[it] as? ReferenceInstruction)?.reference?.toString() == NEW_ROW_TINT }
+            assertEquals("${label}: ${key.first} grew by its hooks", size + hooks.size * 2, code.size)
+            hooks.forEach { at ->
+                val read = code[at - 1]
+                assertEquals("${label}: the hook follows the read", Opcode.IGET_WIDE, read.opcode)
+                assertEquals(tint, (((read as ReferenceInstruction).reference) as FieldReference).name)
+                assertEquals((read as TwoRegisterInstruction).registerA, (code[at] as Instruction3rc).startRegister)
+                assertEquals(Opcode.MOVE_RESULT_WIDE, code[at + 1].opcode)
+                assertEquals(read.registerA, (code[at + 1] as OneRegisterInstruction).registerA)
+            }
+        }
+        val hookSites = readers.sumOf { reader ->
+            patch.classDefBy(reader.type).methods.sumOf { method ->
+                method.implementation?.instructions?.count { (it as? ReferenceInstruction)?.reference?.toString() == NEW_ROW_TINT } ?: 0
+            }
+        }
+        assertEquals("${label}: every hook in the app", 4, hookSites)
+    }
+
+    private fun Instruction.fieldOf() = ((this as? ReferenceInstruction)?.reference as? FieldReference)?.definingClass
+
+    /**
+     * The fields of [theme] Prism's dark theme fills with BasePrismColors' white at 15 percent, read
+     * from the constructor call: each field's argument, and what the caller last loaded for it.
+     */
+    private fun prismTintFields(theme: ClassDef, tinters: List<ClassDef>): Set<String> {
+        val prism = tinters.single { it.type == NEW_ROW_PALETTE }
+        val constant = prism.methods.single { it.name == "<clinit>" }.implementation!!.instructions.toList()
+        val store = constant.indexOfFirst { it.opcode == Opcode.SPUT_WIDE && (it as ReferenceInstruction).reference.let { field -> field is FieldReference && field.name == NEW_ROW_PRISM_TINT } }
+        assertEquals("white at 15 percent", 0x26ffffffL,
+            constant.subList(0, store).last { it.opcode == Opcode.CONST_WIDE_32 && (it as OneRegisterInstruction).registerA == (constant[store] as OneRegisterInstruction).registerA }
+                .let { (it as WideLiteralInstruction).wideLiteral })
+
+        val constructor = theme.methods.single { it.name == "<init>" && it.parameterTypes.size >= NEW_ROW_THEME_COLORS }
+        val longs = constructor.parameterTypes.count { it.toString() == "J" }
+        val firstLong = constructor.implementation!!.registerCount - longs * 2
+        val body = constructor.implementation!!.instructions.toList()
+        val argumentOf = body.indices.filter { body[it].opcode == Opcode.IPUT_WIDE }.associate { at ->
+            val put = body[at] as TwoRegisterInstruction
+            val moved = body.getOrNull(at - 1)?.takeIf { it.opcode == Opcode.MOVE_WIDE_FROM16 && (it as TwoRegisterInstruction).registerA == put.registerA }
+            val source = (moved as? TwoRegisterInstruction)?.registerB ?: put.registerA
+            ((body[at] as ReferenceInstruction).reference as FieldReference).name to (source - firstLong) / 2
+        }
+
+        val dark = tinters.first { classDef -> classDef.type != NEW_ROW_PALETTE && classDef.methods.any { method ->
+            method.name == "<clinit>" && method.implementation!!.instructions.any { it.opcode == Opcode.NEW_INSTANCE && ((it as ReferenceInstruction).reference as TypeReference).type == theme.type }
+        } }
+        val made = dark.methods.single { it.name == "<clinit>" }.implementation!!.instructions.toList()
+        val call = made.indexOfFirst { it.opcode == Opcode.INVOKE_DIRECT_RANGE && ((it as ReferenceInstruction).reference as MethodReference).definingClass == theme.type }
+        val start = (made[call] as Instruction3rc).startRegister
+        return argumentOf.filter { (_, argument) ->
+            val register = start + 2 + argument * 2
+            val load = made.subList(0, call).last { (it as? OneRegisterInstruction)?.registerA == register }
+            val field = (load as? ReferenceInstruction)?.reference as? FieldReference
+            load.opcode == Opcode.SGET_WIDE && field?.definingClass == NEW_ROW_PALETTE && field.name == NEW_ROW_PRISM_TINT
+        }.keys
+    }
+
+    /**
+     * In each declared build, both Compose palettes lose Prism's black without touching unrelated
+     * owners. 449's second palette (GRAY_1600) colors the Direct inbox and Activity (#51, #58).
+     */
+    @Test
+    fun eachDeclaredBuildChangesOnlyTheComposePalettes() {
+        val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
+        val checked = mutableSetOf<String>()
+        for (version in versions) {
+            for (bundle in Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") }) {
+                builds(bundle, bundle.name)
+                checked += version
+            }
+        }
+        assertEquals("a declared build has no fixture", versions, checked)
+    }
+
+    @Test
+    fun eachOtherBuildGoesPureBlackToo() {
+        for (base in Fixtures.otherBuilds()) builds(base, base.parentFile.name)
+    }
+
+    private fun builds(bundle: File, label: String) {
+        val classes = mutableListOf<ClassDef>()
+        val animators = mutableListOf<ClassDef>()
+        val tinters = mutableListOf<ClassDef>()
+        val cards = mutableListOf<ClassDef>()
+        FixtureDex.forEach(bundle) { dex ->
+            for (classDef in dex.classes) {
+                if (classDef.methods.any { NOTE_CUSTOM_THEME in it.parameterTypes.map(Any::toString) && tracesNoteCard(it) }) {
+                    cards += ImmutableClassDef.of(classDef)
+                }
+                if (classDef.methods.any { it.implementation?.instructions?.any(::isPrismBlack) == true }) {
+                    classes += ImmutableClassDef.of(classDef)
+                }
+                if (classDef.methods.any { it.implementation?.instructions?.any(::logsStoryAnimatorTag) == true }) {
+                    animators += ImmutableClassDef.of(classDef)
+                }
+                if (classDef.methods.any { it.implementation?.instructions?.any(::touchesPrismTint) == true }) {
+                    tinters += ImmutableClassDef.of(classDef)
+                }
+            }
+        }
+        storyBackdropsGoBlack(animators, label)
+        newRowTintsGoBlack(bundle, label, tinters)
+        noteBubblesGoBlack(bundle, label)
+        noteCardsGoBlack(cards, label)
+        plusCardsGoBlack(bundle, label)
+        val patch = PatchContexts.of(classes)
+
+        val changed = patch.blackenLiterals()
+
+        assertEquals("${label}: the Compose palettes", COMPOSE_PALETTES.toSet(),
+            changed.map { it.substringBefore("->") }.toSet())
+        COMPOSE_PALETTES.forEach { palette ->
+            assertTrue("${label}: $palette keeps no Prism black",
+                patch.classDefBy(palette).methods.none { method ->
+                    method.implementation?.instructions?.any(::isPrismBlack) == true
+                })
+        }
+        classes.filterNot { it.type in COMPOSE_PALETTES }.forEach { classDef ->
+            assertTrue("${label}: ${classDef.type} keeps Prism black",
+                patch.classDefBy(classDef.type).methods.any { method ->
+                    method.implementation?.instructions?.any(::isPrismBlack) == true
+                })
+        }
+    }
+
+    private fun logsStoryAnimatorTag(instruction: Instruction) =
+        ((instruction as? ReferenceInstruction)?.reference as? StringReference)?.string == STORY_ANIMATOR_TAG
+
+    private fun touchesPrismTint(instruction: Instruction) =
+        ((instruction as? ReferenceInstruction)?.reference as? FieldReference)?.let {
+            it.definingClass == NEW_ROW_PALETTE && it.name == NEW_ROW_PRISM_TINT
+        } == true
+
+    /**
+     * The build's story animator stores two getColor results in its black backdrop field (the
+     * viewer's two binds), and both load black once patched (#360).
+     */
+    private fun storyBackdropsGoBlack(animators: List<ClassDef>, label: String) {
+        val patch = PatchContexts.of(animators)
+        val found = patch.findStoryBackdrops()
+        assertEquals("${label}: the story animator's getColor backdrops", 2, found.size)
+        patch.blackenStoryBackdrops(found)
+        found.forEach { backdrop ->
+            val code = patch.classDefBy(backdrop.type).methods.single {
+                it.name == backdrop.method.name && it.parameterTypes.map(Any::toString) == backdrop.method.parameterTypes.map(Any::toString)
+            }.implementation!!.instructions.toList()
+            assertEquals("${label}: ${backdrop.method.name} loads black", Opcode.CONST_HIGH16, code[backdrop.index].opcode)
+            assertEquals(PURE_BLACK.toInt(), (code[backdrop.index] as WideLiteralInstruction).wideLiteral.toInt())
+        }
+    }
+
+    /** Each build by its version code: the declared one's bundle and the other builds' base APKs. */
+    private fun resourceBuilds(): Map<String, File> {
+        val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
+        val declared = versions.flatMap { version -> Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") } }
+        return (declared + Fixtures.otherBuilds()).associateBy { file ->
+            (if (file.extension == "apks") file.nameWithoutExtension else file.parentFile.name).substringAfterLast('-')
+        }.toSortedMap()
+    }
+
+    /**
+     * [apk]'s resources decoded in full into [workspace], as Manager decodes them for a resource
+     * patch. The patcher keeps the resource context and its decode internal, so they're reached by
+     * their JVM names, pinned to morphe-patcher 1.15.1 (LaunchScreenPatchTest reads them the same way).
+     */
+    private fun <T> decoded(apk: File, workspace: File, block: (ResourcePatchContext) -> T): T {
+        val config = PatcherConfig(apkFile = apk, temporaryFilesPath = workspace)
+        PatcherConfig::class.java.getMethod("setResourceMode\$morphe_patcher", ResourceMode::class.java)
+            .invoke(config, ResourceMode.FULL)
+        return Patcher(config).use { patcher ->
+            val context = PatcherContext::class.java.getMethod("getResourceContext\$morphe_patcher")
+                .invoke(patcher.context) as ResourcePatchContext
+            ResourcePatchContext::class.java.getMethod("decodeResources\$morphe_patcher", ResourceMode::class.java)
+                .invoke(context, ResourceMode.FULL)
+            block(context)
+        }
+    }
+
+    /** Each style that sets [attribute], as its values folder and its name, with the color it sets. */
+    private fun attributeColors(res: File, attribute: String): Map<String, String> {
+        val builder = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+        val found = sortedMapOf<String, String>()
+        res.listFiles { file -> file.isDirectory && file.name.startsWith("values") }.orEmpty().forEach { directory ->
+            val file = File(directory, "styles.xml")
+            if (!file.isFile || attribute !in file.readText()) return@forEach
+            val styles = builder.parse(file).getElementsByTagName("style")
+            for (style in (0 until styles.length).map { styles.item(it) as Element }) {
+                val items = style.getElementsByTagName("item")
+                (0 until items.length).map { items.item(it) as Element }
+                    .filter { it.getAttribute("name").substringAfter(':') == attribute }
+                    .forEach { found["${directory.name}/${style.getAttribute("name")}"] = it.textContent.trim() }
+            }
+        }
+        return found
+    }
+
+    private fun parse(xml: String): Document =
+        DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(xml.trimIndent().byteInputStream())
+
+    /** Each style in [styles] by name, with its items as name and value in order. */
+    private fun styleItems(styles: Document): Map<String, List<Pair<String, String>>> {
+        val list = styles.getElementsByTagName("style")
+        return (0 until list.length).map { list.item(it) as Element }.associate { style ->
+            val items = style.getElementsByTagName("item")
+            style.getAttribute("name") to (0 until items.length).map { items.item(it) as Element }
+                .map { it.getAttribute("name") to it.textContent.trim() }
+        }
+    }
+
+    private fun app.morphe.patcher.patch.BytecodePatchContext.code(type: String): List<Instruction> =
+        classDefBy(type).methods.single().implementation!!.instructions.toList()
+
+    private fun classDef(
+        type: String,
+        body: String,
+        parameters: List<String> = emptyList(),
+        returns: String = "V",
+        name: String = "colors",
+    ): ClassDef {
+        val mutable = MutableMethod(
+            ImmutableMethod(
+                type, name, parameters.map { ImmutableMethodParameter(it, null, null) }, returns,
+                AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null,
+                ImmutableMethodImplementation(6, emptyList(), null, null),
+            ),
+        )
+        mutable.addInstructionsWithLabels(0, body.trimIndent())
+        val method: Method = ImmutableMethod.of(mutable)
+        return ImmutableClassDef(type, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null, emptyList(), listOf(method))
+    }
+}

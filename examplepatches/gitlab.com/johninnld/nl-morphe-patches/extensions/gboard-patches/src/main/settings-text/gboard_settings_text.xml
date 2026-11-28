@@ -851,6 +851,9 @@
     <string name="gboard_patches_ai_writing_tools_all_keyboards_summary">
         <translation locale="en">When enabled, force writing tools to work on every keyboard. Force-stop and restart Gboard for the change to take effect.</translation>
     </string>
+    <string name="gboard_patches_ai_writing_tools_local_all_keyboards_summary">
+        <translation locale="en">Local AI uses Writing Tools on every keyboard layout.</translation>
+    </string>
     <string name="gboard_patches_ai_writing_tools_backend_type_title">
         <translation locale="en">Backend type</translation>
     </string>

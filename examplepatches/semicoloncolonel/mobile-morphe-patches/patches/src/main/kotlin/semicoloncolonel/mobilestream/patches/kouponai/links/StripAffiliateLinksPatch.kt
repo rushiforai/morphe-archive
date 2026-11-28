@@ -18,5 +18,4 @@ import semicoloncolonel.mobilestream.patches.shared.links.stripAffiliateLinksPat
 val stripAffiliateLinksPatch = stripAffiliateLinksPatch(
     Constants.COMPATIBILITY,
     description = "Opens each deal at the store's own page, without Koupon's affiliate tag.",
-    category = "Privacy",
 )

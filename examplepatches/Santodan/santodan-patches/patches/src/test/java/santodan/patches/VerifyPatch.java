@@ -48,13 +48,13 @@ public final class VerifyPatch {
             ^ ((NarrowLiteralInstruction) xor).getNarrowLiteral();
         TwoRegisterInstruction store = (TwoRegisterInstruction) ins.get(match.resultIndex + 2);
         boolean paidFlag = regs[store.getRegisterA()] != 0;
-        int branch = match.resultIndex + 3;
+        int branch = match.branchIndex;
         boolean taken = regs[((OneRegisterInstruction) ins.get(branch)).getRegisterA()] != 0;
         int next = taken ? PeafowlThemeOwnershipPatch.branchTarget(ins, branch) : branch + 1;
         require(taken == expectedFree && paidFlag != expectedFree, "Incorrect theme classification");
         if (expectedFree) {
             require(next == match.freeIndex && next > match.offeringsIndex, "Billing preflight remains reachable");
-            require(PeafowlThemeOwnershipPatch.calls(ins.get(next + 4), "Landroid/os/Handler;",
+            require(PeafowlThemeOwnershipPatch.calls(ins.get(match.postIndex), "Landroid/os/Handler;",
                 "post", "Z", "Ljava/lang/Runnable;"), "Native asynchronous theme setup lost");
         } else require(next < match.offeringsIndex, "Original paid path unexpectedly absent");
     }

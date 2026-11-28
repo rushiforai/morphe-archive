@@ -1,0 +1,32 @@
+:root{--bg:#0b1020;--card:#141a33;--border:#232a4d;--text:#e7eaf3;--muted:#9aa3bf;--accent:#7c9cff;--accent2:#5fe0c2}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text)}
+header{padding:20px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;border-bottom:1px solid var(--border)}
+.brand h1{margin:0;font-size:28px}
+.sub{margin:4px 0 0;color:var(--muted);font-size:14px}
+.stats{color:var(--muted);font-size:13px;text-align:right}
+.toolbar{padding:12px 24px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--border)}
+.toolbar input{flex:1;min-width:200px;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:#0e1428;color:var(--text)}
+.toolbar select{padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:#0e1428;color:var(--text)}
+.btn{padding:9px 14px;border-radius:8px;border:1px solid var(--border);background:#1a2144;color:var(--text);cursor:pointer;font-size:14px}
+.btn.primary{background:var(--accent);color:#0b1020;border-color:var(--accent);font-weight:600}
+.btn.secondary{background:#1a2144}
+.btn:hover{opacity:.9}
+.bulkbar{padding:10px 24px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--border);background:#0e1428;position:sticky;top:0;z-index:5}
+#selCount{font-weight:600;min-width:110px}
+main{padding:16px 24px}
+.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.card.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.card h3{margin:0;font-size:16px}
+.card .meta{color:var(--muted);font-size:12px}
+.card .apps{font-size:12px;color:var(--muted);max-height:48px;overflow:hidden}
+.card .row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.card input[type=checkbox]{width:18px;height:18px}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;background:#232a4d;font-size:11px;margin-right:4px}
+.empty{padding:40px;text-align:center;color:var(--muted)}
+footer{padding:20px 24px;border-top:1px solid var(--border);color:var(--muted);font-size:13px}
+footer a{color:var(--accent)}
+.muted{font-size:12px}
+code{background:#1a2144;padding:1px 6px;border-radius:4px}
+@media (max-width:600px){header{padding:14px} .toolbar{padding:10px 14px} main{padding:10px 14px}}

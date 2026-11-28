@@ -40,6 +40,7 @@ val hideSponsoredListingsPatch = bytecodePatch(
     name = "Hide sponsored listings",
     description = "Hides sponsored products in search results and on product pages.",
 ) {
+    category("Ads")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

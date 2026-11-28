@@ -27,6 +27,7 @@ public final class HandleSettings {
     private static final String KEY_DATE = "date_format";
     private static final String KEY_DATE_PATTERN = "date_pattern";
     private static final String KEY_CLOCK = "clock";
+    private static final String KEY_COPY_HOLD = "copy_handle_on_hold";
     private static final String KEY_SURFACE = "surface_";
 
     private HandleSettings() {}
@@ -145,6 +146,15 @@ public final class HandleSettings {
 
     public static void setClockEnabled(Context ctx, boolean v) {
         prefs(ctx).edit().putBoolean(KEY_CLOCK, v).apply();
+    }
+
+    /** Hold a name to copy its @handle. On by default; independent of the stamp switches. */
+    public static boolean isCopyOnHoldEnabled(Context ctx) {
+        return ctx == null || prefs(ctx).getBoolean(KEY_COPY_HOLD, true);
+    }
+
+    public static void setCopyOnHoldEnabled(Context ctx, boolean v) {
+        prefs(ctx).edit().putBoolean(KEY_COPY_HOLD, v).apply();
     }
 
     /** Independent of the handle switches: the post time and the region share the time view. */

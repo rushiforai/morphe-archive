@@ -634,6 +634,44 @@ public class AdBlockerTest {
         assertEquals(discontinuitySequence(on1080), discontinuitySequence(on720));
     }
 
+    @Test
+    public void aQualityPolledMidBreakAndLeftGoesOnWithTheStreamsNumbersLater() {
+        // A break cut on 1080p; 720p polled once in it (cut too), then left; switched to minutes after the break.
+        http.getResponses.clear();
+        blocker.process(NATIVE_1080, Playlists.media("n", 100, "llll", false));
+        blocker.process(NATIVE_1080, Playlists.media("n", 102, "llaa", true));
+        now += 2_000;
+        blocker.process(NATIVE_720, Playlists.media("m", 102, "llaa", true));
+        now += 2_000;
+        blocker.process(NATIVE_1080, Playlists.media("n", 104, "aall", true));
+        String on1080 = null;
+        for (long first = 106; first <= 200; first++) {
+            now += 2_000;
+            on1080 = blocker.process(NATIVE_1080, Playlists.media("n", first, "llll", false));
+        }
+        now += 2_000;
+        String on720 = blocker.process(NATIVE_720, Playlists.media("m", 201, "llll", false));
+        assertEquals("the next moment, one number on: not where 720p was left",
+                Collections.max(numbers(on1080).values()) + 1, (long) Collections.max(numbers(on720).values()));
+    }
+
+    @Test
+    public void slowFailingRefreshesStillCountAndTheStaleBackupIsLeft() throws Exception {
+        backupHasAds("site", false);
+        blocker.process(NATIVE_1080, Playlists.media("n", 100, "llll", false));
+        assertTrue(blocker.process(NATIVE_1080, Playlists.media("n", 102, "llaa", true)).contains("/site"));
+        // From here every refresh of that backup fails, and takes longer than a poll waits for it.
+        http.getResponses.remove("site-1080.m3u8");
+        http.delays.put("site-1080.m3u8", 500L);
+        String out = "";
+        for (int poll = 0; poll < 8 && out.contains("/site") || poll == 0; poll++) {
+            Thread.sleep(700);
+            now += 2_000;
+            out = blocker.process(NATIVE_1080, Playlists.media("n", 103 + poll, "llaa", true));
+        }
+        assertFalse("the dead backup is given up, not served for the whole break", out.contains("/site"));
+    }
+
     /** Segment URIs to the numbers a playlist gives them. */
     private static java.util.Map<String, Long> numbers(String playlist) {
         java.util.Map<String, Long> out = new java.util.HashMap<>();

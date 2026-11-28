@@ -19,6 +19,7 @@ val disableScreenshotDetectionPatch = bytecodePatch(
     name = "Disable screenshot detection",
     description = "Stops the app from reacting when you take a screenshot.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

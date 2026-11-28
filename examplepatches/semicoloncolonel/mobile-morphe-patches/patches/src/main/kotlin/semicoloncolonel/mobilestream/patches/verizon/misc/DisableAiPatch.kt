@@ -44,6 +44,7 @@ val disableAiPatch = bytecodePatch(
     description = "Hides Verizon's AI assistant, its voice mode, and its floating button.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

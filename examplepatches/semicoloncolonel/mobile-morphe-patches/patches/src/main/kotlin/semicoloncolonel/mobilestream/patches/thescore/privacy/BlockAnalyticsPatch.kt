@@ -28,6 +28,7 @@ val blockAnalyticsPatch = bytecodePatch(
     description = "Stops the app's analytics, attribution, and identity tracking services.",
     default = false,
 ) {
+    category("Privacy")
     compatibleWith(Constants.COMPATIBILITY)
 
     dependsOn(analyticsKillSwitchesPatch)

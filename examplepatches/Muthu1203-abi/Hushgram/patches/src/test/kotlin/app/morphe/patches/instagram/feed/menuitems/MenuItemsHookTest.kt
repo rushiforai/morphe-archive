@@ -1,0 +1,317 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.morphe.patches.instagram.feed.menuitems
+
+import app.morphe.ExtensionDex
+import app.morphe.Fixtures
+import app.morphe.PatchContexts
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patches.instagram.FixtureDex
+import app.morphe.patches.instagram.download.reel.DOWNLOAD
+import app.morphe.patches.instagram.download.reel.EDITING_TOOLS_QUERY
+import app.morphe.patches.instagram.download.reel.ELIGIBILITY_PATH
+import app.morphe.patches.instagram.download.reel.OPTION
+import app.morphe.patches.instagram.download.reel.anchoredClasses
+import app.morphe.patches.instagram.download.story.HELPER_NAME
+import app.morphe.patches.instagram.download.video.FEED_HELPER_NAME
+import app.morphe.patches.instagram.download.video.isShortMenuList
+import app.morphe.patches.instagram.feed.suggested.HideRowAsserts
+import app.morphe.patches.instagram.misc.extension.originalName
+import app.morphe.patches.shared.compat.AppCompatibilities
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import java.io.File
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
+import org.junit.Test
+
+/**
+ * Three-dot menu items (#697, #707): the hooks are in the extension, and in every build of 454 the
+ * feed menu's builder hands its rows over before each return, the reel row adder asks first and
+ * returns when told, each story menu builder names its menu first and hands its labels over before
+ * each return, with the icon stub calling Instagram's own icon method, and the adder of a reel's
+ * Made with Edits rows hands its rows and title over first, with the key stub reading a row's own
+ * field. A menu that moved is refused by name, and with every menu gone the patch stops.
+ */
+class MenuItemsHookTest {
+    @Test
+    fun theHooksAreInTheExtension() {
+        val declared = ExtensionDex.classDef(MENU_ITEMS).methods
+            .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
+            .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
+        for (hook in listOf(FEED_ROWS, REEL_ROW, STORY_MENU, STORY_LABELS, EDITS_ROWS, EDITS_TITLE)) {
+            assertTrue("$hook is not in the extension: $declared", hook.substringAfter("->") in declared)
+        }
+    }
+
+    @Test
+    fun eachBuildGetsEveryMenu() {
+        var checked = 0
+        for (bundle in bundles()) {
+            getsEveryMenu(bundle, bundle.name)
+            checked++
+        }
+        assertEquals("every build of 455 is read", Fixtures.BUILDS, checked)
+    }
+
+    private fun bundles(): List<File> {
+        val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
+        return versions.flatMap { version -> Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") } } +
+            Fixtures.otherBuilds()
+    }
+
+    /** The classes the three menus are found in, sliced from [bundle], with the extension's helper. */
+    private fun classes(bundle: File): MutableList<ClassDef> {
+        val classes = mutableListOf<ClassDef>(ExtensionDex.classDef(MENU_ITEMS))
+        // The reel menu's helper, which holds the adder of one row, and the download flow's class.
+        classes += anchoredClasses(bundle, EDITING_TOOLS_QUERY, ELIGIBILITY_PATH)
+        val anchored = classes.mapTo(HashSet()) { it.type }
+        FixtureDex.forEach(bundle) { dex ->
+            val loads = dex.fieldSection.any { it.toString() == DOWNLOAD }
+            val named = dex.stringSection.any { it == FEED_HELPER_NAME || it == HELPER_NAME }
+            if (!loads && !named && dex.classes.none { it.type == OPTION }) return@forEach
+            for (classDef in dex.classes) {
+                if (classDef.type in anchored) continue
+                val name = classDef.originalName()
+                val wanted = classDef.type == OPTION || name == FEED_HELPER_NAME || name == HELPER_NAME || classDef.methods.any { method ->
+                    method.isShortMenuList() || method.code().any { it.referenceText() == DOWNLOAD }
+                }
+                if (wanted) classes += ImmutableClassDef.of(classDef)
+            }
+        }
+        // The static methods R8 outlined `new ArrayList()` and getString into, in a build that has them.
+        val outlined = classes.asSequence().flatMap { it.methods.asSequence() }.flatMap { it.code().asSequence() }
+            .mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }
+            .filter {
+                (it.returnType == "Ljava/util/ArrayList;" && it.parameterTypes.isEmpty()) ||
+                    (it.returnType == "Ljava/lang/String;" && it.parameterTypes.map(Any::toString) == listOf("Landroid/content/res/Resources;", "I"))
+            }.map { it.definingClass }.filter { type -> classes.none { it.type == type } }.toSet()
+        if (outlined.isNotEmpty()) classes += FixtureDex.classes(bundle, outlined).values
+        // 455's builder reads its helper off its lambda and adds rows through a static adder of its state.
+        HideRowAsserts.loadMenuClasses(bundle, classes)
+        // The builder of a reel's Made with Edits part, the classes of the rows it fills and the adders it
+        // calls, and the string pools a build that pools the key asks. The builder is often the reel
+        // menu's own class, already sliced, so every loader is read and only the new ones are added.
+        val loaders = FixtureDex.classesLoading(bundle, EDITS_KEY)
+        classes += loaders.filter { loader -> classes.none { it.type == loader.type } }
+        val named = loaders.asSequence().flatMap { it.methods.asSequence() }.flatMap { it.code().asSequence() }
+            .mapNotNull { instruction ->
+                when (val reference = (instruction as? ReferenceInstruction)?.reference) {
+                    is FieldReference -> reference.definingClass.takeIf { instruction.opcode == Opcode.IPUT_OBJECT }
+                    // 457 sets a row's key in its constructor, so the row's class comes along by its <init>.
+                    is MethodReference -> reference.definingClass.takeIf {
+                        instruction.opcode == Opcode.INVOKE_VIRTUAL || instruction.opcode == Opcode.INVOKE_VIRTUAL_RANGE ||
+                            ((instruction.opcode == Opcode.INVOKE_DIRECT || instruction.opcode == Opcode.INVOKE_DIRECT_RANGE) &&
+                                reference.name == "<init>")
+                    }
+                    else -> null
+                }
+            }.filter { type -> classes.none { it.type == type } }.toSet()
+        if (named.isNotEmpty()) classes += FixtureDex.classes(bundle, named).values
+        classes += FixtureDex.withStringPools(bundle, loaders).filter { pool -> classes.none { it.type == pool.type } }
+        return classes
+    }
+
+    private fun getsEveryMenu(bundle: File, label: String) {
+        val classes = classes(bundle)
+        val context = PatchContexts.of(classes)
+        val parts = context.findMenuItems()
+        assertEquals("$label: every menu is found", listOf("feed posts", "reels", "stories", "reels' Edits rows"), parts.map { it.menu })
+        parts.forEach { it.write() }
+        val written = classes.map { it.type }.filter { it != MENU_ITEMS }.distinct().flatMap { context.mutableClassDefBy(it).methods }
+
+        // The feed menu's builder hands over the list it returns, right before each return.
+        val feed = written.filter { method -> method.code().any { it.referenceText() == FEED_ROWS } }
+        assertEquals("$label: the feed menu's builder", 1, feed.size)
+        val built = feed.single().code()
+        val returns = built.indices.filter { built[it].opcode == Opcode.RETURN_OBJECT }
+        assertEquals("$label: one hand-over per return", returns.size, built.count { it.referenceText() == FEED_ROWS })
+        for (at in returns) {
+            val call = built[at - 1]
+            assertEquals("$label: the rows before the return at $at", FEED_ROWS, call.referenceText())
+            assertEquals("$label: the list returned at $at", (built[at] as OneRegisterInstruction).registerA, (call as RegisterRangeInstruction).startRegister)
+        }
+
+        // The reel row adder asks with its option first and returns when told.
+        val reel = written.filter { method -> method.code().any { it.referenceText() == REEL_ROW } }
+        assertEquals("$label: the reel row adder", 1, reel.size)
+        val adder = reel.single()
+        val code = adder.code()
+        val types = adder.parameterTypes.map(Any::toString)
+        assertTrue("$label: the adder takes a Context and the option first, an icon and a label last: $types", isRowAdder(adder))
+        val first = adder.implementation!!.registerCount - 1 - types.sumOf { if (it == "J" || it == "D") 2 else 1 }
+        val option = first + 1 + types.take(types.indexOf(OPTION)).sumOf { if (it == "J" || it == "D") 2 else 1 }
+        assertEquals("$label: reads the option", Opcode.MOVE_OBJECT_FROM16, code[0].opcode)
+        assertEquals("$label: the option's register", option, (code[0] as TwoRegisterInstruction).registerB)
+        assertEquals("$label: asks the extension", REEL_ROW, code[1].referenceText())
+        assertEquals(Opcode.MOVE_RESULT, code[2].opcode)
+        assertEquals(Opcode.IF_EQZ, code[3].opcode)
+        assertEquals(Opcode.RETURN_VOID, code[4].opcode)
+
+        // Each story menu builder names its menu first and hands its labels over before each return.
+        val helper = classes.single { it.originalName() == HELPER_NAME }.type
+        val builders = context.mutableClassDefBy(helper).methods.filter { it.returnType == "[Ljava/lang/CharSequence;" && AccessFlags.STATIC.isSet(it.accessFlags) && helper in it.parameterTypes.map(Any::toString) }
+        assertTrue("$label: the story menu's builders", builders.isNotEmpty())
+        for (builder in builders) {
+            val body = builder.code()
+            val parameters = builder.parameterTypes.map(Any::toString)
+            val menu = builder.implementation!!.registerCount - parameters.sumOf { if (it == "J" || it == "D") 2 else 1 } +
+                parameters.take(parameters.indexOf(helper)).sumOf { if (it == "J" || it == "D") 2 else 1 }
+            assertEquals("$label: ${builder.name} names its menu first", STORY_MENU, body[0].referenceText())
+            assertEquals("$label: ${builder.name}'s menu", menu, (body[0] as RegisterRangeInstruction).startRegister)
+            val ends = body.indices.filter { body[it].opcode == Opcode.RETURN_OBJECT }
+            assertTrue("$label: ${builder.name} returns", ends.isNotEmpty())
+            for (at in ends) {
+                val labels = (body[at] as OneRegisterInstruction).registerA
+                assertEquals("$label: ${builder.name} hands over before $at", STORY_LABELS, body[at - 2].referenceText())
+                assertEquals(labels, (body[at - 2] as RegisterRangeInstruction).startRegister)
+                assertEquals(Opcode.MOVE_RESULT_OBJECT, body[at - 1].opcode)
+                assertEquals(labels, (body[at - 1] as OneRegisterInstruction).registerA)
+            }
+        }
+
+        val stubs = context.mutableClassDefBy(MENU_ITEMS).methods
+        fun stub(name: String) = stubs.single { it.name == name && AccessFlags.STATIC.isSet(it.accessFlags) }.code()
+        assertTrue("$label: reportOption", stub("reportOption").any { it.referenceText() == REPORT })
+        val icon = stub("storyIcon").mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }.single()
+        assertEquals("$label: storyIcon asks the story menu", helper, icon.definingClass)
+        assertEquals("$label: for an icon", "I", icon.returnType)
+
+        // The Made with Edits adder hands its rows, then its title, through the extension first.
+        val edits = written.filter { method -> method.code().any { it.referenceText() == EDITS_ROWS } }
+        assertEquals("$label: the Made with Edits adder", 1, edits.size)
+        val hooked = edits.single()
+        val head = hooked.code()
+        val takes = hooked.parameterTypes.map(Any::toString)
+        val width = { type: String -> if (type == "J" || type == "D") 2 else 1 }
+        val self = hooked.implementation!!.registerCount - 1 - takes.sumOf(width)
+        fun registerOf(index: Int) = self + 1 + takes.take(index).sumOf(width)
+        val lists = takes.indices.filter { takes[it] == "Ljava/util/List;" }.map(::registerOf)
+        val title = registerOf(takes.indexOf("Ljava/lang/CharSequence;"))
+        assertEquals("$label: reads the rows", Opcode.MOVE_OBJECT_FROM16, head[0].opcode)
+        val rows = (head[0] as TwoRegisterInstruction).registerB
+        assertTrue("$label: the rows are a List parameter: v$rows of $lists", rows in lists)
+        assertEquals(EDITS_ROWS, head[1].referenceText())
+        assertEquals(0, (head[1] as Instruction35c).registerC)
+        assertEquals(Opcode.MOVE_RESULT_OBJECT, head[2].opcode)
+        assertEquals(Opcode.MOVE_OBJECT_16, head[3].opcode)
+        assertEquals("$label: the rows left", listOf(rows, 1), (head[3] as TwoRegisterInstruction).let { listOf(it.registerA, it.registerB) })
+        assertEquals("$label: reads the title", title, (head[4] as TwoRegisterInstruction).registerB)
+        assertEquals(EDITS_TITLE, head[5].referenceText())
+        assertEquals(listOf(2, 0, 1), (head[5] as Instruction35c).let { listOf(it.registerC, it.registerD, it.registerE) })
+        assertEquals(Opcode.MOVE_RESULT_OBJECT, head[6].opcode)
+        assertEquals("$label: the title left", listOf(title, 2), (head[7] as TwoRegisterInstruction).let { listOf(it.registerA, it.registerB) })
+
+        // The key stub reads a row's key off the field the builder puts it in.
+        val key = stub("editsRowKey")
+        val row = ((key[0] as ReferenceInstruction).reference as TypeReference).type
+        assertEquals(Opcode.CHECK_CAST, key[0].opcode)
+        assertEquals(Opcode.IGET_OBJECT, key[1].opcode)
+        val field = (key[1] as ReferenceInstruction).reference as FieldReference
+        assertEquals("$label: the row's own key", listOf(row, "Ljava/lang/String;"), listOf(field.definingClass, field.type))
+        assertEquals(Opcode.RETURN_OBJECT, key[2].opcode)
+        assertTrue("$label: the extension can read $row", AccessFlags.PUBLIC.isSet(classes.single { it.type == row }.accessFlags))
+    }
+
+    private fun firstBundle(): File? = bundles().firstOrNull()
+
+    private fun refuses(expected: String, find: () -> Unit) {
+        try {
+            find()
+            fail("expected a refusal naming \"$expected\"")
+        } catch (refusal: PatchException) {
+            val message = refusal.message.orEmpty()
+            assertTrue(message, message.startsWith("Three-dot menu items: "))
+            assertTrue(message, message.contains(expected))
+        }
+    }
+
+    /** A story menu whose icon method went, or can't be called from the extension, is refused by name. */
+    @Test
+    fun aStoryMenuWithoutItsIconMethodIsRefused() {
+        val bundle = firstBundle() ?: return
+        val classes = classes(bundle)
+        val helper = classes.single { it.originalName() == HELPER_NAME }
+        fun isIcon(method: Method) = method.returnType == "I" && AccessFlags.STATIC.isSet(method.accessFlags) &&
+            method.parameterTypes.map(Any::toString) == listOf(helper.type, "Ljava/lang/CharSequence;")
+        assertEquals("one icon method to take away", 1, helper.methods.count(::isIcon))
+        val without = ImmutableClassDef(helper.type, helper.accessFlags, helper.superclass, helper.interfaces, null, null,
+            helper.fields, helper.methods.filterNot(::isIcon))
+        refuses("giving a label its icon") { PatchContexts.of(classes - helper + without).findStoryMenuItems() }
+
+        val hidden = ImmutableClassDef(helper.type, helper.accessFlags and AccessFlags.PUBLIC.value.inv(), helper.superclass,
+            helper.interfaces, null, null, helper.fields, helper.methods)
+        refuses("isn't public") { PatchContexts.of(classes - helper + hidden).findStoryMenuItems() }
+    }
+
+    /** A reel row adder that no longer takes one option is refused by name. */
+    @Test
+    fun aReelRowAdderWithoutItsOptionIsRefused() {
+        val bundle = firstBundle() ?: return
+        val classes = classes(bundle)
+        val owner = classes.single { classDef -> classDef.methods.any(::isRowAdder) }
+        val methods = owner.methods.map { method ->
+            if (!isRowAdder(method)) return@map method
+            val parameters = method.parameters.map { parameter ->
+                ImmutableMethodParameter(if (parameter.type == OPTION) "Ljava/lang/Object;" else parameter.type, null, null)
+            }
+            ImmutableMethod(method.definingClass, method.name, parameters, method.returnType, method.accessFlags, null, null, method.implementation)
+        }
+        val moved = ImmutableClassDef(owner.type, owner.accessFlags, owner.superclass, owner.interfaces, null, null, owner.fields, methods)
+        refuses("the adder of one row") { PatchContexts.of(classes - owner + moved).findReelMenuItems() }
+    }
+
+    /** A Made with Edits row whose key the extension can't read, gone or the class hidden, is refused by name. */
+    @Test
+    fun anEditsRowWithoutAKeyToReadIsRefused() {
+        val bundle = firstBundle() ?: return
+        val classes = classes(bundle)
+        val found = PatchContexts.of(classes)
+        found.findEditsMenuItems().write()
+        val key = found.mutableClassDefBy(MENU_ITEMS).methods.single { it.name == "editsRowKey" }.code()
+        val type = ((key[0] as ReferenceInstruction).reference as TypeReference).type
+        val row = classes.single { it.type == type }
+
+        val keyless = ImmutableClassDef(row.type, row.accessFlags, row.superclass, row.interfaces, null, null,
+            row.fields.filterNot { it.type == "Ljava/lang/String;" }, row.methods)
+        refuses("doesn't keep its key") { PatchContexts.of(classes - row + keyless).findEditsMenuItems() }
+
+        val hidden = ImmutableClassDef(row.type, row.accessFlags and AccessFlags.PUBLIC.value.inv(), row.superclass,
+            row.interfaces, null, null, row.fields, row.methods)
+        refuses("doesn't keep its key") { PatchContexts.of(classes - row + hidden).findEditsMenuItems() }
+    }
+
+    /** The reel menu's adder of one row, by its shape: a Context, the option, two more, an icon and a label. */
+    private fun isRowAdder(method: Method): Boolean {
+        val takes = method.parameterTypes.map(Any::toString)
+        return takes.size == 6 && takes[0] == "Landroid/content/Context;" && takes[1] == OPTION &&
+            takes[4] == "Ljava/lang/Integer;" && takes[5] == "Ljava/lang/String;"
+    }
+
+    /** With none of the three menus in the app, the patch stops rather than going in doing nothing. */
+    @Test
+    fun noMenuAtAllStopsThePatch() {
+        refuses("found none of the menus") { PatchContexts.of(listOf(ExtensionDex.classDef(MENU_ITEMS))).findMenuItems() }
+    }
+
+    private fun Method.code(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
+
+    private fun Instruction.referenceText(): String? = (this as? ReferenceInstruction)?.reference?.toString()
+}

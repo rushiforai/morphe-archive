@@ -53,6 +53,7 @@ val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
     description = "Stops the video ads before and during clips and highlights.",
 ) {
+    category("Ads")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

@@ -2,8 +2,12 @@ package semicoloncolonel.mobilestream.patches.fandango.ads
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 import semicoloncolonel.mobilestream.patches.fandango.shared.Constants
+import semicoloncolonel.mobilestream.patches.shared.misc.TRANSLATE_OPTION_DESCRIPTION
+import semicoloncolonel.mobilestream.patches.shared.misc.TRANSLATE_OPTION_TITLE
+import semicoloncolonel.mobilestream.patches.shared.misc.enableAdBreakTranslation
 
 // Fandango at Home plays its free titles with client-side ads, and the
 // server only streams the title after its ads have played, so the ads cannot
@@ -57,11 +61,21 @@ val maskAdsPatch = bytecodePatch(
     name = "Mask ads",
     description = "Covers the ads in free titles with a \"We'll be right back!\" screen and mutes them.",
 ) {
+    category("Ads")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")
 
+    val translate by booleanOption(
+        key = "translate",
+        default = false,
+        title = TRANSLATE_OPTION_TITLE,
+        description = TRANSLATE_OPTION_DESCRIPTION,
+    )
+
     execute {
+        if (translate == true) enableAdBreakTranslation()
+
         StartAdvertSessionFingerprint.method.addInstruction(0, "invoke-static { }, $AD_MASK->onAdvertStart()V")
         StopAdvertSessionFingerprint.method.addInstruction(0, "invoke-static { }, $AD_MASK->onAdvertStop()V")
         StartContentSessionFingerprint.method.addInstruction(0, "invoke-static { }, $AD_MASK->onContentStart()V")

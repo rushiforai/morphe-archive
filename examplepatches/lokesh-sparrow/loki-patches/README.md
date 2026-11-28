@@ -16,7 +16,7 @@ make everyday apps work the way you want.
 [![Latest release](https://img.shields.io/github/v/release/lokesh-sparrow/loki-patches?sort=semver&style=for-the-badge&label=release&labelColor=0d1117&color=22d3ee)](https://github.com/lokesh-sparrow/loki-patches/releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/lokesh-sparrow/loki-patches/total?style=for-the-badge&labelColor=0d1117&color=0ea5e9)](https://github.com/lokesh-sparrow/loki-patches/releases)
 <!-- BADGES_START -->
-[![apps](https://img.shields.io/badge/apps-10-2563eb?style=for-the-badge&labelColor=0d1117)](#apps) [![patches](https://img.shields.io/badge/patches-53-14b8a6?style=for-the-badge&labelColor=0d1117)](#apps)
+[![apps](https://img.shields.io/badge/apps-11-2563eb?style=for-the-badge&labelColor=0d1117)](#apps) [![patches](https://img.shields.io/badge/patches-62-14b8a6?style=for-the-badge&labelColor=0d1117)](#apps)
 <!-- BADGES_END -->
 [![Morphe](https://img.shields.io/badge/patches%20for-Morphe-06b6d4?style=for-the-badge&labelColor=0d1117)](https://morphe.software)
 [![License](https://img.shields.io/github/license/lokesh-sparrow/loki-patches?style=for-the-badge&labelColor=0d1117&color=6e7681)](LICENSE)
@@ -45,7 +45,7 @@ Every app with its highlights, the version it is built for, and which file to do
 for its features, patches and FAQ.
 
 <!-- APPS_START -->
-> **[v3.5.0](https://github.com/lokesh-sparrow/loki-patches/releases/tag/v3.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;**10** apps&nbsp;&nbsp;•&nbsp;&nbsp;**53** patches
+> **[v3.6.1](https://github.com/lokesh-sparrow/loki-patches/releases/tag/v3.6.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;**11** apps&nbsp;&nbsp;•&nbsp;&nbsp;**62** patches
 
 ### Featured
 
@@ -68,13 +68,14 @@ for its features, patches and FAQ.
 | <img src="assets/icons/idm.internet.download.manager.png" width="20" height="20" align="top" alt=""> [**1DM**](docs/apps/1dm.md) | 🚫 🎨 | 3 | `20.0` | **APKM** | Navigation drawer |
 | <img src="assets/icons/com.dv.adm.png" width="20" height="20" align="top" alt=""> [**ADM**](docs/apps/adm.md) | 🚫 | 1 | `14.0.43` | **APKM** | Overflow menu |
 | <img src="assets/icons/com.cv.docscanner.png" width="20" height="20" align="top" alt=""> [**Doc Scanner**](docs/apps/doc-scanner.md) | 💎 🧹 👯 🔑 | 5 | `6.9.14` | **APKM** | Side menu |
-| <img src="assets/icons/com.google.android.apps.photos.png" width="20" height="20" align="top" alt=""> [**Google Photos**](docs/apps/google-photos.md) | 💾 🔑 👯 | 4 | `8.1.0.1023737660` | **APKM (Android 8+)** | Account menu |
+| <img src="assets/icons/com.google.android.apps.photos.png" width="20" height="20" align="top" alt=""> [**Google Photos**](docs/apps/google-photos.md) | 💾 🔑 👯 | 4 | `8.2.1.1030128190` | **APKM (Android 8+)** | Account menu |
+| <img src="assets/icons/com.imo.android.imoimhd.png" width="20" height="20" align="top" alt=""> [**IMO HD**](docs/apps/imo-hd.md) | 🚫📸🔑 | 9 | `2026.10.1048` | **APKM** | Settings page |
 | <img src="assets/icons/com.linkedin.android.svg" width="20" height="20" align="top" alt=""> [**LinkedIn**](docs/apps/linkedin.md) | 🚫 🛡️ 🎨 ⬇️ 🔑 | 25 | `4.1.1276` | **APK (Android 10+)** | Me panel |
 | <img src="assets/icons/com.mxtech.videoplayer.pro.png" width="20" height="20" align="top" alt=""> [**MX Player Pro**](docs/apps/mx-player-pro.md) | 💎 🎞️ | 3 | `1.93.4` | **APK** | Settings |
 | <img src="assets/icons/com.Splitwise.SplitwiseMobile.png" width="20" height="20" align="top" alt=""> [**Splitwise**](docs/apps/splitwise.md) | 💎 🚫 🛡️ 🎨 🔑 | 5 | `26.11.1` | **APK** | Account tab |
 | <img src="assets/icons/net.dinglisch.android.taskerm.png" width="20" height="20" align="top" alt=""> [**Tasker**](docs/apps/tasker.md) | 💎 | 1 | `6.7.8` | **APK** | Overflow menu |
 | <img src="assets/icons/com.metalsoft.trackchecker_mobile.png" width="20" height="20" align="top" alt=""> [**TrackChecker**](docs/apps/trackchecker.md) | 🚫 | 1 | `2.30.7` | **APK** | Overflow menu |
-| <img src="assets/icons/com.truecaller.png" width="20" height="20" align="top" alt=""> [**Truecaller**](docs/apps/truecaller.md) | 💎 📵 🔑 | 3 | `26.44.6` | **APKM** | Profile menu · Settings |
+| <img src="assets/icons/com.truecaller.png" width="20" height="20" align="top" alt=""> [**Truecaller**](docs/apps/truecaller.md) | 💎 📵 🔑 | 3 | `26.45.5` | **APKM** | Profile menu · Settings |
 
 ### For any app
 
@@ -83,7 +84,7 @@ Off by default; tick them in Manager for any app.
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |---|---|---|
 | **Change package name** | Changes the package name by adding a suffix (".loki" by default), so the patched app installs next to the original app instead of replacing it. Some apps check their own package name and need a small extra patch to run under the new one. | • Package suffix |
-| **Remove ads and trackers** | Removes ads, analytics and crash reporting, and the advertising ID. | • Ads<br>• Analytics and crash reporting<br>• Advertising ID |
+| **Remove ads and trackers** | Removes ads, analytics and crash reporting, and the advertising ID. Does nothing on apps that have their own ad removal. | • Ads<br>• Analytics and crash reporting<br>• Advertising ID |
 
 <!-- APPS_END -->
 

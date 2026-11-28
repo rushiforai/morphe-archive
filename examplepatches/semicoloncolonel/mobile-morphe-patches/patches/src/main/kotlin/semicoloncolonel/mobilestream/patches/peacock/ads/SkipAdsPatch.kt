@@ -40,6 +40,7 @@ val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
     description = "Turns off the ads inserted into Peacock streams.",
 ) {
+    category("Ads")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

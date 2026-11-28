@@ -1,6 +1,7 @@
 package mightymich.morphe.patches.universal
 
 import app.morphe.patcher.patch.Option
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
@@ -68,6 +69,14 @@ val changePackageNamePatch = resourcePatch(
         document("AndroidManifest.xml").use { document ->
             val manifest = document.documentElement as Element
             val packageName = manifest.getAttribute("package")
+
+            if (packageName == "com.whatsapp" || packageName == "com.whatsapp.w4b") {
+                throw PatchException(
+                    "\"Change package name\" is not supported for WhatsApp. WhatsApp " +
+                        "relies on its package name and cloning it causes startup crashes " +
+                        "and registration failures.",
+                )
+            }
 
             if (packageName in incompatibleAppPackages) {
                 return@finalize Logger.getLogger(this::class.java.name).severe(

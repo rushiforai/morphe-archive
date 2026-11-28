@@ -11,6 +11,7 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.ResourcePatchContext
 import app.morphe.patcher.patch.resourcePatch
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -56,7 +57,19 @@ private val manifestKillSwitches = mapOf(
 )
 
 internal val analyticsKillSwitchesPatch = resourcePatch {
-    execute {
+    execute { applyAnalyticsKillSwitches() }
+}
+
+/**
+ * [analyticsKillSwitchesPatch], for a Block analytics & tracking that is on by
+ * default and blocks the SDKs only when its analytics option is on.
+ */
+internal fun gatedAnalyticsKillSwitchesPatch(isOn: () -> Boolean) = resourcePatch {
+    execute { if (isOn()) applyAnalyticsKillSwitches() }
+}
+
+private fun ResourcePatchContext.applyAnalyticsKillSwitches() {
+    run {
         document("AndroidManifest.xml").use { document ->
             val application = document.getElementsByTagName("application").item(0) as Element
             val existing = mutableMapOf<String, Element>()
@@ -207,7 +220,6 @@ internal fun BytecodePatchContext.blockTrackers() {
     }
 }
 
-private const val GET_ALL_BY_NAME = "Ljava/net/InetAddress;->getAllByName(Ljava/lang/String;)[Ljava/net/InetAddress;"
 
 private fun Instruction.isGetAllByName(): Boolean =
     opcode == Opcode.INVOKE_STATIC &&

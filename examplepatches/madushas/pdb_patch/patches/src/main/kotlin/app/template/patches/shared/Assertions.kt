@@ -50,3 +50,49 @@ fun requireAnchor(value: Any?, what: String): Nothing? {
     if (value == null) throw PatchException("$what: anchor not found — re-audit.")
     return null
 }
+
+/**
+ * Fail-closed guard: verify a **class the patch is about to reference** actually exists in
+ * the target dex, before injecting a call to it.
+ *
+ * Why: injecting a reference to a library class the app does not ship produces a runtime
+ * `NoClassDefFoundError` the moment the containing method is loaded — an instant crash on
+ * launch, with no build-time signal. Real incident: adidas Running's "Enable dark mode"
+ * injected `Landroidx/appcompat/app/AppCompatDelegate;->setDefaultNightMode(I)V`, but that
+ * class is not in the adidas APK → `NoClassDefFoundError` in
+ * `RuntasticApplication.onCreate` → the app could not start at all (both 14.12.1 and
+ * 14.4.0). Nothing in the build or the patch log hinted at it.
+ *
+ * Rule: any injection that references a class *outside the app's own package* (framework
+ * or library) must first call this. Framework classes are safe in practice, but libraries
+ * get stripped by R8 whenever the app stops using them.
+ */
+fun app.morphe.patcher.patch.BytecodePatchContext.requireClass(type: String, what: String) {
+    // Platform classes are provided by the OS at runtime and are never present in the
+    // APK's own dex, so checking them would always fail. The guard targets classes the
+    // app is expected to *bundle* (androidx/…, com.google.…, app SDKs, …).
+    if (PLATFORM_PREFIXES.any { type.startsWith(it) }) return
+    var found = false
+    classDefForEach { classDef ->
+        if (classDef.type == type) found = true
+    }
+    if (!found) {
+        throw PatchException(
+            "$what: referenced class $type is not present in this APK — R8 stripped it. " +
+                "Injecting a reference would crash at runtime (NoClassDefFoundError). " +
+                "Use a framework mechanism instead.",
+        )
+    }
+}
+
+/** Namespaces the platform supplies at runtime — never expected inside the APK dex. */
+private val PLATFORM_PREFIXES = listOf(
+    "Ljava/", "Ljavax/", "Ljdk/", "Lsun/", "Ldalvik/",
+    "Landroid/", "Lorg/w3c/", "Lorg/xml/", "Lorg/json/", "Lorg/apache/http/",
+)
+
+/** [requireClass] for every type in [types]; throws on the first missing one. */
+fun app.morphe.patcher.patch.BytecodePatchContext.requireClasses(
+    types: List<String>,
+    what: String,
+) = types.forEach { requireClass(it, what) }

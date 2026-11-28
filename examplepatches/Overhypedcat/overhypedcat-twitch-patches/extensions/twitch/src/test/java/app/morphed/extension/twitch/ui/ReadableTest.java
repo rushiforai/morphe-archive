@@ -15,7 +15,7 @@ public class ReadableTest {
 
     @Test
     public void failuresAndChangesAreToldInWords() {
-        assertEquals("16:19:01  a video piece (video-edge-1) failed: error 403",
+        assertEquals("16:19:01  a video segment (video-edge-1) failed: error 403",
                 Readable.of("16:19:01.123 Player https://video-edge-1.abs.hls.ttvnw.net/v1/segment/x.ts -> 403 in 120ms"));
         assertEquals("16:19:01  a playlist (euc11) through the VPN failed: no answer",
                 Readable.of("16:19:01.123 VPN https://euc11.playlist.ttvnw.net/v1/playlist/a.m3u8 -> failed: no answer in 3000ms"));
@@ -47,8 +47,8 @@ public class ReadableTest {
     @Test
     public void whatIsntAnAddressIsShownAsItIs() {
         assertEquals("not an address", Readable.what("not an address"));
-        assertEquals("the stream's playlist list", Readable.what("https://usher.ttvnw.net/api/channel/hls/x.m3u8"));
-        assertEquals("a video piece (edge-1)", Readable.what("https://edge-1.abs.hls.ttvnw.net/v1/segment/S9.ts"));
+        assertEquals("the stream's quality list", Readable.what("https://usher.ttvnw.net/api/channel/hls/x.m3u8"));
+        assertEquals("a video segment (edge-1)", Readable.what("https://edge-1.abs.hls.ttvnw.net/v1/segment/S9.ts"));
     }
 
     @Test

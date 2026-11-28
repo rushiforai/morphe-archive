@@ -1,5 +1,6 @@
 package semicoloncolonel.mobilestream.patches.washingtonpost.misc
 
+import semicoloncolonel.mobilestream.patches.shared.misc.isOptionOn
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
@@ -8,7 +9,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import semicoloncolonel.mobilestream.patches.shared.misc.disableAirshipInAppMessages
 import semicoloncolonel.mobilestream.patches.shared.misc.returnEarly
-import semicoloncolonel.mobilestream.patches.washingtonpost.shared.Constants
 
 // WaPo phone 7.18.1. The app's marketing pop-ups (subscription offers and
 // other campaigns) are Airship in-app messages; see AirshipInAppMessages.kt.
@@ -33,14 +33,10 @@ internal object FrontSubscriptionBannerFingerprint : Fingerprint(
     parameters = listOf(),
 )
 
-@Suppress("unused")
-val hideMarketingPopupsPatch = bytecodePatch(
-    name = "Hide marketing pop-ups",
-    description = "Stops in-app marketing pop-ups and the subscribe banner on the home page, but not the paywall.",
-) {
-    compatibleWith(Constants.COMPATIBILITY)
-
+// Part of hidePromptsAndPopupsPatch: runs only when its "marketingPopUps" option is on.
+internal val hideMarketingPopupsPatch = bytecodePatch {
     execute {
+        if (!isOptionOn(hidePromptsAndPopupsPatch, "marketingPopUps")) return@execute
         disableAirshipInAppMessages()
 
         // The banner setting's type, read from its non-obfuscated config class.

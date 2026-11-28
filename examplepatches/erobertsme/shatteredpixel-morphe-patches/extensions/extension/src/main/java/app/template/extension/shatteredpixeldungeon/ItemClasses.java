@@ -1,7 +1,7 @@
 package app.template.extension.shatteredpixeldungeon;
 
 /**
- * Every concrete item class in Shattered Pixel Dungeon 4.0.2 that has a public no-argument constructor.
+ * Every concrete item class in Shattered Pixel Dungeon 4.0.3 that has a public no-argument constructor.
  * Classes missing from other versions are skipped at runtime.
  */
 final class ItemClasses {

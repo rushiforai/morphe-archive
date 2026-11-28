@@ -66,25 +66,29 @@ To see which patches apply to a given app, open that app's row in [Supported app
 
 ## What do the labels on an issue mean?
 
-Labels show what an issue is about and how far it has come.
+Labels show what an issue is about and how far it has come. Each one has a
+prefix that says whether it is a type, a status, or a resolution. The common
+ones are below. For the complete list and the lifecycle an issue follows, see
+[Issue labels](issue-labels.md).
 
 | Label | Meaning |
 |-------|---------|
-| `bug` | A patch fails, or a patched app does not work as described. |
-| `app version` | Morphe Manager does not accept an app version or build. |
-| `enhancement` | A request to improve a working patch, or for a new app or patch. |
-| `question` | A question or an idea. |
-| `incomplete` | Required details are missing. The label is removed when the issue is edited to include them, and the issue closes after 7 days without an update. |
-| `untargeted version` | The reported app version or build is not supported. The issue closes after 7 days without an update. |
-| `waiting for reporter` | I asked a question and am waiting for the answer. |
-| `may reopen` | Closed for now. If you have new details, comment on the issue within 7 days, and I will reopen it. After 7 days without a comment, the label is removed. |
-| `confirmed` | I reproduced the problem, and the patches cause it. |
-| `planned` | Accepted, and planned for a future release. |
-| `in development` | I am working on it now. |
-| `testing on dev` | The change is in a dev pre-release. Please comment with how it works on your device. |
-| `released` | The fix or feature is in a main release. |
-| `upstream` | The app, Morphe Manager, or another tool causes the problem, not the patches. |
-| `not patchable` | The app blocks patched copies, for example with Play Integrity or App Check. |
-| `out of scope` | Outside what the project does, such as paywalls, paid content, or a post that is not about these patches. |
-| `duplicate` | Another issue already covers this. |
-| `wontfix` | This will not be changed. |
+| `type: bug` | A patch fails, or a patched app does not work as described. |
+| `status: version not accepted` | Morphe Manager does not accept an app version or build. |
+| `type: enhancement` | A request to improve a working patch. |
+| `type: request` | A new app, a new patch, or another app version. |
+| `type: question` | A question or an idea. |
+| `status: needs info` | Required details are missing. The label is removed when the issue is edited to include them, and the issue closes after 7 days without an update. |
+| `status: untargeted version` | The reported app version or build is not supported. The issue closes after 7 days without an update. |
+| `status: waiting for reporter` | I asked a question and am waiting for the answer. |
+| `status: may reopen` | Closed for now. If you have new details, comment on the issue within 7 days, and I will reopen it. After 7 days without a comment, the label is removed. |
+| `status: confirmed` | I reproduced the problem, and the patches cause it. |
+| `status: planned` | Accepted, and planned for a future release. |
+| `status: in development` | I am working on it now. |
+| `status: testing on dev` | The change is in a dev pre-release. Please comment with how it works on your device. |
+| `resolution: released` | The fix or feature is in a main release. |
+| `resolution: upstream` | The app, Morphe Manager, or another tool causes the problem, not the patches. |
+| `resolution: not patchable` | The app blocks patched copies, for example with Play Integrity or App Check. |
+| `resolution: out of scope` | Outside what the project does, such as paid content, a paywall in an app that has no patch for it, or a post that is not about these patches. |
+| `resolution: duplicate` | Another issue already covers this. |
+| `resolution: wontfix` | This will not be changed. |

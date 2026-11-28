@@ -21,6 +21,9 @@ public final class AppContext {
         if (!announced) {
             announced = true;
             Debug.print("extension attached (" + Debug.BUILD + ")");
+            Debug.mark("attached");
+            app.onlynazril.extension.tiktok.settings.CustomFontSettings.warm(ctx);
+            Debug.setVerbose(app.onlynazril.extension.tiktok.settings.DebugSettings.isVerbose(ctx));
         }
     }
 

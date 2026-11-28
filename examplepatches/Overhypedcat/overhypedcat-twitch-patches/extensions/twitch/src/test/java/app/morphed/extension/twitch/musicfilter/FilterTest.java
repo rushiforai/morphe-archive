@@ -78,9 +78,9 @@ public class FilterTest {
             }
             System.arraycopy(f.stream[0], start, l, 0, 128);
             System.arraycopy(f.stream[1], start, r, 0, 128);
-            filter.push(l, r, 128, (a, b) -> {
-                left.add(a);
-                right.add(b);
+            filter.push(l, r, 128, (a, b) -> { // (the blocks are the filter's own, reused: copied)
+                left.add(a.clone());
+                right.add(b.clone());
             });
         }
         assertEquals(f.expected[0].length, left.size() * HOP);

@@ -1,3 +1,21 @@
+## [1.3.4](https://github.com/way-lo/waylo-patches/compare/v1.3.3...v1.3.4) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **podcastaddict:** list 2026.15 as supported and update the README ([95e8244](https://github.com/way-lo/waylo-patches/commit/95e824451fb7a4ce7fec8550551698c449aab6fb))
+
+## [1.3.3](https://github.com/way-lo/waylo-patches/compare/v1.3.2...v1.3.3) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **googlenews:** rename the app's own permissions and providers when changing the package name ([af777cb](https://github.com/way-lo/waylo-patches/commit/af777cb3449c521c7a82553c6b66e1d6e906dc6a))
+
+## [1.3.2](https://github.com/way-lo/waylo-patches/compare/v1.3.1...v1.3.2) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* episode list swipes stop working a while after opening the screen (2026.7, 2026.14) ([1f0143c](https://github.com/way-lo/waylo-patches/commit/1f0143c06d8d58fffa2bfa4943761cdea63e9cb4))
+
 ## [1.3.1](https://github.com/way-lo/waylo-patches/compare/v1.3.0...v1.3.1) (2026-11-18)
 
 ### 🐛 Bug Fixes

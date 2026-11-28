@@ -537,7 +537,6 @@ public final class Tracker {
             if (print == null) {
                 try {
                     print = known.print.read();
-                    if (prints.size() >= KNOWN_MAX * 2) prints.clear(); // (only ever the latest few)
                     prints.put(known.videoId, print);
                 } catch (Exception broken) {
                     print = new float[0]; // a broken print: passed over, made again with its copy
@@ -545,6 +544,11 @@ public final class Tracker {
             }
             read.add(print);
         }
+        // Only the prints looked through stay in memory (at most KNOWN_MAX, about a megabyte each); others are
+        // read again from storage if they're ever among the latest songs once more.
+        java.util.Set<String> looked = new java.util.HashSet<>();
+        for (Known known : before) looked.add(known.videoId);
+        prints.keySet().retainAll(looked);
         Long found = Align.known(stretch.samples, read).at;
         if (found == null) {
             sayBetween();

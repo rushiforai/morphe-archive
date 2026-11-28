@@ -41,16 +41,26 @@ body:
       label: App
       description: The app the patch is for.
       options:
+        - "ABC News"
         - "Apple TV"
+        - "CBS News"
+        - "CNBC"
+        - "CNN"
         - "Disney+"
         - "ESPN"
+        - "Fandango at Home"
+        - "Fox Local"
+        - "Fox News"
         - "Fox One"
         - "HBO Max"
         - "Hulu"
         - "JustWatch"
         - "MGM+"
         - "MLB"
+        - "Movies Anywhere"
+        - "MS NOW"
         - "NBA"
+        - "NBC News"
         - "NewsNation"
         - "NFL"
         - "PBS"
@@ -59,6 +69,7 @@ body:
         - "Pluto TV"
         - "Prime Video"
         - "Starz"
+        - "The Roku Channel"
         - "Tubi"
         - "YouTube TV"
         - "Other (name it in the description)"
@@ -77,6 +88,17 @@ body:
     attributes:
       label: App version
       placeholder: "17.3.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: beta
+    attributes:
+      label: Are you enrolled as a beta tester for this app?
+      description: On Google Play, the app's page says "You're a beta tester" when you are. A beta tester can get a version that is not public yet, and I can only support a beta that I can install myself.
+      options:
+        - "No"
+        - "Yes"
+        - "I do not know"
     validations:
       required: true
   - type: dropdown

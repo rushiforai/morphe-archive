@@ -24,23 +24,7 @@ and the app notes say so plainly instead of pretending otherwise.
 
 <!-- PATCHES_START -->
 
-> **[v0.7.0](https://github.com/madushas/morphe-patches-custom/releases/tag/v0.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;77 patches total
-
-<details>
-<summary>📦 Fitbit&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 5.11.1.health-mobile-1104134730-1009077909 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Disable trackers](#disable-trackers) | Disables Google Analytics for Firebase measurement components, switches Crashlytics and Firebase/Google-Analytics collection off via the official opt-out flags, and removes the install-referrer permission. FCM push is kept. |  |
-| [Remove ads](#remove-ads) | Fitbit ships no ad SDK or ad placement; this additionally disables any ad-SDK auto-init provider and removes the advertising-ID / ad-services / install-referrer permissions so no advertising ID is exposed. |  |
-
-</details>
+> **[v0.7.2](https://github.com/madushas/morphe-patches-custom/releases/tag/v0.7.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;78 patches total
 
 <details>
 <summary>📦 Glassdoor&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
@@ -62,7 +46,7 @@ and the app notes say so plainly instead of pretending otherwise.
 </details>
 
 <details>
-<summary>📦 Hutch&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<summary>📦 Hutch&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -75,6 +59,7 @@ and the app notes say so plainly instead of pretending otherwise.
 | [Disable SSL pinning](#disable-ssl-pinning) | Unpins the react-native-ssl-pinning OkHttp client so HTTPS traffic can be intercepted, and trusts user-installed CAs (targetSdk 35). Normal TLS validation stays intact. |  |
 | [Disable security checks](#disable-security-checks) | Stops Hutch from refusing to run on rooted, adb-enabled, developer-options or emulator devices. The device-integrity probes (jail-monkey + react-native-device-info) all answer "clean". |  |
 | [Disable trackers](#disable-trackers) | Disables Google Analytics for Firebase collection (the app's only third-party analytics) and removes the advertising-ID permissions. Push notifications keep working. |  |
+| [Remove ads](#remove-ads) | Blocks Hutch's server-driven ads (the home banner carousel and the popup banner) by breaking their API routes in the Hermes bundle, so ad data is never fetched and the ad components render nothing. Hutch bundles no ad SDK; this covers the app's own ad delivery. |  |
 
 </details>
 
@@ -114,23 +99,6 @@ and the app notes say so plainly instead of pretending otherwise.
 </details>
 
 <details>
-<summary>📦 Microsoft Teams&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 1416/1.0.0.2026202302 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Disable AppCenter telemetry](#disable-appcenter-telemetry) | No-ops Microsoft AppCenter's SDK bootstrap (configureAndStartServices / startServices) so the bundled telemetry/crash SDK never initialises. |  |
-| [Remove ads](#remove-ads) | Microsoft Teams ships no ad SDK; this strips the advertising-ID, ad-services and install-referrer permissions and disables any ad-SDK init provider. |  |
-| [Unbloat (trim manifest)](#unbloat--trim-manifest) | Removes the third-party launcher-badge permission zoo Teams declares (Samsung/HTC/Sony/Huawei/OPPO/badger), which only add manifest bulk. |  |
-
-</details>
-
-<details>
 <summary>📦 MyDialog&nbsp;&nbsp;•&nbsp;&nbsp;12 patches</summary>
 <br>
 
@@ -157,7 +125,7 @@ and the app notes say so plainly instead of pretending otherwise.
 </details>
 
 <details>
-<summary>📦 Nike Run Club&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<summary>📦 Nike Run Club&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -170,6 +138,7 @@ and the app notes say so plainly instead of pretending otherwise.
 | [Disable tracker components](#disable-tracker-components) | Disables Adobe's extension-discovery service and messaging activities and sets the Firebase Analytics collection opt-outs. |  |
 | [Disable trackers](#disable-trackers) | Disables Adobe (Omniture) analytics by stopping the Adobe Experience Platform extension registration, so no tracking payload is built or sent. |  |
 | [Enable dark mode](#enable-dark-mode) | Turns on Nike Run Club's built-in dark theme by forcing the DefaultDesignManager colour-mode gate, so the Compose UI renders dark. |  |
+| [Nike obfuscator access-gate bypass](#nike-obfuscator-access-gate-bypass) | Nike Run Club's libnike-obfuscator.so refuses to decrypt its client configuration when the APK is not signed with Nike's key, which breaks the OIDC login (accounts.nike.com answers HTTP 500). This patch forces the library's access gate to allow the transform in every ABI, so the OIDC client id decrypts correctly on re-signed builds. |  |
 | [Remove ads](#remove-ads) | Nike Run Club ships no ad SDK or placement; this disables any ad-SDK auto-init provider and removes the advertising-ID / ad-services / referrer permissions so no advertising ID is exposed. |  |
 
 </details>
@@ -203,6 +172,23 @@ and the app notes say so plainly instead of pretending otherwise.
 </details>
 
 <details>
+<summary>📦 Pluralsight&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 2026.11.05 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Bypass PairIP license check](#bypass-pairip-license-check) | Disables Pluralsight's PairIP / Play licence verification (including its custom-trial re-check) so the app runs after Morphe re-signs it. Launch gate only — subscriptions and course access are validated by Pluralsight's servers. |  |
+| [Disable tracker components](#disable-tracker-components) | Disables Heap's two auto-init ContentProviders (behavioural session recording) and sets the Firebase analytics collection opt-outs. FCM push and remote config are kept. |  |
+| [Disable trackers](#disable-trackers) | No-ops Pluralsight's own Firebase Analytics event sink (pa1.a), so no usage event and no analytics user-id is sent. SDK components are disabled by 'Disable tracker components'. Mux video analytics is deliberately left alone (see the docs): it is reachable only through suspend wrappers. |  |
+
+</details>
+
+<details>
 <summary>📦 Shima+ Dynamic Island&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
@@ -221,13 +207,31 @@ and the app notes say so plainly instead of pretending otherwise.
 </details>
 
 <details>
+<summary>📦 Skillshare&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 5.4.81 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Disable Blueshift engagement SDK](#disable-blueshift-engagement-sdk) | No-ops Blueshift's SDK initialisation, identification and event endpoints, so no campaign, push or in-app-message engagement data is sent. Off by default: Blueshift also drives rich push and the in-app inbox, so enabling this can stop in-app messages and inbox content from appearing. |  |
+| [Disable trackers](#disable-trackers) | No-ops the crash-reporting (Sentry), attribution (Singular), the app-owned analytics event sink and the Crashlytics user-identity custom keys, so no crash report, install-attribution or usage event is sent and no username or membership flag is attached to crash reports. Firebase push and install-ID are left intact. |  |
+| [Remove ads](#remove-ads) | Skillshare ships no ad SDK or ad placement; this additionally disables any ad-SDK auto-init provider and removes the advertising-ID / ad-services permissions so no advertising ID is exposed. |  |
+| [Unlock premium (client-side)](#unlock-premium--client-side) | Forces the app's client-side entitlement flags (isMember → true, isLocked → false) so premium badges, paywall CTAs and locked-lesson chrome are gone and every lesson row is playable/downloadable in the UI. Honestly: the video stream itself is served by Skillshare's backend, so premium lessons may still fail to play — that is a server-side check. |  |
+
+</details>
+
+<details>
 <summary>📦 Strava&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 480.15 | 485.12 | 486.9 | 486.11 |
-| :---: | :---: | :---: | :---: |
+| 486.9 | 486.11 | 490.15 |
+| :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -235,56 +239,37 @@ and the app notes say so plainly instead of pretending otherwise.
 | [Custom app name](#custom-app-name) | Renames the launcher label (Settings > Apps, home screen) to the value of the stravaAppName option. Leave the option empty to keep the original name. | • Custom launcher name |
 | [Extra settings resources](#extra-settings-resources) | Registers the Extra Settings activity and applies the accent color. | • Accent color<br>• Export SuperUser debug console<br>• Unlock share overlay designs |
 | [Extra settings screen](#extra-settings-screen) | Adds an 'Extra Settings' entry at the top of Settings with theme mode switching and patch info. Accent color is a build-time option. |  |
-| [Remove telemetry](#remove-telemetry) | Strips Sentry, Embrace and Facebook analytics, disables Firebase analytics, and empties the advertising ID (push notifications keep working). |  |
+| [Remove telemetry](#remove-telemetry) | Strips Sentry, Embrace and Facebook analytics, disables Firebase analytics, empties the advertising ID, and suppresses the local Strava analytics-event cache (push notifications keep working; the first-party Strava network sender remains active). |  |
 | [Remove upsells & promos](#remove-upsells---promos) | Removes Strava's subscription upsells and promos: server-driven modular upsells (matched by an upsell-shape predicate so new server types stay covered), subscription bottom-sheet upsells, and the dedicated upsell screens (Year in Sport 2026, Best Efforts Data Peek, Device Connect). Runtime toggles in Extra Settings; the Settings Subscriptions section is stripped. |  |
 | [Unlock Premium](#unlock-premium) | Unlocks Strava Premium features (spoofs PAID state + far-future expiry). Also re-enables password login after OTP. |  |
 
 </details>
 
 <details>
-<summary>📦 TextNow&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<summary>📦 We Love Deals&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 26.45.0.0 |
+| 1.2.0 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Disable ad SDK](#disable-ad-sdk) | Disables every partner ad-SDK initializer TextNow runs (Facebook Audience Network, Amazon, Fyber/DT Exchange, InMobi, Nimbus, LiveRamp, The Trade Desk) at its own isEnabled() gate, so no ad SDK ever initialises. |  |
-| [Disable tracker components](#disable-tracker-components) | Disables Firebase measurement, the AppsFlyer install-referrer provider and Facebook auto-init components, and sets the Firebase/GA/Facebook collection opt-outs. FCM push is kept. |  |
-| [Disable trackers](#disable-trackers) | No-ops AppsFlyer's implementation entry points (start, logEvent) so the attribution SDK never starts and no attribution or analytics event is sent. |  |
-| [Remove ads](#remove-ads) | Disables every ad-network component TextNow declares (Facebook Audience Network, Amazon APS/DTB) and strips the ad-ID / ad-services / install-referrer permissions. |  |
+| [Bypass PairIP license check](#bypass-pairip-license-check) | Disables We Love Deals' PairIP / Play licence verification (including its custom-trial re-check) so the app runs after Morphe re-signs it. Launch gate only — the Flutter deals logic and any server-side checks are untouched. |  |
+| [Remove ads](#remove-ads) | We Love Deals ships no ad SDK, no ad placement and no advertising permission. This only disables any ad-SDK auto-init provider for future builds and removes the vestigial Play-licence permission. |  |
+| [Unlock premium](#unlock-premium) | Forces User.has_active_subscription to true in the Dart AOT snapshot (both JSON parse sites), the flag every premium gate branches on, and NOPs the redeem paywall's own branch (tbnz on the gate bool at 0x58eea0) so the redeem flow always runs. Vendor-issued redemption codes and anything the backend re-validates stay server-gated. |  |
 
 </details>
 
 <details>
-<summary>📦 adidas Running&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 14.12.1 | 14.4.0 |
-| :---: | :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Bypass PairIP](#bypass-pairip) | Disables adidas Running's PairIP licence/VM verification, restores the real Application class and bakes the VM's runtime strings (captured from the original app's heap) so Firebase etc. initialize cleanly. NOTE: adidas runs the full PairIP VM whose startup program is the tamper check — the patched app boots past the licence gate but the VM-virtualized init methods cannot be restored without native reverse engineering, so the app may crash after launch. See docs/adidas.md. |  |
-| [Disable tracker components](#disable-tracker-components) | Disables the Google Analytics measurement receiver/services and the Adjust lifecycle provider, and sets the Firebase/Google Analytics collection opt-outs. |  |
-| [Disable trackers](#disable-trackers) | No-ops the Adjust SDK's event/lifecycle entry points so no attribution or analytics payload is buffered or sent. |  |
-| [Enable dark mode](#enable-dark-mode) | Forces adidas Running into its built-in night theme (RtBaseTheme.Dark) by setting AppCompatDelegate night mode at app startup. |  |
-| [Remove ads](#remove-ads) | adidas Running ships no ad-serving SDK; this denies the advertising ID and the Privacy-Sandbox ad services and removes the install-referrer permission. |  |
-
-</details>
-
-<details>
-<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
+<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;10 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Disable PairIP license check](#disable-pairip-license-check) | Disables PairIP license verification, VM checks, and repeated background checks. |  |
+| [Disable root checks (RootBeer)](#disable-root-checks--rootbeer) | Forces the RootBeer library's detection methods to report a non-rooted device, for apps that use it to refuse to run. Only affects RootBeer; app-specific root checks are not covered. |  |
 | [Fix Firebase after re-signing](#fix-firebase-after-re-signing) | Fixes Firebase services (push notifications, Remote Config, Firebase Auth) that break after Morphe re-signs the app with a different certificate.
 
 Apply with Original app certificate patch — no other config needed. |  |
@@ -295,7 +280,9 @@ Works for: Google apps (YouTube, Maps, News, Photos) and third-party apps using 
 Does not work for: Android 14+ Credential Manager sign-in (most modern third-party apps), Play Integrity / SafetyNet checks, or apps with custom auth.
 
 Requires MicroG RE installed. Apply with Original app certificate patch. | • MicroG package name<br>• Main activity class (optional)<br>• Custom package name (optional) |
+| [Override certificate pinning](#override-certificate-pinning) | Trusts user-installed certificate authorities and disables declarative pin-set enforcement, so a debugging proxy can intercept HTTPS traffic. Covers network-security-config pinning only; in-code pinning (e.g. OkHttp CertificatePinner) needs its own patch. Normal TLS validation is otherwise unchanged. |  |
 | [Provide Original app certificate](#provide-original-app-certificate) | Automatically reads the signing certificate from the APK you are patching — no original app installed or file provided needed. Only fill the options below if you are patching an APK that was already re-signed (e.g. a previously patched build): in that case point to the original APK file, or enter the certificate manually. | • Path to original APK (if uninstalled)<br>• Certificate SHA-1 (manual)<br>• Certificate SHA-256 (manual)<br>• Certificate Base64 DER (manual) |
+| [Remove privacy-sensitive permissions](#remove-privacy-sensitive-permissions) | Strips selected capability permissions (notifications, camera, microphone, media/storage, location, contacts, calendar, nearby devices, sensors, installed-apps visibility) from the app's manifest. Off by default — disabling a permission the app needs breaks the feature that uses it. | • Notifications<br>• Camera<br>• Microphone<br>• Media & storage<br>• Location<br>• Contacts & accounts<br>• Calendar<br>• Nearby devices<br>• Body sensors & activity<br>• Installed-apps visibility |
 | [Spoof Widevine / DRM level](#spoof-widevine---drm-level) | Reports Widevine L1 (hardware DRM) to apps that check DRM level locally.
 
 Useful for apps that refuse to play HD/4K content on L3 devices or after re-signing.

@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/glyphchemy-banner.svg" alt="Glyphchemy — Alchemy for Every Key" width="100%">
+<img src="assets/glyphchemy-banner.svg" alt="Glyphchemy pronounced GLIF-kuh-mee (/ˈɡlɪf.kə.mi/) — Alchemy for Every Key" width="100%">
 <div align="center">
 
 <div align="center">

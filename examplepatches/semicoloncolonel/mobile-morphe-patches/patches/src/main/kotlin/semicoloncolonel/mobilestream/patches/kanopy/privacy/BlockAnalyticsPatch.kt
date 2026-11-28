@@ -23,6 +23,7 @@ val blockAnalyticsPatch = bytecodePatch(
     description = "Stops Firebase Analytics, Mux Data, Sentry, and Mapbox telemetry.",
     default = false,
 ) {
+    category("Privacy")
     compatibleWith(Constants.COMPATIBILITY)
 
     dependsOn(analyticsKillSwitchesPatch)

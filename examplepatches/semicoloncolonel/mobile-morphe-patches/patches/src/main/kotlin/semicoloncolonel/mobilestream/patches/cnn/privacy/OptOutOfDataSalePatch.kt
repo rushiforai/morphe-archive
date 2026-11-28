@@ -1,9 +1,9 @@
 package semicoloncolonel.mobilestream.patches.cnn.privacy
 
+import semicoloncolonel.mobilestream.patches.shared.misc.isOptionOn
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
-import semicoloncolonel.mobilestream.patches.cnn.shared.Constants
 
 private const val PURPOSE_TYPE = "Lcom/cnn/mobile/privacy/models/PrivacyPurposeType;"
 private const val PURPOSE_CONSENT = "Lcom/cnn/mobile/privacy/models/PrivacyPurposeConsent;"
@@ -25,15 +25,10 @@ internal object IsDoNotSellOptOutFingerprint : Fingerprint(
     returnType = "Z",
 )
 
-@Suppress("unused")
-val optOutOfDataSalePatch = bytecodePatch(
-    name = "Opt out of data sale & sharing",
-    description = "Keeps the app opted out of the sale and sharing of your data.",
-) {
-    category("Privacy")
-    compatibleWith(Constants.COMPATIBILITY)
-
+// Part of blockAnalyticsPatch: runs only when its "dataSale" option is on.
+internal val optOutOfDataSalePatch = bytecodePatch {
     execute {
+        if (!isOptionOn(blockAnalyticsPatch, "dataSale")) return@execute
         PurposeConsentFingerprint.method.addInstructions(
             0,
             """

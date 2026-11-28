@@ -61,3 +61,24 @@ patch-writing one.
 Items 1–2 are the highest value and are mechanical enough to do per app; 3–5 are
 per-feature work. None of them change patch behaviour on the current targets, so they
 can land incrementally (one app per change set) without a bundle-wide risk.
+
+## 2026-11-15 — second audit (post-adidas-fix): fail-closed pass complete
+
+Re-audited all 13 app packages against the post-adidas quality bar
+(`requireProgress` / `requireClass` / fail-closed anchors):
+
+- **Fail-closed status: complete.** Every scan-then-mutate now either uses a declarative
+  `Fingerprint` (throws when unmatched — adidas, hutch, materialcapsule, mydialog,
+  nikerunclub, pdb), an explicit `requireProgress` count (textnow, shima, killPairIpFull),
+  a throwing anchor (`first {}` / `mutableClassDefBy` — strava, glassdoor screens), or —
+  new this pass — a `PatchException` on a **missing class** (glassdoor + jooble AppsFlyer,
+  previously `?: return@execute` would have silently skipped the whole patch if the class
+  moved). The remaining `?: return` sites are legitimate predicates/filters
+  (materialcapsule `isCollectorInterface`, strava register helpers).
+- **`requireClass` adoption:** wired into adidas dark mode; other injected library
+  references audited by hand and confirmed bundled by their apps (strava
+  `FragmentManager`, textnow `compose/ui/Modifier`).
+- **Still open (unchanged priority):** per-feature `Fingerprints.kt` extraction for the
+  seven scan-based apps (glassdoor, jooble, shima, fitbit, strava, textnow, teams) —
+  mechanical, behaviour-neutral; declarative preferences model + locales; CI matrix
+  patching every declared target.

@@ -47,4 +47,5 @@ public class Char {
 	public synchronized LinkedHashSet<Buff> buffs() { throw new RuntimeException("Stub"); }
 	public synchronized <T extends Buff> T buff(Class<T> c) { throw new RuntimeException("Stub"); }
 	public int shielding() { throw new RuntimeException("Stub"); }
+	public static boolean hasProp(Char ch, Property p) { throw new RuntimeException("Stub"); }
 }

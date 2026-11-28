@@ -42,6 +42,16 @@ private val carousel = Fingerprint(
         "Ljava/lang/Integer;", "Ljava/lang/String;", "Z", "Z")
 )
 
+// Native Reels cards are GraphQL models, not FeurStagram feed-unit JSON.
+private val reelsCard = Fingerprint(
+    definingClass = "LX/08Fw;", name = "A03", returnType = "LX/04Dh;", isStatic = true,
+    parameters = listOf("LX/0Lcy;", "Lcom/instagram/common/session/UserSession;", "LX/06nE;")
+)
+private val reelsInjectedCard = Fingerprint(
+    definingClass = "LX/08Fw;", name = "A04", returnType = "LX/04Dh;", isStatic = true,
+    parameters = listOf("LX/0Qiv;")
+)
+
 private val paths = listOf(
     "/discover/ayml/", "/discover/sectioned_ayml/", "/discover/chaining/",
     "/discover/recommended_accounts_for_category/", "/discover/suggested_businesses/",
@@ -63,7 +73,7 @@ val hideFollowRecommendationsPatch = patch(
     compatibleWith(Compatibility(name = "Instagram (FeurStagram)", packageName = "com.instagram.android",
         apkFileType = ApkFileType.APK, targets = listOf(AppTarget(version = "456.0.0.53.78"))))
     execute {
-        // Resolve and check all four hooks before modifying any of them.
+        // Resolve and check all hooks before modifying any of them.
         val configMethod = config.method
         val blockImpl = requireNotNull(block.method.implementation)
         val requestImpl = requireNotNull(requests.method.implementation)
@@ -101,6 +111,21 @@ val hideFollowRecommendationsPatch = patch(
                 f.type == "Lcom/instagram/ui/widget/nestablescrollingview/NestableHorizontalRecyclerPager;"
         } == true })
         require(carouselMethod.implementation!!.registerCount == 33)
+        // A03 returns nullable ClipsItem; its caller skips null entries. A04 is a
+        // dedicated nullable factory for the separately injected suggested-users page.
+        val cardMethod = reelsCard.method
+        val injectedMethod = reelsInjectedCard.method
+        fun suggestedTypeIndex(method: app.morphe.patcher.util.proxy.mutableTypes.MutableMethod): Int {
+            val code = requireNotNull(method.implementation).instructions.toList()
+            return code.indices.single { i ->
+                val field = (code[i] as? ReferenceInstruction)?.reference as? FieldReference
+                code[i].opcode == Opcode.SGET_OBJECT && field?.definingClass == "LX/08GF;" &&
+                    field.name == "A0j" && field.type == "LX/08GF;"
+            }
+        }
+        val cardIndex = suggestedTypeIndex(cardMethod)
+        suggestedTypeIndex(injectedMethod)
+        require(injectedMethod.implementation!!.instructions.any { it.opcode == Opcode.RETURN_OBJECT })
         // Keep only account discovery paths, not sharing/favorites/search recipients.
         val pathType = (instructions[pathsIndex] as ReferenceInstruction).reference
         val unitType = (instructions[unitsIndex] as ReferenceInstruction).reference
@@ -108,6 +133,15 @@ val hideFollowRecommendationsPatch = patch(
         blockImpl.replaceInstruction(unitsIndex, BuilderInstruction35c(Opcode.FILLED_NEW_ARRAY, 2, 5, 6, 0, 0, 0, unitType))
         configMethod.returnEarly(true)
         requestImpl.replaceInstruction(key + 1, BuilderInstruction11n(Opcode.CONST_4, 3, 1))
+        // Drop the entire card before it enters the pager, not just its view.
+        cardMethod.addInstructions(cardIndex, """
+            const/4 v0, 0x0
+            return-object v0
+        """)
+        injectedMethod.addInstructions(0, """
+            const/4 v0, 0x0
+            return-object v0
+        """)
         // Preserve normal binder work; collapse the dedicated recommendation row afterward.
         carouselMethod.addInstructions(ret, """
             move-object/from16 v0, p9

@@ -16,6 +16,7 @@ import app.xposed.patches.twitter.Constants.BRIDGE_CLASS
 import app.xposed.patches.twitter.Constants.COMPATIBILITY_NEW_X
 import app.xposed.patches.twitter.Constants.EXTENSION_PATH
 import app.xposed.patches.twitter.Constants.HOOKS_CLASS
+import app.xposed.patches.twitter.Constants.bundleVersion
 import app.xposed.patches.twitter.Constants.requireMinVersion
 import app.xposed.patches.twitter.util.clearBitsSmali
 import app.xposed.patches.twitter.util.composableParameter
@@ -30,6 +31,7 @@ import app.xposed.patches.twitter.util.requireLocals
 import app.xposed.patches.twitter.util.single
 import app.xposed.patches.twitter.util.toJavaClassName
 import app.xposed.patches.twitter.util.toStringFields
+import app.xposed.patches.twitter.util.toStringFieldsOf
 import app.xposed.patches.twitter.util.typeRef
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -74,17 +76,19 @@ private class BadgeModel(
     val image: MethodReference,
     val listType: String,
     val toImmutableList: MethodReference,
-    /** Name rows, each with the index of its handle parameter. */
-    val nameRows: List<Pair<Method, Int>>,
+    /** A new empty list of [listType]: kotlinx.collections.immutable's small vector. */
+    val emptyList: MethodReference,
+    /** Name rows, each with the index of its handle parameter, or null for rows without a handle. */
+    val nameRows: List<Pair<Method, Int?>>,
 )
 
 @Suppress("unused")
 val accountBadgesPatch = bytecodePatch(
     name = "Account location badges",
-    description = "Shows X-Posed style country badges next to names and highlights or hides posts " +
-        "from chosen countries, without reporting passive engagement with them. " +
+    description = "Shows X-Posed style country badges next to names, in profile and chat headers, and highlights " +
+        "or hides posts from chosen countries, without reporting passive engagement with them. " +
         "Data comes from the X-Posed community cache, falling back to X's \"About this account\". " +
-        "Tap a badge for account details and settings.",
+        "Tap a badge for account details and settings. Posts can be shared as images.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_NEW_X)
@@ -101,6 +105,7 @@ val accountBadgesPatch = bytecodePatch(
         writeBridge(compose, badges)
         writeAboutApiSpec()
         writeClientEventSpec()
+        bundleVersion()?.let { replaceStubWithString(HOOKS_CLASS, "version", it) }
 
         ApplicationOnCreateFingerprint.matchSingle().method.addInstructions(
             0,
@@ -132,7 +137,8 @@ val accountBadgesPatch = bytecodePatch(
             )
         }
 
-        // Name rows: (name, ..., badges, ..., "@handle", ...). Our item is appended to badges.
+        // Name rows: (name, ..., badges, ..., "@handle", ...), or without a handle, as in the profile
+        // header. Our item is appended to badges; rows without a handle are known by their list.
         badges.nameRows.forEach { (nameRow, handleIndex) ->
             val badgesIndex = nameRow.types.indexOf(badges.listType)
             mutableMethodOf(nameRow).apply {
@@ -140,7 +146,7 @@ val accountBadgesPatch = bytecodePatch(
                     nameRow,
                     badgesIndex,
                     """
-                    move-object/16 v0, ${parameterRegister(handleIndex)}
+                    ${if (handleIndex != null) "move-object/16 v0, ${parameterRegister(handleIndex)}" else "const/4 v0, 0x0"}
                     move-object/16 v1, ${parameterRegister(badgesIndex)}
                     invoke-static { v0, v1 }, $HOOKS_CLASS->onNameRow(Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;
                     move-result-object v0
@@ -150,6 +156,13 @@ val accountBadgesPatch = bytecodePatch(
                 )
             }
         }
+        hookInlineBadges(badges.nameRows.map { it.first }, badges.itemType, badges.url)
+
+        // Whose each badge list is, and the post of each post header's list.
+        val rowClass = badges.composable.originalClassDef
+        val builders = hookBadgeBuilder(user.type, rowClass, badges.listType, badges.toImmutableList)
+        hookPostHeaders(user.type, rowClass, builders)
+        hookQuoteComposer()
 
         // Affiliate badge: (item, bitmap, modifier, size, composer, changed). Ours are drawn by the extension.
         badges.composable.method.apply {
@@ -178,6 +191,7 @@ val accountBadgesPatch = bytecodePatch(
         val author = postFields.field("AvailablePost", "author", user.type)
         val appealPivot = postFields.field("AvailablePost", "authorAppealPivot")
         writeModelBridge(user, post.originalClassDef, postFields)
+        hookPostAuthorBadges(author, builders)
         hookTimelineProfiles(MinimalUserToStringFingerprint.matchSingle().originalClassDef.type)
         Fingerprint(
             isStatic = true,
@@ -198,15 +212,15 @@ val accountBadgesPatch = bytecodePatch(
 
         // Replies and condensed posts: layouts that start with the post and draw the
         // (time, author, ...) header, which reaches a name row through the row class.
-        val rowClass = badges.composable.originalClassDef.type
+        val rowType = rowClass.type
         val headers = Fingerprint(
             isStatic = true,
             returnType = "V",
             custom = { method, classDef ->
                 val types = method.types
-                classDef.type != rowClass && types.size > 2 && types[0] == "Lkotlin/time/Instant;" &&
+                classDef.type != rowType && types.size > 2 && types[0] == "Lkotlin/time/Instant;" &&
                     types[1] == user.type && COMPOSER in types &&
-                    method.instructionList.any { it.methodRef?.definingClass == rowClass }
+                    method.instructionList.any { it.methodRef?.definingClass == rowType }
             },
         ).matchAll().map { it.originalMethod.descriptor }.toSet()
         if (headers.isEmpty()) throw PatchException("No post header composable found")
@@ -360,7 +374,7 @@ private fun MutableMethod.replaceComposableArgument(original: Method, index: Int
     )
 }
 
-private fun BytecodePatchContext.mutableMethodOf(method: Method): MutableMethod =
+internal fun BytecodePatchContext.mutableMethodOf(method: Method): MutableMethod =
     mutableClassDefBy(method.definingClass).methods.first { it.name == method.name && it.types == method.types && it.returnType == method.returnType }
 
 internal fun BytecodePatchContext.instanceField(classType: String, what: String, predicate: (Field) -> Boolean): Field =
@@ -538,14 +552,15 @@ private fun BytecodePatchContext.resolveBadges(): BadgeModel {
         type.startsWith("L") && classDefByOrNull(type)?.interfaces?.contains("Ljava/util/List;") == true
     }.single("badge list parameter of ${badgeRow.name}")
     // Name rows lay out (name, ..., badges, ..., "@handle", ...): the post and user row, and
-    // the reply header's row, which also shows the time.
+    // the reply header's row, which also shows the time. Some show no handle, such as the
+    // profile header and the chat header.
     fun handleIndex(types: List<String>) = types.indices.firstOrNull { it > 0 && types[it] == STRING }
     val nameRows = rowClass.methods.filter { method ->
         val t = method.types
-        method.isStatic && t.size > 3 && t[0] == STRING && listType in t && COMPOSER in t && handleIndex(t) != null &&
+        method.isStatic && t.size > 3 && t[0] == STRING && listType in t && COMPOSER in t &&
             method.instructionList.any { it.methodRef?.descriptor == badgeRow.descriptor }
-    }.map { it to handleIndex(it.types)!! }
-    if (nameRows.isEmpty()) throw PatchException("No name row in ${rowClass.type}")
+    }.map { it to handleIndex(it.types) }
+    if (nameRows.none { it.second != null }) throw PatchException("No name row in ${rowClass.type}")
 
     val toImmutableList = Fingerprint(
         isStatic = true,
@@ -554,7 +569,16 @@ private fun BytecodePatchContext.resolveBadges(): BadgeModel {
         custom = { method, _ -> method.instructionList.any { it.opcode == Opcode.INSTANCE_OF && it.typeRef == listType } },
     ).matchSingle().originalMethod
 
-    requirePublic(itemType, itemConstructor, description, url, imageBitmap, bitmapPainter, image, listType, toImmutableList)
+    // kotlinx.collections.immutable's small vector: the list type built from an array, whose
+    // empty instance is shared.
+    val vectors = mutableListOf<MethodReference>()
+    classDefForEach { classDef ->
+        if (listType !in classDef.interfaces || classDef.fields.none { it.isStatic && it.type == classDef.type }) return@classDefForEach
+        classDef.methods.firstOrNull { it.name == "<init>" && it.types == listOf("[Ljava/lang/Object;") }?.let { vectors += it }
+    }
+    val emptyList = vectors.single("array-backed $listType")
+
+    requirePublic(itemType, itemConstructor, description, url, imageBitmap, bitmapPainter, image, listType, toImmutableList, emptyList)
     return BadgeModel(
         itemType = itemType,
         itemConstructor = itemConstructor,
@@ -566,6 +590,7 @@ private fun BytecodePatchContext.resolveBadges(): BadgeModel {
         image = image,
         listType = listType,
         toImmutableList = toImmutableList,
+        emptyList = emptyList,
         nameRows = nameRows,
     )
 }
@@ -720,6 +745,16 @@ private fun BytecodePatchContext.writeBridge(compose: ComposeModel, badges: Badg
         """,
     )
     stub(
+        "emptyImmutableList", 2,
+        """
+        new-instance v0, ${badges.emptyList.definingClass}
+        const/4 v1, 0x0
+        new-array v1, v1, [Ljava/lang/Object;
+        invoke-direct { v0, v1 }, ${badges.emptyList.descriptor}
+        return-object v0
+        """,
+    )
+    stub(
         "affiliateBadge", 2,
         """
         new-instance v0, ${badges.itemType}
@@ -740,14 +775,24 @@ private fun BytecodePatchContext.writeAboutApiSpec() {
     val appSource = aboutFields.field("ProfileAboutMetadata", "appSource", STRING)
     val accurate = aboutFields.field("ProfileAboutMetadata", "isLocationAccurate", "Z")
     val affiliate = aboutFields.field("ProfileAboutMetadata", "affiliateData")
+    // The account sheet's history: verified since (a date, or a year X shows instead) and handle changes.
+    val verifiedSince = aboutFields.field("ProfileAboutMetadata", "verifiedSince")
+    val verifiedYear = aboutFields.field("ProfileAboutMetadata", "verifiedSinceOverride", "Ljava/lang/Long;")
+    val idVerified = aboutFields.field("ProfileAboutMetadata", "isIdVerified", "Ljava/lang/Boolean;")
+    val usernameChanges = aboutFields.field("ProfileAboutMetadata", "usernameChangeData")
+    val changeCount = toStringFieldsOf(usernameChanges.type).field("UsernameChangeData", "count", "I")
 
     val affiliateData = AffiliateDataToStringFingerprint.matchSingle()
     if (affiliateData.originalClassDef.type != affiliate.type) throw PatchException("affiliateData is ${affiliate.type}")
     val username = toStringFields(affiliateData.originalMethod).field("AffiliateData", "username", STRING)
 
     val minimalUser = MinimalUserToStringFingerprint.matchSingle()
-    val id = toStringFields(minimalUser.originalMethod).field("MinimalUser", "id")
+    val minimalFields = toStringFields(minimalUser.originalMethod)
+    val id = minimalFields.field("MinimalUser", "id")
     val idValue = instanceField(id.type, "long id field of ${id.type}") { it.type == "J" }
+    // ModelBridge.instantMillis reads the Instant type of MinimalUser.createdAt.
+    val createdAt = minimalFields.field("MinimalUser", "createdAt")
+    if (verifiedSince.type != createdAt.type) throw PatchException("verifiedSince is ${verifiedSince.type}, not ${createdAt.type}")
 
     // The repository's result holds exactly these two.
     val payload = toStringFields(UserWithAboutToStringFingerprint.matchSingle().originalMethod)
@@ -768,6 +813,11 @@ private fun BytecodePatchContext.writeAboutApiSpec() {
             minimalUser.originalClassDef.type.toJavaClassName(),
             id.name,
             idValue.name,
+            verifiedSince.name,
+            verifiedYear.name,
+            idVerified.name,
+            usernameChanges.name,
+            changeCount.name,
         ).joinToString("|"),
     )
 }

@@ -11,7 +11,10 @@ package app.fakh.extension.shared;
  */
 public final class GlassTabs {
     /** The widest a tab gets, so the capsule stays compact on a wide screen. */
-    public static final int MAX_TAB_DP = 96;
+    public static final int MAX_TAB_DP = 76;
+
+    /** The widest an icon-only tab gets, so a bar without labels stays tight around its icons. */
+    public static final int MAX_ICON_TAB_DP = 60;
 
     private GlassTabs() {
     }
@@ -40,7 +43,23 @@ public final class GlassTabs {
      * @return the padding for the left and the right side, in pixels
      */
     public static int sidePadding(int barWidth, int count, int gap, int minSide, float density) {
-        float content = count * MAX_TAB_DP * density + (count - 1) * gap;
+        return sidePadding(barWidth, count, gap, minSide, density, MAX_TAB_DP);
+    }
+
+    /**
+     * The padding on each side of a bar that centers {@code count} tabs of at most {@code maxTabDp}, so fewer tabs
+     * give a shorter capsule.
+     *
+     * @param barWidth the width of the bar, in pixels
+     * @param count    how many tabs are shown
+     * @param gap      the space between two tabs, in pixels
+     * @param minSide  the padding the bar keeps when the tabs fill it, in pixels
+     * @param density  display density
+     * @param maxTabDp widest width of a single tab, in dp
+     * @return the padding for the left and the right side, in pixels
+     */
+    public static int sidePadding(int barWidth, int count, int gap, int minSide, float density, int maxTabDp) {
+        float content = count * maxTabDp * density + (count - 1) * gap;
         return Math.max(minSide, Math.round((barWidth - content) / 2));
     }
 

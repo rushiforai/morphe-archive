@@ -15,7 +15,6 @@ object Constants {
 				version = "4.0.3",
 				description = "From github.com/00-Evan/shattered-pixel-dungeon/releases: ShatteredPD-v4.0.3-Gplay.apk, the Google Play version, or ShatteredPD-v4.0.3-Android.apk, which has no supporter features.",
 			),
-			AppTarget(version = "4.0.2"),
 			AppTarget(version = null, isExperimental = true),
 		),
 	)

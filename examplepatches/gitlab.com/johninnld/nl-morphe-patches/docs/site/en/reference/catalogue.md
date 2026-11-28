@@ -1,6 +1,6 @@
 # Patch catalogue
 
-**Patch bundle: 1.108.0**
+**Patch bundle: 1.108.1**
 
 Check the supported app versions and default setting for each patch. The app page explains what each patch changes when using the app.
 

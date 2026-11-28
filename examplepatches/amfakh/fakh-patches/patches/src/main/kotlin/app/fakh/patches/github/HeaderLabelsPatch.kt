@@ -6,7 +6,7 @@
 package app.fakh.patches.github
 
 import app.fakh.patches.shared.register
-import app.fakh.patches.github.shared.Constants.HEADER_LABELS
+import app.fakh.patches.github.shared.Constants.SHOW_LABELS_IN_HEADER
 import app.fakh.patches.github.shared.Constants.COMPATIBILITY_GITHUB
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
@@ -269,8 +269,8 @@ private fun addLabelsRow(
 }
 
 @Suppress("unused")
-val headerLabelsPatch = patch(
-    name = "Labels in the header",
+val showLabelsInHeaderPatch = patch(
+    name = "Show labels in the header",
     description = "Shows the labels of an issue or pull request under its title, in a row you can swipe sideways.",
     default = true,
 ) {
@@ -280,7 +280,7 @@ val headerLabelsPatch = patch(
     extendWith("extensions/extension.mpe")
 
     execute {
-        register(HEADER_LABELS)
+        register(SHOW_LABELS_IN_HEADER)
 
         // The GraphQL fragments have a `toString` like this one too; the model is the one the header is built from.
         val issueModels = IssueModelFingerprint.matchAll().map { it.originalMethod }.associateBy { it.definingClass }

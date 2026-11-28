@@ -118,7 +118,7 @@ https://github.com/MorpheApp/morphe-patches
 Mermaid
 =======
 
-The GitHub "Mermaid diagrams" patch bundles Mermaid 11.17.2
+The GitHub "Draw Mermaid diagrams" patch bundles Mermaid 11.17.2
 (patches/src/main/resources/github/mermaid.min.js, the unmodified
 dist/mermaid.min.js of the npm package), https://github.com/mermaid-js/mermaid,
 under the MIT License. The notices of the libraries it contains are in that file.
@@ -149,7 +149,7 @@ SOFTWARE.
 Refined GitHub
 ==============
 
-The GitHub "Hide low-quality comments", "Dim bots" and "Conventional commits" patches follow the word list, bot
+The GitHub "Hide low-quality comments", "Dim bots and agents" and "Conventional commits" patches follow the word list, bot
 names, commit types and colors of Refined GitHub, https://github.com/refined-github/refined-github, under the MIT
 License.
 

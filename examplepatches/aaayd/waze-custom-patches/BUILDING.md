@@ -111,7 +111,14 @@ verifies the complete output hash before writing the renderer. Python, Capstone
 and ELF analysis run on the build host, not the phone.
 
 `ci/compatibility_fixtures.json` pins older original packages from several compiler
-and renderer generations. Their native profiles are generated before packaging
+and renderer generations. These packages are mirrored in the repository's
+`ci-compatibility-fixtures-v1` prerelease so historical APKMirror download failures
+cannot block regression builds. This fixture release is not an application update
+and is excluded from the Waze version gate and public Morphe source. Keep existing
+fixture assets unchanged; new fixtures must have a hosted URL and pinned SHA-256.
+Downloads use a temporary file, verify its hash before caching it, and retry
+transient transport errors up to three times. Package identity and original Waze
+signatures are still verified before patching. Their native profiles are generated before packaging
 the bundle. Full-support fixtures rebuild all eight patches without forcing
 compatibility. The January fixture separately requires seven successful patches
 and rejection of its unsupported inlined native layout. Only that diagnostic

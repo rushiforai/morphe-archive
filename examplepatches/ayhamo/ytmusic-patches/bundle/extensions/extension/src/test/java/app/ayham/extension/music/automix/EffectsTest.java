@@ -312,9 +312,11 @@ public class EffectsTest {
         assertEquals(0, p.rampBeats);
         assertNull(p.glide);
         assertTrue(p.toString().contains("playlist speeds x0.97057 / x1.03228"));
-        // the curves hold both rates through the mix
+        // the curves hold both rates through the mix; after it B goes back to its own speed (rule 10:
+        // under 0.2% away, a step at the mix's end, as automix.js blendCurves draws it)
         assertEquals("[[0.0, 0.97057], [" + p.durationSec + ", 0.97057]]", java.util.Arrays.deepToString(p.curves.out.get("rate")));
-        assertEquals("[[0.0, " + p.rate + "], [" + p.durationSec + ", " + p.rate + "]]", java.util.Arrays.deepToString(p.curves.in.get("rate")));
+        assertEquals("[[0.0, " + p.rate + "], [" + p.durationSec + ", " + p.rate + "], [" + p.durationSec + ", 1.03228]]",
+                java.util.Arrays.deepToString(p.curves.in.get("rate")));
         Mix m = Mix.blend(p, "a", "b", 200);
         // the hand lead at A's speed, as YT played it, and B on at its speed for YT to take over at
         assertEquals(p.mixOutTrackTime - Mix.HAND_LEAD * 0.97057, m.takeoverSong, 1e-9);

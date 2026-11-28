@@ -272,6 +272,9 @@ public final class RamblerCustomInstructionRules {
             if (ctx != null) {
                 RamblerFlagRuntime.onActivePackageChanged(ctx, packageName);
             }
+            // Refresh active keyboard (বাংলা vs abc → বাংলা vs English) on every mic tap
+            // so Gemini Rambler+ always receives the exact script instruction for the active keyboard.
+            RamblerTextPipeline.syncActiveGboardKeyboard(agenticExtension);
         } catch (Throwable throwable) {
             PENDING_SESSION.remove();
             logWarningSafely("Failed to capture Rambler session context", throwable);
@@ -297,14 +300,59 @@ public final class RamblerCustomInstructionRules {
         }
     }
 
+    public static final String GEMINI_PURE_BANGLA_INSTRUCTION =
+            "Language and script convention: Active keyboard is native Bengali (বাংলা). "
+                    + "Transcribe EVERY spoken Bengali word directly in standard modern Bangla Academy Bengali Unicode script "
+                    + "with accurate spelling and Bengali dari (।) — including fast colloquial Bangladeshi speech "
+                    + "(e.g., বানানটা, হচ্ছে, সবই, সবকিছুই, ব্যাপার, একদম, ঠিকমতো, ফাটাফাটি, অবস্থা, বেশিরভাগ, লিখতেছি, বুঝে, ভালো, সুন্দরভাবে, পুরোটা). "
+                    + "Transliterate spoken English loanwords naturally into Bengali Unicode "
+                    + "(e.g., ইংলিশ, ক্লিয়ারলি, প্রিটি, অ্যাকিউরেট, হোয়াটেভার, ফোনেটিকস, আন্ডারস্ট্যান্ড, কোম্পানি). "
+                    + "NEVER output any Romanized Banglish words, broken jofola (ব্য়াপার), or Latin suffixes like -i. "
+                    + "Preserve URLs, emails, #hashtags, and @handles verbatim.";
+
+    public static final String GEMINI_MIXED_BANGLA_INSTRUCTION =
+            "Language and script convention: Active keyboard is Mixed Bengali + English (abc → বাংলা). "
+                    + "Transcribe spoken Bengali words and clauses fluently in standard modern Bangla Academy Bengali Unicode script "
+                    + "(বাংলা — e.g., সবই, সবকিছুই, বানানটা, হচ্ছে, বলছি, করছি, বুঝে, ঠিকমতো) "
+                    + "and keep spoken English words and clauses in accurate English Latin script naturally within the same sentence. "
+                    + "NEVER write Bengali words or emphatic particles like -i in Latin letters (always write সবই, বাংলাও, English-ও). "
+                    + "Never translate between Bengali and English.";
+
+    /**
+     * Returns the live Gemini Rambler+ Bengali Academy script instruction when a Bengali keyboard
+     * ({@code বাংলা} or {@code abc -> বাংলা}) is explicitly active and Bangla script mode is ON;
+     * returns {@code null} on English / unset keyboards so stock English &amp; per-app rules stay untouched.
+     */
+    public static String buildActiveBanglaScriptInstruction(Context context) {
+        if (!RamblerDynamicConfig.FEATURE_BANGLA_PHONETIC) {
+            return null;
+        }
+        boolean enabled = context == null
+                ? com.akshaykadam.pixelboard.extension.rambler.GboardRamblerScriptFixSettings.isEnabled()
+                : com.akshaykadam.pixelboard.extension.rambler.GboardRamblerScriptFixSettings.isEnabled(context);
+        if (!enabled
+                || !com.akshaykadam.pixelboard.extension.rambler.GboardRamblerScriptFix.hasExplicitActiveKeyboard()) {
+            return null;
+        }
+        int layout = com.akshaykadam.pixelboard.extension.rambler.GboardRamblerScriptFix.currentLayout3();
+        if (layout == 1) {
+            return GEMINI_PURE_BANGLA_INSTRUCTION;
+        }
+        if (layout == 2) {
+            return GEMINI_MIXED_BANGLA_INSTRUCTION;
+        }
+        return null;
+    }
+
     public static void applyToBundle(Bundle bundle, Context context, String packageName) {
         if (bundle == null || context == null) {
             return;
         }
         List<Rule> rules = readRules(context);
         Set<String> disabled = readDisabledApps(context);
-        if (rules.isEmpty() && disabled.isEmpty()) {
-            // Fast path: untouched stock behavior when user has no per-app config.
+        String banglaInstr = buildActiveBanglaScriptInstruction(context);
+        if (rules.isEmpty() && disabled.isEmpty() && banglaInstr == null) {
+            // Fast path: untouched stock behavior when user has no per-app config and non-Bangla keyboard.
             return;
         }
         String defaultInstruction = defaultInstructionOverrideForTesting != null
@@ -312,12 +360,20 @@ public final class RamblerCustomInstructionRules {
                 : RamblerMuseStatsBridge.readCustomInstruction(context);
         String resolved = resolveEffectiveInstruction(
                 packageName, defaultInstruction, rules, disabled);
-        rewriteBundleCustomInstruction(bundle, resolved);
+        String combined;
+        if (banglaInstr != null && resolved != null && !resolved.isEmpty()) {
+            combined = banglaInstr + "\n" + resolved;
+        } else if (banglaInstr != null) {
+            combined = banglaInstr;
+        } else {
+            combined = resolved;
+        }
+        rewriteBundleCustomInstruction(bundle, combined);
         logInfoSafely("Per-app custom instruction: pkg="
                 + (packageName == null ? "<null>" : packageName)
-                + " -> " + (resolved == null || resolved.isEmpty()
+                + " -> " + (combined == null || combined.isEmpty()
                         ? "none"
-                        : resolved.length() + " chars"));
+                        : combined.length() + " chars"));
     }
 
     public static void rewriteBundleCustomInstruction(Bundle bundle, String resolvedInstruction) {

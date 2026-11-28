@@ -1,10 +1,10 @@
 package semicoloncolonel.mobilestream.patches.tlife.privacy
 
+import semicoloncolonel.mobilestream.patches.shared.misc.isOptionOn
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import semicoloncolonel.mobilestream.patches.shared.misc.forEachMatchingMethod
 import semicoloncolonel.mobilestream.patches.shared.misc.returnEarly
-import semicoloncolonel.mobilestream.patches.tlife.shared.Constants
 
 // T-Life 12.3.1 starts Radar after sign-in: a location update every 30
 // seconds at high accuracy, every update synced to Radar's servers, tagged
@@ -17,14 +17,10 @@ import semicoloncolonel.mobilestream.patches.tlife.shared.Constants
 
 private val RADAR_METHODS = setOf("initialize", "autocomplete", "trackOnce")
 
-@Suppress("unused")
-val blockLocationTrackingPatch = bytecodePatch(
-    name = "Block location tracking",
-    description = "Stops Radar, which sends your location to its servers every 30 seconds.",
-) {
-    compatibleWith(Constants.COMPATIBILITY)
-
+// Part of blockAnalyticsPatch: runs only when its "locationTracking" option is on.
+internal val blockLocationTrackingPatch = bytecodePatch {
     execute {
+        if (!isOptionOn(blockAnalyticsPatch, "locationTracking")) return@execute
         val count = forEachMatchingMethod(
             { classDef ->
                 classDef.type == "Lio/radar/sdk/Radar;" ||

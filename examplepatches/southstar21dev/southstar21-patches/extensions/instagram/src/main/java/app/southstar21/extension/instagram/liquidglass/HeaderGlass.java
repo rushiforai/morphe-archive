@@ -40,6 +40,10 @@ final class HeaderGlass {
 
     private static final String SHADER =
             "uniform shader content;\n" +
+            // Plain white, converted to the shader's working space: SDR white there. In an HDR
+            // window that is well below 1.0, so constant whites must be scaled by it or the glass
+            // lights up at the display's HDR peak, far brighter than the app around it.
+            "layout(color) uniform half4 sdrWhite;\n" +
             "uniform float4 s0;\n" +        // per drop: center x, y, radius, press 0..1 (radius 0: none)
             "uniform float4 s1;\n" +
             "uniform float4 s2;\n" +
@@ -88,6 +92,7 @@ final class HeaderGlass {
             "}\n" +
 
             "half4 main(float2 p) {\n" +
+            "  half w = sdrWhite.g;\n" +
             "  float d0 = drop(p, s0);\n" +
             "  float d1 = drop(p, s1);\n" +
             "  float d2 = drop(p, s2);\n" +
@@ -125,15 +130,15 @@ final class HeaderGlass {
             "  half4 mid = content.eval(p + off);\n" +
             "  half a = mid.a;\n" +
             "  half3 rgb = half3(content.eval(p + off * 1.03).r, mid.g, content.eval(p + off * 0.97).b);\n" +
-            "  rgb = clamp(rgb / max(a, 0.001), 0.0, 1.0);\n" +
+            "  rgb = clamp(rgb / max(a, 0.001), 0.0, w);\n" +
             "  half luma = dot(rgb, half3(0.2126, 0.7152, 0.0722));\n" +
             "  rgb = mix(half3(luma), rgb, 1.15);\n" +
-            "  rgb = clamp(rgb * lift.x + lift.y, 0.0, 1.0);\n" +
+            "  rgb = clamp(rgb * lift.x + lift.y * w, 0.0, w);\n" +
             "  half4 col = half4(rgb * a, a);\n" +
 
             // Clear, as iOS glass is: a light wash of the glass' own color, more when pressed.
             "  half amount = tint.a + 0.10 * press;\n" +
-            "  col = col * (1.0 - amount) + half4(half3(tint.rgb), 1.0) * amount;\n" +
+            "  col = col * (1.0 - amount) + half4(half3(tint.rgb) * w, 1.0) * amount;\n" +
 
             // Light gathered in the bent rim, then the specular: thin and sharp where the edge
             // faces the light (top left) and, fainter, opposite it (bottom right).
@@ -141,7 +146,7 @@ final class HeaderGlass {
             "  float facing = dot(n, light);\n" +
             "  float spec = pow(max(facing, 0.0), 3.0) + 0.55 * pow(max(-facing, 0.0), 3.0);\n" +
             "  half glow = half(rim * (0.05 + 0.04 * press) + rim * rim * pow(max(facing, 0.0), 4.0) * 0.08);\n" +
-            "  col.rgb += glow;\n" +
+            "  col.rgb += glow * w;\n" +
             "  col.a += glow * (1.0 - col.a);\n" +
             "  float edge = 1.0 - smoothstep(0.0, 1.0 * dp, -d);\n" +
             "  col.rgb *= 1.0 - edge * rimDark;\n" +
@@ -151,11 +156,11 @@ final class HeaderGlass {
             "  float gk = -0.5 / max(glint.z * glint.z, 1.0);\n" +
             "  float g = exp(dot(ga, ga) * gk) + 0.35 * exp(dot(gb, gb) * gk);\n" +
             "  half shine = half(edge * (0.03 + 0.35 * spec) + rim * g * glint.w);\n" +
-            "  col.rgb += shine;\n" +
+            "  col.rgb += shine * w;\n" +
             "  col.a += shine * (1.0 - col.a);\n" +
 
-            "  col = clamp(col, 0.0, 1.0);\n" +
-            "  col.rgb = min(col.rgb, half3(col.a));\n" +
+            "  col.a = clamp(col.a, 0.0, 1.0);\n" +
+            "  col.rgb = clamp(col.rgb, 0.0, w * col.a);\n" +
             "  return (col * coverage + shadow * (1.0 - coverage)) * alpha;\n" +
             "}\n";
 
@@ -282,6 +287,7 @@ final class HeaderGlass {
         if (self.node == null) {
             self.node = new RenderNode("HeaderGlassButton");
             self.shader = new RuntimeShader(SHADER);
+            self.shader.setColorUniform("sdrWhite", android.graphics.Color.WHITE);
             self.shader.setFloatUniform("k", k);
             self.shader.setFloatUniform("kPress", kPress);
             self.shader.setFloatUniform("bezel", 8f * density);

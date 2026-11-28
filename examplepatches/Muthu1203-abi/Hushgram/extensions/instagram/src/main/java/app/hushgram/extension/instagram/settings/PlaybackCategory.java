@@ -1,0 +1,143 @@
+/*
+ * Copyright 2026 Hushfacebook contributors
+ * https://github.com/SysAdminDoc/Hushfacebook
+ *
+ * Modified for HushGram (Instagram), 2026.
+ */
+package app.hushgram.extension.instagram.settings;
+
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.category;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.playbackQualityRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.qualityTabRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.reelTapChoiceRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.tapToPlayScopeRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.toggle;
+
+import android.content.Context;
+import android.preference.PreferenceCategory;
+import android.preference.PreferenceScreen;
+
+import java.util.Set;
+
+import app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.Row;
+import app.hushgram.extension.shared.L10n;
+
+/** Builds the Playback category of HushGram settings. */
+final class PlaybackCategory {
+    private PlaybackCategory() { }
+
+    static void add(HushgramPreferenceFragment page, PreferenceScreen screen, Context context, Set<PatchFamily> build) {
+        if (build.contains(PatchFamily.HDR_BOOST) || build.contains(PatchFamily.HDR_PHOTOS)
+                || build.contains(PatchFamily.HDR_VIDEOS) || build.contains(PatchFamily.TAP_TO_PLAY)
+                || build.contains(PatchFamily.RESUME_LONG_VIDEOS) || build.contains(PatchFamily.REEL_TAP_AND_VOLUME)
+                || build.contains(PatchFamily.REEL_SOUND)
+                || build.contains(PatchFamily.PLAYBACK_QUALITY)
+                || build.contains(PatchFamily.DATA_SAVER)
+                || build.contains(PatchFamily.STOP_LOOPING) || build.contains(PatchFamily.BACKGROUND_PLAY)) {
+            PreferenceCategory playback = category(screen, L10n.t("Playback"), SettingsIcons.PLAYBACK,
+                    L10n.t("Media quality, auto-play and controls."));
+            if (build.contains(PatchFamily.TAP_TO_PLAY)) {
+                playback.addPreference(toggle(context, Settings.TAP_TO_PLAY, L10n.t("Tap to play"),
+                        L10n.t("Videos wait for your tap where the choice below says. Feed videos show a play button, "
+                                + "as they do when you use less mobile data.")));
+                playback.addPreference(tapToPlayScopeRow(context));
+                playback.addPreference(toggle(context, Settings.TAP_TO_PLAY_AUTO_SCROLL_WAITS,
+                        L10n.t("Wait after auto scroll"),
+                        L10n.t("A reel Instagram's auto scroll moves to waits for your tap too. "
+                                + "Off, auto scroll plays reel after reel.")));
+            }
+            if (build.contains(PatchFamily.REEL_TAP_AND_VOLUME)) {
+                playback.addPreference(reelTapChoiceRow(context));
+                playback.addPreference(toggle(context, Settings.KEEP_REELS_MUTED, L10n.t("Keep reels muted on the volume keys"),
+                        L10n.t("Volume up still raises the phone's volume, but a muted reel stays muted until you unmute it.")));
+            }
+            if (build.contains(PatchFamily.REEL_SOUND)) {
+                playback.addPreference(toggle(context, Settings.START_REELS_WITH_SOUND, L10n.t("Start reels with sound"),
+                        L10n.t("A reel you open from the Reels tab, a profile or a post on Home plays with sound, and Home is muted "
+                                + "again when you go back. Your phone's ringer and volume still count.")));
+                playback.addPreference(toggle(context, Settings.START_REELS_MUTED, L10n.t("Start reels muted"),
+                        L10n.t("Every reel starts silent, wherever you open it from. The volume keys or the speaker "
+                                + "icon unmute it. Wins over Start reels with sound.")));
+            }
+            if (build.contains(PatchFamily.STOP_LOOPING)) {
+                playback.addPreference(toggle(context, Settings.STOP_VIDEO_LOOPING, L10n.t("Stop videos looping"),
+                        L10n.t("Feed videos and reels stop at their last frame instead of playing again. Reels still "
+                                + "loop while auto scroll is on, so it can move on.") + " "
+                                + L10n.t("To loop one video anyway, tap Loop this video in its menu.")));
+            }
+            if (build.contains(PatchFamily.BACKGROUND_PLAY)) {
+                playback.addPreference(toggle(context, Settings.KEEP_PLAYING_IN_BACKGROUND,
+                        L10n.t("Keep playing in the background"),
+                        L10n.t("A video or reel playing with sound keeps going when you leave Instagram or turn the "
+                                + "screen off. A notification lets you pause or stop it.")));
+                playback.addPreference(toggle(context, Settings.REELS_PICTURE_IN_PICTURE,
+                        L10n.t("Picture in picture for reels"),
+                        L10n.t("Leaving Instagram while a reel plays shrinks it into a small window over your other "
+                                + "apps. Works in Reels and on reels opened from the feed, on Android 15 or newer.")));
+                playback.addPreference(toggle(context, Settings.REELS_PIP_PLAY_BUTTON,
+                        L10n.t("Pause button in the reels window"),
+                        L10n.t("Instagram's small window for reels gets a button to pause the reel and play it again.")));
+                playback.addPreference(toggle(context, Settings.REELS_PIP_SKIP_BUTTONS,
+                        L10n.t("Previous and next in the reels window"),
+                        L10n.t("Instagram's small window for reels gets its own buttons to go back a reel or on to the next one.")));
+                playback.addPreference(toggle(context, Settings.REELS_PIP_STILLS,
+                        L10n.t("Photos and carousels in the reels window"),
+                        L10n.t("Photo and carousel reels go in Instagram's small window for reels too. "
+                                + "A carousel shows a dot for each page, and Previous and Next go through its pages first.")));
+                playback.addPreference(toggle(context, Settings.STORIES_PICTURE_IN_PICTURE,
+                        L10n.t("Picture in picture for stories"),
+                        L10n.t("Leaving Instagram while a story plays shrinks it into a small window over your other "
+                                + "apps, where it keeps going through the stories.")));
+            }
+            if (build.contains(PatchFamily.RESUME_LONG_VIDEOS)) {
+                playback.addPreference(toggle(context, Settings.RESUME_LONG_VIDEOS, L10n.t("Resume long videos"),
+                        L10n.t("Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. "
+                                + "Live videos and ads start as usual.")));
+                playback.addPreference(toggle(context, Settings.RESUME_FEED_VIDEOS, L10n.t("Keep your place in feed videos"),
+                        L10n.t("A feed video you scroll away from picks up where you left it when you scroll back, "
+                                + "until you close Instagram. Reels in the Reels tab start over as usual.")));
+                page.clearPositions = new Row(context);
+                page.clearPositions.setKey("hushgram_clear_resume_points");
+                page.clearPositions.setPersistent(false);
+                page.clearPositions.actsAtOnce = true;
+                playback.addPreference(page.clearPositions);
+                page.showClearPositions();
+            }
+            if (build.contains(PatchFamily.PLAYBACK_QUALITY)) {
+                playback.addPreference(toggle(context, Settings.DEFAULT_PLAYBACK_QUALITY, L10n.t("Default playback quality"),
+                        L10n.t("Videos, reels and stories play at the quality below, starting with the next one you open.")));
+                playback.addPreference(playbackQualityRow(context));
+                playback.addPreference(toggle(context, Settings.PLAYBACK_QUALITY_STEPS_DOWN,
+                        L10n.t("Drop quality to keep playing"),
+                        L10n.t("When your connection can't keep up, a video drops to the next lower quality instead of"
+                                + " stalling. Turn this off to keep the quality you picked.")));
+                playback.addPreference(qualityTabRow(context));
+            }
+            if (build.contains(PatchFamily.DATA_SAVER)) {
+                playback.addPreference(toggle(context, Settings.DATA_SAVER, L10n.t("Data saver"),
+                        L10n.t("Loads smaller photos and starts videos, reels and stories at the lowest quality. "
+                                + "Grid thumbnails stay as they are. It takes priority over Full resolution photos "
+                                + "and the quality above.")));
+                playback.addPreference(toggle(context, Settings.DATA_SAVER_MOBILE_DATA_ONLY,
+                        L10n.t("Only on mobile data"),
+                        L10n.t("Wi-Fi stays as it is. Turn this off to save data on every network.")));
+            }
+            if (build.contains(PatchFamily.HDR_BOOST)) {
+                playback.addPreference(toggle(context, Settings.TURN_OFF_HDR_BOOSTS, L10n.t("Turn off HDR brightness boosts"),
+                        L10n.t("HDR photos and reels stop brightening the screen above everything else. They show "
+                                + "at the same brightness as the rest of Instagram.")));
+            }
+            if (build.contains(PatchFamily.HDR_PHOTOS)) {
+                playback.addPreference(toggle(context, Settings.KEEP_HDR_ON_PHOTO_UPLOADS, L10n.t("Keep HDR on photo uploads"),
+                        L10n.t("Experimental. An Ultra HDR photo you post keeps its gain map on Android 14 and newer, "
+                                + "so it can still show in HDR. Turn it off if a photo you post looks wrong.")));
+            }
+            if (build.contains(PatchFamily.HDR_VIDEOS)) {
+                playback.addPreference(toggle(context, Settings.KEEP_HDR_ON_VIDEO_UPLOADS, L10n.t("Keep HDR on video uploads"),
+                        L10n.t("Experimental. An HDR video you post is encoded in HDR on Android 13 and newer, where "
+                                + "Instagram would make it SDR on some phones. Turn it off if a video you post looks wrong "
+                                + "or won't upload.")));
+            }
+        }
+    }
+}

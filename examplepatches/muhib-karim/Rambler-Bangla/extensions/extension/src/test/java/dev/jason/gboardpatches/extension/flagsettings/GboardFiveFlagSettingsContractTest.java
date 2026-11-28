@@ -194,6 +194,8 @@ public final class GboardFiveFlagSettingsContractTest {
 
             GboardPatchesSettingsTestHost host = new GboardPatchesSettingsTestHost(context);
             List<String> visibleTitles = Arrays.asList(
+                    new dev.jason.gboardpatches.extension.keyboard
+                            .GboardKeyboardAppearanceSettingsGroupFeature(context).buildScreen(host),
                     new GboardKeyboardToolsSettingsGroupFeature(context).buildScreen(host),
                     new GboardKeyboardLayoutSettingsGroupFeature(context).buildScreen(host))
                     .stream()

@@ -46,6 +46,7 @@
     var CATEGORY_ID = "SETTING_CAT_YOUTV";
     var RESTART_SETTING = { key: "YOUTV_RESTART_REQUEST", defaultValue: false };  // see restart dialog
     var OPEN_HUB_SETTING = { key: "BIRDY_OPEN_HUB_REQUEST", defaultValue: false };
+    var ENTER_PIP_SETTING = { key: "BIRDY_ENTER_PIP_REQUEST", defaultValue: false };
     var settings = [];          // { key, title, summary, defaultValue } in display order
     var registry = null;        // YouTube's known client settings ({ KEY: true })
     var defaults = null;        // YouTube's client setting defaults (Map)
@@ -97,6 +98,7 @@
         settings.forEach(registerSetting);
         registerSetting(RESTART_SETTING);
         registerSetting(OPEN_HUB_SETTING);
+        registerSetting(ENTER_PIP_SETTING);
         report("settings: registered " + settings.length + " setting(s)");
         return true;
     }
@@ -145,6 +147,10 @@
         return key === STORAGE_PREFIX + OPEN_HUB_SETTING.key && String(value).indexOf("true") !== -1;
     }
 
+    function isEnterPipRequest(key, value) {
+        return key === STORAGE_PREFIX + ENTER_PIP_SETTING.key && String(value).indexOf("true") !== -1;
+    }
+
     var restarting = false;
     function restartApp() {
         if (restarting) return;
@@ -166,12 +172,17 @@
                         setTimeout(function () { window.birdyTvSettingsHub.open(); }, 0);
                     }
                 }
+                if (this === localStorage && isEnterPipRequest(key, value)) {
+                    try { localStorage.removeItem(STORAGE_PREFIX + ENTER_PIP_SETTING.key); } catch (e) {}
+                    report("@enterpip");
+                }
             } catch (e) {}
             return result;
         };
         // A leftover request (for example the app was closed before the reload) is dropped.
         localStorage.removeItem(STORAGE_PREFIX + RESTART_SETTING.key);
         localStorage.removeItem(STORAGE_PREFIX + OPEN_HUB_SETTING.key);
+        localStorage.removeItem(STORAGE_PREFIX + ENTER_PIP_SETTING.key);
     } catch (e) {
         report("restart hook failed: " + e);
     }

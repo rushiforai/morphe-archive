@@ -159,6 +159,10 @@ public class Settings extends BaseSettings {
     public static final StringSetting SETTINGS_THEME = new StringSetting("settings_theme", "tiktok");
     /** The language of Hushfeed's settings and messages: TikTok's, or one picked under Hushfeed language (#431). */
     public static final StringSetting HUSHFEED_LANGUAGE = new StringSetting(L10n.PICK_KEY, "tiktok");
+    /** Hushfeed's notices (a finished save, a block's Undo) under the status bar, not above the tab bar (#545). */
+    public static final BooleanSetting NOTICES_AT_TOP = new BooleanSetting("notices_at_top", FALSE);
+    /** The video behind Hushfeed's notices blurred into them, on Android 12 and up (#545). */
+    public static final BooleanSetting NOTICE_BLUR = new BooleanSetting("notice_blur", FALSE);
     // Off by default: both patches are in the default selection, so the switch is the ask.
     public static final BooleanSetting TURN_OFF_HAPTICS = new BooleanSetting("turn_off_haptics", FALSE);
     public static final BooleanSetting TURN_OFF_SCREEN_TRANSITIONS =
@@ -588,6 +592,9 @@ public class Settings extends BaseSettings {
     public static final StringSetting BLOCKED_CAPTION_WORDS =
             new FeedRuleStringSetting("blocked_caption_words", false);
     public static final BooleanSetting BLOCKED_WORDS_IN_STICKERS = new BooleanSetting("blocked_words_in_stickers", FALSE);
+    /** Only show videos with these words (D#548): For You keeps a video only when its caption matches. */
+    public static final StringSetting KEPT_CAPTION_WORDS =
+            new FeedRuleStringSetting("kept_caption_words", false);
     /** Skip promo lines (#493): seek past caption lines holding a word from the list below. */
     public static final BooleanSetting SKIP_PROMO_LINES = new BooleanSetting("skip_promo_lines", FALSE);
     public static final StringSetting SKIP_PROMO_WORDS =
@@ -1090,10 +1097,21 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting PUBLISH_DATE_EVERYWHERE = new BooleanSetting("publish_date_everywhere", FALSE,
             false, Setting.parentsAny(PUBLISH_DATE_DAY_FIRST, PUBLISH_DATE_MONTH_NAME, PUBLISH_DATE_INSTEAD_OF_AGE));
     public static final BooleanSetting PUBLISH_DATE_ON_GRID = new BooleanSetting("publish_date_on_grid", FALSE);
+    /** The grid's date in TikTok's own words, 2d ago or 10-12, with the three date rows above on it (#546). */
+    public static final BooleanSetting PUBLISH_DATE_GRID_LIKE_TIKTOK = new BooleanSetting("publish_date_grid_like_tiktok",
+            FALSE, false, Setting.parent(PUBLISH_DATE_ON_GRID));
+    /** Where the grid's date goes against the view count: under, beside or above (#546). */
+    public static final StringSetting PUBLISH_DATE_GRID_SPOT = new StringSetting("publish_date_grid_spot", "under",
+            false, Setting.parent(PUBLISH_DATE_ON_GRID));
     public static final BooleanSetting VIDEO_LENGTH_ON_GRID = new BooleanSetting("video_length_on_grid", FALSE);
     public static final BooleanSetting HIDE_GRID_VIEW_COUNT = new BooleanSetting("hide_grid_view_count", FALSE);
     /** Rounded corners on every profile grid cell (#487). */
     public static final BooleanSetting ROUNDED_GRID_CORNERS = new BooleanSetting("rounded_grid_corners", FALSE);
+    /** How round those corners are, in dp (#549). 8 is about what TikTok's own cards use. */
+    public static final IntegerSetting GRID_CORNER_RADIUS = new IntegerSetting("grid_corner_radius_dp", 8, false,
+            Setting.parent(ROUNDED_GRID_CORNERS)).withRange(1, 48);
+    /** Space added between the videos on profile grids, in dp; 0 leaves TikTok's own spacing (#549). */
+    public static final IntegerSetting GRID_GAP = new IntegerSetting("grid_gap_dp", 0).withRange(0, 24);
     /** How loaded profile and Liked grids are ordered (#180): off, or one of the orders in GridSort. */
     public static final StringSetting PROFILE_GRID_SORT = new StringSetting("profile_grid_sort", "off");
     /** A sorted grid puts pinned videos in the chosen order with the rest instead of first (#466). */
@@ -1559,6 +1577,9 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting SHOW_AUTHOR_REGION = new BooleanSetting("show_author_region", FALSE);
     /** The country as its flag in place of its two letters, by the creator's name and a comment's time (#157). */
     public static final BooleanSetting REGION_AS_FLAG = new BooleanSetting("region_as_flag", FALSE);
+    /** The two letters kept after the flag, so a flag nobody knows still names its country (#547). */
+    public static final BooleanSetting REGION_FLAG_WITH_CODE = new BooleanSetting("region_flag_with_code", FALSE,
+            false, Setting.parent(REGION_AS_FLAG));
     /** The country and the post time on a line of their own under the caption, off the creator's row (#410). */
     public static final BooleanSetting COUNTRY_DATE_UNDER_CAPTION = new BooleanSetting("country_date_under_caption", FALSE);
     /** That line's own text size in points; 0 keeps the size of the post time it carries (#500). */
@@ -1759,6 +1780,10 @@ public class Settings extends BaseSettings {
     // (#420). Off by default, like Hide online status, and read at each request, so no restart.
     public static final BooleanSetting GHOST_HIDE_LIVE_VIEWS =
             new BooleanSetting("ghost_hide_live_views", FALSE, false, Setting.parent(GHOST_MODE));
+    // Swaps the LIVE eye for a double tap in the room (D#359). Off by default, and read at each
+    // touch and each tick of the eye, so no restart.
+    public static final BooleanSetting GHOST_LIVE_DOUBLE_TAP =
+            new BooleanSetting("ghost_live_double_tap", FALSE, false, Setting.parent(GHOST_HIDE_LIVE_VIEWS));
     // Answers a video like on the phone and keeps it there, so TikTok never gets it. Off by
     // default, and read at each like, so no restart.
     public static final BooleanSetting GHOST_LOCAL_LIKES =
@@ -2020,7 +2045,10 @@ public class Settings extends BaseSettings {
     public static final StringSetting PROFILE_TAB_ORDER = new StringSetting("profile_tab_order", "");
     /** The Thoughts bubble above a profile picture (#122). Read when a profile's picture is built. */
     public static final BooleanSetting HIDE_PROFILE_THOUGHTS = new BooleanSetting("hide_profile_thoughts", FALSE, true);
-    /** The "+ Add bio" prompt on your own profile when it has no bio (#466). Read whenever the header binds. */
+    /**
+     * The "+ Add bio" prompt on your own profile when it has no bio (#466), and the tip bubbles
+     * TikTok points at things there (#546). Read whenever the header binds or a tip opens.
+     */
     public static final BooleanSetting HIDE_ADD_BIO = new BooleanSetting("hide_add_bio", FALSE);
     /** TikTok's two Thoughts gates answer yes (#186). A restart, since TikTok keeps what it built. */
     public static final BooleanSetting ENABLE_THOUGHTS = new BooleanSetting("enable_thoughts", FALSE, true);
@@ -2040,6 +2068,8 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting SHOW_PROFILE_VIDEO_COUNT = new BooleanSetting("show_profile_video_count", FALSE);
     // "Since Nov 18: +12 followers" under it, from the counts each profile showed on this phone last time.
     public static final BooleanSetting SHOW_PROFILE_CHANGES = new BooleanSetting("show_profile_changes", FALSE);
+    // Followers and Following counts in yellow on a profile that keeps that list private (#549).
+    public static final BooleanSetting YELLOW_PRIVATE_LISTS = new BooleanSetting("yellow_private_lists", FALSE);
     public static final BooleanSetting LOCAL_PROFILE_COUNTS = new BooleanSetting("local_profile_counts", FALSE, true);
     public static final BooleanSetting LOCAL_PROFILE_VERIFIED_BADGE = new BooleanSetting("local_profile_verified_badge", FALSE, true);
     public static final BooleanSetting HIDE_OWN_PROFILE_RESTRICTION_NOTICE = new BooleanSetting("hide_own_profile_restriction_notice", FALSE, true);
@@ -2054,6 +2084,8 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting COUNTRY_ON_PROFILES = new BooleanSetting("country_on_profiles", FALSE);
     // @usernames in a profile's bio open those profiles on a tap (#247).
     public static final BooleanSetting BIO_MENTION_LINKS = new BooleanSetting("bio_mention_links", TRUE);
+    // Another app's username in a bio ("IG: name") becomes a pill opening its public page (#549).
+    public static final BooleanSetting BIO_SOCIAL_LINKS = new BooleanSetting("bio_social_links", FALSE);
     // Package names of the apps added to the Share via row, comma separated, in the order picked.
     public static final StringSetting SHARE_ADDED_APPS = new StringSetting("share_added_apps", "");
     public static final BooleanSetting DISABLE_LONG_PRESS_QUICK_SHARE =

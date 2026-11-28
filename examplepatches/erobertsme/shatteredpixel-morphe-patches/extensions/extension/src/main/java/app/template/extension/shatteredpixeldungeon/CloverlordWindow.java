@@ -173,6 +173,9 @@ public class CloverlordWindow extends EditorWindow {
 		addSwitch("List everything on a tile", TileContents.isOn(), TileContents::setOn);
 		addSwitch("All stats on hero info", QolSettings.heroStatsButton(), QolSettings::heroStatsButton);
 
+		addSection("Items");
+		addButton("Torches", StatIcons.buff(StatIcons.BUFF_LIGHT), () -> open(new TorchSettingsWindow()));
+
 		addSection("Alchemy & plants");
 		addSwitch("Energize more items", EnergizeMore.isOn(), EnergizeMore::setOn);
 		addSwitch("Reroll Catalyst", RerollCatalyst.isOn(), RerollCatalyst::setOn);

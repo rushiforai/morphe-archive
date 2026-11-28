@@ -4,7 +4,6 @@ import app.morphe.patcher.patch.bytecodePatch
 import semicoloncolonel.mobilestream.patches.espn.shared.Constants
 import semicoloncolonel.mobilestream.patches.shared.privacy.analyticsKillSwitchesPatch
 import semicoloncolonel.mobilestream.patches.shared.privacy.blockTrackers
-import semicoloncolonel.mobilestream.patches.shared.misc.forBundle
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Block analytics & tracking (OPT-IN, default OFF).
@@ -25,7 +24,8 @@ val blockAnalyticsPatch = bytecodePatch(
     description = "Stops the app's analytics, ad measurement, and marketing services.",
     default = false,
 ) {
-    compatibleWith(*forBundle(Constants.COMPATIBILITY, Constants.TV_COMPATIBILITY))
+    category("Privacy")
+    compatibleWith(Constants.COMPATIBILITY)
 
     dependsOn(analyticsKillSwitchesPatch)
 

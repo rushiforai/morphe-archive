@@ -28,6 +28,7 @@ final class PostFilters {
         if (handle == null) return original;
         long userId = ModelBridge.userId(user);
         Users.put(userId, handle);
+        Observed.user(handle, user);
         States.observe(handle);
         long postId = 0;
         if (post != null) {
@@ -85,6 +86,7 @@ final class PostFilters {
         if (handle == null) return original;
         long userId = ModelBridge.userId(user);
         Users.put(userId, handle);
+        Observed.user(handle, user);
         States.observe(handle);
         int reasons = Verdicts.forPost(user, handle, userId, null, false);
         return reasons != 0 ? Highlights.apply(original) : original;

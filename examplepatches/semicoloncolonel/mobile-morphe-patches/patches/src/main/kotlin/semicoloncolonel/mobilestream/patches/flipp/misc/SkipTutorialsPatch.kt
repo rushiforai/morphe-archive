@@ -51,6 +51,7 @@ val skipTutorialsPatch = bytecodePatch(
     name = "Skip tutorials",
     description = "Skips the spotlights and tutorials that walk a new user through the app.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

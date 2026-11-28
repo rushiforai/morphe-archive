@@ -115,6 +115,7 @@ public final class NezumiSettingsPage {
         String reactionLabel = vietnamese ? "Mở khóa biểu tượng cảm xúc" : "Unlock reaction icons";
         String typingLabel = vietnamese ? "Ẩn trạng thái đang nhập" : "Hide typing status";
         String readLabel = vietnamese ? "Ẩn trạng thái đã xem" : "Hide read receipts";
+        String markAsReadLabel = vietnamese ? "Hiện nút Đánh dấu đã xem" : "Show Mark as read button";
         String deliveryLabel = vietnamese ? "Ẩn trạng thái đã nhận" : "Hide delivery receipts";
         String protectionLabel = vietnamese ? "Gỡ giới hạn hội thoại được bảo vệ" : "Bypass conversation protection";
         String mediaBoxLabel = vietnamese ? "Ẩn Media Box" : "Hide Media Box";
@@ -185,8 +186,17 @@ public final class NezumiSettingsPage {
                 (button, checked) -> prefs.edit().putBoolean(NezumiPrefs.HIDE_TYPING, checked).apply());
         }
         if ((features & FEATURE_READ_RECEIPTS) != 0) {
-            ZaloUi.toggleRow(list, context, readLabel, "read_message", prefs.getBoolean(NezumiPrefs.HIDE_READ_RECEIPTS, false), darkMode,
-                (button, checked) -> prefs.edit().putBoolean(NezumiPrefs.HIDE_READ_RECEIPTS, checked).apply());
+            LinearLayout readGroup = ZaloUi.linkedRows(list, context, darkMode);
+            View[] markAsReadItem = { null };
+            ZaloUi.toggleRow(readGroup, context, readLabel, "read_message", prefs.getBoolean(NezumiPrefs.HIDE_READ_RECEIPTS, false), darkMode,
+                (button, checked) -> {
+                prefs.edit().putBoolean(NezumiPrefs.HIDE_READ_RECEIPTS, checked).apply();
+                if (markAsReadItem[0] != null) ZaloUi.setChildRowVisible(list, markAsReadItem[0], checked, true);
+            });
+            markAsReadItem[0] = ZaloUi.toggleRow(readGroup, context, markAsReadLabel, "bubble_multiselect",
+                prefs.getBoolean(NezumiPrefs.SHOW_MARK_AS_READ_BUTTON, true), darkMode,
+                (button, checked) -> prefs.edit().putBoolean(NezumiPrefs.SHOW_MARK_AS_READ_BUTTON, checked).apply());
+            markAsReadItem[0].setVisibility(prefs.getBoolean(NezumiPrefs.HIDE_READ_RECEIPTS, false) ? View.VISIBLE : View.GONE);
         }
         if ((features & FEATURE_DELIVERY_RECEIPTS) != 0) {
             ZaloUi.toggleRow(list, context, deliveryLabel, "check_circle", prefs.getBoolean(NezumiPrefs.HIDE_DELIVERY_RECEIPTS, false),

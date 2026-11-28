@@ -11,6 +11,7 @@ object Constants {
         apkFileType = ApkFileType.XAPK,
         appIconColor = 0xF5A623,
         targets = listOf(
+            AppTarget(version = "27.2.0", isExperimental = true),
             AppTarget(version = "27.0.0", isExperimental = true),
             AppTarget(version = "26.2.0", isExperimental = true)
         )
@@ -21,7 +22,9 @@ object Constants {
         packageName = "io.supercent.weaponrpg",
         apkFileType = ApkFileType.XAPK,
         appIconColor = 0xF5A623,
-        targets = listOf(AppTarget(version = "27.0.0", isExperimental = true))
+        targets = listOf(
+            AppTarget(version = "27.2.0", isExperimental = true),
+            AppTarget(version = "27.0.0", isExperimental = true)
+        )
     )
-
 }

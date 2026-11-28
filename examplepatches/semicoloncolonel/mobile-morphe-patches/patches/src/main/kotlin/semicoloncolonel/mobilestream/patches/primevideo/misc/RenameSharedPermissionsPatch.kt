@@ -87,6 +87,7 @@ val renameSharedPermissionsPatch = bytecodePatch(
     name = "Rename shared permissions",
     description = "Renames shared Amazon permissions, so other Amazon apps can still install.",
 ) {
+    category("Setup")
     compatibleWith(Constants.COMPATIBILITY)
 
     dependsOn(renameManifestPermissionsPatch)

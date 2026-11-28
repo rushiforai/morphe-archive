@@ -47,6 +47,6 @@ public final class CommentCopyBridge {
     }
 
     private static void report(String message) {
-        if (logged++ < LOG_CAP) Debug.print("comment copy: " + message);
+        if (logged++ < LOG_CAP) Debug.print("comment copy: " + message + Debug.by(4));
     }
 }

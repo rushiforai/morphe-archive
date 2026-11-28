@@ -1,0 +1,7 @@
+{
+    "created_at":  "2026-11-28T06:42:37",
+    "description":  "## 0.0.22-10 (Muthu build)\n\nBuilt from Muthu1203-abi/Hushgram on HushGram 0.0.22, synced with SysAdminDoc/HushGram up to 634cb4994. For Instagram 457.0.0.55.73.\n\n* Double tap the top of a reel to share: a double tap near the top of a reel opens its share sheet instead of liking it, in clear mode too. Turn it on in HushGram settings > Reels, with a Share area slider for how much of the reel counts.\n* Hide the Share button is removed.",
+    "download_url":  "https://github.com/Muthu1203-abi/Hushgram/releases/download/v0.0.22-10/patches-0.0.22.mpp",
+    "signature_download_url":  "",
+    "version":  "0.0.22-10"
+}

@@ -64,7 +64,7 @@ internal object XP143PartySkillCostEditor {
 @Suppress("unused")
 val xp143FreePartySkillEnhancements = rawResourcePatch(
     name = "XP Hero | Free Party Skill Enhancements",
-    description = "Experimental (27.0.0): zero all three material costs for 60 party-skill levels across six Boss Raid skills, including Battle Cry. In-game completion is not yet verified.",
+    description = "Experimental (27.0.0 / 27.2.0): zero all three material costs for 60 party-skill levels across six Boss Raid skills, including Battle Cry. In-game completion is not yet verified.",
     default = false,
 ) {
     compatibleWith(XP_HERO_27)

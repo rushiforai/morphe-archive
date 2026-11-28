@@ -1,5 +1,9 @@
 package semicoloncolonel.mobilestream.patches.xumo.ads
 
+import app.morphe.patcher.patch.booleanOption
+import semicoloncolonel.mobilestream.patches.shared.misc.TRANSLATE_OPTION_DESCRIPTION
+import semicoloncolonel.mobilestream.patches.shared.misc.TRANSLATE_OPTION_TITLE
+import app.morphe.patcher.patch.BytecodePatch
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
@@ -40,11 +44,28 @@ private const val PLAYER_VIEW = "Lcom/xumo/xumo/player/XumoPlayerView;"
 private const val FIELD = "adsDisabled"
 
 @Suppress("unused")
-val skipAdsPatch = bytecodePatch(
+val skipAdsPatch: BytecodePatch = bytecodePatch(
     name = "Skip ads",
     description = "Removes the pre-roll and mid-roll ads in on-demand videos.",
 ) {
+    category("Ads")
     compatibleWith(Constants.COMPATIBILITY)
+    extendWith("extensions/extension.mpe")
+    dependsOn(maskLiveAdBreaksPatch)
+
+    booleanOption(
+        key = "maskLiveAds",
+        default = false,
+        title = "Mask live ad breaks",
+        description = "Covers and mutes the ad breaks on live channels until the show returns. Experimental.",
+    )
+
+    booleanOption(
+        key = "translate",
+        default = false,
+        title = TRANSLATE_OPTION_TITLE,
+        description = TRANSLATE_OPTION_DESCRIPTION,
+    )
 
     execute {
         // Replace every `iget-boolean vX, p0, XumoPlayerView->adsDisabled:Z` with

@@ -29,6 +29,9 @@ public final class RegionSource {
     private static final int MAX_REPORTS = 120;
 
     private static final Map<String, String> SEEN_AT_BIND = new ConcurrentHashMap<>();
+    /** A handle's resolved region, so a name drawn again costs a map read and no reflection. */
+    private static final Map<String, String> REGION_BY_HANDLE = new ConcurrentHashMap<>();
+    private static final Map<String, String> AUTHOR_REGION_BY_UID = new ConcurrentHashMap<>();
 
     private static int reported;
 
@@ -59,13 +62,21 @@ public final class RegionSource {
     /** A name or a comment: the account's field, then what was seen for that handle at bind. */
     public static String forUser(Object user, String handle) {
         if (user == null) return null;
+        if (handle != null) {
+            String cached = REGION_BY_HANDLE.get(key(handle));
+            if (cached != null) {
+                report(handle, user, null, cached, "cached");
+                return cached;
+            }
+        }
         Object raw = Reflect.property(user, "getRegion", "region");
-        String region = accountRegion(user);
+        String region = upper(raw instanceof String ? (String) raw : null);
         String source = region == null ? null : "account";
         if (region == null && handle != null) {
             region = SEEN_AT_BIND.get(key(handle));
             if (region != null) source = "bound";
         }
+        if (region != null && handle != null) REGION_BY_HANDLE.put(key(handle), region);
         report(handle, user, raw, region, source);
         return region;
     }
@@ -88,11 +99,33 @@ public final class RegionSource {
         if (user == null) return null;
         String handle = handleOf(user);
         if (handle == null) return null;
-        return forUser(user, handle);
+        String region = forUser(user, handle);
+        if (region != null) return region;
+        // A comment payload often leaves the region field out. The video's author is bound with a
+        // complete user, so its region is the fallback for the creator's own comment or poll.
+        String uid = Reflect.string(user, "getUid", "uid");
+        region = forUid(uid);
+        if (region != null) report(handle, user, null, region, "author");
+        return region;
+    }
+
+    /** The region remembered for a video's author, matched by account id. */
+    public static String forUid(String uid) {
+        if (uid == null || uid.isEmpty()) return null;
+        return AUTHOR_REGION_BY_UID.get(uid);
+    }
+
+    /** Called at bind: the video author's own answer, including the item's region as the fallback. */
+    public static void rememberAuthor(String uid, String region) {
+        if (region == null) return;
+        if (uid == null || uid.isEmpty()) return;
+        if (AUTHOR_REGION_BY_UID.size() >= MAX_HANDLES) AUTHOR_REGION_BY_UID.clear();
+        AUTHOR_REGION_BY_UID.put(uid, region);
     }
 
     /** Called at bind: the one moment the item and its author are both in hand. */
     public static void remember(String handle, String region) {
+        if (handle != null && region != null) REGION_BY_HANDLE.put(key(handle), region);
         if (region == null) return;
         if (handle == null || handle.isEmpty()) return;
         if (SEEN_AT_BIND.size() >= MAX_HANDLES) SEEN_AT_BIND.clear();
@@ -110,7 +143,7 @@ public final class RegionSource {
         Debug.print("region: @" + (handle == null ? "?" : handle)
                 + " model=" + describeModel(user, raw)
                 + " -> " + (region == null ? "none" : region)
-                + " (from " + (source == null ? "nothing" : source) + ")");
+                + " (from " + (source == null ? "nothing" : source) + ")" + Debug.by(4));
     }
 
     private static String describeModel(Object user, Object raw) {

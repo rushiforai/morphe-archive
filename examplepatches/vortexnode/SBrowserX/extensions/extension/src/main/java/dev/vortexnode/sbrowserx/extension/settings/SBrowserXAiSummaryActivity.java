@@ -134,7 +134,7 @@ public final class SBrowserXAiSummaryActivity extends Activity {
         new Thread(() -> {
             try {
                 String trimmed = text.length() > 14000 ? text.substring(0, 14000) : text;
-                String lang = Locale.getDefault().getLanguage();
+                String lang = SBrowserXStrings.getAppLang();
                 String promptLang = "ru".equals(lang) ? "Russian" : ("uk".equals(lang) ? "Ukrainian" : "English");
                 String prompt = "Summarize the following web page clearly in " + promptLang
                         + " as 4-6 concise bullet points (no markdown bold/headers, plain clean bullets starting with '• ').\n"

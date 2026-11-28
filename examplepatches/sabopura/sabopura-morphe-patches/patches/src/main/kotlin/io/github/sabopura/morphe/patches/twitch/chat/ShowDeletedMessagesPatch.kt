@@ -1,6 +1,7 @@
 // Adapted from Hooman's patches (GPL-3.0); see NOTICE.
 package io.github.sabopura.morphe.patches.twitch.chat
 
+import io.github.sabopura.morphe.patches.twitch.support.TWITCH_MOVED_NOTE
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
@@ -30,7 +31,7 @@ private const val BUILDER = "Landroid/text/SpannableStringBuilder;"
 @Suppress("unused")
 val showDeletedMessagesPatch = bytecodePatch(
     name = "Show deleted messages",
-    description = "Keeps deleted or moderated chat messages readable instead of replacing them with " +
+    description = TWITCH_MOVED_NOTE + "Keeps deleted or moderated chat messages readable instead of replacing them with " +
         "\"<message deleted>\". The message turns into a tappable spoiler: tap it to reveal the original " +
         "text. Only text already received by this client can be revealed.",
 ) {

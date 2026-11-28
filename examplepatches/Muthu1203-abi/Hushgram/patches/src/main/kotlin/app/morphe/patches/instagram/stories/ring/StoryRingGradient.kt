@@ -1,0 +1,486 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.morphe.patches.instagram.stories.ring
+
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.instagram.misc.extension.classesLoading
+import app.morphe.patches.instagram.misc.extension.classesLoadingString
+import app.morphe.patches.instagram.misc.extension.classesReadingObjects
+import app.morphe.patches.instagram.misc.extension.jumpTargets
+import app.morphe.patches.instagram.misc.extension.loadsString
+import app.morphe.patches.instagram.misc.extension.parameterRegisterNumber
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+
+private const val PATCH = "Story ring size"
+internal const val RING_COLORS = "$EXTENSION_PACKAGE/stories/StoryRing;->colors([I[F)[I"
+
+/** The view that draws the ring around a profile picture, under the name Instagram keeps for it. */
+internal const val GRADIENT_SPINNER = "Lcom/instagram/ui/widget/gradientspinner/GradientSpinner;"
+internal const val LINEAR_GRADIENT = "Landroid/graphics/LinearGradient;"
+
+/** What the ring's gradient builder takes: the ring, its stops, where it starts and ends, its colors, and its width and height. */
+internal val GRADIENT_PARAMETERS = listOf(GRADIENT_SPINNER, "[F", "[F", "[F", "[I", "I", "I")
+internal const val STOPS_PARAMETER = 1
+internal const val COLORS_PARAMETER = 4
+
+/** The gradient the builder makes from an array of colors and an array of stops. */
+internal const val GRADIENT_FROM_ARRAYS =
+    "$LINEAR_GRADIENT-><init>(FFFF[I[FLandroid/graphics/Shader\$TileMode;)V"
+
+/** The name of the ring Instagram gives a story by default, loaded where that ring's colors and stops are put together. */
+internal const val DEFAULT_RING = "default_brand_update"
+
+/**
+ * The four stops of that ring's gradient, as the doubles Instagram loads them. The extension tells
+ * a story's own gradient from every other ring by these, so the patch fails on a build that draws
+ * its default ring with others rather than leave a choice that does nothing.
+ */
+internal val DEFAULT_RING_STOPS = listOf(0.1435, 0.3779, 0.6071, 0.831).map(Double::toRawBits)
+
+/** The highest register a call that lists its registers can name. */
+private const val HIGHEST_LISTED_REGISTER = 15
+
+/** Where Compose screens hand the default ring's colors on, as an array (#528). */
+internal const val RING_DEFAULT_COLORS = "$EXTENSION_PACKAGE/stories/StoryRing;->defaultColors([I)[I"
+
+/** Where the chat list's rings hand on the list of colors their brush is made from (#187). */
+internal const val RING_BRUSH_COLORS = "$EXTENSION_PACKAGE/stories/StoryRing;->brush(Ljava/util/List;)Ljava/util/List;"
+
+/** Where the spinning ring around a group of profile pictures hands on each color it pairs with a stop (#187). */
+internal const val RING_GROUP_COLORS = "$EXTENSION_PACKAGE/stories/StoryRing;->composeStop(FJ)J"
+
+/** [RING_GROUP_COLORS] for a build whose group ring pairs each color with its stop boxed, a Float (457's 386314341). */
+internal const val RING_GROUP_BOXED_COLORS = "$EXTENSION_PACKAGE/stories/StoryRing;->composeBoxedStop(Ljava/lang/Object;J)J"
+
+private fun refuse(detail: String, patch: String = PATCH): Nothing = throw PatchException("$patch: $detail")
+
+/** What the ring's own setter takes: the builder's parameters without the ring, which is `this` there. */
+internal val SETTER_PARAMETERS = GRADIENT_PARAMETERS.drop(1)
+
+/**
+ * Where a ring builds its gradient: the method's name and parameter types, and the registers its
+ * colors and stops arrive in.
+ */
+internal class RingGradient(val name: String, val parameters: List<String>, val colors: Int, val stops: Int)
+
+/**
+ * Finds every place a ring builds its gradient, and checks each before anything changes. The ring
+ * is a view that keeps its class name. Its builder is its one method answering a gradient that takes
+ * [GRADIENT_PARAMETERS] when static or, as on every 455 build, [SETTER_PARAMETERS] with the ring as
+ * `this`. Most of 454's builds and every 455 build also give the view a private
+ * setter taking [SETTER_PARAMETERS] that makes the same gradient with its own copy of the builder's
+ * code and keeps it (#518). That setter is what the stories row's rings go through, from the ring's
+ * measure and from every ring spec it's given, and the builder only serves a couple of other
+ * callers. Where the setter calls the builder instead, as on 386014704, only the builder makes
+ * a gradient. Both are called when a ring is measured or given its colors, never once a frame. A
+ * seen story's ring is drawn with another paint and doesn't come through here.
+ *
+ * No other method of the view may make a gradient from colors and stops, since the patch wouldn't
+ * know where its colors are. Each hook goes first, so nothing may jump back to a first
+ * instruction, and a call that lists its registers has to be able to name the two it passes. The
+ * app must also still build its default ring with [DEFAULT_RING_STOPS], which is what the
+ * extension knows a story's gradient by. A refusal names [patch], the patch asking.
+ */
+internal fun BytecodePatchContext.findRingGradients(patch: String = PATCH): List<RingGradient> {
+    val spinner = classDefByOrNull(GRADIENT_SPINNER) ?: refuse("the build has no $GRADIENT_SPINNER", patch)
+    val builders = spinner.methods.filter { it.isRingBuilder() }
+    val builder = builders.singleOrNull()
+        ?: refuse("expected one gradient builder taking stops and colors in $GRADIENT_SPINNER, found ${builders.size}", patch)
+    if (!builder.makesGradientFromArrays()) {
+        refuse("$GRADIENT_SPINNER->${builder.name} no longer makes its gradient from an array of colors and an array of stops", patch)
+    }
+    val setters = spinner.methods.filter { it.isRingSetter() && it.makesGradientFromArrays() }
+    if (setters.size > 1) {
+        refuse("expected at most one setter in $GRADIENT_SPINNER making its own gradient from stops and colors, found ${setters.size}", patch)
+    }
+    val unread = spinner.methods.filter { it.makesGradientFromArrays() && !it.isRingBuilder() && !it.isRingSetter() }
+    if (unread.isNotEmpty()) {
+        refuse("${unread.joinToString { "$GRADIENT_SPINNER->${it.name}" }} makes a gradient from colors and stops the patch can't find", patch)
+    }
+    val gradients = (builders + setters).map { it.ringGradient(patch) }
+    if (findDefaultRingStops().isEmpty()) {
+        refuse("no method of a class loading \"$DEFAULT_RING\" loads the default ring's four stops", patch)
+    }
+    return gradients
+}
+
+/** Reads where the colors and stops arrive in a builder or the setter, refusing what the hook can't go into. */
+private fun Method.ringGradient(patch: String): RingGradient {
+    val where = "$GRADIENT_SPINNER->$name"
+    if (0 in jumpTargets()) refuse("something jumps back to the first instruction of $where", patch)
+    // The setter has no ring parameter, so each of its parameters is one place earlier.
+    val shift = if (AccessFlags.STATIC.isSet(accessFlags)) 0 else 1
+    val colors = parameterRegisterNumber(COLORS_PARAMETER - shift)
+    val stops = parameterRegisterNumber(STOPS_PARAMETER - shift)
+    if (colors > HIGHEST_LISTED_REGISTER || stops > HIGHEST_LISTED_REGISTER) {
+        refuse("$where keeps its colors in v$colors and its stops in v$stops, past the registers a call can list", patch)
+    }
+    return RingGradient(name, parameterTypes.map(CharSequence::toString), colors, stops)
+}
+
+private fun Method.isRingBuilder() = returnType == LINEAR_GRADIENT && parameterTypes.map(CharSequence::toString) ==
+    if (AccessFlags.STATIC.isSet(accessFlags)) GRADIENT_PARAMETERS else SETTER_PARAMETERS
+
+private fun Method.isRingSetter() = !AccessFlags.STATIC.isSet(accessFlags) && returnType == "V" &&
+    parameterTypes.map(CharSequence::toString) == SETTER_PARAMETERS
+
+private fun Method.makesGradientFromArrays() =
+    implementation?.instructions?.any { (it as? ReferenceInstruction)?.reference?.toString() == GRADIENT_FROM_ARRAYS } == true
+
+/**
+ * The methods that put Instagram's default ring together: each is in a class loading
+ * [DEFAULT_RING] and loads every one of [DEFAULT_RING_STOPS]. On 450 there is one in every build.
+ * 455's arm64, x86 and x86_64 builds have two, a RingSpec and a ring with its angle, in two
+ * lambda classes, both with the same stops.
+ */
+internal fun BytecodePatchContext.findDefaultRingStops(): List<String> =
+    classesLoadingString(DEFAULT_RING).flatMap { classDef ->
+        classDef.methods.filter { it.loadsEveryStop() }.map { "${classDef.type}->${it.name}" }
+    }
+
+private fun Method.loadsEveryStop(): Boolean {
+    val loaded = implementation?.instructions?.mapNotNullTo(HashSet()) { (it as? WideLiteralInstruction)?.wideLiteral }
+        ?: return false
+    return loaded.containsAll(DEFAULT_RING_STOPS)
+}
+
+/**
+ * Passes each builder's colors and stops through [hook], [RING_COLORS] unless another patch asks,
+ * first thing, and builds the gradient from the answer. The ring's own fields are left alone, so
+ * Instagram's colors are what the hook is given every time, and a ring whose hook answers them back
+ * is exactly Instagram's.
+ *
+ * With [behind], the hook goes right after a call to it that a builder already starts with, and
+ * that call's answer, so a guard another patch put first stays first whichever patch runs first.
+ */
+internal fun BytecodePatchContext.colorRingGradients(
+    gradients: List<RingGradient>,
+    hook: String = RING_COLORS,
+    behind: String? = null,
+) {
+    val spinner = mutableClassDefBy(GRADIENT_SPINNER)
+    for (gradient in gradients) {
+        val builder = spinner.methods.single {
+            it.name == gradient.name && it.parameterTypes.map(CharSequence::toString) == gradient.parameters
+        }
+        val code = builder.implementation!!.instructions.toList()
+        val guarded = behind != null && (code.firstOrNull() as? ReferenceInstruction)?.reference?.toString() == behind &&
+            code.getOrNull(1)?.opcode == Opcode.MOVE_RESULT_OBJECT
+        builder.addInstructions(
+            if (guarded) 2 else 0,
+            """
+                invoke-static { v${gradient.colors}, v${gradient.stops} }, $hook
+                move-result-object v${gradient.colors}
+            """,
+        )
+    }
+}
+
+/**
+ * Where Compose screens turn Instagram's default ring's colors into an array (#528): the method,
+ * the index right after the array lands, and the register it lands in.
+ */
+internal class ComposeRing(
+    val type: String,
+    val name: String,
+    val parameters: List<String>,
+    val at: Int,
+    val register: Int,
+)
+
+/**
+ * Finds where Compose screens put Instagram's default ring together (#528). The ring view's builder
+ * never sees that ring: Compose reads the ring's colors as a list from the default ring and turns
+ * them into an array with a static taking a list and answering an int array, then makes Compose
+ * colors from that array. On 454 the method doing that loads [DEFAULT_RING] itself
+ * (`LX/0IDN;->A00()`). On every 455 build it reads the name from the default ring's own class
+ * instead: a static taking only that class, the one a method loading [DEFAULT_RING] makes from two
+ * lists and four doubles (its colors, its stops and its two points). Both kinds are searched, and
+ * no other method of either kind turns a list into an array. Exactly one call like it, in exactly
+ * one such method, is what the patch can be sure of. The hook goes right after the array lands, so
+ * nothing may jump there.
+ */
+internal fun BytecodePatchContext.findComposeRing(patch: String = PATCH): ComposeRing {
+    val named = classesLoadingString(DEFAULT_RING).flatMap { classDef ->
+        classDef.methods.filter { loadsString(it, DEFAULT_RING) }.map { classDef.type to it }
+    }
+    val takers = named.flatMapTo(LinkedHashSet()) { (_, method) -> method.defaultRingsMade() }.flatMap { ring ->
+        classesReadingObjects(ring, LIST).flatMap { classDef ->
+            classDef.methods.filter { it.parameterTypes.map(CharSequence::toString) == listOf(ring) }.map { classDef.type to it }
+        }
+    }
+    val found = (named + takers).distinctBy { (type, method) -> "$type->${method.name}(${method.parameterTypes.joinToString("")})" }
+        .flatMap { (type, method) -> method.colorArraysFromLists().map { at -> Triple(type, method, at) } }
+    val (type, method, call) = found.singleOrNull()
+        ?: refuse(
+            "expected one place a method loading \"$DEFAULT_RING\" turns a list of colors into an array, found ${found.size}" +
+                found.joinToString(prefix = if (found.isEmpty()) "" else ": ") { "${it.first}->${it.second.name} at ${it.third}" },
+            patch,
+        )
+    val code = method.implementation!!.instructions.toList()
+    val register = (code[call + 1] as OneRegisterInstruction).registerA
+    val at = call + 2
+    val where = "$type->${method.name}"
+    if (at in method.jumpTargets()) refuse("something jumps onto the instruction after the default ring's colors land in $where", patch)
+    return ComposeRing(type, method.name, method.parameterTypes.map(CharSequence::toString), at, register)
+}
+
+/** The indices of each static call taking one list and answering an int array whose answer is moved right after. */
+private fun Method.colorArraysFromLists(): List<Int> {
+    val code = implementation?.instructions?.toList() ?: return emptyList()
+    return code.indices.filter { at ->
+        val call = code[at]
+        val reference = (call as? ReferenceInstruction)?.reference as? MethodReference
+        (call.opcode == Opcode.INVOKE_STATIC || call.opcode == Opcode.INVOKE_STATIC_RANGE) && reference != null &&
+            reference.parameterTypes.map(CharSequence::toString) == listOf(LIST) && reference.returnType == "[I" &&
+            code.getOrNull(at + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT
+    }
+}
+
+private const val LIST = "Ljava/util/List;"
+
+/** The classes this method makes with two lists and four doubles, the way the default ring is made from its colors, stops and points. */
+private fun Method.defaultRingsMade(): List<String> =
+    implementation?.instructions?.mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }
+        ?.filter { call ->
+            val types = call.parameterTypes.map(CharSequence::toString)
+            call.name == "<init>" && types.count { it == LIST } == 2 && types.count { it == "D" } == 4
+        }
+        ?.map { it.definingClass }.orEmpty()
+
+/**
+ * Passes the default ring's colors through [hook] right after Compose screens turn them into an
+ * array, and lets the screen make its colors from the answer.
+ */
+internal fun BytecodePatchContext.colorComposeRing(ring: ComposeRing, hook: String) {
+    val method = mutableClassDefBy(ring.type).methods.single {
+        it.name == ring.name && it.parameterTypes.map(CharSequence::toString) == ring.parameters
+    }
+    method.addInstructions(
+        ring.at,
+        """
+            invoke-static/range { v${ring.register} .. v${ring.register} }, $hook
+            move-result-object v${ring.register}
+        """,
+    )
+}
+
+/**
+ * The default ring's four stops as the floats Compose screens load them (0.1435, 0.3779, 0.6071 and
+ * 0.831), raw.
+ */
+internal val COMPOSE_RING_STOPS = listOf(0x3e12f1aa, 0x3ec17c1c, 0x3f1b6ae8, 0x3f54bc6a)
+
+/** Where a Compose story ring makes its brush from a list of colors: the method and the register the list arrives in. */
+internal class ComposeRingBrush(val type: String, val name: String, val register: Int)
+
+/**
+ * Finds where the chat list's story rings make their brush (#683). Those rings never see the default
+ * ring: each takes its colors from Compose's palette (Instagram's yellow, orange, pink and purple), or
+ * from a list the server sends, and hands them as a list of colors to one static that pairs them with
+ * the default ring's stops, kept as a list of floats its class's set-up makes from
+ * [COMPOSE_RING_STOPS]. On 457 that's `LX/0G9f;->A01(Ljava/util/List;)`, the brush of the chat list's
+ * rings and of one more Compose ring. Exactly one static taking only a list and reading such a list
+ * of stops is what the patch can be sure of. The hook goes first in it, so nothing may jump back to
+ * its first instruction.
+ */
+internal fun BytecodePatchContext.findComposeRingBrush(patch: String = PATCH): ComposeRingBrush {
+    val found = classesLoading(COMPOSE_RING_STOPS.last().toLong()).flatMap { classDef ->
+        val stops = classDef.methods.filter { it.name == "<clinit>" }.flatMap { it.stopListsStored(classDef.type) }.toSet()
+        if (stops.isEmpty()) return@flatMap emptyList()
+        classDef.methods.filter { method ->
+            AccessFlags.STATIC.isSet(method.accessFlags) && method.implementation != null &&
+                method.parameterTypes.map(CharSequence::toString) == listOf(LIST) && method.readsStatic(classDef.type, stops)
+        }.map { classDef.type to it }
+    }
+    val (type, method) = found.singleOrNull()
+        ?: refuse(
+            "expected one Compose ring brush taking a list of colors against the default ring's stops, found ${found.size}" +
+                found.joinToString(prefix = if (found.isEmpty()) "" else ": ") { "${it.first}->${it.second.name}" },
+            patch,
+        )
+    if (0 in method.jumpTargets()) refuse("something jumps back to the first instruction of $type->${method.name}", patch)
+    return ComposeRingBrush(type, method.name, method.parameterRegisterNumber(0))
+}
+
+/** The static lists of [type] this set-up stores once it has loaded every one of [COMPOSE_RING_STOPS]. */
+private fun Method.stopListsStored(type: String): List<String> {
+    val code = implementation?.instructions?.toList() ?: return emptyList()
+    val loaded = code.mapNotNullTo(HashSet()) { (it as? NarrowLiteralInstruction)?.narrowLiteral }
+    if (!loaded.containsAll(COMPOSE_RING_STOPS)) return emptyList()
+    return code.filter { it.opcode == Opcode.SPUT_OBJECT }
+        .map { (it as ReferenceInstruction).reference as FieldReference }
+        .filter { it.definingClass == type && it.type == LIST }
+        .map { it.name }
+}
+
+private fun Method.readsStatic(type: String, fields: Set<String>): Boolean =
+    implementation?.instructions?.any { instruction ->
+        instruction.opcode == Opcode.SGET_OBJECT &&
+            ((instruction as ReferenceInstruction).reference as FieldReference).let { it.definingClass == type && it.name in fields }
+    } == true
+
+/** Where the spinning ring around a group of profile pictures pairs its colors with stops: its method, by class, name and parameters. */
+internal class GroupRing(val type: String, val name: String, val parameters: List<String>)
+
+/**
+ * Finds the spinning ring around a group of profile pictures (#187). It never sees the default ring
+ * or the chat list's brush: it reads Instagram's yellow, orange, pink and purple from Compose's
+ * palette itself and pairs each with one of [COMPOSE_RING_STOPS], the stop loaded by a `const` just
+ * before a static taking a float and a long that answers the pair (`LX/0N9F;->A01` on 457's
+ * 386314286, pairing through `LX/0ArC;->A0f(FJ)`). Redex merged that static on 386314341 into one
+ * taking an object and a long, so there the stop is boxed as a Float first (`LX/0N9i;->A01`, through
+ * `LX/089w;->A0t(Ljava/lang/Object;J)`). Exactly one method pairing all four, in order, through one
+ * static is what the patch can be sure of; a build with none or more, or one where something jumps
+ * onto a pairing, is refused, and the patches go in without that ring.
+ */
+internal fun BytecodePatchContext.findGroupRing(patch: String = PATCH): GroupRing {
+    val found = classesLoading(COMPOSE_RING_STOPS.last().toLong()).flatMap { classDef ->
+        classDef.methods.filter { it.name != "<clinit>" && it.stopPairings() != null }.map { classDef.type to it }
+    }
+    val (type, method) = found.singleOrNull()
+        ?: refuse(
+            "expected one Compose ring pairing each of the default ring's stops with a color, found ${found.size}" +
+                found.joinToString(prefix = if (found.isEmpty()) "" else ": ") { "${it.first}->${it.second.name}" },
+            patch,
+        )
+    val targets = method.jumpTargets()
+    if (method.stopPairings()!!.any { it.at in targets }) refuse("something jumps onto a stop's pairing in $type->${method.name}", patch)
+    return GroupRing(type, method.name, method.parameterTypes.map(CharSequence::toString))
+}
+
+/**
+ * A call pairing one of the default ring's stops with a color: where it is, the registers of the stop
+ * and the color, and whether the stop is [boxed] as a Float.
+ */
+internal class StopPairing(val at: Int, val stop: Int, val color: Int, val boxed: Boolean)
+
+/** What a pairing takes, the stop as a float or [boxed][BOXED_STOP], then the color as a long. */
+private val PAIRS_A_STOP = listOf("F", "J")
+private val PAIRS_A_BOXED_STOP = listOf("Ljava/lang/Object;", "J")
+
+/** How a stop is boxed before a [PAIRS_A_BOXED_STOP] pairing takes it. */
+private const val BOXED_STOP = "Ljava/lang/Float;->valueOf(F)Ljava/lang/Float;"
+
+/**
+ * This method's pairings of each of [COMPOSE_RING_STOPS] with a color, in their order, or null unless
+ * it makes exactly one of each, all through one static. A pairing is a static taking a float and a
+ * long, or an object and a long, and answering an object. Its float is a register last set by a
+ * `const` of the stop within the few instructions before it; its object, one last set by boxing a
+ * register set that way.
+ */
+internal fun Method.stopPairings(): List<StopPairing>? {
+    val code = implementation?.instructions?.toList() ?: return null
+    val pairings = mutableListOf<StopPairing>()
+    val calls = HashSet<String>()
+    code.forEachIndexed { at, instruction ->
+        if (instruction.opcode != Opcode.INVOKE_STATIC && instruction.opcode != Opcode.INVOKE_STATIC_RANGE) return@forEachIndexed
+        val call = (instruction as ReferenceInstruction).reference as MethodReference
+        val takes = call.parameterTypes.map(CharSequence::toString)
+        if ((takes != PAIRS_A_STOP && takes != PAIRS_A_BOXED_STOP) || !call.returnType.startsWith("L")) return@forEachIndexed
+        val boxed = takes == PAIRS_A_BOXED_STOP
+        val registers = when (instruction) {
+            is FiveRegisterInstruction -> listOf(instruction.registerC, instruction.registerD, instruction.registerE)
+            is RegisterRangeInstruction -> (instruction.startRegister until instruction.startRegister + 3).toList()
+            else -> return@forEachIndexed
+        }
+        val stop = code.stopLoaded(registers[0], at, boxed)
+        if (stop < 0) return@forEachIndexed
+        if (stop != pairings.size) return null
+        pairings += StopPairing(at, registers[0], registers[1], boxed)
+        calls += call.toString()
+    }
+    return pairings.takeIf { it.size == COMPOSE_RING_STOPS.size && calls.size == 1 }
+}
+
+/**
+ * Which of [COMPOSE_RING_STOPS] [register] holds at [at]: last set by a `const` of it, or with [boxed]
+ * by the answer of boxing a register set that way. -1 for none of them.
+ */
+private fun List<Instruction>.stopLoaded(register: Int, at: Int, boxed: Boolean): Int {
+    var set = lastWriteOf(register, at)
+    if (boxed) {
+        if (set < 1 || this[set].opcode != Opcode.MOVE_RESULT_OBJECT) return -1
+        val box = this[set - 1]
+        if (box.opcode != Opcode.INVOKE_STATIC && box.opcode != Opcode.INVOKE_STATIC_RANGE) return -1
+        if (((box as ReferenceInstruction).reference as MethodReference).toString() != BOXED_STOP) return -1
+        val float = when (box) {
+            is FiveRegisterInstruction -> box.registerC
+            is RegisterRangeInstruction -> box.startRegister
+            else -> return -1
+        }
+        set = lastWriteOf(float, set - 1)
+    }
+    if (set < 0 || this[set].opcode != Opcode.CONST) return -1
+    return COMPOSE_RING_STOPS.indexOf((this[set] as NarrowLiteralInstruction).narrowLiteral)
+}
+
+/** Where the instruction setting [register] last among the few before [before] is, or -1 for none of them. */
+private fun List<Instruction>.lastWriteOf(register: Int, before: Int): Int {
+    for (at in before - 1 downTo maxOf(0, before - WRITE_LOOKBACK)) {
+        val instruction = this[at]
+        if (!instruction.opcode.setsRegister()) continue
+        val written = (instruction as? OneRegisterInstruction)?.registerA ?: continue
+        if (written == register || (instruction.opcode.setsWideRegister() && written + 1 == register)) return at
+    }
+    return -1
+}
+
+/** How far back a stop's `const` may be from its pairing, past a copy of the color and the hooks the patches put in. */
+private const val WRITE_LOOKBACK = 8
+
+/**
+ * Passes each color the group ring pairs with a stop through [hook], with the stop, right before the
+ * pairing, and pairs the answer: [boxedHook] where the stop comes boxed. A hook put in later goes
+ * after one already there, right before the pairing.
+ */
+internal fun BytecodePatchContext.colorGroupRing(ring: GroupRing, hook: String, boxedHook: String, patch: String = PATCH) {
+    val method = mutableClassDefBy(ring.type).methods.single {
+        it.name == ring.name && it.parameterTypes.map(CharSequence::toString) == ring.parameters
+    }
+    val pairings = method.stopPairings() ?: refuse("${ring.type}->${ring.name} no longer pairs the default ring's stops", patch)
+    for (pairing in pairings.asReversed()) {
+        val registers = if (pairing.color == pairing.stop + 1) {
+            "invoke-static/range { v${pairing.stop} .. v${pairing.color + 1} }"
+        } else {
+            "invoke-static { v${pairing.stop}, v${pairing.color}, v${pairing.color + 1} }"
+        }
+        method.addInstructions(
+            pairing.at,
+            """
+                $registers, ${if (pairing.boxed) boxedHook else hook}
+                move-result-wide v${pairing.color}
+            """,
+        )
+    }
+}
+
+/** Passes the list of colors a Compose story ring's brush is made from through [hook] first, and makes the brush from the answer. */
+internal fun BytecodePatchContext.colorComposeRingBrush(brush: ComposeRingBrush, hook: String) {
+    val method = mutableClassDefBy(brush.type).methods.single {
+        it.name == brush.name && AccessFlags.STATIC.isSet(it.accessFlags) && it.parameterTypes.map(CharSequence::toString) == listOf(LIST)
+    }
+    method.addInstructions(
+        0,
+        """
+            invoke-static/range { v${brush.register} .. v${brush.register} }, $hook
+            move-result-object v${brush.register}
+        """,
+    )
+}

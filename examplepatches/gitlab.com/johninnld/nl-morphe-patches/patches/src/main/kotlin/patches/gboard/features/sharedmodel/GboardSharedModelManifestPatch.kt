@@ -22,7 +22,11 @@ internal val gboardSharedModelManifestPatch=resourcePatch(description="Add priva
             val activity=ensureManifestComponent(document,application,"activity","dev.jason.gboardpatches.extension.sharedmodel.SharedModelSetupActivity")
             activity.setManifestAndroidAttribute("exported","false")
             ensureManifestComponent(document,application,"activity","dev.jason.gboardpatches.extension.sharedmodel.SharedWritingContextActivity").setManifestAndroidAttribute("exported","false")
-            ensureManifestComponent(document,application,"activity","dev.jason.gboardpatches.extension.sharedmodel.SharedImageInputActivity").setManifestAndroidAttribute("exported","false")
+            val imagePicker=ensureManifestComponent(document,application,"activity","dev.jason.gboardpatches.extension.sharedmodel.SharedImageInputActivity")
+            imagePicker.setManifestAndroidAttribute("exported","false")
+            // The IME launches this with NEW_TASK. Returning must reveal the editor, not Gboard settings.
+            imagePicker.setManifestAndroidAttribute("taskAffinity","")
+            imagePicker.setManifestAndroidAttribute("excludeFromRecents","true")
             val provider=ensureManifestComponent(document,application,"provider","app.johninnl.modelhost.api.ProviderApkProvider")
             provider.setManifestAndroidAttribute("authorities",manifest.getAttribute("package")+".local-model-host-apks")
             provider.setManifestAndroidAttribute("exported","false")

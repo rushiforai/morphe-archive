@@ -1,0 +1,64 @@
+name: Verify patches against an APK
+
+# Requires an APK you supply: this repo holds no APK, and the check is only meaningful against a
+# real build of com.sbs.diet / com.sbs.train.
+#
+# Runs the built patch bundle through morphe-patcher (the same engine the Morphe client uses) and
+# fails as soon as a fingerprint no longer matches — i.e. after an R8 renaming pass in a new app
+# version. `morphe-patcher` 2.1.0 exposes no CLI entrypoint, so the check is a Gradle test.
+
+on:
+  workflow_dispatch:
+    inputs:
+      apk_url:
+        description: 'Direct download URL of the APK/XAPK to verify against (com.sbs.diet or com.sbs.train)'
+        required: true
+        type: string
+      patch_name:
+        description: 'Optional patch name to require; every patch in the bundle runs when omitted'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  verify-patches:
+    name: Verify patch bundle
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_ACTOR: ${{ github.actor }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      # ubuntu-latest ships the Android SDK; :patches:buildAndroid needs it for the extension
+      # modules, and ANDROID_HOME is already set on the runner.
+
+      - name: Download APK
+        run: |
+          mkdir -p build/verify
+          curl -fsSL --retry 3 -o build/verify/app.apk "${{ inputs.apk_url }}"
+          ls -lh build/verify/app.apk
+
+      - name: Build patch bundle
+        run: ./gradlew :patches:buildAndroid --no-daemon
+
+      - name: Verify fingerprints match
+        run: ./gradlew :patches:test --no-daemon -Papk="$PWD/build/verify/app.apk"
+
+      - name: Check requested patch is present
+        if: inputs.patch_name != ''
+        run: |
+          ./gradlew :patches:generatePatchesList --no-daemon
+          jq -e --arg name "${{ inputs.patch_name }}" \
+            '[.. | objects | select(.name? == $name)] | length > 0' patches-list.json > /dev/null \
+            && echo "patch '${{ inputs.patch_name }}' present" \
+            || { echo "patch '${{ inputs.patch_name }}' not in patches-list.json"; exit 1; }

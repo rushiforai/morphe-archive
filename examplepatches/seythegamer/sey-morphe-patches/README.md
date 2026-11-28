@@ -24,7 +24,7 @@ for the feature patches of both apps.
 | **SEYTTINGS** | base | Turns the licensing row in the KICK settings screen into a red **SEYTTINGS** row that opens a native patched-tweaks dialog. Required by every KICK feature. |
 | **EMOTES** | feature | Shows 7TV, BTTV and FFZ emotes in the KICK chat. One toggle enables all providers, plus a Native/Twitch-like emote size option (also affects KICK's built-in emotes). |
 | **CHAT SIZE** | feature | Three options for the VIDEO/CHAT view: Native (stock), Twitch-like (measured Twitch TV ratio) and Big. The video and chat panel always meet at the same edge. |
-| **CHAT TEXT SIZE** | feature | Two options: Native (stock KICK text and spacing) or Twitch-like (larger 16 sp text, a wider 10 dp gap, lighter messages and bolder usernames). Toggle in SEYTTINGS. |
+| **CHAT TEXT SIZE** | feature | Two options: Native (stock KICK text and spacing) or Twitch-like (15 sp text, 20 sp line height, 6 dp message gap, lighter messages and bolder usernames). Toggle in SEYTTINGS. |
 | **EXPAND CHAT** | feature | Hides the **Join the Chat** footer in the VIDEO/CHAT view and lets the chat fill the freed space. Toggle in SEYTTINGS. |
 | **HIDE PINNED** | feature | Removes the pinned message card (and the ad banner attached to it) from the top of the chat. Toggle in SEYTTINGS. |
 | **SKIP 18+ WARNING** | feature | Auto-accepts the 18+ mature content warning, so a mature stream starts without the extra click. Toggle in SEYTTINGS. |
@@ -32,6 +32,15 @@ for the feature patches of both apps.
 | **DEFAULT HOME DESTINATION** | feature | Opens the chosen tab (Home, Categories, Live, Following or Settings) automatically when KICK starts. Pick it in SEYTTINGS. |
 | **CHAT BACKGROUND** | feature | Replaces the chat background with pure black (#000000) for AMOLED screens. Toggle it in SEYTTINGS. |
 | **DEFAULT SPLIT VIEW** | feature | Opens streams in the video/chat split view by default instead of the small overlay chat. Toggle it in SEYTTINGS. |
+
+### Twitch-like chat typography (KICK)
+
+The **CHAT TEXT SIZE** Twitch-like preset keeps KICK's bundled Inter font and
+uses 15 sp message text, a 20 sp line height inside long messages from one user
+and a 6 dp gap between messages. Message bodies are lighter (weight 400) while
+usernames stay bold (600), as on Twitch TV. **Native** restores KICK's original
+11 sp text, 16 sp line height, 2 dp gap and 600 weight for everything. The
+setting lives in SEYTTINGS and is remembered across restarts.
 
 ### Twitch (Android TV)
 

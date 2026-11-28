@@ -34,6 +34,10 @@ final class LiquidGlassLens extends View {
 
     private static final String LENS_SHADER =
             "uniform shader content;\n" +
+            // Plain white, converted to the shader's working space: SDR white there. In an HDR
+            // window that is well below 1.0, so constant whites must be scaled by it or the glass
+            // lights up at the display's HDR peak, far brighter than the app around it.
+            "layout(color) uniform half4 sdrWhite;\n" +
             "uniform float2 center;\n" +
             "uniform float2 halfSize;\n" +
             "uniform float radius;\n" +
@@ -57,6 +61,7 @@ final class LiquidGlassLens extends View {
             "  float d = sdRoundRect(p, halfSize, radius);\n" +
             "  float coverage = clamp(0.5 - d, 0.0, 1.0);\n" +
             "  if (coverage <= 0.0) return half4(0.0);\n" +
+            "  half w = sdrWhite.g;\n" +
 
             "  float e = 0.75;\n" +
             "  float2 n = float2(\n" +
@@ -81,7 +86,7 @@ final class LiquidGlassLens extends View {
             "  col.a = content.eval(src).a;\n" +
 
             // The wash covers holes as much as content, as in the bar's glass.
-            "  col.rgb = mix(col.rgb, wash.rgb, wash.a);\n" +
+            "  col.rgb = mix(col.rgb, wash.rgb * w, wash.a);\n" +
             "  col.a = mix(col.a, 1.0, wash.a);\n" +
 
             "  float spec = pow(max(dot(n, light), 0.0), 2.0) + 0.5 * pow(max(dot(n, -light), 0.0), 2.0);\n" +
@@ -91,14 +96,14 @@ final class LiquidGlassLens extends View {
             "  float gk = -0.5 / max(glint.z * glint.z, 1.0);\n" +
             "  float g = exp(dot(ga, ga) * gk) + 0.35 * exp(dot(gb, gb) * gk);\n" +
             "  half shine = half(rim * (spec * mix(0.65, 0.4, dark) + g * glint.w));\n" +
-            "  col.rgb += half3(shine);\n" +
+            "  col.rgb += half3(shine) * w;\n" +
             "  col.a = max(col.a, shine);\n" +
             // Darker lower inner edge gives the droplet some volume.
             "  float lower = smoothstep(0.0, halfSize.y, p.y) * rim;\n" +
-            "  col.rgb -= half3(lower * 0.08);\n" +
+            "  col.rgb -= half3(lower * 0.08) * w;\n" +
 
-            "  col = clamp(col, 0.0, 1.0);\n" +
-            "  col.rgb = min(col.rgb, half3(col.a));\n" +
+            "  col.a = clamp(col.a, 0.0, 1.0);\n" +
+            "  col.rgb = clamp(col.rgb, 0.0, w * col.a);\n" +
             "  return col * coverage;\n" +
             "}\n";
 
@@ -109,6 +114,10 @@ final class LiquidGlassLens extends View {
      */
     private static final String DROP_SHADER =
             "uniform shader content;\n" +
+            // Plain white, converted to the shader's working space: SDR white there. In an HDR
+            // window that is well below 1.0, so constant whites must be scaled by it or the glass
+            // lights up at the display's HDR peak, far brighter than the app around it.
+            "layout(color) uniform half4 sdrWhite;\n" +
             "uniform float2 center;\n" +
             "uniform float2 halfSize;\n" +
             "uniform float radius;\n" +
@@ -155,6 +164,7 @@ final class LiquidGlassLens extends View {
             "  float sd = sdRoundedRect(c, halfSize, radius);\n" +
             "  float coverage = clamp(0.5 - sd, 0.0, 1.0);\n" +
             "  if (coverage <= 0.0) return half4(0.0);\n" +
+            "  half w = sdrWhite.g;\n" +
             "  float2 base = center + c / mag;\n" +
             "  float gradRadius = min(radius * 1.5, min(halfSize.x, halfSize.y));\n" +
             "  float2 grad = normalize(gradSdRoundedRect(c, halfSize, gradRadius));\n" +
@@ -198,13 +208,13 @@ final class LiquidGlassLens extends View {
             "  float g = exp(dot(ga, ga) * gk) + 0.35 * exp(dot(gb, gb) * gk);\n" +
             "  float gband = 1.0 - smoothstep(0.0, max(highlightWidth * 2.5, 1.0), -sd);\n" +
             "  half shine = half(highlight * lit * rim + gband * g * glint.w);\n" +
-            "  color.rgb += half3(shine);\n" +
+            "  color.rgb += half3(shine) * w;\n" +
             // Alpha stays from the content (a video hole stays open), premultiplied, except where
             // the highlight itself is drawn.
             "  color.a = max(color.a, shine);\n" +
 
-            "  color = clamp(color, 0.0, 1.0);\n" +
-            "  color.rgb = min(color.rgb, half3(color.a));\n" +
+            "  color.a = clamp(color.a, 0.0, 1.0);\n" +
+            "  color.rgb = clamp(color.rgb, 0.0, w * color.a);\n" +
             "  return color * coverage;\n" +
             "}\n";
 
@@ -1173,7 +1183,10 @@ final class LiquidGlassLens extends View {
         // of up to 5dp along the rim.
         float strength = 6f * density * p;
         float dispersion = 5f * density * p * style().edgeColors;
-        if (shader == null) shader = new RuntimeShader(LENS_SHADER);
+        if (shader == null) {
+            shader = new RuntimeShader(LENS_SHADER);
+            shader.setColorUniform("sdrWhite", Color.WHITE);
+        }
         float bezel = Math.max(1f, Math.min(r, 16f * density));
         sig[0] = bezel;
         sig[1] = strength;
@@ -1208,6 +1221,7 @@ final class LiquidGlassLens extends View {
         if (dropShader == null) {
             try {
                 dropShader = new RuntimeShader(DROP_SHADER);
+                dropShader.setColorUniform("sdrWhite", Color.WHITE);
             } catch (RuntimeException e) {
                 // A shader the GPU driver rejects must not take Instagram down: plain fill instead.
                 dropShaderFailed = true;

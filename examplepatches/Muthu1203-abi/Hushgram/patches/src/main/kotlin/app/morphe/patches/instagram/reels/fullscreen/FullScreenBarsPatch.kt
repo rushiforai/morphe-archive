@@ -1,0 +1,439 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.morphe.patches.instagram.reels.fullscreen
+
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.string
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.instagram.misc.extension.enableStatus
+import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
+import app.morphe.patches.instagram.misc.extension.loadsString
+import app.morphe.patches.instagram.misc.extension.patchLog
+import app.morphe.patches.instagram.misc.extension.requireStatusMethod
+import app.morphe.patches.instagram.misc.extension.uniqueMethod
+import app.morphe.patches.instagram.misc.settings.settingsPatch
+import app.morphe.patches.instagram.misc.theme.ChatBackgroundSite
+import app.morphe.patches.instagram.misc.theme.chatBackgroundSites
+import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.addInstructionsAtControlFlowLabel
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
+
+internal const val FULL_SCREEN_BARS_PATCH = "Full screen Reels and Home"
+internal const val FULL_SCREEN_BARS = "$EXTENSION_PACKAGE/reels/FullScreenBars;"
+internal const val BAR_HEIGHT_HOOK = "$FULL_SCREEN_BARS->barHeight(I)I"
+internal const val NAV_BAR_HEIGHT_HOOK = "$FULL_SCREEN_BARS->navBarHeight(I)I"
+internal const val KEEP_STATUS_BAR_HEIGHT = "$FULL_SCREEN_BARS->keepStatusBarHeight(I)V"
+internal const val KEEP_NAV_BAR_HEIGHT = "$FULL_SCREEN_BARS->keepNavBarHeight(I)V"
+internal const val HEIGHTS_ASKED = "$FULL_SCREEN_BARS->heightsAsked(Landroid/app/Activity;Ljava/lang/Object;)V"
+internal const val HEIGHTS_DROPPED = "$FULL_SCREEN_BARS->heightsDropped(Landroid/app/Activity;Ljava/lang/Object;)V"
+internal const val TELL_HEIGHTS = "$FULL_SCREEN_BARS->tellHeights(Ljava/lang/Object;II)V"
+internal const val TAB_BAR_KEPT_HOOK = "$FULL_SCREEN_BARS->keepsTabBarThroughATell(I)Z"
+internal const val CHAT_THEME_STRIP = "$FULL_SCREEN_BARS->chatThemeStrip(I)I"
+internal const val MAIN_ACTIVITY = "Lcom/instagram/mainactivity/InstagramMainActivity;"
+
+/** What the main activity's layout for a new screen size logs as it moves the tab bar, held by that method alone. */
+internal const val TAB_BAR_MIGRATION = "tab_bar_migration_remove"
+private const val ACTIVITY = "Landroid/app/Activity;"
+
+/** What Instagram's window insets listener logs when it keeps a new status bar height. */
+internal const val STATUS_BAR_CHANGED =
+    "Status bar height: old=%d new=%d, Activity=%s RetryCount=%d isFullScreenFlagSet=%b windowFlags=0x%X"
+
+/** The same for the navigation bar, spelled as Instagram spells it. */
+internal const val NAV_BAR_CHANGED =
+    "Nab bar height: old=%d new=%d, Activity=%s RetryCount=%d isFullScreenFlagSet=%b windowFlags=0x%X"
+
+/** Instagram's window insets listener on each activity's window, by the two lines it logs. */
+internal object BarHeightsFingerprint : Fingerprint(
+    filters = listOf(string(STATUS_BAR_CHANGED)),
+    custom = { method, _ -> method.holdsString(STATUS_BAR_CHANGED) && method.holdsString(NAV_BAR_CHANGED) },
+)
+
+/**
+ * Has both bar heights Instagram's window insets listener keeps ask FullScreenBars first, once for
+ * every patch that changes them: Full screen Reels and Home (#147) and Liquid Glass navigation bar, whose floating
+ * pill lets the screens run down behind the gesture handle (#144). Written twice, the listener would
+ * ask twice for each height. The status bar's height asks [BAR_HEIGHT_HOOK], the navigation bar's
+ * [NAV_BAR_HEIGHT_HOOK]. The extension can put each height back where the listener keeps it
+ * ([fillKeptHeights], #196). Declared above [fullScreenBarsPatch]: a file's properties start in order,
+ * and a patch that names this one before it exists would name nothing.
+ */
+internal val barHeightsPatch = bytecodePatch {
+    dependsOn(instagramExtensionPatch)
+
+    execute {
+        val listener = findBarHeights()
+        val stores = listener.barHeightStores()
+        val holder = stores.map { it.field.definingClass }.distinct().singleOrNull()
+            ?: refuse("the window insets listener keeps its heights in two classes")
+        fillKeptHeights(stores)
+        followHeightListeners(holder, listener.heightsListenerCall())
+        keepTabBarThroughTells()
+        routeBarHeights(listener)
+    }
+}
+
+/**
+ * Hides the status bar and the navigation bar while Reels or Home shows. See FullScreenBars in the
+ * extension.
+ *
+ * The extension finds the reels viewer and the tab bar's tabs by the names Instagram looks them up by
+ * (clips_viewer_container, tab_bar, clips_tab, feed_tab, the same ids on all seven 450 builds) once an
+ * activity resumes, and the application-start hook the settings patch already writes starts the
+ * watching. Instagram's code changes in one place (#147): its window insets listener keeps each bar's
+ * height in a static field its screens pad by, and keeps the old height while the bar is hidden, so
+ * the screens left an empty strip where each bar was. Both stores of those heights ask the extension
+ * first ([barHeightsPatch]), which answers 0 while it has the bars hidden. In the default selection with
+ * both switches off. The story viewer's layout asks too ([fillStoryScreen], #436), and so do its item
+ * binder and whole-screen layout ([layStoriesOutAsTheyBind], #618), and the reel item layout on a
+ * screen wider than 9:16 ([fillWideReelScreen], #491). Show the whole reel also narrows a reel's cover
+ * and video to the post's shape on a screen wider than the reel ([fitReelVideo], #681). A themed chat
+ * asks for the height of the strip it paints under the status bar ([closeChatThemeStrip], #187).
+ */
+@Suppress("unused")
+val fullScreenBarsPatch = bytecodePatch(
+    name = "Full screen Reels and Home",
+    description = "Hides the status bar and the navigation bar while Reels shows, and optionally on Home, your messages, " +
+        "stories, Explore or your profile. " +
+        "Swipe in from the edge to bring them back for a moment. Back and the keyboard work as usual. " +
+        "It can also show stories over the whole screen on tall phones. " +
+        "Starts off. Turn it on in HushGram settings > Reels (Full screen Reels), Feed (Full screen Home), " +
+        "Messages (Full screen Messages), Stories (Full screen stories, Stories fill the screen), " +
+        "Explore (Full screen Explore) and Profiles (Full screen profile).",
+) {
+    category("Reels")
+    dependsOn(settingsPatch, instagramExtensionPatch, barHeightsPatch)
+    compatibleWith(*AppCompatibilities.instagram())
+
+    execute {
+        requireStatusMethod("fullScreenBars")
+        fillReelScreen()
+        fillWideReelScreen()
+        fitReelScreen()
+        fitReelVideo()
+        fillStoryScreen()
+        layStoriesOutAsTheyBind()
+        closeChatThemeStrip()
+        enableStatus("fullScreenBars")
+    }
+}
+
+private fun refuse(why: String): Nothing = throw PatchException("$FULL_SCREEN_BARS_PATCH: $why")
+
+private fun Method.holdsString(value: String) = implementation?.instructions?.any {
+    ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == value
+} == true
+
+/** One store of a bar height: where it is, the register it stores and the field it stores to. */
+internal data class BarHeightStore(val index: Int, val register: Int, val field: FieldReference)
+
+/** The insets listener, proved to hold both stores before anything changes. */
+internal fun BytecodePatchContext.findBarHeights(): MutableMethod {
+    val listener = uniqueMethod(FULL_SCREEN_BARS_PATCH, "window insets listener", BarHeightsFingerprint)
+    listener.barHeightStores()
+    return listener
+}
+
+/**
+ * The listener's stores of the status bar's and the navigation bar's heights, in that order. The
+ * fields are the two it reads for each of its height listeners: two static int reads right before
+ * an interface call taking two ints. Each is stored once, from a register an invoke can name.
+ */
+internal fun Method.barHeightStores(): List<BarHeightStore> {
+    val code = implementation?.instructions?.toList().orEmpty()
+    val notify = code.heightsNotifyAt()
+    val stores = listOf(code[notify - 2], code[notify - 1]).map { read ->
+        val field = (read as ReferenceInstruction).reference as FieldReference
+        val at = code.indices.filter { index ->
+            code[index].opcode == Opcode.SPUT && ((code[index] as ReferenceInstruction).reference as FieldReference).sameAs(field)
+        }
+        if (at.size != 1) refuse("the window insets listener stores ${field.name} ${at.size} times, not once")
+        val register = (code[at.single()] as OneRegisterInstruction).registerA
+        if (register > 15) refuse("the window insets listener stores ${field.name} from v$register, past what an invoke names")
+        BarHeightStore(at.single(), register, field)
+    }
+    if (stores[0].field.sameAs(stores[1].field)) refuse("the window insets listener reads one height twice")
+    return stores
+}
+
+/** Where the listener hands each height listener the two stored heights: an interface call on two static int reads. */
+private fun List<Instruction>.heightsNotifyAt(): Int = (2 until size).firstOrNull { at ->
+    val call = (this[at] as? ReferenceInstruction)?.reference as? MethodReference
+    this[at].opcode == Opcode.INVOKE_INTERFACE && call != null && call.returnType == "V" &&
+        call.parameterTypes.map(CharSequence::toString) == listOf("I", "I") &&
+        this[at - 2].opcode == Opcode.SGET && this[at - 1].opcode == Opcode.SGET
+} ?: refuse("the window insets listener hands its height listeners no two stored heights")
+
+/** The height listeners' method the listener calls with the two heights, like 0Dvn.GES(II)V on 451. */
+internal fun Method.heightsListenerCall(): MethodReference {
+    val code = implementation?.instructions?.toList().orEmpty()
+    return (code[code.heightsNotifyAt()] as ReferenceInstruction).reference as MethodReference
+}
+
+private fun FieldReference.sameAs(other: FieldReference) =
+    definingClass == other.definingClass && name == other.name && type == other.type
+
+/**
+ * Fills the extension's two stubs that store a bar's height where the listener keeps it, the status
+ * bar's [KEEP_STATUS_BAR_HEIGHT] and the navigation bar's [KEEP_NAV_BAR_HEIGHT] (#196). As an
+ * activity pauses, FullScreenBars puts back each height it answered 0 for, since a chat opening in its
+ * own activity reads them before that window's insets reach the listener. The fields must be public
+ * statics of a public class, as on 451, for the extension to write them.
+ */
+internal fun BytecodePatchContext.fillKeptHeights(stores: List<BarHeightStore>) {
+    val bars = classDefByOrNull(FULL_SCREEN_BARS)?.let { mutableClassDefBy(FULL_SCREEN_BARS) }
+        ?: refuse("$FULL_SCREEN_BARS isn't in the extension")
+    for ((store, stub) in stores.zip(listOf(KEEP_STATUS_BAR_HEIGHT, KEEP_NAV_BAR_HEIGHT))) {
+        val holder = classDefByOrNull(store.field.definingClass) ?: refuse("${store.field.definingClass} isn't in the app")
+        val field = holder.fields.singleOrNull { it.name == store.field.name && it.type == store.field.type }
+            ?: refuse("${store.field.definingClass} has no field ${store.field.name}")
+        if (!AccessFlags.PUBLIC.isSet(holder.accessFlags) || !AccessFlags.PUBLIC.isSet(field.accessFlags) ||
+            !AccessFlags.STATIC.isSet(field.accessFlags)
+        ) {
+            refuse("${store.field.definingClass}->${store.field.name} isn't a public static the extension can write")
+        }
+        val name = stub.substringAfter("->").substringBefore('(')
+        val method = bars.methods.singleOrNull {
+            it.name == name && it.returnType == "V" && it.parameterTypes.map(Any::toString) == listOf("I") &&
+                AccessFlags.STATIC.isSet(it.accessFlags)
+        } ?: refuse("$FULL_SCREEN_BARS has no static V $name(I)")
+        method.addInstructions(0, "sput p0, ${store.field.definingClass}->${store.field.name}:${store.field.type}")
+    }
+}
+
+/**
+ * Where a screen's bar heights listener is registered and removed: the class holding the heights,
+ * and each class of the app it keeps in a static field. On 455 the holder does it itself; on 456 its
+ * companion (08bA on 386214574, kept in 08bs.A0G) registers through an instance (Activity, listener,
+ * once) and removes through a static (Activity, listener).
+ */
+internal fun BytecodePatchContext.heightListenerHomes(holderType: String): List<String> {
+    val holder = classDefByOrNull(holderType) ?: refuse("$holderType isn't in the app")
+    val kept = holder.fields.filter { AccessFlags.STATIC.isSet(it.accessFlags) && it.type != holderType }
+        .map { it.type }.distinct().filter { classDefByOrNull(it) != null }
+    return listOf(holderType) + kept
+}
+
+/**
+ * Lets FullScreenBars hear about each screen's bar heights listener and tell it a new pair (#200).
+ * The holder or its companion ([heightListenerHomes]) registers a listener through an (Activity,
+ * listener, once) and removes one through (Activity, listener), which tell [HEIGHTS_ASKED] and
+ * [HEIGHTS_DROPPED] first, each the one method of its shape there.
+ * The [TELL_HEIGHTS] stub calls the listener's own method, [call]. Instagram calls most listeners once
+ * and lets them go, so the Reels viewer built before Full screen Reels hid the bars kept their old
+ * heights as black strips until it resumed.
+ */
+internal fun BytecodePatchContext.followHeightListeners(holderType: String, call: MethodReference) {
+    val type = call.definingClass
+    val listener = classDefByOrNull(type) ?: refuse("$type isn't in the app")
+    if (!AccessFlags.PUBLIC.isSet(listener.accessFlags) || !AccessFlags.INTERFACE.isSet(listener.accessFlags)) {
+        refuse("$type isn't a public interface the extension can call")
+    }
+    val homes = heightListenerHomes(holderType)
+    fun registration(parameters: List<String>): Pair<MutableMethod, String> {
+        val found = homes.flatMap { home -> classDefBy(home).methods }.filter {
+            it.returnType == "V" && it.parameterTypes.map(Any::toString) == parameters
+        }
+        val stock = found.singleOrNull()
+            ?: refuse("expected one V (${parameters.joinToString("")}) in $homes, found ${found.size}")
+        val method = mutableClassDefBy(stock.definingClass).methods.single {
+            it.name == stock.name && it.returnType == "V" && it.parameterTypes.map(Any::toString) == parameters
+        }
+        // The activity and the listener come first: p0 and p1 on a static, p1 and p2 past an instance's this.
+        return method to if (AccessFlags.STATIC.isSet(method.accessFlags)) "p0, p1" else "p1, p2"
+    }
+    registration(listOf(ACTIVITY, type, "Z")).let { (method, args) -> method.addInstructions(0, "invoke-static { $args }, $HEIGHTS_ASKED") }
+    registration(listOf(ACTIVITY, type)).let { (method, args) -> method.addInstructions(0, "invoke-static { $args }, $HEIGHTS_DROPPED") }
+
+    val bars = classDefByOrNull(FULL_SCREEN_BARS)?.let { mutableClassDefBy(FULL_SCREEN_BARS) }
+        ?: refuse("$FULL_SCREEN_BARS isn't in the extension")
+    val tell = bars.methods.singleOrNull {
+        "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" == TELL_HEIGHTS.substringAfter("->") &&
+            AccessFlags.STATIC.isSet(it.accessFlags)
+    } ?: refuse("$FULL_SCREEN_BARS has no static ${TELL_HEIGHTS.substringAfter("->")}")
+    tell.addInstructions(
+        0,
+        """
+            check-cast p0, $type
+            invoke-interface { p0, p1, p2 }, $type->${call.name}(II)V
+        """,
+    )
+}
+
+/**
+ * The main activity's method that shows or hides its tab bar, like A0X(IZ)V on 456's 386214574: the
+ * one private [TAB_BAR_VISIBILITY_PARAMETERS] V the activity's static layout for a new screen size
+ * ([TAB_BAR_MIGRATION]) calls on it, the visibility first. That layout runs from the activity's own
+ * bar heights listener, one of those FullScreenBars keeps and tells, and shows the bar again.
+ */
+internal fun BytecodePatchContext.tabBarVisibilityMethod(): MutableMethod {
+    val main = classDefByOrNull(MAIN_ACTIVITY) ?: refuse("$MAIN_ACTIVITY isn't in the app")
+    val layout = main.methods.filter {
+        AccessFlags.STATIC.isSet(it.accessFlags) && loadsString(it, TAB_BAR_MIGRATION)
+    }.singleOrNull() ?: refuse("$MAIN_ACTIVITY has no single static method loading $TAB_BAR_MIGRATION")
+    val shape = "(${TAB_BAR_VISIBILITY_PARAMETERS.joinToString("")})V"
+    val shown = layout.implementation?.instructions?.toList().orEmpty().mapNotNull { instruction ->
+        val call = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+        call?.takeIf {
+            instruction.opcode == Opcode.INVOKE_DIRECT && it.definingClass == MAIN_ACTIVITY && it.returnType == "V" &&
+                it.parameterTypes.map(Any::toString) == TAB_BAR_VISIBILITY_PARAMETERS
+        }?.name
+    }.distinct().singleOrNull() ?: refuse("the activity's layout for a new screen size calls no single private $shape on it")
+    val method = mutableClassDefBy(MAIN_ACTIVITY).methods.singleOrNull {
+        it.name == shown && it.returnType == "V" && it.parameterTypes.map(Any::toString) == TAB_BAR_VISIBILITY_PARAMETERS &&
+            !AccessFlags.STATIC.isSet(it.accessFlags)
+    } ?: refuse("$MAIN_ACTIVITY has no instance $shown$shape")
+    val ins = 1 + TAB_BAR_VISIBILITY_PARAMETERS.size
+    if ((method.implementation?.registerCount ?: 0) <= ins) refuse("$MAIN_ACTIVITY->$shown$shape has no register of its own")
+    return method
+}
+
+/** The tab bar's show-or-hide method takes the visibility and, since 456, a boolean after it. */
+internal val TAB_BAR_VISIBILITY_PARAMETERS = listOf("I", "Z")
+
+/**
+ * Has the tab bar's show-or-hide method ask [TAB_BAR_KEPT_HOOK] first and return when it says to.
+ * A chat hides the bar, and with a floating glass pill its opening and its keyboard change the
+ * navigation bar's height, so FullScreenBars tells the kept listeners a new pair, the activity's own
+ * among them, whose layout then showed the pill over the message box. The extension answers yes only
+ * for a show asked for during a tell.
+ */
+internal fun BytecodePatchContext.keepTabBarThroughTells() {
+    val method = tabBarVisibilityMethod()
+    method.addInstructionsWithLabels(
+        0,
+        """
+            invoke-static { p1 }, $TAB_BAR_KEPT_HOOK
+            move-result v0
+            if-eqz v0, :shown
+            return-void
+        """,
+        ExternalLabel("shown", method.getInstruction(0)),
+    )
+}
+
+/**
+ * Each store asks the extension first: the store becomes the call, and the answer is stored in its
+ * place. The status bar's store asks [BAR_HEIGHT_HOOK] and the navigation bar's [NAV_BAR_HEIGHT_HOOK].
+ * A jump to the store lands on the call, and one to what followed it still skips the store, as
+ * before. Later stores go first, so the earlier indexes still hold.
+ */
+internal fun routeBarHeights(listener: MutableMethod) {
+    val (status, nav) = listener.barHeightStores()
+    for ((store, hook) in listOf(status to BAR_HEIGHT_HOOK, nav to NAV_BAR_HEIGHT_HOOK).sortedByDescending { it.first.index }) {
+        val field = "${store.field.definingClass}->${store.field.name}:${store.field.type}"
+        listener.replaceInstruction(store.index, "invoke-static { v${store.register} }, $hook")
+        listener.addInstructions(
+            store.index + 1,
+            """
+                move-result v${store.register}
+                sput v${store.register}, $field
+            """,
+        )
+    }
+}
+
+/**
+ * Where an opened chat's background sizes the strip its theme paints under the status bar: the sub-int
+ * making the strip's bottom inset, and the register holding the bar's height it takes from the screen's.
+ */
+internal class ChatThemeStripSite(val method: Method, val at: Int, val height: Int)
+
+private const val LAYER_DRAWABLE = "Landroid/graphics/drawable/LayerDrawable;"
+private const val SET_LAYER_INSET = "$LAYER_DRAWABLE->setLayerInset(IIIII)V"
+
+/**
+ * The strip an opened chat's theme paints across its top, under the status bar (#187). The method painting
+ * the chat's background ([chatBackgroundSites], 07CM.A0D on 386314286, 07Cu.A0D on 386314341 and 07Op.A0D
+ * on 386314340) stacks the theme's ShapeDrawable over its background and gives it, in its layers' first
+ * setLayerInset call, the screen's height less the status bar's as its bottom inset. The bar's height comes
+ * from getInsetsIgnoringVisibility, or the status_bar_height resource, so a hidden bar's height still. The
+ * site is the sub-int making that inset, which both ways there pass. None, with a warning, unless exactly
+ * one method has it; refuses without the extension's hook.
+ */
+internal fun BytecodePatchContext.findChatThemeStrip(): ChatThemeStripSite? {
+    val sites = chatBackgroundSites().mapNotNull(::stripSite)
+    val site = sites.singleOrNull() ?: run {
+        patchLog.warning(
+            "$FULL_SCREEN_BARS_PATCH: found ${sites.size} chat backgrounds sizing a strip under the status bar, " +
+                "so a themed chat keeps it with Full screen Messages",
+        )
+        return null
+    }
+    if (classDefByOrNull(FULL_SCREEN_BARS)?.methods?.any {
+            "${it.definingClass}->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" == CHAT_THEME_STRIP &&
+                AccessFlags.STATIC.isSet(it.accessFlags) && AccessFlags.PUBLIC.isSet(it.accessFlags)
+        } != true
+    ) {
+        refuse("the extension has no public static $CHAT_THEME_STRIP")
+    }
+    return site
+}
+
+/**
+ * [background]'s strip site: the first setLayerInset after it builds its layers, whose last argument (the
+ * bottom inset) a sub-int writes last, from two registers, the second the status bar's height.
+ */
+private fun stripSite(background: ChatBackgroundSite): ChatThemeStripSite? {
+    val code = background.method.implementation?.instructions?.toList() ?: return null
+    val built = code.indexOfFirst {
+        it.opcode == Opcode.NEW_INSTANCE && (it as ReferenceInstruction).reference.toString() == LAYER_DRAWABLE &&
+            (it as OneRegisterInstruction).registerA == background.layers
+    }
+    if (built < 0) return null
+    val inset = (built + 1 until code.size).firstOrNull {
+        (code[it] as? ReferenceInstruction)?.reference?.toString() == SET_LAYER_INSET
+    } ?: return null
+    val call = code[inset] as? RegisterRangeInstruction ?: return null
+    val bottom = call.startRegister + call.registerCount - 1
+    val made = (inset - 1 downTo built + 1).firstOrNull { code[it].writes(bottom) } ?: return null
+    val sub = code[made]
+    if (sub.opcode != Opcode.SUB_INT || sub !is ThreeRegisterInstruction || sub.registerB == sub.registerC) return null
+    return ChatThemeStripSite(background.method, made, sub.registerC)
+}
+
+private fun Instruction.writes(register: Int): Boolean {
+    val written = (this as? OneRegisterInstruction)?.registerA ?: return false
+    return (opcode.setsRegister() && written == register) || (opcode.setsWideRegister() && written + 1 == register)
+}
+
+/**
+ * Has the strip [findChatThemeStrip] found ask [CHAT_THEME_STRIP] for the status bar's height right before
+ * its inset is made, so with Full screen Messages hiding that bar a themed chat paints no band where the bar
+ * was (#187). A branch onto the sub-int lands on the call. Leaves chats as they are when there's no strip.
+ */
+internal fun BytecodePatchContext.closeChatThemeStrip() {
+    val site = findChatThemeStrip() ?: return
+    val method = mutableClassDefBy(site.method.definingClass).methods.single {
+        it.name == site.method.name && it.parameterTypes.map(Any::toString) == site.method.parameterTypes.map(Any::toString) &&
+            it.returnType == site.method.returnType
+    }
+    method.addInstructionsAtControlFlowLabel(
+        site.at,
+        """
+            invoke-static/range { v${site.height} .. v${site.height} }, $CHAT_THEME_STRIP
+            move-result v${site.height}
+        """,
+    )
+}

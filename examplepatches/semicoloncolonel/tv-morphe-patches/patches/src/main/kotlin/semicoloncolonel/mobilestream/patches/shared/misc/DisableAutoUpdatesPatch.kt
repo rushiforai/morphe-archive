@@ -7,7 +7,14 @@
 package semicoloncolonel.mobilestream.patches.shared.misc
 
 import app.morphe.patcher.patch.resourcePatch
-import semicoloncolonel.mobilestream.patches.appletv.shared.Constants as AppleTv
+import semicoloncolonel.mobilestream.patches.moviesanywhere.shared.Constants as MoviesAnywhere
+import semicoloncolonel.mobilestream.patches.fandango.shared.Constants as Fandango
+import semicoloncolonel.mobilestream.patches.abcnews.shared.Constants as AbcNews
+import semicoloncolonel.mobilestream.patches.cbsnews.shared.Constants as CbsNews
+import semicoloncolonel.mobilestream.patches.cnn.shared.Constants as Cnn
+import semicoloncolonel.mobilestream.patches.foxlocal.shared.Constants as FoxLocal
+import semicoloncolonel.mobilestream.patches.foxnews.shared.Constants as FoxNews
+import semicoloncolonel.mobilestream.patches.nbcuott.shared.Constants as Nbcu
 import semicoloncolonel.mobilestream.patches.espn.shared.Constants as Espn
 import semicoloncolonel.mobilestream.patches.nfl.shared.Constants as Nfl
 import semicoloncolonel.mobilestream.patches.nba.shared.Constants as Nba
@@ -59,6 +66,16 @@ val disableAutoUpdatesPatch = resourcePatch(
         JustWatch.COMPATIBILITY,
         Mlb.COMPATIBILITY,
         NewsNation.COMPATIBILITY,
+        MoviesAnywhere.COMPATIBILITY,
+        Fandango.COMPATIBILITY,
+        Nbcu.CNBC,
+        Nbcu.NBC_NEWS,
+        Nbcu.MS_NOW,
+        AbcNews.COMPATIBILITY,
+        CbsNews.COMPATIBILITY,
+        Cnn.COMPATIBILITY,
+        FoxLocal.COMPATIBILITY,
+        FoxNews.COMPATIBILITY,
     )
 
     execute {

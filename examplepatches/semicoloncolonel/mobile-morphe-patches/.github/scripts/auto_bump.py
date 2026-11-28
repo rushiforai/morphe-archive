@@ -14,12 +14,15 @@ updates workflow, which runs only when the repository variable AUTO_BUMP is
     dev is for testing, so a crash, a quick exit, or a failed install still
     ships to dev, where it can be debugged. The result is recorded on the
     issue and in the dev commit, and a build that did not open cleanly keeps
-    its "experimental" or "needs review" label. The certificate must still
+    its "experimental" or "status: needs review" label. The certificate must still
     match and every patch must still apply, so an untrusted or unbuildable
     download is never shipped.
-  - The app has one Compatibility. Apps whose phone and Android TV builds
-    share a package (HBO Max, NewsNation, JustWatch, Apple TV) keep their
-    "ready to bump" issue for a person to handle.
+  - The app has one Compatibility. Apps with more than one, such as HBO Max,
+    keep their "status: ready to bump" issue for a person to handle.
+  - The version's issue is not labeled "resolution: not patchable". A person adds that
+    label when the version cannot be patched, such as Moviebase 7.7.2, whose
+    Pairip protection stops a re-signed copy. The issue stays open, so the
+    update check does not open a new one.
 
 The new version is added as devTarget(new version, versionCode = ...), so dev
 builds mark it experimental. Every older version stays targeted, so people who
@@ -33,7 +36,7 @@ follows any dev pre-release published by hand.
     python3 .github/scripts/auto_bump.py app-updates --comment <commit sha> [--release <tag>]
 
 The workflow waits for the Release run. When it succeeds, each bumped app's
-issue is labeled "testing on dev" and gets a comment that links the
+issue is labeled "status: testing on dev" and gets a comment that links the
 pre-release and asks people to report how it works. The update check closes
 the issue once a main release targets the version.
 """
@@ -47,9 +50,10 @@ import subprocess
 from pathlib import Path
 
 TITLE_PREFIX = "App update: "
-ISSUE_LABEL = "app update"
-READY_LABEL = "ready to bump"
-TESTING_LABEL = "testing on dev"
+ISSUE_LABEL = "type: app update"
+READY_LABEL = "status: ready to bump"
+TESTING_LABEL = "status: testing on dev"
+HELD_LABEL = "resolution: not patchable"
 DEV_TARGET_IMPORT = "import semicoloncolonel.mobilestream.patches.shared.misc.devTarget"
 
 
@@ -172,13 +176,23 @@ def qualifies(record, launches):
     return None
 
 
-def bump(report, repo):
+def held_titles():
+    """Titles of the open update issues labeled resolution: not patchable."""
+    result = subprocess.run(["gh", "issue", "list", "--label", ISSUE_LABEL, "--label", HELD_LABEL, "--state", "open",
+                             "--limit", "500", "--json", "title"], capture_output=True, text=True)
+    return {i["title"] for i in json.loads(result.stdout or "[]")}
+
+
+def bump(report, repo, held=None):
     results = json.loads((report / "app-updates.json").read_text())
+    held = held_titles() if held is None else held
     launch_file = report / "launch.json"
     launches = json.loads(launch_file.read_text()) if launch_file.exists() else {}
     bumped = []
     for record in results:
         reason = qualifies(record, launches)
+        if reason is None and f"{TITLE_PREFIX}{record['name']} {record['latest']}" in held:
+            reason = "its issue is labeled resolution: not patchable"
         if reason is None:
             reason = bump_constants(repo, record["package"], record["pinned"], record["latest"],
                                     record.get("version_code"))
@@ -207,7 +221,7 @@ def bump(report, repo):
 
 def comment(report, sha, release=None):
     """Comments on each bumped app's issue. With the tag of the dev pre-release
-    that includes the bump, the issue is labeled "testing on dev" and asks for
+    that includes the bump, the issue is labeled "status: testing on dev" and asks for
     reports. It stays open until a main release targets the version."""
     bumped = json.loads((report / "bumped.json").read_text())
     repo = os.environ.get("GITHUB_REPOSITORY", "")

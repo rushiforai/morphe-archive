@@ -6,7 +6,10 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.resourceXml
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.tvpatches.patches.youtubetv.misc.gms.CobaltActivityOnCreateFingerprint
 import app.tvpatches.patches.youtubetv.misc.gms.youtubeTvExtensionPatch
 import app.tvpatches.patches.youtubetv.shared.Constants.COMPATIBILITY_YOUTUBE_TV
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -18,6 +21,8 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
 private const val EXTENSION_CLASS = "Lapp/tvpatches/extension/youtubetv/TvScripts;"
+private const val PIP_HELPER = "Lapp/tvpatches/extension/youtubetv/PipHelper;"
+private val REQUIRED_PIP_CONFIG_CHANGES = listOf("screenSize", "smallestScreenSize", "screenLayout", "orientation")
 private const val OBSERVER_CLASS = "Ldev/cobalt/shell/StartupGuardNavigationObserver;"
 private const val WEB_CONTENTS = "Lcobalt/org/chromium/content_public/browser/WebContents;"
 private const val NAVIGATION_HANDLE = "Lcobalt/org/chromium/content_public/browser/NavigationHandle;"
@@ -51,15 +56,36 @@ internal object StartupGuardRedirectNavigationFingerprint : Fingerprint(
  * keeps it attached and makes it run the scripts on every page load. The script bundle itself is
  * injected through the native WebContentsImpl.evaluateJavaScript (see TvScripts.java).
  */
+private val pipResourcePatch = resourcePatch {
+    execute {
+        resourceXml("AndroidManifest.xml").use { manifest ->
+            val app = manifest.root.elements("application").firstOrNull() ?: return@use
+            app.elements("activity").forEach { activity ->
+                val name = activity.attribute("android:name") ?: ""
+                if (name.contains("MainActivity") || name.contains("StandalonePlayerActivity")) {
+                    activity.setAttribute("android:supportsPictureInPicture", "true")
+                    activity.setAttribute("android:resizeableActivity", "true")
+                    val existing = (activity.attribute("android:configChanges") ?: "")
+                        .split("|")
+                        .map { it.trim() }
+                        .filter { it.isNotEmpty() }
+                        .toMutableSet()
+                    existing.addAll(REQUIRED_PIP_CONFIG_CHANGES)
+                    activity.setAttribute("android:configChanges", existing.joinToString("|"))
+                }
+            }
+        }
+    }
+}
+
 @Suppress("unused")
 val youTvScriptsPatch = bytecodePatch(
     name = "BirdyTV settings and scripts",
-    description = "Adds a \"BirdyTV\" section to YouTube's Settings with switches to hide Shorts, " +
-        "hide the topic tabs and block video ads.",
+    description = "Adds a \"BirdyTV\" settings menu to YouTube TV.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_YOUTUBE_TV)
-    dependsOn(youtubeTvExtensionPatch)
+    dependsOn(youtubeTvExtensionPatch, pipResourcePatch)
 
     execute {
         // Remember the page's WebContents.
@@ -124,5 +150,44 @@ val youTvScriptsPatch = bytecodePatch(
                 return-void
             """,
         )
+
+        // Picture-in-Picture support (controlled by the PiP toggle in BirdyTV settings).
+        CobaltActivityOnCreateFingerprint.method.addInstruction(
+            0,
+            "invoke-static/range { p0 .. p0 }, $PIP_HELPER->setActivity(Landroid/app/Activity;)V",
+        )
+        val cobaltClass = CobaltActivityOnCreateFingerprint.classDef
+        val existingLeaveHint = cobaltClass.methods.firstOrNull {
+            it.name == "onUserLeaveHint" && it.parameters.isEmpty() && it.returnType == "V"
+        }
+        if (existingLeaveHint != null) {
+            existingLeaveHint.addInstruction(
+                0,
+                "invoke-static/range { p0 .. p0 }, $PIP_HELPER->onUserLeaveHint(Landroid/app/Activity;)V",
+            )
+        } else {
+            val superType = cobaltClass.superclass ?: "Landroid/app/Activity;"
+            cobaltClass.methods.add(
+                ImmutableMethod(
+                    cobaltClass.type,
+                    "onUserLeaveHint",
+                    emptyList(),
+                    "V",
+                    AccessFlags.PUBLIC.value,
+                    null,
+                    null,
+                    MutableMethodImplementation(2),
+                ).toMutable().apply {
+                    addInstructions(
+                        0,
+                        """
+                            invoke-super { p0 }, $superType->onUserLeaveHint()V
+                            invoke-static { p0 }, $PIP_HELPER->onUserLeaveHint(Landroid/app/Activity;)V
+                            return-void
+                        """,
+                    )
+                },
+            )
+        }
     }
 }

@@ -33,6 +33,7 @@ val blockAdsPatch = bytecodePatch(
     name = "Block ads",
     description = "Removes the ads from the feeds and stops the ad networks from loading.",
 ) {
+    category("Ads")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

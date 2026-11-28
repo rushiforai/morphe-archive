@@ -54,7 +54,8 @@ private fun BytecodePatchContext.hideTimeBarHook() {
 @Suppress("unused")
 val ambientLightPatch = bytecodePatch(
     name = "Ambient light",
-    description = "Fills the black bars around the video with a soft glow of the picture's colours, " +
+    description = "Official Morphe Patches now has this as Enhanced Ambient mode (in its Ambient mode patch). " +
+        "Fills the black bars around the video with a soft glow of the picture's colours, " +
         "like Ambient light for YouTube. Configurable in Settings > Video and audio > Ambient light.",
     default = true,
 ) {

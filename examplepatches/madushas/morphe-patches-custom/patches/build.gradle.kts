@@ -63,6 +63,7 @@ val patchListGeneratorClasspath: Configuration by configurations.creating
 dependencies {
     compileOnly(libs.gson)
     patchListGeneratorClasspath(libs.gson)
+    testImplementation("junit:junit:4.13.2")
 }
 
 tasks {

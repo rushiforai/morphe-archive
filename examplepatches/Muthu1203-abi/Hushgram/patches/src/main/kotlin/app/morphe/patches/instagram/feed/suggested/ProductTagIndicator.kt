@@ -1,0 +1,180 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.morphe.patches.instagram.feed.suggested
+
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patches.instagram.download.MEDIA
+import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.instagram.misc.extension.classesAccessing
+import app.morphe.patches.instagram.misc.extension.classesHolding
+import app.morphe.patches.instagram.misc.extension.stringLoadedAt
+import app.morphe.util.addInstructionsAtControlFlowLabel
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.SwitchPayload
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+
+private const val PATCH = "Hide suggested posts"
+
+internal const val PRODUCT_TAGS = "$EXTENSION_PACKAGE/feed/ProductTags;"
+internal const val PRODUCT_TAG_INDICATOR = "$PRODUCT_TAGS->indicator(I)I"
+
+/** The name Instagram gives the indicator of a post with products tagged in it, its shopping bag. */
+internal const val PRODUCTS = "PRODUCTS"
+
+/** Another indicator's name. With [PRODUCTS] it picks the indicator enum out of the app. */
+internal const val SHOPPING_ADS = "SHOPPING_ADS"
+
+/**
+ * The product indicator's check, found: the method picking a post's indicator, the index of its
+ * branch on whether the post's products get it, and the register the answer is in. [write] hands
+ * that answer to ProductTags.indicator on its way to the branch.
+ */
+internal class ProductTagIndicator(
+    val type: String,
+    val name: String,
+    val parameters: List<String>,
+    val returnType: String,
+    val branchAt: Int,
+    val register: Int,
+) {
+    fun write(context: BytecodePatchContext) {
+        val method = context.mutableClassDefBy(type).methods.single {
+            it.name == name && it.returnType == returnType && it.parameterTypes.map(CharSequence::toString) == parameters
+        }
+        // At the branch's own label, so nothing reaches the branch without the extension's answer.
+        method.addInstructionsAtControlFlowLabel(
+            branchAt,
+            """
+                invoke-static { v$register }, $PRODUCT_TAG_INDICATOR
+                move-result v$register
+            """,
+        )
+    }
+}
+
+/**
+ * Finds where Instagram picks the products indicator for a post. The indicator enum is the one
+ * enum naming both [PRODUCTS] and [SHOPPING_ADS], its products constant is the field its static
+ * initializer writes right after loading that name, and every method handing that constant back is
+ * an instance method answering the enum, which reads it straight after a static check's yes, once.
+ * One of them takes a post. On 450's 385611438 that's LX/04pB->A06 answering LX/04rH.A0I after
+ * LX/04rE->A00. 456 adds a second picker for its newer feed model, taking that model's parts in place
+ * of a post (`LX/00gI;->A0A` beside `A09` on 386214574), with the same static check, so both are
+ * hooked. Anything else is an update this patch hasn't seen, and it stops.
+ */
+internal fun BytecodePatchContext.findProductTagIndicators(): List<ProductTagIndicator> {
+    val enums = classesHolding(PRODUCTS, SHOPPING_ADS).filter { it.superclass == "Ljava/lang/Enum;" }
+    val enum = enums.singleOrNull() ?: refuse("expected one enum naming $PRODUCTS and $SHOPPING_ADS, found ${enums.map { it.type }}")
+    val clinit = enum.methods.singleOrNull { it.name == "<clinit>" } ?: refuse("${enum.type} has no static initializer")
+    val init = clinit.implementation?.instructions?.toList().orEmpty()
+    val named = init.indices.filter { stringLoadedAt(init, it) == PRODUCTS }
+    val nameAt = named.singleOrNull() ?: refuse("${enum.type} loads $PRODUCTS ${named.size} times, expected once")
+    val writeAt = (nameAt + 1 until init.size).firstOrNull { at ->
+        init[at].opcode == Opcode.SPUT_OBJECT && init[at].field()?.let { it.definingClass == enum.type && it.type == enum.type } == true
+    } ?: refuse("${enum.type} never keeps its $PRODUCTS constant")
+    if ((nameAt + 1 until writeAt).any { stringLoadedAt(init, it) != null }) {
+        refuse("${enum.type} loads another name before it keeps its $PRODUCTS constant")
+    }
+    val products = init[writeAt].field()!!
+
+    val sites = classesAccessing(enum.type, products.name, Opcode.SGET_OBJECT).flatMap { classDef ->
+        classDef.methods.flatMap { method ->
+            val code = method.implementation?.instructions?.toList().orEmpty()
+            code.indices.filter { code.returnsConstant(it, products) }.map { method to it }
+        }
+    }
+    if (sites.isEmpty()) refuse("expected a method answering ${enum.type}.${products.name} ($PRODUCTS), found none")
+    val twice = sites.groupBy { (method, _) -> method }.filterValues { it.size > 1 }.keys
+    if (twice.isNotEmpty()) refuse("${twice.joinToString { "${it.definingClass}->${it.name}" }} answers $PRODUCTS more than once")
+    if (sites.none { (method, _) -> method.parameterTypes.any { it.toString() == MEDIA } }) {
+        refuse("none of the ${sites.size} methods answering ${enum.type}.${products.name} ($PRODUCTS) takes a post")
+    }
+    return sites.map { (method, readAt) -> productTagSite(method, readAt, enum.type) }
+}
+
+/** Checks one method answering the products constant at [readAt] and says where its check's answer goes. */
+private fun productTagSite(method: Method, readAt: Int, enumType: String): ProductTagIndicator {
+    val where = "${method.definingClass}->${method.name}"
+    if (AccessFlags.STATIC.isSet(method.accessFlags) || method.returnType != enumType) {
+        refuse("$where isn't an instance method answering $enumType")
+    }
+
+    val code = method.implementation!!.instructions.toList()
+    val branchAt = readAt - 1
+    val branch = code.getOrNull(branchAt)
+    val answer = code.getOrNull(readAt - 2)
+    val check = code.getOrNull(readAt - 3)
+    val checked = (check as? ReferenceInstruction)?.reference as? MethodReference
+    if (branch?.opcode != Opcode.IF_EQZ || answer?.opcode != Opcode.MOVE_RESULT ||
+        check?.opcode != Opcode.INVOKE_STATIC || checked?.returnType != "Z"
+    ) {
+        refuse("$where doesn't read $PRODUCTS straight after a static check's yes")
+    }
+    val register = (branch as OneRegisterInstruction).registerA
+    if ((answer as OneRegisterInstruction).registerA != register) refuse("$where branches on something other than its check")
+    if (register > 15) refuse("$where keeps its check's answer in v$register, past v15")
+    val addresses = code.runningFold(0) { at, instruction -> at + instruction.codeUnits }
+    // A no goes on to the next indicator: right after the return on 450, or a block Redex moved
+    // elsewhere on 456 (LX/00gI;->A09 jumps from 173 to 221 on 386214574). It may not land on the
+    // products answer itself.
+    val noTarget = addresses[branchAt] + (branch as OffsetInstruction).codeOffset
+    if (noTarget == addresses[readAt] || noTarget == addresses[readAt + 1] || noTarget !in addresses) {
+        refuse("$where doesn't go on to its next indicator after a no")
+    }
+    // The hook turns the register into an int it passes on, so nothing but the check's answer may reach
+    // the branch: another jump, switch or handler landing on it could bring a reference in its place.
+    if (addresses[branchAt] in jumpTargets(method, code, addresses)) {
+        refuse("$where has another way into the branch on its check besides the check")
+    }
+    return ProductTagIndicator(
+        method.definingClass, method.name, method.parameterTypes.map(CharSequence::toString), method.returnType,
+        branchAt, register,
+    )
+}
+
+/**
+ * The code addresses [code] of [method] can jump or be thrown to: the targets of its gotos and
+ * conditional branches, of its switches through their payloads (offsets relative to the switch), and
+ * its exception handlers.
+ */
+private fun jumpTargets(method: Method, code: List<Instruction>, addresses: List<Int>): Set<Int> {
+    val targets = HashSet<Int>()
+    code.forEachIndexed { at, instruction ->
+        when (instruction.opcode) {
+            Opcode.PACKED_SWITCH, Opcode.SPARSE_SWITCH -> {
+                val payloadAt = addresses.indexOf(addresses[at] + (instruction as OffsetInstruction).codeOffset)
+                val payload = code.getOrNull(payloadAt) as? SwitchPayload
+                payload?.switchElements?.forEach { targets += addresses[at] + it.offset }
+            }
+            Opcode.FILL_ARRAY_DATA -> Unit
+            else -> if (instruction is OffsetInstruction) targets += addresses[at] + instruction.codeOffset
+        }
+    }
+    method.implementation?.tryBlocks?.forEach { block ->
+        block.exceptionHandlers.forEach { targets += it.handlerCodeAddress }
+    }
+    return targets
+}
+
+/** Whether the instruction at [at] reads [constant] and the next one returns it. */
+private fun List<Instruction>.returnsConstant(at: Int, constant: FieldReference): Boolean {
+    val read = this[at]
+    if (read.opcode != Opcode.SGET_OBJECT || read.field()?.toString() != constant.toString()) return false
+    val back = getOrNull(at + 1) ?: return false
+    return back.opcode == Opcode.RETURN_OBJECT &&
+        (back as OneRegisterInstruction).registerA == (read as OneRegisterInstruction).registerA
+}
+
+private fun Instruction.field(): FieldReference? = (this as? ReferenceInstruction)?.reference as? FieldReference
+
+private fun refuse(detail: String): Nothing = throw PatchException("$PATCH: the products indicator: $detail")

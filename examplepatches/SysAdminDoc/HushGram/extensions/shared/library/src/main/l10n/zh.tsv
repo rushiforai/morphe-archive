@@ -385,7 +385,7 @@ Removes the summary, Sources and Ask Meta AI box from a reel's more menu. In you
 Hide Ask Meta AI in About this reel	隐藏“关于这则 Reel”中的“询问 Meta AI”
 About this reel keeps its summary and Sources, and only the Ask Meta AI box under them goes.	保留“关于这则 Reel”的摘要与“来源”，仅移除下方的“询问 Meta AI”区块。
 Hide Meta AI in the share sheet	隐藏分享表单中的 Meta AI
-Removes Meta AI from the row at the bottom of the share sheet. Some accounts see it as Muse.	从分享表单底部栏移除 Meta AI。部分账户会显示为 Muse。
+Removes Meta AI from the share sheet, both from the people you can send to and from the row at the bottom. Some accounts see it as Muse.	从分享表单移除 Meta AI，包括可发送的对象和底部栏。部分账户会显示为 Muse。
 Hide the Muse card	隐藏 Muse 卡片
 Removes the Meet Muse card, with its Try Muse button, from Home and your profile. Your other cards stay.	从首页与主页移除“认识 Muse”卡片及其“试用 Muse”按钮。其他卡片仍会保留。
 Hide the Muse button on your profile	隐藏主页上的 Muse 按钮
@@ -610,6 +610,9 @@ Adds an eye button to the top of each story while you view anonymously. Tap it t
 Mark as seen	标记为已读
 Marked as seen. Tap again to undo.	已标记为已读。再次点击即可复原。
 Marked as seen and sent	已标记为已读并送出
+# context: View stories anonymously's third switch, after Mark as seen button. A like is the heart under a story, a quick reaction is an emoji from the row above a story's reply box
+Mark a story seen when you like or reply	点赞或回复时将快拍标示为已读
+While you view anonymously, liking a story, replying to it or sending it a quick reaction puts you on that story's viewer list first. The other stories stay hidden.	匿名观看时，给快拍点赞、回复或发送快速回应，会先让你出现在该则快拍的观看者名单中。其他快拍仍维持匿名.
 View DM photos and videos anonymously	匿名查看消息照片与视频
 Stops people seeing that you opened their view once photos and videos. They still disappear after you view them. This is a test feature and starts off.	不让对方知道你已打开只能看一次的照片与视频。观看后仍会消失。此为测试功能，默认关闭。
 Restored %1$d settings. Kept %2$d newer choices.	已还原 %1$d 项设置，保留较新的 %2$d 项选择。
@@ -1560,6 +1563,14 @@ All of them. Tap to leave some out, and Ghost mode leaves those as you set them.
 %1$s. The others stay as you set them.	%1$s。其他开关会保留你原本的设置。
 Switches Ghost mode turns	幽灵模式控制的开关
 Ghost mode needs at least one switch to turn.	幽灵模式至少需要控制一个开关。
+# context: Ghost mode: the switch under its rows in Ads and privacy that holds likes, story replies, comments, share links and new stories and posts back while Ghost mode is on (#876). A like is the heart under a post, a reel, a story or a comment, a share link is what Copy link and sharing a post out make, and posting is sharing a new story, post or reel from Instagram's camera; the five short ones are toasts shown when a tap is held back
+Block likes, replies and posts in Ghost mode	在幽灵模式中阻止点赞、回复和发布
+While Ghost mode is on, liking, commenting, replying to a story, posting a story or post and copying or sharing a link do nothing, and a message says why. Nothing is sent.	开启幽灵模式时，点赞、评论、回复快拍、发布快拍或帖子以及复制或分享链接都不会有任何作用，并会显示消息说明原因。不会发送任何内容.
+Likes are off in Ghost mode.	幽灵模式下无法点赞.
+Replies are off in Ghost mode.	幽灵模式下无法回复.
+Comments are off in Ghost mode.	幽灵模式下无法评论.
+Share links are off in Ghost mode.	幽灵模式下无法分享链接.
+Posting is off in Ghost mode.	幽灵模式下无法发布.
 # context: Ghost mode: turning it on or off with a long press on a tab (#255). %1$s is a tab's name
 Turn Ghost mode on or off with a tab long press	长按标签页切换幽灵模式
 Tab long presses keep Instagram's own action. Choose one to turn Ghost mode on or off instead.	长按标签页会保留 Instagram 原本的操作。选择一个标签页，改为打开或关闭幽灵模式。
@@ -1825,7 +1836,7 @@ Previous page	上一页
 Next page	下一页
 # context: Feed settings: the Page dots on a pill switch, right under Carousel arrows (#419). A pill is a small bar with round ends that holds the dots.
 Page dots on a pill	胶囊页面圆点
-Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue. Hold the pill and slide left or right to move through the pages.	将轮播帖子的页面圆点移到照片或视频底部的圆角胶囊上，目前的页面以蓝色显示。按住胶囊并左右滑动即可切换页面。
+Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue, or your accent color when Accent color is on. Hold the pill and slide left or right to move through the pages.	将轮播帖子的页面圆点移到照片或视频底部的圆角胶囊上，目前的页面以蓝色显示，开启强调色时则以强调色显示。按住胶囊并左右滑动即可切换页面。
 # context: Feed settings: the Hide page number switch, under Carousel arrows (#581). The number is the 3/5 in the corner of a carousel post.
 Hide page number	隐藏页码
 Takes the number like 3/5 off the corner of a carousel post's photo or video.	拿掉轮播帖子照片或视频角落类似 3/5 的数字。
@@ -1961,6 +1972,10 @@ Hide the Map bubble	隐藏地图泡泡
 Takes only the Map bubble out of the row of notes. Your notes stay.	只移除笔记栏中的地图泡泡。笔记仍会保留。
 Split the notes row	拆分笔记栏
 Splits the row of notes into three stacks, Instants, Notes and Stories, the layout Instagram is trying out. Restart Instagram to see the change.	将笔记栏拆成 Instants、笔记和快拍三叠，这是 Instagram 正在测试的版面。请重新启动 Instagram 以应用变更。
+# context: Messages: a switch under Split the notes row (#832). Primary and General are the two tabs Instagram shows professional accounts at the top of their messages. Use the names Instagram's own messages page gives them in this language.
+Primary and General tabs	“主要”和“一般”标签页
+# context: the summary under Primary and General tabs; Primary is the tab's name again
+Experimental. Adds the Primary and General tabs that professional accounts get to your messages. Instagram may put every chat in Primary at first. Starts off. Restart Instagram to see the change.	实验性功能。在消息中加入专业账户才有的“主要”和“一般”标签页。一开始 Instagram 可能会把所有聊天都放在“主要”中。默认关闭。请重新启动 Instagram 以应用变更。
 Hide Saved in the plus menu	在加号菜单中隐藏已保存
 Takes Saved off the menu the plus button opens in a chat's message bar.	从聊天消息栏的加号按钮所打开的菜单中移除已保存。
 Hide AI images in the plus menu	在加号菜单中隐藏 AI 图片
@@ -2144,9 +2159,11 @@ Solid	不透明
 See-through	半透明
 # context: a look for the page-dots pill and the seek bars: blurs what's under it
 Frosted glass	毛玻璃
+Dots only	仅圆点
 A light pill with dark dots, as it's always been.	浅色胶囊配深色圆点，与以往相同。
 A see-through dark pill with white dots, so more of the photo shows.	半透明深色胶囊配白色圆点，能看到更多照片。
 A frosted glass pill that blurs the photo under it. Before Android 12 it's see-through instead.	毛玻璃胶囊，会模糊其下方的照片。Android 12 以前改为半透明。
+Just the white dots with no pill behind them. A soft shadow keeps them clear on a bright photo.	只显示白色圆点，背后没有胶囊。柔和的阴影让圆点在明亮的照片上也看得清楚。
 Turn on Page dots on a pill to use this choice.	请启用“胶囊页面圆点”以使用此选项。
 Turn on Seek bar on feed videos or its button to use this choice.	请启用“动态视频拖动条”或其按钮以使用此选项。
 Turn on Seek bar on stories to use this choice.	请启用“快拍拖动条”以使用此选项。

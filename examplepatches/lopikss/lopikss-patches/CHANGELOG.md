@@ -1,3 +1,9 @@
+## [1.7.0](https://github.com/lopikss/lopikss-patches/compare/v1.6.0...v1.7.0) (2026-11-28)
+
+### ✨ New Features
+
+* **xphero:** support XP Hero 27.2.0 across all 15 patches ([ef7801c](https://github.com/lopikss/lopikss-patches/commit/ef7801ce50ca2e6c0f7932d7f2e03ac29b780d03))
+
 ## [1.6.0](https://github.com/lopikss/lopikss-patches/compare/v1.5.0...v1.6.0) (2026-11-24)
 
 ### ✨ New Features

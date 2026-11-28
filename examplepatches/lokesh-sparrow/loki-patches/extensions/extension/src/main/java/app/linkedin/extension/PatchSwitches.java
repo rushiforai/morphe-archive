@@ -76,6 +76,20 @@ final class PatchSwitches {
                 return "Anonymous search";
             case "Unlimited backup (Pixel XL)":
                 return "Unlimited backup (Pixel XL)";
+            case "Hide emoji suggestions (IMO)":
+                return "Hide emoji suggestions";
+            case "Hide voice rooms tab (IMO)":
+                return "Hide voice rooms tab";
+            case "Allow screenshots (IMO)":
+                return "Allow screenshots";
+            case "Allow story recording during calls (IMO)":
+                return "Allow story recording during calls";
+            case "Allow sending apps (IMO)":
+                return "Allow sending apps";
+            case "Disappearing messages (IMO)":
+                return "Disappearing messages";
+            case "Hide Premium on Me page (IMO)":
+                return "Hide Premium on Me page";
             case "Only real camera photos count as Camera":
                 return "Only real camera photos count as Camera";
             default:

@@ -19,14 +19,14 @@ import app.fakh.extension.shared.I18n;
 
 /**
  * The Fakh Patches pages: the app's own Settings screen, filled with the rows of the patches instead of GitHub's. The
- * first page lists the groups of patches and each group opens a page with a row per patch. The patch has the screen
- * ask {@link #build} before it adds GitHub's rows, and adds a helper to the fragment that creates one row, since the
- * preference API is renamed.
+ * first page lists the sections of patches and each section opens a page with a row per patch, under a header per
+ * group where it has groups. The patch has the screen ask {@link #build} before it adds GitHub's rows, and adds helpers
+ * to the fragment that create one row and one header, since the preference API is renamed.
  */
 @SuppressWarnings("unused")
 public final class PatchMenu {
     private static final String TITLE = "Fakh Patches";
-    // The intent extra naming the page: empty for the list of groups, otherwise a group.
+    // The intent extra naming the page: empty for the list of sections, otherwise a section.
     private static final String PAGE = "fakh_page";
     // The key of a row that opens a page, followed by the page.
     private static final String OPENS = "fakh_page:";
@@ -48,21 +48,32 @@ public final class PatchMenu {
         String page = page(context);
         if (page == null) return false;
         try {
-            Method row = row();
+            Method row = helper("fakhRow");
             if (page.isEmpty()) {
-                Set<String> groups = new LinkedHashSet<>();
-                for (Features.Feature feature : Features.all()) groups.add(feature.section);
-                for (String group : groups) row.invoke(null, screen, OPENS + group, I18n.tr(group), null, null);
+                Set<String> sections = new LinkedHashSet<>();
+                for (Features.Feature feature : Features.all()) sections.add(feature.section);
+                for (String section : sections) {
+                    row.invoke(null, screen, OPENS + section, I18n.tr(section), null, null);
+                }
                 return true;
             }
+            // What the rows go into: the screen, or the header of their group.
+            Object parent = screen;
+            String group = "";
             for (Features.Feature feature : Features.all()) {
                 if (!feature.section.equals(page)) continue;
+                if (!feature.group.equals(group)) {
+                    // A divider goes between two groups, not above the first.
+                    parent = helper("fakhHeader").invoke(null, screen, I18n.tr(feature.group), !group.isEmpty());
+                    group = feature.group;
+                }
                 // The saved side of the landscape bar is chosen from a sheet, not switched.
                 String key = NavigationBar.NAV_RIGHT.equals(feature.id) ? ChoiceSheets.NAV_POSITION : feature.id;
                 boolean sheet = ChoiceSheets.opens(key);
-                String summary = sheet ? ChoiceSheets.summary(key)
+                CharSequence summary = sheet ? ChoiceSheets.summary(key)
                         : feature.description.isEmpty() ? null : I18n.tr(feature.description);
-                row.invoke(null, screen, key, I18n.tr(feature.title), summary,
+                if (ConventionalCommits.FEATURE.equals(key)) summary = ConventionalCommits.summary(summary.toString());
+                row.invoke(null, parent, key, I18n.tr(feature.title), summary,
                         sheet ? null : Boolean.valueOf(feature.defaultOn));
             }
         } catch (ReflectiveOperationException | RuntimeException error) {
@@ -107,11 +118,14 @@ public final class PatchMenu {
         return activity == null ? null : activity.getIntent().getStringExtra(PAGE);
     }
 
-    /** The helper the patch adds to the fragment: {@code (screen, key, title, summary, switch default or null)}. */
-    private static Method row() throws ReflectiveOperationException {
+    /**
+     * A helper the patch adds to the fragment: {@code fakhRow(group, key, title, summary, switch default or null)} or
+     * {@code fakhHeader(screen, title, divider)}, which returns the header's group.
+     */
+    private static Method helper(String name) throws ReflectiveOperationException {
         for (Method method : Class.forName(SETTINGS_FRAGMENT).getDeclaredMethods()) {
-            if (method.getName().equals("fakhRow")) return method;
+            if (method.getName().equals(name)) return method;
         }
-        throw new NoSuchMethodException("fakhRow");
+        throw new NoSuchMethodException(name);
     }
 }

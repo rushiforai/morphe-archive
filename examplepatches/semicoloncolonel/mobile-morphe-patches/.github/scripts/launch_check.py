@@ -22,9 +22,9 @@ import time
 from pathlib import Path
 
 TITLE_PREFIX = "App update: "
-ISSUE_LABEL = "app update"
-REVIEW_LABEL = "needs review"
-READY_LABEL = "ready to bump"
+ISSUE_LABEL = "type: app update"
+REVIEW_LABEL = "status: needs review"
+READY_LABEL = "status: ready to bump"
 
 
 def adb(*args, timeout=120):
@@ -48,6 +48,47 @@ def wait_for_package_service(timeout=180):
     return False
 
 
+def system_server():
+    """The process ID of the Android framework, or "" while it is down."""
+    return adb("shell", "pidof", "system_server").stdout.strip()
+
+
+def framework():
+    """Identifies one run of the Android framework: its start count and process ID."""
+    starts = adb("shell", "getprop", "sys.system_server.start_count").stdout.strip()
+    return starts, system_server()
+
+
+def restarted_since(before):
+    """Whether the framework was down at `before`, is down now, or restarted in between."""
+    now = framework()
+    return not before[1] or not now[1] or now != before
+
+
+# The Android 17 image (api-level 37.0) restarted its framework every 15 to 30
+# seconds, for as long as the job ran (run 45488152905). Every restart kills
+# every app, so each app "closed soon after launch", and an install that landed
+# mid-restart failed with "Can't find service: package". A restart during a
+# launch says nothing about the app.
+def wait_for_stable_system(settle=60, timeout=600):
+    """Waits until system_server has kept one process ID for `settle` seconds."""
+    deadline = time.time() + timeout
+    pid, since = system_server(), time.time()
+    while time.time() < deadline:
+        if pid and time.time() - since >= settle and "package:" in adb("shell", "pm", "path", "android").stdout:
+            return True
+        time.sleep(5)
+        now = system_server()
+        if now != pid:
+            pid, since = now, time.time()
+    return False
+
+
+def android_version():
+    """The emulator's Android version, such as "15"."""
+    return adb("shell", "getprop", "ro.build.version.release").stdout.strip() or "unknown"
+
+
 def install(apk):
     """adb install, retried while the package service is not ready."""
     for attempt in range(4):
@@ -62,9 +103,15 @@ def install(apk):
     return result
 
 
+RESTARTED = "not tested: the emulator's Android system restarted during the check"
+
+
 def launch(apk, package, wait):
+    before = framework()
     installed = install(apk)
     if installed.returncode != 0 or "Success" not in installed.stdout:
+        if restarted_since(before):
+            return RESTARTED
         reason = (installed.stdout + installed.stderr).strip().splitlines()[-1:] or ["unknown"]
         if "NO_MATCHING_ABIS" in reason[0]:
             return "not tested: the app has no code for the emulator's processor"
@@ -74,9 +121,16 @@ def launch(apk, package, wait):
     time.sleep(wait)
     running = adb("shell", "pidof", package).stdout.strip()
     log = adb("logcat", "-d", "-b", "crash").stdout
-    crashed = "FATAL EXCEPTION" in log and package in log
+    restarted = restarted_since(before)
     adb("uninstall", package)
-    if crashed:
+    return verdict(package, wait, running, log, restarted)
+
+
+def verdict(package, wait, running, log, restarted):
+    """Reads one launch: the app's process, the crash log, and whether Android restarted."""
+    if restarted:
+        return RESTARTED
+    if "FATAL EXCEPTION" in log and package in log:
         lines = [l for l in log.splitlines() if "Exception" in l or "Error" in l][:6]
         return "crashed on launch:\n\n```\n" + "\n".join(lines) + "\n```"
     if not running:
@@ -110,7 +164,9 @@ def main():
     results = json.loads((args.report / "app-updates.json").read_text())
     launches = {}
     lines = ["", "## Launch check", "", "| App | Version | Result |", "|-----|---------|--------|"]
-    wait_for_package_service()
+    if not wait_for_stable_system():
+        print("The emulator's Android system did not stay up for a minute; the results may say so.", flush=True)
+    version = android_version()
     for r in results:
         apk = args.report / "patched" / str(r.get("patched_apk", ""))
         if not r.get("patched_apk") or not apk.exists():
@@ -124,7 +180,7 @@ def main():
             needs_review = result.startswith(("crashed", "closed", "did not install"))
             note = "\n\nThis needs a manual check: open the patched app on a device." if needs_review else ""
             comment(r["name"], r["latest"],
-                    f"Launch check on an Android 17 emulator: the patched {r['name']} `{r['latest']}` {result}{note}\n",
+                    f"Launch check on an Android {version} emulator: the patched {r['name']} `{r['latest']}` {result}{note}\n",
                     needs_review)
     (args.report / "launch.json").write_text(json.dumps(launches, indent=2))
     if len(lines) > 5:

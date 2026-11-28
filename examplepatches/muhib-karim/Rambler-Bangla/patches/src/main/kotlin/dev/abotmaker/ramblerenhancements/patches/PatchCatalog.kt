@@ -8,6 +8,7 @@ object PatchCatalog {
         ramblerBanglaLiteScriptPatch,
         ramblerBanglaPhoneticEnginePatch,
         gboardAmoledDarkKeyboardPatch,
+        gboardClipboardReorderPatch,
         ramblerToolbarExtrasPatch,
         gboardHiddenFlagsOverridePatch,
         ramblerAtMentionSuggestionsPatch,

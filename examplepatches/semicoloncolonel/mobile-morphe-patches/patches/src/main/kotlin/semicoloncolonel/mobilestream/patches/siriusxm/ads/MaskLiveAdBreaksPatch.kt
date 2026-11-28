@@ -55,6 +55,7 @@ val maskLiveAdBreaksPatch = bytecodePatch(
         "The player shows \"Commercial break\" instead of the advertiser's name.",
     default = false,
 ) {
+    category("Ads")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

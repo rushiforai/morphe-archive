@@ -37,6 +37,7 @@ val hideSignUpPromptsPatch = bytecodePatch(
     name = "Hide sign-up prompts",
     description = "Skips the first-run sign-up flow, the notification prompt, the log-in nudges, and the rating prompt.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

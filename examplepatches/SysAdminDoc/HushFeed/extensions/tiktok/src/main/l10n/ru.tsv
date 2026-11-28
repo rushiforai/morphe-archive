@@ -337,6 +337,8 @@ Blocked %1$s	Заблокировано: %1$s
 Blocked %1$s. Unblock	Заблокировано: %1$s. Разблокировать
 Couldn't confirm blocking %1$s. Check their profile.	Не подтверждена блокировка %1$s. Проверьте профиль.
 Blocked caption words	Заблокированные слова в подписях
+Only show videos with these words	Показывать только видео с этими словами
+For You only. Separate words or phrases with commas, like #recipe, cooking. A video stays only when its caption or hashtags match one, with the same rules as Blocked caption words. A batch with no match keeps one video so the feed keeps moving. Leave it empty to show everything.	Только в Рекомендациях. Разделяйте слова или фразы запятыми, например #recipe, cooking. Видео остаётся, только если его подпись или хэштеги совпадают с одним из них, по тем же правилам, что и Заблокированные слова в подписях. В подборке без совпадений остаётся одно видео, чтобы лента не останавливалась. Оставьте пустым, чтобы показывать всё.
 Blocked comment words	Заблокированные слова в комментариях
 Blocked creators	Заблокированные авторы
 Blocked sound ids	ID заблокированных звуков
@@ -3212,6 +3214,8 @@ Crop and stretch to fill the screen	Обрезать и растягивать �
 Cover the whole window with half the crop of Fill and half the stretch of Stretch, so neither is easy to spot. A video far from the screen's shape keeps TikTok's size.	Заполняет всё окно, обрезая вдвое меньше, чем «Заполнять», и растягивая вдвое меньше, чем «Растягивать», так что ни то, ни другое почти не заметно. Видео, форма которого сильно отличается от экрана, сохраняет размер TikTok.
 Watch LIVEs unseen	Смотреть LIVE незаметно
 You stay off the viewer list of LIVEs you open. Tap the eye in a LIVE to let that host see you. Needs Ghost mode on.	Вас не будет в списке зрителей LIVE, которые вы открываете. Нажмите на глаз в LIVE, чтобы ведущий вас увидел. Нужен включённый режим призрака.
+Double tap to let the host see you	Двойное нажатие, чтобы ведущий вас увидел
+No eye on the video. Double tap a LIVE to let that host see you, and the next LIVE you open hides you again. Needs Watch LIVEs unseen on.	Без глаза на видео. Дважды нажмите на LIVE, чтобы ведущий вас увидел, а следующий открытый LIVE снова скроет вас. Нужна включённая функция «Смотреть LIVE незаметно».
 Keep likes on this phone	Хранить лайки на этом телефоне
 A like you give a video stays on this phone. The heart turns red, but TikTok isn't told, so the creator never sees it and it isn't on your profile. Needs Ghost mode on.	Лайк, который вы ставите видео, остаётся на этом телефоне. Сердечко становится красным, но TikTok об этом не узнаёт, поэтому автор его не увидит и в вашем профиле его не будет. Нужен включённый режим призрака.
 My likes on this phone	Мои лайки на этом телефоне
@@ -3353,8 +3357,8 @@ Sort pinned videos with the rest	Сортировать закреплённые
 Pinned videos take their place in the order instead of staying at the top, so Newest first puts them at the date they were posted.	Закреплённые видео встают на своё место в порядке, а не остаются наверху, поэтому «Сначала новые» ставит их по дате публикации.
 Hide or reorder profile tabs	Скрыть или упорядочить вкладки профиля
 Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos, and use the arrows to put the rest in your order. One tab always stays. Restart TikTok to apply this.	Выберите вкладки, которые нужно скрыть над видео профиля, например Репосты или Понравившиеся видео, а стрелками расставьте остальные в нужном порядке. Одна вкладка остаётся всегда. Перезапустите TikTok, чтобы это применить.
-Hide Add bio	Скрыть «Добавить описание»
-Hide the Add bio prompt TikTok shows on your own profile while it has no bio. You can still add one from Edit profile.	Скрывает подсказку «Добавить описание», которую TikTok показывает в вашем профиле, пока в нём нет описания. Добавить его по-прежнему можно в разделе «Изменить профиль».
+Hide tips on your profile	Скрыть подсказки в вашем профиле
+Hide the Add bio prompt and the tip bubbles TikTok points at things on your own profile. You can still add a bio from Edit profile.	Скрывает подсказку «Добавить описание» и всплывающие подсказки, которыми TikTok указывает на элементы вашего профиля. Добавить описание по-прежнему можно в разделе «Изменить профиль».
 Show the picture before saving	Показывать фото перед сохранением
 With the long press save on, holding a profile picture opens it full screen at full size, with a Save button under it.	Когда сохранение долгим нажатием включено, удержание фото профиля открывает его во весь экран в полном размере, с кнопкой Сохранить под ним.
 The profile picture couldn't be loaded. Try again.	Не удалось загрузить фото профиля. Повторите попытку.
@@ -3372,7 +3376,6 @@ Gives each video on profile grids rounded corners, on your own profile and on Li
 Gifter level	Уровень дарителя
 SecUID	SecUID
 Unknown (TikTok didn't send it)	Неизвестно (TikTok не прислал)
-A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, how many posts, liked videos, favorites and reposts it has, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.	В меню «Поделиться» профиля появляется кнопка «Сведения об аккаунте». Она показывает то, что TikTok уже прислал об аккаунте: когда он создан, его регион и язык, уровень дарителя и SecUID, сколько у него публикаций, понравившихся видео, избранного и репостов, когда последний раз менялись имя пользователя и отображаемое имя, закрыт ли он и открыты ли понравившиеся видео. Ничего дополнительно не загружается.
 # context: LIVE controls: a small line in a LIVE room with the room ID and the viewer's own connection (ping, latency, download speed) from TikTok's player; a tap copies the room ID
 Show the room ID and your connection	Показывать ID комнаты и ваше соединение
 Show the room line	Показать строку комнаты
@@ -3478,3 +3481,76 @@ Unavailable saved video	Недоступное сохранённое видео
 Posted %1$s	Опубликовано %1$s
 Remembered %1$s	Запомнено %1$s
 Unavailable since %1$s	Недоступно с %1$s
+# context: Number row under Round the corners on profile grids; how big the rounded corners are, in dp
+Corner size on profile grids	Размер скругления в сетке профиля
+# context: Summary of Corner size on profile grids; dp is the screen unit shown next to the number
+How round the corners are, in dp. TikTok's own cards use about 8.	Насколько скруглены углы, в dp. Карточки самого TikTok используют около 8.
+# context: Number row in the profile grid settings; extra space between the videos, in dp
+Gap between videos on profile grids	Отступ между видео в сетке профиля
+# context: Summary of Gap between videos on profile grids; 0 keeps the spacing TikTok draws itself
+Adds space between the videos on profile grids, on top of TikTok's own thin line. Use 0 for TikTok's spacing.	Добавляет отступ между видео в сетке профиля поверх тонкой линии самого TikTok. Укажите 0, чтобы оставить отступы TikTok.
+# context: Account facts line: the gifter points TikTok sent for the account (pay_grade now_diamond), shown beside Gifter level
+Gifter points	Очки дарителя
+# context: Account facts line: the points figure TikTok sent for the next gifter level (pay_grade next_diamond)
+Gifter points for the next level	Очки дарителя для следующего уровня
+# context: Account facts line: all the gifter points TikTok counted for the account (pay_grade total_diamond_count)
+Gifter points in total	Всего очков дарителя
+# context: Account facts line: web link to the account's profile picture at its smallest size
+Profile picture (small)	Фото профиля (маленькое)
+# context: Account facts line: web link to the account's profile picture at its middle size
+Profile picture (medium)	Фото профиля (среднее)
+# context: Account facts line: web link to the account's profile picture at its largest size
+Profile picture (large)	Фото профиля (большое)
+# context: Account facts line: web link to the cover picture TikTok keeps for the profile (cover_url)
+Profile cover	Обложка профиля
+# context: Toast after tapping one value in the Account facts sheet, which copies just that value
+Copied to the clipboard	Скопировано в буфер обмена
+# context: Summary of Account facts on profiles; the sheet lists what TikTok sent, and a tap on one value copies only that value
+A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, how many posts, liked videos, favorites and reposts it has, when its username and display name last changed, whether it's private and whether its liked videos are public. Links to its profile picture and cover come last. Tap a value to copy just that one. Nothing extra is fetched.	В меню «Поделиться» профиля появляется кнопка «Сведения об аккаунте». Она показывает то, что TikTok уже прислал об аккаунте: когда он создан, его регион и язык, уровень дарителя и SecUID, сколько у него публикаций, понравившихся видео, избранного и репостов, когда последний раз менялись имя пользователя и отображаемое имя, закрыт ли он и открыты ли понравившиеся видео. Ссылки на фото профиля и обложку идут в конце. Нажмите на значение, чтобы скопировать только его. Ничего дополнительно не загружается.
+# context: Settings toggle title: a profile's Followers or Following count shows in yellow when that list is private
+Yellow counts for private lists	Жёлтые счётчики для скрытых списков
+# context: Settings toggle summary for Yellow counts for private lists; it also applies to your own profile
+On a profile that keeps its followers or following list private, that count shows in yellow, so you can tell it's private before you tap it. Yours too.	В профиле, где список подписчиков или подписок скрыт, этот счётчик жёлтый, так что вы видите, что он скрыт, ещё до нажатия. Ваш тоже.
+# context: Settings toggle title: another app's username in a profile bio (IG, Snap, YT, X, Twitch, Threads, FB) becomes a tappable pill that opens its public page
+Links to other apps in bios	Ссылки на другие приложения в био
+# context: Settings toggle summary for Links to other apps in bios; IG, Snap, YT, X, Twitch, Threads and FB are the short names people type in bios and stay as written
+A username named after IG, Snap, YT, X, Twitch, Threads or FB in a bio turns into a pill in that app's color. Tapping it opens that account's public page in the app or your browser. Nothing is looked up before you tap.	Имя пользователя после IG, Snap, YT, X, Twitch, Threads или FB в био становится плашкой цвета этого приложения. Нажатие открывает публичную страницу аккаунта в приложении или браузере. До нажатия ничего не запрашивается.
+# context: Settings row title: pick a picture that stands in for the blue verified check beside your own name on your own profile, on this phone only
+Badge picture	Картинка значка
+# context: Settings row title: deletes the picked badge picture so the blue check comes back
+Remove the badge picture	Удалить картинку значка
+# context: Summary of the Badge picture row; Local verified badge is the name of the switch just above it
+Pick a picture to show in place of the blue check while Local verified badge is on. It's kept on this phone only and nobody else sees it.	Выберите картинку, которая будет вместо синей галочки, пока включён Локальный значок верификации. Она хранится только на этом телефоне, и её больше никто не видит.
+# context: Summary of the Badge picture row while the picked file is being read
+Reading the picture	Чтение картинки
+# context: Summary of the Remove the badge picture row
+Deletes the picture, and the blue check comes back.	Удаляет картинку, и синяя галочка возвращается.
+# context: Summary of the Remove the badge picture row when there is none
+No badge picture is kept	Картинка значка не сохранена
+# context: Banner after a badge picture was picked while Local verified badge is on
+Badge picture saved. Open your profile to see it.	Картинка значка сохранена. Откройте свой профиль, чтобы её увидеть.
+# context: Banner after a badge picture was picked while Local verified badge is off; Local verified badge is the switch's name
+Badge picture saved. Turn on Local verified badge to see it.	Картинка значка сохранена. Включите Локальный значок верификации, чтобы её увидеть.
+# context: Banner when the picked badge picture could not be written to TikTok's private storage
+Couldn't save the picture in TikTok's storage. Free up some space and try again.	Не удалось сохранить картинку в хранилище TikTok. Освободите немного места и попробуйте ещё раз.
+# context: Banner when the picked badge picture file is too big; %1$s is the size limit in megabytes
+That picture is larger than %1$s MB. Choose a smaller one.	Эта картинка больше %1$s МБ. Выберите поменьше.
+# context: Banner when the picked badge file is not an image; PNG, JPEG and WebP are file formats and stay as written
+That file isn't a picture this phone can open. Choose a PNG, JPEG or WebP.	Этот файл не картинка, которую может открыть телефон. Выберите PNG, JPEG или WebP.
+# context: Banner after the badge picture was deleted
+Badge picture removed. Your profile shows the blue check again.	Картинка значка удалена. В профиле снова синяя галочка.
+# context: Banner when deleting the badge picture failed
+Couldn't remove the badge picture. Try again.	Не удалось удалить картинку значка. Попробуйте ещё раз.
+Keep the letters after the flag	Оставлять буквы после флага
+Shows the country's two letters next to its flag, so a flag you don't recognize still tells you where it is.	Показывает две буквы страны рядом с её флагом, чтобы даже незнакомый флаг подсказывал, откуда он.
+Write grid dates the way TikTok does	Писать даты в сетке как TikTok
+Profile grids show the date the way TikTok writes it by the creator's name, like 2d ago or 10-12, in place of Oct 12. Day before month, Write the month as a word and Date instead of age change it the same way.	Сетки профилей показывают дату так, как TikTok пишет её рядом с именем автора, например 2 дн. назад или 10-12, вместо Oct 12. День перед месяцем, Писать месяц словом и Дата вместо возраста меняют её так же.
+Where the date goes on grids	Место даты в сетке
+Under the view count	Под числом просмотров
+After the view count	После числа просмотров
+Above the view count	Над числом просмотров
+Above the view count takes the video length along with the date.	«Над числом просмотров» переносит вместе с датой и длительность видео.
+Show notices at the top	Показывать уведомления сверху
+Put Hushfeed's notices, like a finished save or a block's Undo, just under the status bar instead of above the tab bar. Swipe a notice left or right to close it.	Показывает уведомления Hushfeed, например о завершённом сохранении или «Отменить» после блокировки, сразу под строкой состояния, а не над панелью вкладок. Смахните уведомление влево или вправо, чтобы закрыть его.
+Blur behind notices	Размывать фон уведомлений
+Blur the video behind Hushfeed's notices so they look like frosted glass. Needs Android 12 and up. Away from a video they keep the plain dark look.	Размывает видео за уведомлениями Hushfeed, чтобы они выглядели как матовое стекло. Нужен Android 12 или новее. Вне видео они сохраняют обычный тёмный вид.

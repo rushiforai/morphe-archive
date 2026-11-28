@@ -7,7 +7,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.util.byteArrayOf
 import app.morphe.util.getEndEntityCertificate
-import arpit.morphe.patches.macrofactor.diet.premium.GetSignatureHashShapeFingerprint
+import arpit.morphe.patches.macrofactor.shared.GetSignatureHashShapeFingerprint
 import java.security.MessageDigest
 
 // SHA-1 of the original signing certificate (see analysis notes/recon.md), used as a
@@ -18,7 +18,7 @@ private const val FALLBACK_CERT_HASH = "44 40 CF FB DA 84 8C 6C 8B 9E 02 84 79 5
  * Internal helper patch (not user-visible).
  *
  * Spoofs the signing-certificate hash read by GMS/Firebase by making
- * [GetSignatureHashFingerprint] return the SHA-1 of the ORIGINAL signing certificate.
+ * [gmsCertHashMethod] return the SHA-1 of the ORIGINAL signing certificate.
  *
  * This is what keeps Firebase App Check / Installations / Auth working when the
  * patched build is mounted over the genuine Play-signed install.
@@ -27,7 +27,7 @@ val signatureHashSpoofPatch = bytecodePatch(
     default = false
 ) {
     execute {
-        GetSignatureHashFingerprint.method.injectCertHashSpoof(inputCertSha1())
+        gmsCertHashMethod().injectCertHashSpoof(inputCertSha1())
     }
 }
 

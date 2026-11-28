@@ -1,6 +1,7 @@
 package mightymich.morphe.patches.com.whatsapp
 
 import app.morphe.patcher.patch.ImageSize
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.imageOption
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
@@ -19,7 +20,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val changeAppIconPatch = resourcePatch(
     name = "App icon",
-    description = "Choose a classic / premium launcher icon, or pick a PNG from your phone.",
+    description = "Choose a blue/red/gold launcher icon, or pick a PNG from your phone.",
     default = false,
 ) {
     compatibleWith(WhatsAppCompatibility.WHATSAPP)
@@ -34,7 +35,7 @@ val changeAppIconPatch = resourcePatch(
             "Custom file" to "custom",
         ),
         title = "Style",
-        description = "Preset icon, or Custom file to use the PNG option below.",
+        description = "Bundled preset, or Custom file to use the image option below.",
     )
 
     val customIconFile by imageOption(
@@ -101,41 +102,47 @@ val changeAppIconPatch = resourcePatch(
             "mipmap",
         )
 
+        val iconBytes = customFile?.readBytes() ?: WhatsAppIconAssets.bytesFor(style)
+        if (iconBytes == null) {
+            throw PatchException(
+                "App icon: no image supplied. Pick a preset or select a readable custom image.",
+            )
+        }
+
+        // Two distinct resource names are required:
+        //  - resName is the legacy icon and the adaptive-icon XML itself;
+        //  - resName_foreground is the adaptive foreground.
+        // Reusing one name makes the adaptive icon reference itself and can crash the
+        // launcher/splash icon loader.
+        val foregroundName = "${resName}_foreground"
+        fun writeBytes(path: String, bytes: ByteArray) {
+            val file = get(path)
+            file.parentFile?.mkdirs()
+            file.writeBytes(bytes)
+        }
+
+        for (dir in densityDirs) {
+            writeBytes("res/$dir/$resName.png", iconBytes)
+            writeBytes("res/$dir/$foregroundName.png", iconBytes)
+        }
+
         if (customFile != null) {
-            val bytes = customFile.readBytes()
-            for (dir in densityDirs) {
-                get("res/$dir/$resName.png").writeBytes(bytes)
-            }
-            for (dir in densityDirs) {
-                for (stock in listOf("ic_launcher", "ic_launcher_foreground", "ic_launcher_whatsapp")) {
-                    val stockFile = get("res/$dir/$stock.png")
-                    if (stockFile.exists()) {
-                        try {
-                            stockFile.writeBytes(bytes)
-                        } catch (_: Exception) {
-                        }
-                    }
-                }
-            }
-            log.info("Copied custom icon from ${customFile.absolutePath} (${bytes.size} bytes)")
+            log.info("Copied custom icon from ${customFile.absolutePath} (${iconBytes.size} bytes)")
+        } else {
+            log.info("Using bundled $style icon (${iconBytes.size} bytes)")
         }
 
         val adaptiveXml = """
             <?xml version="1.0" encoding="utf-8"?>
             <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
                 <background android:drawable="@color/mightymich_icon_bg"/>
-                <foreground android:drawable="@mipmap/$resName"/>
+                <foreground android:drawable="@mipmap/$foregroundName"/>
             </adaptive-icon>
         """.trimIndent() + "\n"
 
-        get("res/mipmap-anydpi-v26/$resName.xml").writeText(adaptiveXml)
-
-        for (name in listOf("ic_launcher", "ic_launcher_round")) {
-            val anydpi = get("res/mipmap-anydpi-v26/$name.xml")
-            if (anydpi.exists()) {
-                anydpi.writeText(adaptiveXml)
-            }
-        }
+        val adaptiveFile = get("res/mipmap-anydpi-v26/$resName.xml")
+        adaptiveFile.parentFile?.mkdirs()
+        adaptiveFile.writeText(adaptiveXml)
 
         val manifest = get("AndroidManifest.xml")
         if (manifest.exists()) {
@@ -165,7 +172,7 @@ val changeAppIconPatch = resourcePatch(
                     appendLine("Custom file: ${customFile.absolutePath}")
                     appendLine("Bytes: ${customFile.length()}")
                 } else {
-                    appendLine("Preset only — pack icon PNGs or pick Custom file.")
+                    appendLine("Bundled preset: $style (${iconBytes.size} bytes)")
                 }
                 appendLine("If the icon did not update, reboot the launcher or reinstall the app.")
             },

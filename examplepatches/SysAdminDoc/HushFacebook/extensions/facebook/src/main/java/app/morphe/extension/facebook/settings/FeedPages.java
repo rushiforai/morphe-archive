@@ -361,6 +361,10 @@ final class FeedPages {
                 feed.addPreference(toggle(context, Settings.HIDE_POST_SEND_BUTTON, hides));
                 feed.addPreference(toggle(context, Settings.HIDE_POST_STARS_BUTTON, hides));
                 feed.addPreference(toggle(context, Settings.HIDE_POST_SAVE_BUTTON, hides));
+                // Read as each post's buttons are picked, so a change shows on the posts drawn after it (#609).
+                feed.addPreference(toggle(context, Settings.HIDE_POST_SEND_MESSAGE,
+                        L10n.t("The Messenger Send message bar some posts get after a moment, under the post and over "
+                                + "its reactions, goes away. Like, Comment, Share and Send stay.")));
                 feed.addPreference(toggle(context, Settings.IGNORE_POST_ROW_TAPS,
                         L10n.t("A tap on the empty part of the row under a post, between the buttons and the reaction "
                                 + "icons, does nothing instead of opening the comments or who reacted. The buttons work as before.")));
@@ -895,6 +899,10 @@ final class FeedPages {
                 stories.addPreference(toggle(context, Settings.HIDE_PAGE_STORIES,
                         L10n.t("Shows only people's stories in the Stories tray, without the Pages you follow. Applies when "
                                 + "Facebook next loads the tray.")));
+                // The other way round, for a tray of the Pages you follow (#616).
+                stories.addPreference(toggle(context, Settings.HIDE_PEOPLE_STORIES,
+                        L10n.t("Shows only the stories of Pages you follow in the Stories tray, without people's stories. "
+                                + "Your own story stays. Applies when Facebook next loads the tray.")));
                 stories.addPreference(toggle(context, Settings.HIDE_SEEN_STORIES,
                         L10n.t("Stories you've already watched leave the Stories tray until there's a new one. Applies when "
                                 + "Facebook next loads the tray.")));

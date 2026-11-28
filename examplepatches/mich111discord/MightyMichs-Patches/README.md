@@ -36,7 +36,7 @@ Or
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.18.0](https://github.com/mich111discord/MightyMichs-Patches/releases/tag/v1.18.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;81 patches total
+> **[v1.18.1](https://github.com/mich111discord/MightyMichs-Patches/releases/tag/v1.18.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;81 patches total
 <details open>
 <summary>📦 WhatsApp&nbsp;&nbsp;•&nbsp;&nbsp;12 patches</summary>
 <br>
@@ -48,17 +48,17 @@ Or
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [App icon](#app-icon) | Choose a classic / premium launcher icon, or pick a PNG from your phone. | • Style<br>• Custom icon PNG |
+| [App icon](#app-icon) | Choose a blue/red/gold launcher icon, or pick a PNG from your phone. | • Style<br>• Custom icon PNG |
 | [Enable local backup (gates)](#enable-local-backup-gates) | Soft-bypasses client gates that block local chat backup when Google Drive / Play Services appear missing. Prefer offline Databases folder. |  |
 | [Enable local backup (manifest)](#enable-local-backup-manifest) | Sets android:allowBackup=true so the package can participate in device backup agents (Seedvault / adb). Does not implement Drive. |  |
 | [Keep deleted messages](#keep-deleted-messages) | Show messages that were deleted for everyone. Client-side only; already-wiped history cannot be restored. | • Highlight deleted messages |
 | [MicroG compatibility](#microg-compatibility) | Treats Google Play Services checks as successful so WhatsApp works better with microG. Does not replace microG itself. |  |
-| [Mods settings entry](#mods-settings-entry) | Reserves a MightyMich row in Settings. Full dialog wiring needs the settings-list fingerprint for this WhatsApp build. |  |
-| [Mods settings resources](#mods-settings-resources) | Adds English strings for the MightyMich section in WhatsApp Settings. |  |
-| [Read receipts](#read-receipts) | If enabled, you won't send read receipts (blue ticks). | • Always off |
+| [Mods settings entry](#mods-settings-entry) | Placeholder: adds the MightyMich strings but does not inject a Settings row yet. Disabled by default so it cannot be mistaken for a working UI patch. |  |
+| [Mods settings resources](#mods-settings-resources) | Adds English strings for the planned MightyMich section in WhatsApp Settings. |  |
+| [Read receipts](#read-receipts) | Blocks outgoing read receipts (blue ticks). Local read state is kept. |  |
 | [Remove Meta AI](#remove-meta-ai) | Hides Meta AI on the chats home screen (FAB / pill), related hub entry points, and common feature gates. Does not delete existing Meta AI chats. | • Aggressive hide |
 | [Typing indicator](#typing-indicator) | If enabled, others won't see when you are typing. |  |
-| [Usage data](#usage-data) | Limit diagnostic and analytics data WhatsApp sends. |  |
+| [Usage data](#usage-data) | Disables Falco analytics event logging and uploads. Leaves crash reporting and core WAM/registration telemetry alone. |  |
 | [View once media](#view-once-media) | Allow reopening and saving view once photos and videos. |  |
 
 </details>

@@ -16,4 +16,5 @@ public class GameScene extends PixelScene {
 	public static void examineObject(Object o) { throw new RuntimeException("Stub"); }
 	public static void show(com.shatteredpixel.shatteredpixeldungeon.ui.Window wnd) { throw new RuntimeException("Stub"); }
 	public static void add(Blob blob) { throw new RuntimeException("Stub"); }
+	public static void afterObserve() { throw new RuntimeException("Stub"); }
 }

@@ -4,6 +4,7 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
+import semicoloncolonel.mobilestream.patches.shared.misc.devTarget
 
 object Constants {
     val COMPATIBILITY = Compatibility(
@@ -12,7 +13,7 @@ object Constants {
         description = "The Lowe's shopping app.",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x012169,
-        targets = listOf(AppTarget("26.10.7"))
+        targets = listOf(AppTarget("26.10.7"), devTarget("26.10.8", versionCode = 1438))
     )
 }
 

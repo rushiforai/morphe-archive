@@ -41,6 +41,7 @@ val disableAiPatch = bytecodePatch(
     description = "Turns off Alexa+, its floating button, and its companion mode.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

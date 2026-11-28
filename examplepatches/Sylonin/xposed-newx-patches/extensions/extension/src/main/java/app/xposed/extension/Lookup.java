@@ -241,7 +241,7 @@ final class Lookup {
             }
         }, X_TIMEOUT_MS, TimeUnit.MILLISECONDS);
 
-        XAboutApi.fetch(handle, (info, error) -> worker.execute(() -> {
+        XAboutApi.fetch(handle, (info, user, error) -> worker.execute(() -> {
             if (!done.compareAndSet(false, true)) return;
             xActive--;
             Stats.add(Stats.X_LOOKUPS, 1);
@@ -253,12 +253,13 @@ final class Lookup {
                 Log.w(Hooks.TAG, "About lookup failed for @" + handle + ": " + error);
             } else {
                 xFailures = 0;
-                if (info != null) Stats.add(Stats.X_FOUND, 1);
-                AccountInfo result = info != null ? info : AccountInfo.empty(System.currentTimeMillis());
+                if (!info.isEmpty()) Stats.add(Stats.X_FOUND, 1);
+                // Before store(), whose listeners redraw the account sheet.
+                Observed.user(handle, user);
                 AccountInfo previous = peek(handle);
-                // A refresh that finds nothing must not wipe data we already have.
-                if (!result.isEmpty() || previous == null || previous.isEmpty()) store(handle, result);
-                if (!result.isEmpty()) CloudCache.contribute(handle, result);
+                // A refresh that finds no location keeps the one we have, with the details X gave now.
+                store(handle, info.isEmpty() && previous != null && !previous.isEmpty() ? previous.withDetailsOf(info) : info);
+                if (!info.isEmpty()) CloudCache.contribute(handle, info);
             }
             pumpX();
         }));

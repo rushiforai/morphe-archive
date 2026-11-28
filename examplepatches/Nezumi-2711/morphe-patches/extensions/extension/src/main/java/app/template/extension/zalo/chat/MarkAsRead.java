@@ -18,7 +18,8 @@ import app.template.extension.zalo.buglog.Patch;
 import app.template.extension.zalo.shared.ZaloEnv;
 
 /**
- * "Mark as read" toolbar button shown in the chat screen while Hide read receipts is enabled.
+ * "Mark as read" toolbar button shown in the chat screen while Hide read receipts is enabled
+ * and the "Show Mark as read button" option is on.
  * Sends a one-shot seen ACK that bypasses the hide hook, then clears Zalo's local unread state.
  */
 public final class MarkAsRead {
@@ -48,6 +49,7 @@ public final class MarkAsRead {
             Object presenter = fieldValue(chatView, "H1");
             Context context = container.getContext();
             boolean show = presenter != null && ChatOptions.isReadReceiptsHidden(context)
+                && ChatOptions.isMarkAsReadButtonShown(context)
                 && !Boolean.TRUE.equals(presenter.getClass().getMethod("I3").invoke(presenter))
                 && drawer.getVisibility() == View.VISIBLE;
             if (!show) {

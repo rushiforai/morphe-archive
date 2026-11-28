@@ -87,7 +87,7 @@ $patches = @(
     [ordered]@{
         name               = 'CHAT TEXT SIZE'
         description        = 'Two options: Native (stock KICK text and spacing) or ' +
-                             'Twitch-like (larger 16 sp text, a wider 10 dp gap, lighter message text ' +
+                             'Twitch-like (larger 15 sp text, a tighter 6 dp gap, lighter message text ' +
                              'and bolder usernames). Toggle in SEYTTINGS. Requires the SEYTTINGS patch.'
         default            = $true
         category           = $null

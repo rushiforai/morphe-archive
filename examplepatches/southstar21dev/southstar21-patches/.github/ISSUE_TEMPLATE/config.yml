@@ -1,1 +1,8 @@
 blank_issues_enabled: false
+contact_links:
+  - name: Patching or installing fails in Morphe Manager
+    url: https://github.com/MorpheApp/morphe-manager/issues
+    about: Morphe Manager is Morphe's app, not part of these patches. Report it to them.
+  - name: YouTube Music won't sign in
+    url: https://github.com/MorpheApp/morphe-patches/issues
+    about: Sign-in comes from GmsCore support in Morphe Patches and MicroG-RE. Report it there.

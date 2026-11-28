@@ -1,3 +1,9 @@
+## [1.2.1](https://github.com/brandonp2412/instagram-patches/compare/v1.2.0...v1.2.1) (2026-11-28)
+
+### 🐛 Bug Fixes
+
+* suppress native Reels suggested-account cards ([a5193b7](https://github.com/brandonp2412/instagram-patches/commit/a5193b7e1a27df489f97c30948621dc35365da10))
+
 ## [1.2.0](https://github.com/brandonp2412/instagram-patches/compare/v1.1.0...v1.2.0) (2026-11-26)
 
 ### ✨ New Features

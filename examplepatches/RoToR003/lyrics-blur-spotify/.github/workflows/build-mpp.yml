@@ -1,0 +1,181 @@
+name: Build .mpp
+
+# Builds this patch as a Morphe bundle (.mpp) on every push, entirely on GitHub-hosted
+# runners — no local JDK/Android SDK needed. The bundle appears as a workflow artifact
+# ("lyrics-blur-spotify-mpp"), and on main / manual dispatch the publish job also refreshes the
+# rolling "bundle-latest" release (asset name is stable: patches.mpp) and commits an updated
+# patches-bundle.json back to the repo — together these make the repository a working Morphe
+# "Remote" patch source.
+#
+# How it works: clones southstar21dev/southstar21-patches (the upstream bundle this patch
+# targets), copies this repo's patch files into its layout, adds Spotify 9.2.4.2644 as a
+# verified target, then builds with the upstream Gradle wrapper.
+#
+# Note: the Morphe Gradle plugin reads morphe-patcher from GitHub Packages, so the build
+# needs `packages: read`. The APK is not available here (no APKMirror access, and APKs must
+# not be redistributed), so this workflow proves compilation + packaging only — not that the
+# patch applies to the real APK. For that, see docs/verification.md (CLI gate / on-device).
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: build-mpp-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build patch bundle
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Checkout southstar21-patches
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: southstar21dev/southstar21-patches
+          ref: main
+          path: southstar21-patches
+
+      - name: Copy patch files into the bundle layout
+        run: |
+          set -euo pipefail
+          DEST=southstar21-patches
+          mkdir -p "$DEST/extensions/spotify/src/main/java/app/southstar21/extension/spotify/lyricsblur"
+          cp extensions/spotify/src/main/java/app/southstar21/extension/spotify/lyricsblur/LyricsBlurPatch.java \
+             "$DEST/extensions/spotify/src/main/java/app/southstar21/extension/spotify/lyricsblur/LyricsBlurPatch.java"
+          mkdir -p "$DEST/patches/src/main/kotlin/app/southstar21/patches/spotify/layout/lyricsblur"
+          cp patches/src/main/kotlin/app/southstar21/patches/spotify/layout/lyricsblur/*.kt \
+             "$DEST/patches/src/main/kotlin/app/southstar21/patches/spotify/layout/lyricsblur/"
+
+      - name: Add Spotify 9.2.4.2644 as a verified target
+        run: |
+          python3 scripts/add-app-target.py \
+            southstar21-patches/patches/src/main/kotlin/app/southstar21/patches/spotify/shared/Constants.kt
+
+      - name: Setup Java
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+
+      - name: Build the bundle
+        working-directory: southstar21-patches
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./gradlew :patches:buildAndroid generatePatchesList --no-daemon || \
+            (echo "::warning::First build attempt failed; retrying once with --stacktrace" && \
+             ./gradlew :patches:buildAndroid generatePatchesList --no-daemon --stacktrace)
+
+      - name: Sanity-check the bundle
+        working-directory: southstar21-patches
+        run: |
+          set -euo pipefail
+          ls -l patches/build/libs/*.mpp
+          # The main bundle is patches-<v>.mpp; -sources.mpp / -javadoc.mpp are attached too.
+          main=$(ls patches/build/libs/*.mpp | grep -vE -- '-(sources|javadoc)\.mpp$' | head -1)
+          test -n "$main"
+          test "$(grep -c 'Lyrics blur' patches-list.json)" -ge 1
+
+      - name: Upload .mpp
+        uses: actions/upload-artifact@v4
+        with:
+          name: lyrics-blur-spotify-mpp
+          path: southstar21-patches/patches/build/libs/*.mpp
+          if-no-files-found: error
+
+  publish:
+    # Rolling prerelease "bundle-latest" with the .mpp attached, so the bundle is downloadable
+    # from the Releases page (workflow artifacts expire). Runs on main and on manual dispatch.
+    # The asset is uploaded under a stable name (patches.mpp) and patches-bundle.json at the repo
+    # root is regenerated and committed back on every publish — that's what makes this repository
+    # a working Morphe "Remote" source with correct update detection.
+    name: Publish bundle release
+    needs: build
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Download .mpp
+        uses: actions/download-artifact@v4
+        with:
+          name: lyrics-blur-spotify-mpp
+          path: mpp
+
+      - name: Publish to the bundle-latest release
+        id: release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          cd mpp
+          # Pick the real bundle (patches-<v>.mpp), not the -sources/-javadoc companions.
+          file=$(ls *.mpp | grep -vE -- '-(sources|javadoc)\.mpp$' | head -1)
+          # Upstream version, parsed from the filename (patches-1.4.0.mpp -> 1.4.0).
+          version="${file#patches-}"
+          version="${version%.mpp}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          # Stable asset name: patches.mpp. download_url never changes between rebuilds.
+          cp "$file" patches.mpp
+          echo "Publishing patches.mpp (from $file, $GITHUB_SHA); upstream version $version"
+          if gh release view bundle-latest >/dev/null 2>&1; then
+            gh release delete bundle-latest --yes --cleanup-tag
+          fi
+          gh release create bundle-latest patches.mpp \
+            --prerelease \
+            --title "Patch bundle — latest build" \
+            --notes "Auto-built by the **Build .mpp** workflow from $GITHUB_SHA (branch $GITHUB_REF_NAME).
+
+          Contains the **Lyrics blur** patch for Spotify 9.2.4.2644 (APKM), together with the rest of the southstar21 Spotify bundle.
+
+          Asset name is stable (\`patches.mpp\`); \`patches-bundle.json\` in the repository root is what Morphe Manager follows. See docs/verification.md. Not an official upstream release."
+
+      - name: Regenerate patches-bundle.json and commit it back
+        env:
+          VERSION: ${{ steps.release.outputs.version }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          # Morphe re-reads this file from the default branch every update check.
+          # created_at doubles as the update signature next to `version`, so it must
+          # change on every publish, otherwise managers never see the new build.
+          jq -n \
+            --arg v "$VERSION" \
+            --arg u "https://github.com/${{ github.repository }}/releases/download/bundle-latest/patches.mpp" \
+            --arg d "$(date -u +%Y-%m-%dT%H:%M:%S)" \
+            --arg desc "Rolling build of the southstar21-patches bundle (upstream v${VERSION}) with the **Lyrics blur** patch for Spotify 9.2.4.2644 (APKM). Not an official upstream release. See README for how to add this repository as a patch source in Morphe Manager." \
+            '{created_at:$d, description:$desc, download_url:$u, signature_download_url:"", version:$v}' \
+            > patches-bundle.json
+          echo "--- patches-bundle.json ---"
+          cat patches-bundle.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add patches-bundle.json
+          if git diff --cached --quiet; then
+            echo "patches-bundle.json already up to date; nothing to commit"
+            exit 0
+          fi
+          git commit -m "chore: update patches-bundle.json for v${VERSION} (build ${GITHUB_RUN_NUMBER}) [skip ci]"
+          git fetch origin "$REF_NAME"
+          git rebase FETCH_HEAD
+          if ! git push origin "HEAD:$REF_NAME"; then
+            echo "::error title=patches-bundle.json not updated::release was published but committing patches-bundle.json to $REF_NAME failed. Morphe update detection will stay stale until the next publish or a manual commit."
+            exit 1
+          fi

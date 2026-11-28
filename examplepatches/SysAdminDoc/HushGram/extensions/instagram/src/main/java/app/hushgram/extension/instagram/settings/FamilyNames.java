@@ -86,6 +86,7 @@ public final class FamilyNames {
     public static final String EXPLORE_MENU = "Explore without personalization";
     public static final String NOTES_ROW = "Hide the notes row";
     public static final String SPLIT_NOTES_ROW = "Split the notes row";
+    public static final String INBOX_TABS = "Primary and General tabs";
     public static final String INBOX_SEARCH = "Hide the search bar in Messages";
     public static final String INBOX_SUGGESTIONS = "Hide suggested accounts in DMs";
     public static final String NEW_MESSAGE = "Hide New message button and suggestions";
@@ -197,6 +198,7 @@ public final class FamilyNames {
     }
     public static final String SCREENSHOT_REPORTS = "Don't report screenshots";
     public static final String BLEND_VISITS = "Don't report Blend visits";
+    public static final String GHOST_ACTIONS = "Block likes, replies and posts in Ghost mode";
     public static final String SCREENSHOT_BLOCK = "Allow screenshots";
     public static final String KEEP_IN_CHAT = "Keep in chat";
     public static final String VIEW_ONCE_MARK = "Mark one-time photos and videos";

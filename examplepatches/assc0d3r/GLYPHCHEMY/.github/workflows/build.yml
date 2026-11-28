@@ -31,7 +31,14 @@ jobs:
           java-version: '21'
 
       - name: Make scripts executable
-        run: chmod +x ./build.sh
+        run: chmod +x ./build.sh ./tools/check-readme-layout.sh
+
+      # The README is hand-designed: the centred banner, hero/footer, glass badge row, jump pills,
+      # section order and the <details> card used for every patch are what the project page looks
+      # like. Content may change; the shell may not. Checking the shape here means a content update
+      # that flattens a card or reorders a section fails in review instead of after a release.
+      - name: Verify the README layout is intact
+        run: ./tools/check-readme-layout.sh README.md
 
       # build.sh names the bundle from gradle.properties, so the version comes from there
       # instead of a tag. A pull request that forgets to bump it still builds; that is the

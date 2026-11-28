@@ -112,15 +112,22 @@ public final class GboardAiWritingToolsSettingsFeature
                     enabled,
                     value -> GboardAiWritingToolsSettings.writeEnabled(preferences, value))
                     .setRestartRequired(GboardAiWritingToolsSettings.PREF_KEY_ENABLED));
-            behaviorRows.add(new GboardPatchesSettingsContract.ToggleRow(
-                    allKeyboardsTitle,
-                    allKeyboardsSummary,
-                    enabled,
-                    allKeyboardsEnabled,
-                    value -> GboardAiWritingToolsSettings.writeAllKeyboardsEnabled(
-                            preferences,
-                            value))
-                    .setRestartRequired(GboardAiWritingToolsSettings.PREF_KEY_ALL_KEYBOARDS));
+            if (GboardAiWritingToolsSettings.BACKEND_SHARED_LOCAL.equals(backendType)) {
+                behaviorRows.add(new GboardPatchesSettingsContract.ToggleRow(
+                        allKeyboardsTitle,
+                        GboardSettingsText.get(host.getContext(),
+                                R.string.gboard_patches_ai_writing_tools_local_all_keyboards_summary),
+                        false, true, null));
+            } else {
+                behaviorRows.add(new GboardPatchesSettingsContract.ToggleRow(
+                        allKeyboardsTitle,
+                        allKeyboardsSummary,
+                        enabled,
+                        allKeyboardsEnabled,
+                        value -> GboardAiWritingToolsSettings.writeAllKeyboardsEnabled(
+                                preferences, value))
+                        .setRestartRequired(GboardAiWritingToolsSettings.PREF_KEY_ALL_KEYBOARDS));
+            }
             behaviorRows.add(new GboardPatchesSettingsContract.SelectorRow(
                     backendTypeTitle,
                     backendTypeSummary,

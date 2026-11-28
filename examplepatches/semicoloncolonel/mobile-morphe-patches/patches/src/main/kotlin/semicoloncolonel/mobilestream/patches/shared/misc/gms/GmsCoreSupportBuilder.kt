@@ -138,6 +138,24 @@ internal object FrameworkCredentialProviderAvailableFingerprint : Fingerprint(
     },
 )
 
+/**
+ * The declared type of the parameter that the call's [register]th argument
+ * register carries, or null for the receiver, the second half of a long or
+ * double, or a register past the end. A non-static call passes the receiver
+ * first, and a long or double takes two registers.
+ */
+private fun MethodReference.parameterTypeAt(register: Int, isStatic: Boolean): String? {
+    var slot = if (isStatic) 0 else 1
+    if (register < slot) return null
+    for (type in parameterTypes) {
+        val name = type.toString()
+        if (slot == register) return name
+        slot += if (name == "J" || name == "D") 2 else 1
+        if (slot > register) return null
+    }
+    return null
+}
+
 private fun com.android.tools.smali.dexlib2.iface.Method.isAvailableOnDeviceCall() =
     implementation?.instructions?.indexOfFirst {
         it.opcode == Opcode.INVOKE_VIRTUAL &&
@@ -155,8 +173,6 @@ private fun com.android.tools.smali.dexlib2.iface.Method.isAvailableOnDeviceCall
  * @param required Whether the app cannot sign in without it. Apps that also
  *   offer email or other sign-ins get it as an opt-in patch, because it also
  *   moves push notifications to GmsCore.
- * @param category Folder that Morphe Manager shows the patch in, for apps
- *   with enough patches to sort.
  */
 internal fun gmsCoreSupportPatch(
     compatibility: Compatibility,
@@ -166,7 +182,6 @@ internal fun gmsCoreSupportPatch(
     signature: String,
     launcherActivity: String,
     required: Boolean = false,
-    category: String? = null,
     // App-specific fixes that only matter when sign-in goes through GmsCore.
     extraPatches: Set<Patch> = emptySet(),
 ): BytecodePatch {
@@ -251,7 +266,7 @@ internal fun gmsCoreSupportPatch(
         default = required,
     ) {
         compatibleWith(compatibility)
-        category?.let { category(it) }
+        category("Setup")
 
         // A root mount keeps the stock package name and Google's signature.
         availability { installer, _ ->
@@ -455,9 +470,20 @@ internal fun gmsCoreSupportPatch(
                         if (!insn.opcode.name.startsWith("invoke")) continue
                         val position = registers.indexOf(key)
                         if (position < 0 || position + 1 >= registers.size) continue
+                        // Only a call that takes the header's value as the next
+                        // String argument, such as setRequestProperty(name, value)
+                        // or header(name, value), gets the original value. gRPC's
+                        // Metadata.Key.of(name, marshaller) takes a marshaller there,
+                        // and a String in its place crashes Firebase In-App Messaging.
                         val target = registers[position + 1]
+                        val isStatic = insn.opcode.name.startsWith("invoke-static")
+                        val reference = (insn as ReferenceInstruction).reference as? MethodReference
                         // const-string reaches registers v0 to v255.
-                        if (target < 256) addInstruction(call, "const-string v$target, \"$value\"")
+                        if (target < 256 && reference != null &&
+                            reference.parameterTypeAt(position + 1, isStatic) == "Ljava/lang/String;"
+                        ) {
+                            addInstruction(call, "const-string v$target, \"$value\"")
+                        }
                         break
                     }
                 }

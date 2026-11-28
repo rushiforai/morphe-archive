@@ -1,0 +1,248 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.morphe.patches.instagram.reels.cleanup
+
+import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
+
+internal const val DECLUTTER = "$EXTENSION_PACKAGE/reels/ReelDeclutter;"
+
+/** The bridge reading the viewer's config off the reply bar's controller, a static (Object)Object of [DECLUTTER]. */
+internal const val REPLY_BAR_CONFIG = "replyBarConfig"
+internal const val HIDE_FOLLOW_BUTTON = "$DECLUTTER->hideFollowButton()Z"
+internal const val HIDE_CHIPS = "$DECLUTTER->hideChips()Z"
+internal const val HIDE_SEARCH_PILL = "$DECLUTTER->hideSearchPill()Z"
+internal const val HIDE_PRODUCT_PILLS = "$DECLUTTER->hideProductPills()Z"
+internal const val HIDE_POLL_PILLS = "$DECLUTTER->hidePollPills()Z"
+internal const val HIDE_SOCIAL_FOOTER = "$DECLUTTER->hideSocialFooter()Z"
+internal const val HIDE_EVERY_COMMENT_BAR = "$DECLUTTER->hideEveryCommentBar()Z"
+internal const val HIDE_SAVE_BUTTON = "$DECLUTTER->hideSaveButton()Z"
+internal const val HIDE_SAVE_COUNT = "$DECLUTTER->hideSaveCount()Z"
+internal const val HIDE_LIKE_BUTTON = "$DECLUTTER->hideLikeButton()Z"
+internal const val HIDE_LIKE_COUNT = "$DECLUTTER->hideLikeCount()Z"
+internal const val HIDE_COMMENT_BUTTON = "$DECLUTTER->hideCommentButton()Z"
+internal const val HIDE_COMMENT_COUNT = "$DECLUTTER->hideCommentCount()Z"
+internal const val HIDE_REPOST_COUNT = "$DECLUTTER->hideRepostCount()Z"
+internal const val HIDE_MORE_BUTTON = "$DECLUTTER->hideMoreButton()Z"
+internal const val SHARE_COUNT = "$DECLUTTER->shareCount(Ljava/lang/Object;)Ljava/lang/Object;"
+internal const val HIDE_COMMENT_BAR = "$DECLUTTER->hideCommentBar(Ljava/lang/Object;)Z"
+internal const val KEEP_COMMENT_BAR_SPACE = "$DECLUTTER->keepCommentBarSpace(Landroid/view/View;Ljava/lang/Object;)V"
+internal const val HIDE_DIRECT_REPLY_BAR = "$DECLUTTER->hideDirectReplyBar(Ljava/lang/Object;Ljava/lang/Object;)Z"
+internal const val HIDE_PAUSE_ICON = "$DECLUTTER->hidePauseIcon()Z"
+internal const val HIDE_PAUSE_SOUND_BUTTON = "$DECLUTTER->hidePauseSoundButton()Z"
+
+/**
+ * A part of the Reels viewer the patch hides: the method whose marker ends in [marker], and the
+ * extension hook asked first thing in it. A render answers nothing when the hook says to hide, and
+ * the check answers no.
+ */
+internal data class ReelPart(val marker: String, val hook: String, val check: Boolean = false)
+
+/**
+ * The Follow button beside a reel's author, and the Subscribe button the author-info component draws
+ * in its place for a creator who sells subscriptions (#248). Both are renders of their own, and the
+ * Subscribe one is built only by the author-info component, so no other screen loses its button. The
+ * suggested accounts' cards draw a Legacy Follow button, which stays.
+ */
+internal val FOLLOW_PARTS = listOf(
+    ReelPart("ClipsFollowButtonComponent_render", HIDE_FOLLOW_BUTTON),
+    ReelPart("SubscriptionCtaButtonComponent_render", HIDE_FOLLOW_BUTTON),
+)
+
+/**
+ * The pills that prompt you to make something or promote something. On Instagram 449 the first
+ * four and the glasses pills sit above the author, built by the component that also draws a live
+ * badge and a state-controlled media label, which have renders of their own and stay. The Meta AI
+ * pill sits in the reel's media info.
+ */
+internal val CHIP_PARTS = listOf(
+    "ClipsBaselAttributionPillComponent_render",
+    "ClipsBaselCreativeToolAttributionPillComponent_render",
+    "ClipsBaselPlatformizedCreativeToolAttributionComponent_render",
+    "StoriesTemplatePillComponent_render",
+    "ClipsMetaAiPillComponent_render",
+    "MetaAffiliateCTAComponent_render",
+    "ClipsWearablesAttributionBlackToGradientPillComponent_render",
+    "ClipsWearablesAttributionBluePillComponent_render",
+    "ClipsWearablesAttributionRimLightInnerPillComponent_render",
+    "ClipsWearablesAttributionSemiTransparentPillComponent_render",
+    "ClipsWearablesAttributionShopAIGlassesSemiTransparentPillComponent_render",
+    "ClipsWearablesAttributionShopRBMGlassesBlackPillComponent_render",
+    "ClipsWearablesAttributionShopRBMGlassesSemiTransparentPillComponent_render",
+).map { ReelPart(it, HIDE_CHIPS) }
+
+/**
+ * Friends' activity and the comment preview. The bubbles of friends' likes, comments and follows
+ * go above the author only when this check answers yes, and the media info draws the other two.
+ */
+internal val SOCIAL_PARTS = listOf(
+    ReelPart("ClipsInfoOverlayUseCase_shouldShowFloatingBubblesAboveUsername", HIDE_SOCIAL_FOOTER, check = true),
+    ReelPart("ClipsInlineCommentSocialContextComponent_render", HIDE_SOCIAL_FOOTER),
+    ReelPart("ClipsFriendlyViewerComponent_render", HIDE_SOCIAL_FOOTER),
+)
+
+/**
+ * The Add a comment bar the Reels tab draws under a reel on 450, a component of its own (the
+ * controller below handles the bar of reels opened from elsewhere). Its render answers nothing when
+ * the switch for all reels is on, and the reel's comment button still opens the comments.
+ */
+internal val COMMENT_BAR_PARTS = listOf(ReelPart("ClipsViewerInViewerCommentBarComponent_render", HIDE_EVERY_COMMENT_BAR))
+
+/**
+ * The Save button in a reel's right-hand button column, and the save count under it. On Instagram
+ * 450 the reel's button column (the clips UFI) builds each button in a method of its own that answers
+ * nothing when the reel has none, and the column adds only what it's handed, so an empty answer
+ * closes up with no gap. They are not renders: each takes the component scope and two colors (a
+ * long each) and is an instance method. A feed post's Save button is another component.
+ */
+internal val SAVE_PARTS = listOf(
+    ReelPart("ClipsUfiComponent_maybeCreateSaveButtonComponent", HIDE_SAVE_BUTTON),
+    ReelPart("ClipsUfiComponent_maybeCreateSaveCountComponent", HIDE_SAVE_COUNT),
+)
+
+/**
+ * The Like button and the like count in the same column (#668). On Instagram 454 the clips UFI
+ * builds each in a private method of its own, marked like the Save builders, and adds what it
+ * answers the same way, so an empty answer leaves no gap. Each takes more than the Save builders
+ * (the like actions and the like count's state), so only the kind of method is checked.
+ */
+internal val LIKE_PARTS = listOf(
+    ReelPart("ClipsUfiComponent_createLikeButtonComponent", HIDE_LIKE_BUTTON),
+    ReelPart("ClipsUfiComponent_createLikeCountComponent", HIDE_LIKE_COUNT),
+)
+
+/**
+ * The big pause icon a paused reel shows, and the sound button beside it (#686). On Instagram 454
+ * the pause-and-mute component builds each in a private method of its own, marked like the clips UFI
+ * builders, and its render adds what they answer to a list that skips an empty answer, so a paused
+ * reel then shows just its frame. The render also hides the reel's buttons while paused, which stays.
+ * The sound button's builder is called from two places, before or after the icon, and both answer
+ * through it. Each takes the component scope, the sound one a flag too, and is an instance method.
+ */
+internal val PAUSE_PARTS = listOf(
+    ReelPart("PauseAndMuteComponent_createPauseIcon", HIDE_PAUSE_ICON),
+    ReelPart("PauseAndMuteComponent_createMuteButton", HIDE_PAUSE_SOUND_BUTTON),
+)
+
+/**
+ * The Comment button's component, by its render's marker. Its builder in the clips UFI carries no
+ * marker of its own on 454: it's the one method of the UFI answering this component. The comment
+ * count's builder is the one other method of the UFI taking the same parameters and loading
+ * [UFI_COUNT], the resource name of the count's text.
+ */
+internal const val COMMENT_BUTTON_RENDER = "ClipsCommentButtonComponent_render"
+internal const val UFI_COUNT = "ufi_count"
+internal val COMMENT_BUTTON = ReelPart(COMMENT_BUTTON_RENDER, HIDE_COMMENT_BUTTON)
+internal val COMMENT_COUNT = ReelPart(UFI_COUNT, HIDE_COMMENT_COUNT)
+
+/**
+ * The repost count under the Repost button (#719). Its builder in the clips UFI holds no marker on
+ * 454 either: it's the one unmarked method of the UFI taking the Save builders' parameters (the
+ * scope and two colors) and loading [UFI_COUNT]. The save count's loads its own text name.
+ */
+internal val REPOST_COUNT = ReelPart(UFI_COUNT, HIDE_REPOST_COUNT)
+
+/**
+ * The More (three dots) button at the bottom of the same column (#647). The clips UFI builds it in a
+ * static method of its own, the one of the UFI loading [MORE_BUTTON_NAME], the button's view name, which
+ * the column's render and a paged card's More builder (the one instance method loading [PAGED_MORE])
+ * both call and add the way the other builders' answers are added. Both answer nothing when hidden.
+ */
+internal const val MORE_BUTTON_NAME = "more_button"
+internal const val PAGED_MORE = "clips_paged_card_ufi_more_button_component"
+internal val MORE_PARTS = listOf(ReelPart(MORE_BUTTON_NAME, HIDE_MORE_BUTTON), ReelPart(PAGED_MORE, HIDE_MORE_BUTTON))
+
+/**
+ * The share count under the Share button (#719) has no builder of its own on 454: the clips UFI's
+ * render builds it inline after this marker, through the UFI's text builder, and adds what that
+ * answers to the column. Every way through it, a share count or none, meets at that add, where
+ * [SHARE_COUNT] is handed the count and can answer nothing in its place.
+ */
+internal const val SHARE_COUNT_MARKER = "ClipsUfiComponent_createShareCountComponent"
+
+/**
+ * The overlays near the username that aren't a creation pill (#332): the suggested search terms
+ * ("Deep dive", and the related ads pivot that the same branch of the media info draws in the same
+ * pill style), the product tag and shopping buttons, and the poll or vote prompt. Each is a render
+ * of the same shape as the pills above, so an empty answer leaves the row without it.
+ */
+internal val SEARCH_PARTS = listOf("ClipsContentDeepDiveComponent_render", "ClipsRelatedAdsPivotComponent_render").map { ReelPart(it, HIDE_SEARCH_PILL) }
+internal val SHOP_PARTS = listOf(
+    "ProductTagCTAComponent_render",
+    "ShoppingCtaComponent_render",
+    "RelatedAdsPivotCTAComponent_render",
+    "ShopLensCtaComponent_render",
+    "ShopLensBarCtaComponent_render",
+    "ShopLensPausePillComponent_render",
+    "ShopLensMidSceneComponent_render",
+).map { ReelPart(it, HIDE_PRODUCT_PILLS) }
+internal val POLL_PARTS = listOf(ReelPart("PollCTAComponent_render", HIDE_POLL_PILLS))
+
+/**
+ * The reel CTA's own product button. The CTA's render hands a tagged product to this builder and
+ * returns what it answers, so it's a builder of a scope and the label rather than a render. The
+ * render answers nothing itself when it has nothing to draw, so an empty answer is one it expects.
+ */
+internal val PRODUCT_CTA = ReelPart("ClipsCTAComponent_renderNonSponsoredProductCta", HIDE_PRODUCT_PILLS)
+
+internal val REEL_PARTS = FOLLOW_PARTS + CHIP_PARTS + SEARCH_PARTS + SHOP_PARTS + POLL_PARTS + SOCIAL_PARTS + COMMENT_BAR_PARTS
+
+internal const val HIDE_SOCIAL_CONTEXT = "$DECLUTTER->hideSocialContext(Ljava/lang/Object;)Z"
+
+/**
+ * The use case that works out a reel's floating bubbles (friends' likes, comments and notes). When
+ * there are none to show it answers a state of its own, and the reel then builds no bubbles at all,
+ * wherever they'd have gone.
+ */
+internal const val FLOATING_BUBBLES = "FloatingBubblesUseCase_getUiState"
+
+/**
+ * Where Instagram decides on a reel's social context line, the faces with Liked by or Followed by
+ * beside them: the line under the author and the one at a reel's end are only shown once this
+ * answers yes. On 456 the check that used to leave the line out, shouldHideSocialContextForClips,
+ * is merged into the method holding this marker, which makes the line, reads its type, an enum
+ * naming what it says, and answers whether to show it.
+ */
+internal const val SOCIAL_CONTEXT_CHECK = "MediaSocialContextViewUtil_isCoexistenceWithBubblesEnabled"
+
+/** Types the social context's enum has to name, so the check is known to be handed that line. */
+internal val SOCIAL_CONTEXT_TYPES = listOf("FOLLOWED_BY", "LIKED_BY")
+
+/**
+ * The controller of the Add comment bar under a reel opened outside the Reels tab, such as from a
+ * profile's reposts: its show, the hide Instagram calls itself, its onViewCreated, which inflates
+ * the bar and keeps it, and its unVanish, which puts the bar back after the viewer hid it for a
+ * while without going through the show (on 450 a lambda outside the controller holds it).
+ */
+internal const val COMMENT_BAR_SHOW = "ClipsViewerCommentBarController_showCommentBar"
+internal const val COMMENT_BAR_HIDE = "ClipsViewerCommentBarController_hideCommentBar"
+internal const val COMMENT_BAR_CREATED = "ClipsViewerCommentBarController_onViewCreated"
+internal const val COMMENT_BAR_UNVANISH = "ClipsViewerCommentBarController_unVanishCommentBar"
+
+/**
+ * The controller of the reply bar under a reel opened with something to reply to, such as from a
+ * chat (#177): the Reply to field with its quick reactions and plus button. Its show sets the bar
+ * visible or gone by the controller's own hidden flag, its onViewCreated inflates the bar and calls
+ * the hide when that flag is already set, and the hide is Instagram's own. On 450 the show and the
+ * hide are merged into the controller's superclass, shared with the Spotlight reply bar, and reach
+ * this controller's code through an instance check, so only the onViewCreated names its class.
+ */
+internal const val DIRECT_REPLY_BAR_SHOW = "ClipsViewerDirectReplyBarController_showReplyBar"
+internal const val DIRECT_REPLY_BAR_HIDE = "ClipsViewerDirectReplyBarController_hideReplyBar"
+internal const val DIRECT_REPLY_BAR_CREATED = "ClipsViewerDirectReplyBarController_onViewCreated"
+
+/**
+ * The source a chat hands the viewer of a reel shared in it, by the name the enum keeps. The
+ * extension's hook answers yes for this one alone, so a build whose enum doesn't name it has no
+ * chat for the switch to work on.
+ */
+internal const val CHAT_SOURCE = "DIRECT"
+
+/** Where the viewer was opened from, an enum that keeps its name, which the controller holds. */
+internal const val CLIPS_VIEWER_SOURCE = "Lcom/instagram/clips/intf/ClipsViewerSource;"
+
+internal val CLEANUP_MARKERS = REEL_PARTS.map { it.marker } + SAVE_PARTS.map { it.marker } + LIKE_PARTS.map { it.marker } +
+    PAUSE_PARTS.map { it.marker } + COMMENT_BUTTON_RENDER + SHARE_COUNT_MARKER + PRODUCT_CTA.marker + FLOATING_BUBBLES + SOCIAL_CONTEXT_CHECK +
+    COMMENT_BAR_SHOW + COMMENT_BAR_HIDE + COMMENT_BAR_CREATED + COMMENT_BAR_UNVANISH +
+    DIRECT_REPLY_BAR_SHOW + DIRECT_REPLY_BAR_HIDE + DIRECT_REPLY_BAR_CREATED + SPOTLIGHT_REPLY_BAR_SHOW + SPOTLIGHT_REPLY_BAR_HIDE

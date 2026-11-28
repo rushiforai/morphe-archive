@@ -19,8 +19,12 @@ import kotlin.coroutines.jvm.internal.ContinuationImpl;
  */
 final class XAboutApi {
     interface Callback {
-        /** info is null when X has no About data for the account. error is set on failure. */
-        void onResult(AccountInfo info, Throwable error);
+        /**
+         * info is what X reports, with an empty location when X has no About data for the
+         * account; user is X's user model it came with. error is set on failure, and then
+         * both are null.
+         */
+        void onResult(AccountInfo info, Object user, Throwable error);
     }
 
     private static volatile Object graphqlApi;
@@ -30,6 +34,7 @@ final class XAboutApi {
     private static boolean broken;
     private static Class<?> aboutClass, userClass;
     private static Field basedIn, appSource, locationAccurate, affiliate, affiliateUsername, userId, userIdValue;
+    private static Field verifiedSince, verifiedYear, identityVerified, handleChanges, handleChangeCount;
 
     private XAboutApi() {
     }
@@ -51,17 +56,18 @@ final class XAboutApi {
             synchronized (XAboutApi.class) {
                 repo = repository();
             }
-            Object result = byScreenName.invoke(repo, handle, new ResultContinuation(callback));
-            if (!isSuspended(result)) deliver(result, callback);
+            Object result = byScreenName.invoke(repo, handle, new ResultContinuation(handle, callback));
+            if (!isSuspended(result)) deliver(handle, result, callback);
         } catch (Throwable t) {
-            callback.onResult(null, t);
+            callback.onResult(null, null, t);
         }
     }
 
     private static Object repository() throws Exception {
         if (repository != null) return repository;
         try {
-            // "repository|about|basedInCountry|appSource|isLocationAccurate|affiliateData|username|user|id|idValue"
+            // "repository|about|basedInCountry|appSource|isLocationAccurate|affiliateData|username|user|id|idValue
+            // |verifiedSince|verifiedSinceOverride|isIdVerified|usernameChangeData|count"
             String[] spec = Hooks.aboutApiSpec().split("\\|");
             Class<?> repoClass = Class.forName(spec[0]);
             aboutClass = Class.forName(spec[1]);
@@ -73,6 +79,11 @@ final class XAboutApi {
             userClass = Class.forName(spec[7]);
             userId = field(userClass, spec[8]);
             userIdValue = field(userId.getType(), spec[9]);
+            verifiedSince = field(aboutClass, spec[10]);
+            verifiedYear = field(aboutClass, spec[11]);
+            identityVerified = field(aboutClass, spec[12]);
+            handleChanges = field(aboutClass, spec[13]);
+            handleChangeCount = field(handleChanges.getType(), spec[14]);
 
             Constructor<?> constructor = null;
             for (Constructor<?> c : repoClass.getConstructors()) {
@@ -116,7 +127,9 @@ final class XAboutApi {
     }
 
     /** Unpacks X's Result -> (user, about metadata or null). */
-    private static void deliver(Object result, Callback callback) {
+    private static void deliver(String handle, Object result, Callback callback) {
+        AccountInfo info;
+        Object user = null;
         try {
             if (result == null) throw new IllegalStateException("null result");
             // kotlin.Result.Failure, thrown from inside the coroutine.
@@ -129,7 +142,6 @@ final class XAboutApi {
             Object success = firstInstanceField(result);
             if (success == null) throw new IllegalStateException("Unexpected result " + result);
             Object about = null;
-            long id = 0;
             boolean hasAboutField = false;
             for (Field f : success.getClass().getDeclaredFields()) {
                 if (Modifier.isStatic(f.getModifiers())) continue;
@@ -138,14 +150,21 @@ final class XAboutApi {
                     about = f.get(success);
                     hasAboutField = true;
                 } else if (f.getType() == userClass) {
-                    id = userId(f.get(success));
+                    user = f.get(success);
                 }
             }
             if (!hasAboutField) throw new IllegalStateException("Unexpected payload " + success);
-            callback.onResult(about == null ? null : toInfo(about, id), null);
+            // Never file one account's data under another handle, as X-Posed checks too.
+            String returned = user != null ? ModelBridge.screenName(user) : null;
+            if (returned != null && !returned.equalsIgnoreCase(handle)) {
+                throw new IllegalStateException("X returned @" + returned + " for @" + handle);
+            }
+            info = toInfo(about, user);
         } catch (Throwable t) {
-            callback.onResult(null, t);
+            callback.onResult(null, null, t);
+            return;
         }
+        callback.onResult(info, user, null);
     }
 
     /** The user's numeric id, or 0. */
@@ -154,14 +173,29 @@ final class XAboutApi {
         return id == null ? 0 : userIdValue.getLong(id);
     }
 
-    private static AccountInfo toInfo(Object about, long id) throws IllegalAccessException {
+    private static AccountInfo toInfo(Object about, Object user) throws IllegalAccessException {
+        long id = userId(user);
+        long created = user != null ? ModelBridge.instantMillis(ModelBridge.createdAt(user)) : 0;
+        long now = System.currentTimeMillis();
+        if (about == null) {
+            // No About data: nothing to ask again until the entry expires.
+            return new AccountInfo(null, null, null, null, now, AccountInfo.ORIGIN_X, id,
+                    new AccountInfo.Details(created, -1, 0, 0, Boolean.FALSE));
+        }
         String location = (String) basedIn.get(about);
         String source = (String) appSource.get(about);
         boolean accurate = locationAccurate.getBoolean(about);
         Object affiliateData = affiliate.get(about);
         String affiliation = affiliateData == null ? null : (String) affiliateUsername.get(affiliateData);
-        return new AccountInfo(location, source, location != null ? accurate : null, affiliation,
-                System.currentTimeMillis(), AccountInfo.ORIGIN_X, id);
+        Object changes = handleChanges.get(about);
+        Long year = (Long) verifiedYear.get(about);
+        AccountInfo.Details details = new AccountInfo.Details(
+                created,
+                changes != null ? handleChangeCount.getInt(changes) : -1,
+                ModelBridge.instantMillis(verifiedSince.get(about)),
+                year != null && year > 0 && year < 10_000 ? year.intValue() : 0,
+                Boolean.TRUE.equals(identityVerified.get(about)));
+        return new AccountInfo(location, source, location != null ? accurate : null, affiliation, now, AccountInfo.ORIGIN_X, id, details);
     }
 
     private static Throwable findThrowable(Object o) throws IllegalAccessException {
@@ -187,16 +221,18 @@ final class XAboutApi {
 
     /** Receives the repository's result when it resumes asynchronously. */
     private static final class ResultContinuation extends ContinuationImpl {
+        private final String handle;
         private final Callback callback;
 
-        ResultContinuation(Callback callback) {
+        ResultContinuation(String handle, Callback callback) {
             super(new Root());
+            this.handle = handle;
             this.callback = callback;
         }
 
         @Override
         public Object invokeSuspend(Object result) {
-            deliver(result, callback);
+            deliver(handle, result, callback);
             return null;
         }
     }

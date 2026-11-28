@@ -1,0 +1,360 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.morphe.patches.instagram.direct.ghost
+
+import app.morphe.ExtensionDex
+import app.morphe.Fixtures
+import app.morphe.PatchContexts
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patches.instagram.FixtureDex
+import app.morphe.patches.instagram.direct.seen.visualCode
+import app.morphe.patches.instagram.direct.seen.visualReference
+import app.morphe.patches.instagram.direct.seen.visualString
+import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.namedRegisters
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21c
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
+import org.junit.Test
+import java.io.File
+
+/**
+ * Ghost mode from the inbox: the New message button in the inbox's top bar gets the extension's
+ * long press, put in its configuration right after its tap listener, on every declared build
+ * and the other builds of that version. The button's tap, and every other method, stay as they were.
+ */
+class GhostModeEntryHookTest {
+    @Test
+    fun theHookIsInTheExtension() {
+        val declared = ExtensionDex.classDef(GHOST_LONG_PRESS.substringBefore("->")).methods
+            .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
+            .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
+        for (hook in listOf(GHOST_LONG_PRESS, GHOST_NEW_MESSAGE_ACTION, GHOST_BIND_ACTION)) {
+            assertEquals(GHOST_LONG_PRESS.substringBefore("->"), hook.substringBefore("->"))
+            assertTrue("$hook is not in the extension: $declared", hook.substringAfter("->") in declared)
+        }
+    }
+
+    /**
+     * The newer top bar (IgdsActionBar), which an account gets from a server flag, on each build: the
+     * New message action's maker hands each model it answers to the extension, and the bar's binder
+     * hands each button and its model over first. Nothing else changes.
+     */
+    @Test
+    fun eachBuildGivesTheNewerTopBarsNewMessageTheLongPress() {
+        val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
+        val bundles = versions.flatMap { version -> Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") } }
+        val others = Fixtures.otherBuilds()
+        assertTrue("no fixture of a declared build", bundles.isNotEmpty())
+        assertTrue("other builds of the declared version were not read", others.isNotEmpty())
+        val checked = (bundles + others).map { checkActionBar(it) }
+        assertEquals("every build was checked", bundles.size + others.size, checked.size)
+    }
+
+    /** Without the newer bar the search says so, the bar's part changes nothing, and the older bar's part still goes in. */
+    @Test
+    fun aBuildWithoutTheNewerTopBarKeepsItsLongPressOnTheOlderOne() {
+        val bundle = Fixtures.files { it.extension == "apks" }.first()
+        val classes = actionSlice(bundle).filter { it.type != IGDS_ACTION_BAR }
+        val context = PatchContexts.of(classes)
+        val refusal = assertThrows(PatchException::class.java) { context.findGhostAction() }
+        assertTrue(refusal.message, refusal.message.orEmpty().contains("the build has no $IGDS_ACTION_BAR"))
+        val before = classes.associate { it.type to snapshot(it) }
+        assertFalse(context.addGhostAction())
+        for ((type, methods) in before) assertEquals(type, methods, snapshot(context.mutableClassDefBy(type)))
+
+        val older = PatchContexts.of(slice(bundle))
+        assertTrue("the older bar's search doesn't need the newer bar", older.addGhostModeEntry())
+    }
+
+    /** Returns the hooked maker's signature, so the caller can count the builds it read. */
+    private fun checkActionBar(bundle: File): String {
+        val classes = actionSlice(bundle)
+        val context = PatchContexts.of(classes)
+        val found = context.findGhostAction()
+        val where = "${bundle.parentFile.name}/${bundle.name}"
+        val maker = "${found.makerType}->${found.makerName}(${found.makerParameters.joinToString("")})"
+        val binderSignature = "$IGDS_ACTION_BAR->${found.binderName}(${found.binderParameters.joinToString("")})V"
+        assertEquals("$where: the binder takes a button", "Landroid/widget/ImageView;", found.binderParameters[0])
+        val before = classes.associate { it.type to snapshot(it) }
+        val makerBefore = before.getValue(found.makerType).entries.single { it.key.startsWith(maker) }
+        assertTrue("$where: the maker answers the binder's model", makerBefore.key.endsWith(")${found.binderParameters[1]}"))
+        val returnsBefore = makerBefore.value.filter { it.first == Opcode.RETURN_OBJECT }
+        assertEquals("$where: every return of the maker found", returnsBefore.size, found.returns.size)
+
+        assertTrue(where, context.addGhostAction())
+
+        // The maker: one hook right before each return, handed the value that return answers.
+        val makerCode = context.mutableClassDefBy(found.makerType).methods.single {
+            it.name == found.makerName && it.parameterTypes.map(CharSequence::toString) == found.makerParameters
+        }.visualCode()
+        val hooks = makerCode.indices.filter { makerCode[it].visualReference().toString() == GHOST_NEW_MESSAGE_ACTION }
+        assertEquals("$where: one hook per return", found.returns.size, hooks.size)
+        for (at in hooks) {
+            assertEquals("$where: a static call", Opcode.INVOKE_STATIC_RANGE, makerCode[at].opcode)
+            assertEquals("$where: right before a return", Opcode.RETURN_OBJECT, makerCode[at + 1].opcode)
+            assertEquals("$where: handed what the return answers", makerCode[at + 1].namedRegisters(), makerCode[at].namedRegisters())
+        }
+
+        // The binder: the hook first, handed the button and its model, the rest as it was.
+        val binder = context.mutableClassDefBy(IGDS_ACTION_BAR).methods.single {
+            it.name == found.binderName && it.parameterTypes.map(CharSequence::toString) == found.binderParameters
+        }
+        val binderCode = binder.visualCode()
+        val registers = binder.implementation!!.registerCount
+        assertEquals("$where: the binder's hook", GHOST_BIND_ACTION, binderCode[0].visualReference().toString())
+        assertEquals("$where: handed p1 and p2", listOf(registers - 2, registers - 1), binderCode[0].namedRegisters())
+        assertEquals("$where: one binder hook", 1, binderCode.count { it.visualReference().toString() == GHOST_BIND_ACTION })
+
+        for ((type, original) in before) {
+            val now = snapshot(context.mutableClassDefBy(type))
+            for ((method, instructions) in original) {
+                val after = now.getValue(method)
+                when {
+                    method.startsWith(maker) && type == found.makerType ->
+                        assertEquals("$where: $method only gained the hooks", instructions, after.filter { it.second != GHOST_NEW_MESSAGE_ACTION })
+                    method == binderSignature ->
+                        assertEquals("$where: $method only gained the hook", instructions, after.drop(1))
+                    else -> assertEquals("$where: $method changed", instructions, after)
+                }
+            }
+        }
+        return maker
+    }
+
+    /** With no tap to find, the search says so, and the patch goes on without the shortcut and changes nothing. */
+    @Test
+    fun aBuildWithoutTheNewMessageTapKeepsEverythingAsItWas() {
+        val refusal = assertThrows(PatchException::class.java) { PatchContexts.of(emptyList()).findGhostEntries() }
+        assertTrue(refusal.message, refusal.message.orEmpty().contains("expected one method that logs $NEW_MESSAGE_TAPPED, found 0"))
+        assertFalse(PatchContexts.of(emptyList()).addGhostModeEntry())
+    }
+
+    /** The tap alone, with no inbox header controller beside it, is not enough to hook anything. */
+    @Test
+    fun aTapWithoutTheInboxHeaderControllerFailsTheSearch() {
+        val tap = ImmutableClassDef(
+            "Lfixture/Tap;", AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null, null,
+            listOf(
+                ImmutableMethod(
+                    "Lfixture/Tap;", "A08", emptyList(), "V", AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, null, null,
+                    ImmutableMethodImplementation(
+                        1,
+                        listOf(ImmutableInstruction21c(Opcode.CONST_STRING, 0, ImmutableStringReference(NEW_MESSAGE_TAPPED)), ImmutableInstruction10x(Opcode.RETURN_VOID)),
+                        null, null,
+                    ),
+                ),
+            ),
+        )
+        val context = PatchContexts.of(listOf(tap))
+        val refusal = assertThrows(PatchException::class.java) { context.findGhostEntries() }
+        assertTrue(refusal.message, refusal.message.orEmpty().contains("expected one inbox header controller"))
+        assertFalse(context.addGhostModeEntry())
+    }
+
+    /** On each build: the one place found, the three instructions written, and nothing else touched. */
+    @Test
+    fun eachBuildOfADeclaredVersionGetsTheLongPressOnNewMessage() {
+        val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
+        val bundles = versions.flatMap { version -> Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") } }
+        val others = Fixtures.otherBuilds()
+        assertTrue("no fixture of a declared build", bundles.isNotEmpty())
+        for (bundle in bundles + others) checkBuild(bundle)
+        assertTrue("other builds of the declared version were not read", others.isNotEmpty())
+    }
+
+    private fun checkBuild(bundle: File) {
+        val classes = slice(bundle)
+        val context = PatchContexts.of(classes)
+        val entries = context.findGhostEntries()
+        val before = classes.associate { it.type to snapshot(it) }
+        assertEquals(bundle.name, entries.size, entries.map { "${it.type}->${it.name}" }.distinct().size)
+
+        val hooked = entries.map { "${it.type}->${it.name}(${it.parameters.joinToString("")})V" }.toSet()
+        assertTrue(bundle.name, context.addGhostModeEntry())
+        for (found in entries) checkEntry(bundle, context, found, before, hooked)
+    }
+
+    private fun checkEntry(
+        bundle: File, context: BytecodePatchContext, found: GhostEntry,
+        before: Map<String, Map<String, List<Triple<Opcode, String?, List<Int>>>>>,
+        hooked: Set<String>,
+    ) {
+        val signature = "${found.type}->${found.name}(${found.parameters.joinToString("")})V"
+
+        val builder = context.mutableClassDefBy(found.type).methods.single {
+            it.name == found.name && it.parameterTypes.map(CharSequence::toString) == found.parameters
+        }
+        val code = builder.visualCode()
+        val at = found.insertAt
+        val where = "${bundle.parentFile.name}/${bundle.name} $signature"
+        // The button's tap listener goes into its configuration, and the hook comes right after.
+        val tapStore = code[at - 1]
+        assertEquals("$where: the tap listener's store", Opcode.IPUT_OBJECT, tapStore.opcode)
+        assertEquals("$where: stored in a View.OnClickListener field", "Landroid/view/View\$OnClickListener;",
+            (tapStore.visualReference() as FieldReference).type)
+        assertEquals("$where: the configuration", found.config, tapStore.namedRegisters()[1])
+        assertEquals("$where: the stored listener", found.listener, tapStore.namedRegisters()[0])
+        assertEquals("$where: the tap field", found.tap, tapStore.visualReference().toString())
+        // The listener is marked as New message's first, so a bar binding the configuration can tell the button.
+        assertEquals("$where: the mark", Opcode.INVOKE_STATIC_RANGE, code[at].opcode)
+        assertEquals("$where: the mark's hook", GHOST_NEW_MESSAGE_ACTION, code[at].visualReference().toString())
+        assertEquals("$where: the mark's register", listOf(found.listener), code[at].namedRegisters())
+        assertEquals("$where: the call", Opcode.INVOKE_STATIC, code[at + 1].opcode)
+        assertEquals("$where: the hook", GHOST_LONG_PRESS, code[at + 1].visualReference().toString())
+        assertEquals("$where: the answer", Opcode.MOVE_RESULT_OBJECT, code[at + 2].opcode)
+        assertEquals("$where: the answer's register", listOf(found.free), code[at + 2].namedRegisters())
+        assertEquals("$where: the store", Opcode.IPUT_OBJECT, code[at + 3].opcode)
+        assertEquals("$where: the registers", listOf(found.free, found.config), code[at + 3].namedRegisters())
+        assertEquals("$where: the field", found.longPress, code[at + 3].visualReference().toString())
+        assertTrue("$where: a long press field", found.longPress.endsWith(":Landroid/view/View\$OnLongClickListener;"))
+        assertTrue("$where: the free register is not the configuration", found.free != found.config && found.free <= 15)
+        assertEquals("$where: hooks", 1, code.count { it.visualReference().toString() == GHOST_LONG_PRESS })
+        assertEquals("$where: marks", 1, code.count { it.visualReference().toString() == GHOST_NEW_MESSAGE_ACTION })
+
+        // Only that builder changed, and only by those four instructions.
+        for ((type, original) in before) {
+            val now = snapshot(context.mutableClassDefBy(type))
+            for ((method, instructions) in original) {
+                if (method == signature) {
+                    val after = now.getValue(method)
+                    assertEquals("$where: instructions added", instructions.size + 4, after.size)
+                    assertEquals("$where: before the hook", instructions.take(at), after.take(at))
+                    assertEquals("$where: after the hook", instructions.drop(at), after.drop(at + 4))
+                } else if (method !in hooked) {
+                    assertEquals("$where: $method changed", instructions, now.getValue(method))
+                }
+            }
+        }
+    }
+
+    internal companion object {
+        const val CLICK = "Landroid/view/View\$OnClickListener;"
+        const val FUNCTION0 = "Lkotlin/jvm/functions/Function0;"
+
+        /**
+         * What the newer bar's search reads in a build: the class logging the New message tap, the
+         * inbox header controller, the lambda classes that call into it, the classes that make one
+         * of those lambdas, and the bar itself.
+         */
+        fun actionSlice(bundle: File): List<ClassDef> {
+            val kept = LinkedHashMap<String, ClassDef>()
+            val anchors = setOf(NEW_MESSAGE_TAPPED, INBOX_OPTIONS_TAPPED)
+            FixtureDex.forEach(bundle) { dex ->
+                if (dex.stringSection.none { it in anchors }) return@forEach
+                for (candidate in dex.classes) {
+                    if (candidate.methods.any { method -> method.visualCode().any { it.visualString() in anchors } }) {
+                        kept[candidate.type] = ImmutableClassDef.of(candidate)
+                    }
+                }
+            }
+            val controller = startOwner(bundle, kept).type
+            FixtureDex.forEach(bundle) { dex ->
+                for (candidate in dex.classes) {
+                    if (candidate.type in kept || FUNCTION0 !in candidate.interfaces) continue
+                    if (candidate.methods.any { method -> method.visualCode().any { (it.visualReference() as? MethodReference)?.definingClass == controller } }) {
+                        kept[candidate.type] = ImmutableClassDef.of(candidate)
+                    }
+                }
+            }
+            val lambdas = kept.values.filter { FUNCTION0 in it.interfaces }.map { it.type }.toSet()
+            FixtureDex.forEach(bundle) { dex ->
+                for (candidate in dex.classes) {
+                    if (candidate.type in kept) continue
+                    if (candidate.type == IGDS_ACTION_BAR || candidate.methods.any { method ->
+                            method.visualCode().any { it.opcode == Opcode.NEW_INSTANCE && (it.visualReference() as? TypeReference)?.type in lambdas }
+                        }) {
+                        kept[candidate.type] = ImmutableClassDef.of(candidate)
+                    }
+                }
+            }
+            return kept.values.toList()
+        }
+
+        /**
+         * The class whose method starts a new message, added to [kept]: the inbox header controller
+         * through 451, and from 452 the inbox class the controller keeps in a field, whose method
+         * calls the New message tap.
+         */
+        fun startOwner(bundle: File, kept: MutableMap<String, ClassDef>): ClassDef {
+            val controller = kept.values.single { classDef ->
+                classDef.methods.any { method -> method.visualCode().any { it.visualString() == INBOX_OPTIONS_TAPPED } }
+            }
+            val tap = kept.values.flatMap { owner ->
+                owner.methods.filter { method -> method.visualCode().any { it.visualString() == NEW_MESSAGE_TAPPED } }.map { owner.type to it.name }
+            }.single()
+            fun ClassDef.callsTap() = methods.any { method ->
+                method.visualCode().any { (it.visualReference() as? MethodReference)?.let { call -> call.definingClass to call.name } == tap }
+            }
+            if (controller.callsTap()) return controller
+            val held = controller.fields.filter { !AccessFlags.STATIC.isSet(it.accessFlags) }.map { it.type }.filter { it.startsWith("L") }.toSet()
+            val owner = FixtureDex.classes(bundle, held).values.single { it.callsTap() }
+            kept[owner.type] = ImmutableClassDef.of(owner)
+            return owner
+        }
+
+        fun snapshot(classDef: ClassDef) = classDef.methods.associate { method ->
+            method.toString() to method.visualCode().map { Triple(it.opcode, it.visualReference()?.toString(), it.namedRegisters()) }
+        }
+
+        /**
+         * What the search reads in a build: the class logging the New message tap, the inbox header
+         * controller, the tap listener classes that call into it, the classes that make a tap
+         * listener, and the classes those store into.
+         */
+        fun slice(bundle: File): List<ClassDef> {
+            val kept = LinkedHashMap<String, ClassDef>()
+            val anchors = setOf(NEW_MESSAGE_TAPPED, INBOX_OPTIONS_TAPPED)
+            FixtureDex.forEach(bundle) { dex ->
+                if (dex.stringSection.none { it in anchors }) return@forEach
+                for (candidate in dex.classes) {
+                    if (candidate.methods.any { method -> method.visualCode().any { it.visualString() in anchors } }) {
+                        kept[candidate.type] = ImmutableClassDef.of(candidate)
+                    }
+                }
+            }
+            val controller = startOwner(bundle, kept).type
+            FixtureDex.forEach(bundle) { dex ->
+                for (candidate in dex.classes) {
+                    if (candidate.type in kept || CLICK !in candidate.interfaces) continue
+                    if (candidate.methods.any { method -> method.visualCode().any { (it.visualReference() as? MethodReference)?.definingClass == controller } }) {
+                        kept[candidate.type] = ImmutableClassDef.of(candidate)
+                    }
+                }
+            }
+            val listeners = kept.values.filter { CLICK in it.interfaces }.map { it.type }.toSet()
+            FixtureDex.forEach(bundle) { dex ->
+                for (candidate in dex.classes) {
+                    if (candidate.type in kept) continue
+                    if (candidate.methods.any { method ->
+                            method.visualCode().any { it.opcode == Opcode.NEW_INSTANCE && (it.visualReference() as? TypeReference)?.type in listeners }
+                        }) {
+                        kept[candidate.type] = ImmutableClassDef.of(candidate)
+                    }
+                }
+            }
+            val stored = kept.values.filter { classDef ->
+                classDef.methods.any { method -> method.visualCode().any { it.opcode == Opcode.NEW_INSTANCE && (it.visualReference() as? TypeReference)?.type in listeners } }
+            }.flatMap { it.methods }.flatMap { it.visualCode() }
+                .mapNotNull { (it.visualReference() as? FieldReference)?.definingClass }.toSet()
+            kept += FixtureDex.classes(bundle, stored.filter { it !in kept }.toSet())
+            return kept.values.toList()
+        }
+    }
+}

@@ -108,6 +108,15 @@
       "menu": "Overflow menu",
       "highlights": "🚫",
       "blurb": "Parcel tracking without ads"
+    },
+    "com.imo.android.imoimhd": {
+      "name": "IMO HD",
+      "slug": "imo-hd",
+      "category": "Calls & messaging",
+      "file": "APKM",
+      "menu": "Settings page",
+      "highlights": "🚫📸🔑",
+      "blurb": "IMO without ads, with screenshots allowed"
     }
   }
 }

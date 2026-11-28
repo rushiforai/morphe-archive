@@ -21,6 +21,7 @@ val disableAiPatch = bytecodePatch(
     description = "Turns off the Xfinity Assistant chat.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

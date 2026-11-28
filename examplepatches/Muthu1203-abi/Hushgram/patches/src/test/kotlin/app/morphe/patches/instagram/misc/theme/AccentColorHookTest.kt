@@ -1,0 +1,937 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.morphe.patches.instagram.misc.theme
+
+import app.morphe.ExtensionDex
+import app.morphe.Fixtures
+import app.morphe.PatchContexts
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patches.instagram.FixtureDex
+import app.morphe.patches.instagram.misc.extension.parameterRegisterNumber
+import app.morphe.patches.shared.compat.AppCompatibilities
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+/**
+ * Accent color: every list AndroidX's color state list loader returns goes through
+ * AccentColor.list, the color each of the two theme color reads returns goes through
+ * AccentColor.color, and anything the patch can't find exactly fails it before a change.
+ */
+class AccentColorHookTest {
+    @Test
+    fun theHooksAreInTheExtension() {
+        val declared = ExtensionDex.classDef(ACCENT_COLOR).methods
+            .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
+            .map { "${it.definingClass}->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
+        assertTrue("$SWAP_COLOR is not in the extension: $declared", SWAP_COLOR in declared)
+        assertTrue("$SWAP_LIST is not in the extension: $declared", SWAP_LIST in declared)
+        assertTrue("$SWAP_VALUE is not in the extension: $declared", SWAP_VALUE in declared)
+        assertTrue("$SWAP_TEXT is not in the extension: $declared", SWAP_TEXT in declared)
+        assertTrue("$SWAP_IMAGE is not in the extension: $declared", SWAP_IMAGE in declared)
+    }
+
+    @Test
+    fun everyReturnGoesThroughTheExtension() {
+        val context = PatchContexts.of(listOf(loader(), themes(), colors(), fallback(), resources(), resources(OTHER_RESOURCES, lists = false), extension()))
+
+        val found = context.findAccentReads()
+        assertEquals("$LOADER->A01", "${found.loader.definingClass}->${found.loader.name}")
+        assertEquals(setOf("$THEMES->A0Y", "$COLORS->A03"), found.colorReads.map { "${it.definingClass}->${it.name}" }.toSet())
+        assertEquals(setOf("$THEMES->A0c", "$FALLBACK->A05"), found.fallbackReads.map { "${it.definingClass}->${it.name}" }.toSet())
+        assertEquals("$THEMES->A0Z", "${found.valueRead.definingClass}->${found.valueRead.name}")
+        context.swapAccentColors()
+
+        assertListsSwapped("stand-in", context.loaderMethod(), 2)
+        assertColorSwapped("stand-in with a check first", context.method(THEMES, "A0Y"))
+        assertColorSwapped("stand-in", context.method(COLORS, "A03"))
+        assertColorSwapped("fallback stand-in with a check first", context.method(THEMES, "A0c", FALLBACK_SHAPE))
+        assertColorSwapped("fallback stand-in", context.method(FALLBACK, "A05", FALLBACK_SHAPE))
+        assertValueSwapped("stand-in", context.method(THEMES, "A0Z"))
+        assertEquals("the resolver itself is left alone", 0, context.method(THEMES, "A0b").hooks(SWAP_COLOR).size)
+        assertEquals("the fallback resolver itself is left alone", 0, context.method(THEMES, "A0d", FALLBACK_SHAPE).hooks(SWAP_COLOR).size)
+        assertResourcesSwapped("stand-in", context, RESOURCES_STAND_IN, lists = true)
+        assertResourcesSwapped("stand-in without lists", context, OTHER_RESOURCES, lists = false)
+    }
+
+    /** 454's loader takes a theme and its resources in place of a Context, and its lists are swapped the same way. */
+    @Test
+    fun aLoaderTakingTheThemeIsFound() {
+        val context = PatchContexts.of(listOf(loader(themed = true), themes(), colors(), fallback(), resources(), extension()))
+
+        val found = context.findAccentReads()
+        assertEquals("$LOADER->A01", "${found.loader.definingClass}->${found.loader.name}")
+        context.swapAccentColors()
+
+        assertListsSwapped("themed stand-in", context.method(LOADER, "A01", THEMED_LOADER_SHAPE), 2)
+    }
+
+    /**
+     * 454 inlines the read beside the resolver into its callers, so the read elsewhere is the one
+     * left (`LX/0129;->A06` on 386014758), and it's swapped the same way.
+     */
+    @Test
+    fun aLoneReadOutsideTheResolversClassIsFound() {
+        val context = PatchContexts.of(listOf(loader(), themes(inClassRead = false), colors(), fallback(), resources(), extension()))
+
+        val found = context.findAccentReads()
+        assertEquals(listOf("$COLORS->A03"), found.colorReads.map { "${it.definingClass}->${it.name}" })
+        context.swapAccentColors()
+
+        assertColorSwapped("lone read", context.method(COLORS, "A03"))
+    }
+
+    /**
+     * 454 inlines the resolver into the fallback resolver, which then resolves its own attribute and
+     * returns its fallback (`LX/02Xz;->A0e` on 386014758). Its two reads are found and swapped the same way.
+     */
+    @Test
+    fun anInlinedFallbackResolverIsFound() {
+        val context = PatchContexts.of(listOf(loader(), themes(inlinedFallback = true), colors(), fallback(), resources(), extension()))
+
+        val found = context.findAccentReads()
+        assertEquals(setOf("$THEMES->A0c", "$FALLBACK->A05"), found.fallbackReads.map { "${it.definingClass}->${it.name}" }.toSet())
+        context.swapAccentColors()
+
+        assertColorSwapped("fallback stand-in with a check first", context.method(THEMES, "A0c", FALLBACK_SHAPE))
+        assertColorSwapped("fallback stand-in", context.method(FALLBACK, "A05", FALLBACK_SHAPE))
+        assertEquals("the fallback resolver itself is left alone", 0, context.method(THEMES, "A0d", FALLBACK_SHAPE).hooks(SWAP_COLOR).size)
+    }
+
+    /** A color read straight from a resource can't be reached without Instagram's own Resources, so it refuses. */
+    @Test
+    fun noResourcesOfItsOwnFailsThePatch() {
+        val context = PatchContexts.of(listOf(loader(), themes(), colors(), fallback(), resources(getColorWithTheme = false), extension()))
+        val failure = assertThrows(PatchException::class.java) { context.swapAccentColors() }
+        assertTrue(failure.message!!, failure.message!!.startsWith("Accent color: found no class extending Resources"))
+    }
+
+    @Test
+    fun anythingItCantFindExactlyFailsThePatch() {
+        for ((case, classes) in listOf(
+            "no loader" to listOf(themes(), colors(), fallback(), extension()),
+            "two loaders" to listOf(loader(), loader(type = "Lfixture/OtherCompat;"), themes(), colors(), fallback(), extension()),
+            "a loader of each form" to listOf(loader(), loader(type = "Lfixture/OtherCompat;", themed = true), themes(), colors(), fallback(), extension()),
+            "a loader that only throws" to listOf(loader(throws = true), themes(), colors(), fallback(), extension()),
+            "no attribute resolver" to listOf(loader(), themes(resolver = false), colors(), fallback(), extension()),
+            "one color read, beside the resolver" to listOf(loader(), themes(), fallback(), extension()),
+            "no color read" to listOf(loader(), themes(inClassRead = false), fallback(), extension()),
+            "three color reads" to listOf(loader(), themes(), colors(), colors(type = "Lfixture/MoreColors;"), fallback(), extension()),
+            "a read asking about another attribute" to listOf(loader(), themes(), colors(attribute = "v0"), fallback(), extension()),
+            "a read answering the resource, not its color" to listOf(loader(), themes(), colors(getColor = false), fallback(), extension()),
+            "no fallback resolver" to listOf(loader(), themes(fallbackResolver = false), colors(), fallback(), extension()),
+            "an inlined fallback resolver resolving its fallback" to listOf(loader(), themes(inlinedFallback = true, inlinedAttribute = "p2"), colors(), fallback(), extension()),
+            "an inlined fallback resolver answering no fallback" to listOf(loader(), themes(inlinedFallback = true, inlinedReturn = "v0"), colors(), fallback(), extension()),
+            "one fallback read" to listOf(loader(), themes(), colors(), extension()),
+            "three fallback reads" to listOf(loader(), themes(), colors(), fallback(), fallback(type = "Lfixture/MoreFallback;"), extension()),
+            "a fallback read passing another fallback" to listOf(loader(), themes(), colors(), fallback(fallbackColor = "v0"), extension()),
+            "no value read" to listOf(loader(), themes(valueRead = false), colors(), fallback(), extension()),
+            "a value read answering another field" to listOf(loader(), themes(valueField = "resourceId"), colors(), fallback(), extension()),
+            "two value reads" to listOf(loader(), themes(secondValueRead = true), colors(), fallback(), extension()),
+            "no hook in the extension" to listOf(loader(), themes(), colors(), fallback()),
+        )) {
+            val failure = assertThrows(case, PatchException::class.java) { PatchContexts.of(classes).findAccentReads() }
+            assertTrue("$case: ${failure.message}", failure.message!!.startsWith("Accent color:"))
+        }
+    }
+
+    /** A refusal comes before any change: the loader keeps every instruction it had. */
+    @Test
+    fun aRefusalChangesNothing() {
+        val stub = loader()
+        val context = PatchContexts.of(listOf(stub, themes(), extension()))
+        val before = stub.methods.single().code().map { it.opcode }
+        assertThrows(PatchException::class.java) { context.swapAccentColors() }
+        assertEquals(before, context.classDefBy(LOADER).methods.single().code().map { it.opcode })
+    }
+
+    /** The declared build: the loader's three returns and both color reads go through the extension. */
+    @Test
+    fun theDeclaredBuildSwapsAtEveryRead() {
+        val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
+        var checked = 0
+        for (version in versions) {
+            for (bundle in Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") }) {
+                checkBuild(bundle.name, bundle)
+                checked++
+            }
+        }
+        assertTrue("no fixture of a declared build", checked > 0)
+    }
+
+    /**
+     * The same in the other builds of 452 (#77, #95). The loader, the two reads and the
+     * resolver they call move class and name from build to build, and each is found by its shape.
+     */
+    @Test
+    fun everyOtherBuildSwapsAtEveryRead() {
+        val checked = Fixtures.otherBuilds().map { bundle ->
+            checkBuild(bundle.parentFile.name, bundle)
+            bundle.parentFile.name
+        }
+        assertEquals("the other builds: $checked", Fixtures.OTHER_BUILDS, checked.size)
+    }
+
+    /** Patches the slice of [bundle] the finder reads and checks each change. */
+    private fun checkBuild(label: String, bundle: java.io.File) {
+        val holders = FixtureDex.classesLoading(bundle, INFLATE_FAILED)
+        val resolvers = FixtureDex.methodsWhere(bundle, { dex -> dex.methodSection.any { it.definingClass == THEME && it.name == "resolveAttribute" } }) {
+            it.isStaticContextAndInt() && it.code().any { instruction -> instruction.calls(THEME, "resolveAttribute") }
+        }
+        val reads = FixtureDex.methodsWhere(bundle, { dex -> dex.methodSection.any { it.definingClass == CONTEXT && it.name == "getColor" } }) {
+            (it.isStaticContextAndInt() || it.isStaticContextAndInts()) && it.code().size <= 7 &&
+                it.code().any { instruction -> instruction.calls(CONTEXT, "getColor") }
+        }
+        val types = (resolvers + reads).mapTo(HashSet()) { it.definingClass }
+        val ownResources = ArrayList<ClassDef>()
+        FixtureDex.forEach(bundle) { dex -> dex.classes.filterTo(ownResources) { it.superclass == RESOURCES } }
+        val context = PatchContexts.of((holders + FixtureDex.classes(bundle, types).values + ownResources).distinctBy { it.type } + extension())
+
+        val found = context.findAccentReads()
+        val loader = found.loader.definingClass to found.loader.name
+        val colorReads = found.colorReads.map { it.definingClass to it.name }
+        val fallbackReads = found.fallbackReads.map { it.definingClass to it.name }
+        val valueRead = found.valueRead.definingClass to found.valueRead.name
+        val returns = found.loader.code().count { it.opcode == Opcode.RETURN_OBJECT }
+        assertEquals("$label: the loader's returns", 3, returns)
+        context.swapAccentColors()
+
+        // 454's loader takes the theme and its resources (`LX/00Pr;->A01` on 386014758), 453's a Context.
+        val loaderShape = found.loader.parameterTypes.map(Any::toString)
+        assertListsSwapped("$label ${loader.first}->${loader.second}", context.method(loader.first, loader.second, loaderShape), returns)
+        // Some 454 builds inline the read beside the resolver into its callers, leaving the other one
+        // (386014758), and others keep both (386014704).
+        assertTrue("$label: the color reads, $colorReads", colorReads.size in 1..2)
+        for ((type, name) in colorReads) assertColorSwapped("$label $type->$name", context.method(type, name))
+        assertReadsShareTheResolver(label, context, colorReads)
+        assertEquals("$label: the fallback reads", 2, fallbackReads.size)
+        for ((type, name) in fallbackReads) assertColorSwapped("$label $type->$name", context.method(type, name, FALLBACK_SHAPE))
+        assertValueSwapped("$label ${valueRead.first}->${valueRead.second}", context.method(valueRead.first, valueRead.second))
+        val resolver = (context.method(colorReads[0].first, colorReads[0].second).code()
+            .let { code -> code[code.indexOfFirst { it.calls(CONTEXT, "getColor") } - 2] } as ReferenceInstruction).reference as MethodReference
+        assertEquals("$label: the value read sits beside the resolver", resolver.definingClass, valueRead.first)
+        val wrapping = ownResources.filter { owner -> owner.methods.count { it.name == "getColor" && it.implementation != null } == 2 }
+        assertTrue("$label: no Resources of Instagram's own overrides getColor", wrapping.isNotEmpty())
+        for (owner in wrapping) assertResourcesSwapped("$label ${owner.type}", context, owner.type, lists = true)
+    }
+
+    /** Each getColor form, and each getColorStateList form when [lists], passes everything it returns through the extension. */
+    private fun assertResourcesSwapped(what: String, context: BytecodePatchContext, type: String, lists: Boolean) {
+        val methods = context.mutableClassDefBy(type).methods
+        for (parameters in listOf(listOf("I"), listOf("I", THEME))) {
+            val color = methods.single { it.name == "getColor" && it.parameterTypes.map(Any::toString) == parameters }
+            val returns = color.code().indices.filter { color.code()[it].opcode == Opcode.RETURN }
+            assertTrue("$what getColor$parameters: no return", returns.isNotEmpty())
+            assertEquals("$what getColor$parameters: hooks", returns.size, color.hooks(SWAP_COLOR).size)
+            for (at in returns) {
+                assertHook("$what getColor$parameters at $at", color.code(), at, (color.code()[at] as OneRegisterInstruction).registerA, SWAP_COLOR, Opcode.MOVE_RESULT)
+            }
+            val list = methods.singleOrNull { it.name == "getColorStateList" && it.parameterTypes.map(Any::toString) == parameters }
+            if (lists) {
+                assertListsSwapped("$what getColorStateList$parameters", list!!, list.code().count { it.opcode == Opcode.RETURN_OBJECT })
+            }
+        }
+    }
+
+    /**
+     * The value read answers TypedValue.data of the attribute it resolved: the hook sits right before
+     * its one return, passing that value and the TypedValue it came from, and writes the answer back.
+     */
+    private fun assertValueSwapped(what: String, method: MutableMethod) {
+        val code = method.code()
+        val returns = code.indices.filter { code[it].opcode == Opcode.RETURN }
+        assertEquals("$what: returns", 1, returns.size)
+        assertEquals("$what: hooks", 1, method.hooks(SWAP_VALUE).size)
+        assertEquals("$what: no color hook", 0, method.hooks(SWAP_COLOR).size)
+        val at = returns.single()
+        val register = (code[at] as OneRegisterInstruction).registerA
+        val read = code[at - 3]
+        assertEquals("$what: TypedValue.data read before the hook", Opcode.IGET, read.opcode)
+        assertEquals("$what: TypedValue.data read before the hook", "data", ((read as ReferenceInstruction).reference as FieldReference).name)
+        val call = code[at - 2]
+        assertEquals("$what: the hook", Opcode.INVOKE_STATIC, call.opcode)
+        val passed = call as FiveRegisterInstruction
+        assertEquals("$what: the value and its TypedValue", 2, passed.registerCount)
+        assertEquals("$what: the value passed", register, passed.registerC)
+        assertEquals("$what: the TypedValue passed", (read as TwoRegisterInstruction).registerB, passed.registerD)
+        assertEquals("$what: the answer", Opcode.MOVE_RESULT, code[at - 1].opcode)
+        assertEquals("$what: the answer replaces the value", register, (code[at - 1] as OneRegisterInstruction).registerA)
+    }
+
+    /**
+     * What the two reads are, by what they do and not by where Redex put them: each is a static
+     * (Context, int) int that asks the one same resolver for the resource of its attribute, and that
+     * resolver resolves a theme attribute (Theme.resolveAttribute, TypedValue.resourceId) and asks
+     * for no color. Where the reads sit differs from build to build (a class holding Room's schema in
+     * some, one holding the pagination limit in others), so a method of another class that merely
+     * has their shape and asks another method would fail here.
+     */
+    private fun assertReadsShareTheResolver(label: String, context: BytecodePatchContext, reads: List<Pair<String, String>>) {
+        val resolvers = reads.map { (type, name) ->
+            val code = context.method(type, name).code()
+            val at = code.indexOfFirst { it.calls(CONTEXT, "getColor") } - 2
+            val call = code[at]
+            assertEquals("$label $type->$name: asks the resolver right before getColor", Opcode.INVOKE_STATIC, call.opcode)
+            (call as ReferenceInstruction).reference as MethodReference
+        }
+        assertEquals("$label: both reads ask one resolver", 1, resolvers.map { it.toString() }.toSet().size)
+        val resolver = resolvers.first()
+        assertEquals("$label: the resolver takes the Context and the attribute", listOf(CONTEXT, "I"), resolver.parameterTypes.map(Any::toString))
+        val code = context.method(resolver.definingClass, resolver.name).code()
+        assertTrue("$label: the resolver calls Theme.resolveAttribute", code.any { it.calls(THEME, "resolveAttribute") })
+        assertTrue("$label: the resolver reads TypedValue.resourceId", code.any {
+            it.opcode == Opcode.IGET && ((it as ReferenceInstruction).reference as FieldReference).let { f ->
+                f.definingClass == "Landroid/util/TypedValue;" && f.name == "resourceId"
+            }
+        })
+        assertTrue("$label: the resolver asks for no color", code.none { it.calls(CONTEXT, "getColor") })
+        assertEquals("$label: the reads are separate methods", reads.size, reads.toSet().size)
+        assertTrue("$label: neither read is the resolver", reads.none { it == resolver.definingClass to resolver.name })
+        if (reads.size == 1) assertTrue("$label: a lone read sits outside the resolver's class", reads.single().first != resolver.definingClass)
+    }
+
+    /**
+     * [count] returns, each right after the list hook on its own register, no jump past the hook,
+     * and no hook inside a try range. On 453 the loader returns from inside its synchronized
+     * block's catch-all, and a hook there made ART fail the method's lock verification.
+     */
+    private fun assertListsSwapped(what: String, method: MutableMethod, count: Int) {
+        val code = method.code()
+        val returns = code.indices.filter { code[it].opcode == Opcode.RETURN_OBJECT }
+        assertEquals("$what: returns", count, returns.size)
+        assertEquals("$what: hooks", count, method.hooks(SWAP_LIST).size)
+        val targets = method.jumpTargets()
+        val covered = method.implementation!!.tryBlocks.flatMap { it.start.location.index until it.end.location.index }.toSet()
+        for (at in returns) {
+            val register = (code[at] as OneRegisterInstruction).registerA
+            assertHook("$what at $at", code, at, register, SWAP_LIST, Opcode.MOVE_RESULT_OBJECT)
+            assertFalse("$what: a jump lands past the hook before $at", at in targets || at - 1 in targets)
+            assertFalse("$what: the hook before $at sits inside a try range", at - 2 in covered || at in covered)
+        }
+    }
+
+    /** One hook, right before the one return, passing and getting back the color returned. */
+    private fun assertColorSwapped(what: String, method: MutableMethod) {
+        val code = method.code()
+        val returns = code.indices.filter { code[it].opcode == Opcode.RETURN }
+        assertEquals("$what: returns", 1, returns.size)
+        assertEquals("$what: hooks", 1, method.hooks(SWAP_COLOR).size)
+        val at = returns.single()
+        val register = (code[at] as OneRegisterInstruction).registerA
+        assertHook(what, code, at, register, SWAP_COLOR, Opcode.MOVE_RESULT)
+        assertEquals("$what: getColor's answer is what's swapped", Opcode.MOVE_RESULT, code[at - 3].opcode)
+        assertEquals("$what: getColor's answer is what's swapped", register, (code[at - 3] as OneRegisterInstruction).registerA)
+        assertTrue("$what: getColor right before", code[at - 4].calls(CONTEXT, "getColor"))
+    }
+
+    private fun assertHook(what: String, code: List<Instruction>, at: Int, register: Int, hook: String, move: Opcode) {
+        val call = code[at - 2]
+        assertEquals("$what: the hook", Opcode.INVOKE_STATIC_RANGE, call.opcode)
+        assertEquals("$what: the hook", hook, (call as ReferenceInstruction).reference.toString())
+        assertEquals("$what: the value passed", register, (call as RegisterRangeInstruction).startRegister)
+        assertEquals("$what: the value alone", 1, call.registerCount)
+        assertEquals("$what: the answer", move, code[at - 1].opcode)
+        assertEquals("$what: the answer replaces the value", register, (code[at - 1] as OneRegisterInstruction).registerA)
+    }
+
+    /**
+     * A view built from a layout reads its color in the framework's own constructor, where no theme
+     * hook sees it, so each text view constructor that does the building hands its view to the
+     * extension at every return, and a branch to a return lands on the hook (#187). One that only
+     * calls another of its class's constructors stays as it was, since that other one does it.
+     */
+    @Test
+    fun theTextViewConstructorsThatBuildHandTheirViewOn() {
+        val context = PatchContexts.of(TEXT_VIEWS.map { textView(it) })
+
+        context.swapTextViewColors()
+
+        for (type in TEXT_VIEWS) {
+            assertEquals("$type: it only passes on", 0, context.method(type, "<init>", listOf(CONTEXT)).hooks(SWAP_TEXT).size)
+            val built = context.method(type, "<init>", listOf(CONTEXT, ATTRIBUTE_SET))
+            val code = built.code()
+            val hooks = code.indices.filter { (code[it] as? ReferenceInstruction)?.reference?.toString() == SWAP_TEXT }
+            assertEquals("$type: one for each return", 2, hooks.size)
+            for (at in hooks) {
+                assertEquals("$type: the hook", Opcode.INVOKE_STATIC_RANGE, code[at].opcode)
+                assertEquals("$type: the view it hands on", 0, (code[at] as RegisterRangeInstruction).startRegister)
+                assertEquals("$type: the view alone", 1, (code[at] as RegisterRangeInstruction).registerCount)
+                assertEquals("$type: right before the return", Opcode.RETURN_VOID, code[at + 1].opcode)
+            }
+            assertTrue("$type: the branch lands on the hook", hooks.last() in built.jumpTargets())
+        }
+    }
+
+    /** A text view that isn't there, or a constructor that writes over its view, stops the patch before anything changes. */
+    @Test
+    fun aMissingTextViewOrALostViewStopsThePatch() {
+        val missing = assertThrows(PatchException::class.java) {
+            PatchContexts.of(listOf(textView(TEXT_VIEWS.first()))).swapTextViewColors()
+        }
+        assertTrue(missing.message, missing.message!!.contains(TEXT_VIEWS.last()))
+
+        val overwrites = classOf(
+            TEXT_VIEWS.last(),
+            virtual(
+                TEXT_VIEWS.last(), "<init>", "V", 3, listOf(CONTEXT, ATTRIBUTE_SET),
+                """
+                    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+                    const/4 p0, 0x0
+                    return-void
+                """,
+            ),
+        )
+        val context = PatchContexts.of(listOf(textView(TEXT_VIEWS.first()), overwrites))
+        val lost = assertThrows(PatchException::class.java) { context.swapTextViewColors() }
+        assertTrue(lost.message, lost.message!!.contains(TEXT_VIEWS.last()))
+        val untouched = context.method(TEXT_VIEWS.first(), "<init>", listOf(CONTEXT, ATTRIBUTE_SET))
+        assertEquals("nothing changed in the class that was fine", 0, untouched.hooks(SWAP_TEXT).size)
+    }
+
+    /**
+     * An image view tinted in its layout reads its colors through TypedArray, where no theme hook sees
+     * them, so the static it builds its tint with hands the normal and active colors to the extension
+     * at its start and takes the answers back (#187). No view, two builders or a jump onto the start
+     * leave it as it was.
+     */
+    @Test
+    fun theImageTintBuilderHandsItsColorsOn() {
+        val stock = tintBuilder().methods.single().code().map { it.opcode }
+        val context = PatchContexts.of(listOf(simpleImageView(), tintBuilder()))
+
+        context.swapImageTints()
+
+        val builder = context.mutableClassDefBy(TINT_BUILDER).methods.single()
+        // Two locals, then the normal color in v2 and the active one in v3.
+        assertTintsSwapped("the stand-in", builder, stock, normal = 2, active = 3)
+
+        for ((case, classes) in listOf(
+            "no image view" to listOf(tintBuilder()),
+            "two builders" to listOf(simpleImageView(builders = 2), tintBuilder()),
+            "a jump onto the start" to listOf(simpleImageView(), tintBuilder(jumpOnto = true)),
+        )) {
+            val untouched = PatchContexts.of(classes)
+            untouched.swapImageTints()
+            assertEquals("$case: no hook", 0, untouched.mutableClassDefBy(TINT_BUILDER).methods.sumOf { it.hooks(SWAP_COLOR).size })
+        }
+    }
+
+    /**
+     * Every build of Instagram: the image view's maybeSetColors calls one static building its tint, and
+     * that static hands both colors to the extension at its start, with Instagram's code after (#187).
+     */
+    @Test
+    fun everyBuildHandsItsImageTintColorsOn() {
+        val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
+        val declared = versions.flatMap { version -> Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") } }
+        assertTrue("no fixture of a declared build", declared.isNotEmpty())
+        val others = Fixtures.otherBuilds()
+        assertEquals("the other builds", Fixtures.OTHER_BUILDS, others.size)
+        for (bundle in declared + others) {
+            val label = if (bundle.extension == "apks") bundle.name else bundle.parentFile.name
+            val view = FixtureDex.classes(bundle, setOf(SIMPLE_IMAGE_VIEW)).getValue(SIMPLE_IMAGE_VIEW)
+            val called = view.methods.single { it.name == "maybeSetColors" }.code()
+                .mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }
+                .filter { it.returnType == LIST && it.parameterTypes.map(Any::toString) == List(6) { "I" } }
+                .distinctBy { it.name }
+            assertEquals("$label: one tint builder, $called", 1, called.size)
+            val type = called.single().definingClass
+            val owner = FixtureDex.classes(bundle, setOf(type)).getValue(type)
+            val isBuilder = { method: Method -> method.name == called.single().name && method.parameterTypes.map(Any::toString) == List(6) { "I" } }
+            val stock = owner.methods.single(isBuilder).code().map { it.opcode }
+            val context = PatchContexts.of(listOf(view, owner))
+
+            context.swapImageTints()
+
+            val builder = context.mutableClassDefBy(type).methods.single(isBuilder)
+            assertTintsSwapped("$label $type->${builder.name}", builder, stock, builder.parameterRegisterNumber(0), builder.parameterRegisterNumber(1))
+        }
+    }
+
+    /**
+     * Every build of Instagram: each constructor of IgSimpleImageView and IgImageView that builds the
+     * view, the ones reading a layout among them, hands its view to the extension right before each
+     * return, so an android:tint from the layout is swapped too (#187). One only calling another of its
+     * own stays as it was.
+     */
+    @Test
+    fun everyBuildsImageViewConstructorsHandTheirViewOn() {
+        val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
+        val declared = versions.flatMap { version -> Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") } }
+        assertTrue("no fixture of a declared build", declared.isNotEmpty())
+        for (bundle in declared + Fixtures.otherBuilds()) {
+            val label = if (bundle.extension == "apks") bundle.name else bundle.parentFile.name
+            val views = FixtureDex.classes(bundle, IMAGE_VIEWS.toSet())
+            assertEquals("$label: the image views", IMAGE_VIEWS.toSet(), views.keys)
+            val context = PatchContexts.of(views.values.toList())
+
+            context.swapImageViewTints()
+
+            for (type in IMAGE_VIEWS) {
+                val constructors = context.mutableClassDefBy(type).methods.filter { it.name == "<init>" }
+                val fromLayout = constructors.filter { it.parameterTypes.map(Any::toString).take(2) == listOf(CONTEXT, ATTRIBUTE_SET) }
+                assertTrue("$label $type: the layout constructors, ${constructors.map { it.parameterTypes }}", fromLayout.isNotEmpty())
+                for (constructor in constructors) {
+                    val code = constructor.code()
+                    val what = "$label $type ${constructor.parameterTypes}"
+                    val passesOn = code.any {
+                        val called = (it as? ReferenceInstruction)?.reference as? MethodReference
+                        called != null && called.definingClass == type && called.name == "<init>"
+                    }
+                    val hooks = code.indices.filter { (code[it] as? ReferenceInstruction)?.reference?.toString() == SWAP_IMAGE }
+                    if (passesOn) {
+                        assertEquals("$what: it only passes on", 0, hooks.size)
+                        continue
+                    }
+                    assertEquals("$what: one for each return", code.count { it.opcode == Opcode.RETURN_VOID }, hooks.size)
+                    for (at in hooks) {
+                        assertEquals("$what: the hook", Opcode.INVOKE_STATIC_RANGE, code[at].opcode)
+                        assertEquals("$what: the view it hands on", constructor.implementation!!.registerCount - constructor.parameterTypes.size - 1, (code[at] as RegisterRangeInstruction).startRegister)
+                        assertEquals("$what: the view alone", 1, (code[at] as RegisterRangeInstruction).registerCount)
+                        assertEquals("$what: right before the return", Opcode.RETURN_VOID, code[at + 1].opcode)
+                    }
+                }
+                assertTrue("$label $type: a layout constructor hands its view on", fromLayout.any { it.hooks(SWAP_IMAGE).isNotEmpty() })
+            }
+        }
+    }
+
+    private fun assertTintsSwapped(what: String, builder: Method, stock: List<Opcode>, normal: Int, active: Int) {
+        val code = builder.code()
+        assertEquals("$what: the hooks", listOf(SWAP_COLOR, SWAP_COLOR), code.take(4).mapNotNull { (it as? ReferenceInstruction)?.reference?.toString() })
+        assertEquals(
+            "$what: the shape",
+            listOf(Opcode.INVOKE_STATIC_RANGE, Opcode.MOVE_RESULT, Opcode.INVOKE_STATIC_RANGE, Opcode.MOVE_RESULT),
+            code.take(4).map { it.opcode },
+        )
+        assertEquals(
+            "$what: each color handed over and written back",
+            listOf(normal, normal, active, active),
+            listOf(
+                (code[0] as RegisterRangeInstruction).startRegister, (code[1] as OneRegisterInstruction).registerA,
+                (code[2] as RegisterRangeInstruction).startRegister, (code[3] as OneRegisterInstruction).registerA,
+            ),
+        )
+        assertEquals("$what: one register each", listOf(1, 1), listOf((code[0] as RegisterRangeInstruction).registerCount, (code[2] as RegisterRangeInstruction).registerCount))
+        assertEquals("$what: Instagram's own code after", stock.filter { it != Opcode.NOP }, code.drop(4).map { it.opcode }.filter { it != Opcode.NOP })
+    }
+
+    /** IgSimpleImageView's maybeSetColors as 386014758 has it: both colors, three alphas, the tint built and set. */
+    private fun simpleImageView(builders: Int = 1): ClassDef = classOf(
+        SIMPLE_IMAGE_VIEW,
+        virtual(
+            SIMPLE_IMAGE_VIEW, "maybeSetColors", "V", 8, emptyList(),
+            """
+                const/4 v1, 0x0
+                const/4 v2, 0x0
+                const/4 v3, 0x0
+                const/4 v4, 0x0
+                const/4 v5, 0x0
+                const/16 v6, 0x4d
+            """ + (1..builders).joinToString("") { index ->
+                """
+                invoke-static/range {v1 .. v6}, $TINT_BUILDER->A0$index(IIIIII)$LIST
+                move-result-object v0
+                """
+            } + """
+                invoke-virtual {p0, v0}, Landroid/widget/ImageView;->setImageTintList($LIST)V
+                return-void
+            """,
+        ),
+    )
+
+    /** The static building the tint, two locals and the six ints, or one that branches back onto its start when [jumpOnto]. */
+    private fun tintBuilder(jumpOnto: Boolean = false): ClassDef = classOf(
+        TINT_BUILDER,
+        static(
+            TINT_BUILDER, "A01", LIST, 8,
+            if (jumpOnto) {
+                """
+                    :top
+                    const/4 v1, 0x0
+                    if-nez p0, :out
+                    const/4 p0, 0x1
+                    goto :top
+                    :out
+                    new-instance v0, $LIST
+                    invoke-direct {v0, v1, v1}, $LIST-><init>([[I[I)V
+                    return-object v0
+                """
+            } else {
+                """
+                    const/4 v1, 0x0
+                    new-instance v0, $LIST
+                    invoke-direct {v0, v1, v1}, $LIST-><init>([[I[I)V
+                    return-object v0
+                """
+            },
+            parameters = List(6) { "I" },
+        ),
+    )
+
+    private fun textView(type: String): ClassDef = classOf(
+        type,
+        virtual(
+            type, "<init>", "V", 3, listOf(CONTEXT),
+            """
+                const/4 v0, 0x0
+                invoke-direct {p0, p1, v0}, $type-><init>($CONTEXT$ATTRIBUTE_SET)V
+                return-void
+            """,
+        ),
+        virtual(
+            type, "<init>", "V", 3, listOf(CONTEXT, ATTRIBUTE_SET),
+            """
+                invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+                if-eqz p2, :end
+                nop
+                return-void
+                :end
+                return-void
+            """,
+        ),
+    )
+
+    private fun BytecodePatchContext.loaderMethod(): MutableMethod = method(LOADER, "A01")
+
+    private fun BytecodePatchContext.method(type: String, name: String, shape: List<String> = listOf(CONTEXT, "I")): MutableMethod =
+        mutableClassDefBy(type).methods.single { it.name == name && it.parameterTypes.map(Any::toString) == shape }
+
+    private fun Method.hooks(hook: String) = code().filter { (it as? ReferenceInstruction)?.reference?.toString() == hook }
+
+    private fun MutableMethod.jumpTargets(): Set<Int> =
+        implementation!!.instructions.filterIsInstance<BuilderOffsetInstruction>().map { it.target.location.index }.toSet()
+
+    private fun Method.code(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
+
+    private fun Method.isStaticContextAndInt() = AccessFlags.STATIC.isSet(accessFlags) && returnType == "I" &&
+        parameterTypes.map(Any::toString) == listOf(CONTEXT, "I") && implementation != null
+
+    private fun Method.isStaticContextAndInts() = AccessFlags.STATIC.isSet(accessFlags) && returnType == "I" &&
+        parameterTypes.map(Any::toString) == FALLBACK_SHAPE && implementation != null
+
+    private fun Instruction.calls(definingClass: String, name: String) =
+        ((this as? ReferenceInstruction)?.reference as? MethodReference)?.let { it.definingClass == definingClass && it.name == name } == true
+
+    private companion object {
+        const val LOADER = "Lfixture/ResourcesCompat;"
+        const val TINT_BUILDER = "Lfixture/Tint;"
+        const val ATTRIBUTE_SET = "Landroid/util/AttributeSet;"
+        const val THEMES = "Lfixture/Themes;"
+        const val COLORS = "Lfixture/Colors;"
+        const val FALLBACK = "Lfixture/Fallback;"
+        const val CONTEXT = "Landroid/content/Context;"
+        val FALLBACK_SHAPE = listOf(CONTEXT, "I", "I")
+        const val THEME = "Landroid/content/res/Resources\$Theme;"
+        const val LIST = "Landroid/content/res/ColorStateList;"
+        const val RESOURCES = "Landroid/content/res/Resources;"
+        val THEMED_LOADER_SHAPE = listOf(THEME, RESOURCES, "I")
+        const val RESOURCES_STAND_IN = "Lfixture/IgResources;"
+        const val OTHER_RESOURCES = "Lfixture/OtherResources;"
+
+        fun extension(): ClassDef = ExtensionDex.classDef(ACCENT_COLOR)
+
+        /**
+         * A class extending Resources the way Instagram's own do, overriding both getColor forms
+         * and, when [lists], both getColorStateList forms. The two-argument getColor answers from
+         * either of two returns, as a cached color does.
+         */
+        fun resources(type: String = RESOURCES_STAND_IN, lists: Boolean = true, getColorWithTheme: Boolean = true): ClassDef {
+            val methods = mutableListOf(
+                virtual(
+                    type, "getColor", "I", 3, listOf("I"),
+                    """
+                        invoke-super { p0, p1 }, $RESOURCES->getColor(I)I
+                        move-result v0
+                        return v0
+                    """,
+                ),
+            )
+            if (getColorWithTheme) {
+                methods += virtual(
+                    type, "getColor", "I", 4, listOf("I", THEME),
+                    """
+                        if-nez p2, :themed
+                        invoke-super { p0, p1 }, $RESOURCES->getColor(I)I
+                        move-result v0
+                        return v0
+                        :themed
+                        invoke-super { p0, p1, p2 }, $RESOURCES->getColor(I$THEME)I
+                        move-result v0
+                        return v0
+                    """,
+                )
+            }
+            if (lists) {
+                methods += virtual(
+                    type, "getColorStateList", LIST, 3, listOf("I"),
+                    """
+                        invoke-super { p0, p1 }, $RESOURCES->getColorStateList(I)$LIST
+                        move-result-object v0
+                        return-object v0
+                    """,
+                )
+                methods += virtual(
+                    type, "getColorStateList", LIST, 4, listOf("I", THEME),
+                    """
+                        invoke-super { p0, p1, p2 }, $RESOURCES->getColorStateList(I$THEME)$LIST
+                        move-result-object v0
+                        return-object v0
+                    """,
+                )
+            }
+            return ImmutableClassDef(type, AccessFlags.PUBLIC.value, RESOURCES, null, null, null, null, methods)
+        }
+
+        fun virtual(type: String, name: String, returns: String, registers: Int, parameters: List<String>, body: String): Method =
+            ImmutableMethod.of(
+                MutableMethod(
+                    ImmutableMethod(
+                        type, name, parameters.map { ImmutableMethodParameter(it, null, null) }, returns,
+                        AccessFlags.PUBLIC.value, null, null,
+                        ImmutableMethodImplementation(registers, emptyList(), null, null),
+                    ),
+                ).apply { addInstructionsWithLabels(0, body.trimIndent().lines().filter { it.isNotBlank() }.joinToString("\n")) },
+            )
+
+        /**
+         * A static (Context, int)ColorStateList shaped like ResourcesCompat's loader: it holds the
+         * log line, and its second return is where a branch lands, as the third is on 450.
+         */
+        fun loader(type: String = LOADER, throws: Boolean = false, themed: Boolean = false): ClassDef = classOf(
+            type,
+            if (themed) {
+                // 454's loader takes the theme and its resources, and the Context form calls it.
+                static(
+                    type, "A01", LIST, 5,
+                    """
+                        const-string v0, "$INFLATE_FAILED"
+                        const/4 v1, 0x0
+                        if-eqz p2, :none
+                        invoke-virtual { p1, p2, p0 }, $RESOURCES->getColorStateList(I$THEME)$LIST
+                        move-result-object v1
+                        return-object v1
+                        :none
+                        return-object v1
+                    """,
+                    THEMED_LOADER_SHAPE,
+                )
+            } else static(
+                type, "A01", LIST, 4,
+                if (throws) {
+                    """
+                        const-string v0, "$INFLATE_FAILED"
+                        new-instance v1, Ljava/lang/IllegalStateException;
+                        invoke-direct { v1 }, Ljava/lang/IllegalStateException;-><init>()V
+                        throw v1
+                    """
+                } else {
+                    """
+                        const-string v0, "$INFLATE_FAILED"
+                        const/4 v1, 0x0
+                        if-eqz p1, :none
+                        invoke-virtual { p0, p1 }, $CONTEXT->getColorStateList(I)$LIST
+                        move-result-object v1
+                        return-object v1
+                        :none
+                        return-object v1
+                    """
+                },
+            ),
+        )
+
+        /**
+         * The resolver, shaped like 450's and 451's: it resolves the attribute against the Context's
+         * theme and answers the resource id. With it, the read that runs a check first and then calls
+         * it, the fallback resolver that asks it and answers its fallback for no resource, the
+         * fallback read that runs the same check, and the value read answering TypedValue.data.
+         */
+        fun themes(
+            resolver: Boolean = true,
+            fallbackResolver: Boolean = true,
+            valueRead: Boolean = true,
+            valueField: String = "data",
+            secondValueRead: Boolean = false,
+            inClassRead: Boolean = true,
+            inlinedFallback: Boolean = false,
+            inlinedAttribute: String = "p1",
+            inlinedReturn: String = "p2",
+        ): ClassDef = classOf(
+            THEMES,
+            *listOfNotNull(
+                if (inClassRead) {
+                    static(
+                        THEMES, "A0Y", "I", 3,
+                        """
+                            const/4 v0, 0x0
+                            invoke-static { p0, v0 }, $THEMES->A0W(Ljava/lang/Object;I)V
+                            invoke-static { p0, p1 }, $THEMES->A0b($CONTEXT I)I
+                            move-result v0
+                            invoke-virtual { p0, v0 }, $CONTEXT->getColor(I)I
+                            move-result v0
+                            return v0
+                        """.replace("$CONTEXT I", "${CONTEXT}I"),
+                    )
+                } else {
+                    null
+                },
+                if (fallbackResolver && inlinedFallback) {
+                    // 454's fallback resolver holds the resolver inlined (`LX/02Xz;->A0e` on 386014758).
+                    static(
+                        THEMES, "A0d", "I", 6,
+                        """
+                            new-instance v0, Landroid/util/TypedValue;
+                            invoke-direct { v0 }, Landroid/util/TypedValue;-><init>()V
+                            invoke-virtual { p0 }, $CONTEXT->getTheme()$THEME
+                            move-result-object v1
+                            const/4 v2, 0x1
+                            invoke-virtual { v1, $inlinedAttribute, v0, v2 }, $THEME->resolveAttribute(ILandroid/util/TypedValue;Z)Z
+                            iget v0, v0, Landroid/util/TypedValue;->resourceId:I
+                            if-eqz v0, :none
+                            return v0
+                            :none
+                            return $inlinedReturn
+                        """,
+                        FALLBACK_SHAPE,
+                    )
+                } else if (fallbackResolver) {
+                    static(
+                        THEMES, "A0d", "I", 5,
+                        """
+                            invoke-static { p0, p1 }, $THEMES->A0b(${CONTEXT}I)I
+                            move-result v0
+                            if-eqz v0, :none
+                            return v0
+                            :none
+                            return p2
+                        """,
+                        FALLBACK_SHAPE,
+                    )
+                } else {
+                    null
+                },
+                static(
+                    THEMES, "A0c", "I", 4,
+                    """
+                        const/4 v0, 0x0
+                        invoke-static { p0, v0 }, $THEMES->A0W(Ljava/lang/Object;I)V
+                        invoke-static { p0, p1, p2 }, $THEMES->A0d(${CONTEXT}II)I
+                        move-result v0
+                        invoke-virtual { p0, v0 }, $CONTEXT->getColor(I)I
+                        move-result v0
+                        return v0
+                    """,
+                    FALLBACK_SHAPE,
+                ),
+                if (valueRead) valueRead("A0Z", valueField) else null,
+                if (secondValueRead) valueRead("A0a", valueField) else null,
+            ).toTypedArray(),
+            static(
+                THEMES, "A0b", "I", 5,
+                """
+                    new-instance v0, Landroid/util/TypedValue;
+                    invoke-direct { v0 }, Landroid/util/TypedValue;-><init>()V
+                    invoke-virtual { p0 }, $CONTEXT->getTheme()$THEME
+                    move-result-object v1
+                    const/4 v2, 0x1
+                    ${if (resolver) "invoke-virtual { v1, p1, v0, v2 }, $THEME->resolveAttribute(ILandroid/util/TypedValue;Z)Z" else ""}
+                    iget v0, v0, Landroid/util/TypedValue;->resourceId:I
+                    return v0
+                """,
+            ),
+        )
+
+        /** The read with nothing before its call to the resolver, or one broken as each flag says. */
+        fun colors(type: String = COLORS, attribute: String = "p1", getColor: Boolean = true): ClassDef = classOf(
+            type,
+            static(
+                type, "A03", "I", 3,
+                """
+                    const/4 v0, 0x0
+                    invoke-static { p0, $attribute }, $THEMES->A0b(${CONTEXT}I)I
+                    move-result v0
+                    ${if (getColor) "invoke-virtual { p0, v0 }, $CONTEXT->getColor(I)I" else "invoke-static { v0 }, $THEMES->A0W(I)I"}
+                    move-result v0
+                    return v0
+                """,
+            ),
+        )
+
+        /** A value read like 451's: the attribute resolved against the theme and [field] of the TypedValue answered. */
+        fun valueRead(name: String, field: String): Method = static(
+            THEMES, name, "I", 5,
+            """
+                invoke-virtual { p0 }, $CONTEXT->getTheme()$THEME
+                move-result-object v2
+                new-instance v1, Landroid/util/TypedValue;
+                invoke-direct { v1 }, Landroid/util/TypedValue;-><init>()V
+                const/4 v0, 0x1
+                invoke-virtual { v2, p1, v1, v0 }, $THEME->resolveAttribute(ILandroid/util/TypedValue;Z)Z
+                iget v0, v1, Landroid/util/TypedValue;->$field:I
+                return v0
+            """,
+        )
+
+        /** The fallback read with nothing before its call, or one passing [fallbackColor] in place of its own. */
+        fun fallback(type: String = FALLBACK, fallbackColor: String = "p2"): ClassDef = classOf(
+            type,
+            static(
+                type, "A05", "I", 4,
+                """
+                    invoke-static { p0, p1, $fallbackColor }, $THEMES->A0d(${CONTEXT}II)I
+                    move-result v0
+                    invoke-virtual { p0, v0 }, $CONTEXT->getColor(I)I
+                    move-result v0
+                    return v0
+                """,
+                FALLBACK_SHAPE,
+            ),
+        )
+
+        fun static(
+            type: String,
+            name: String,
+            returns: String,
+            registers: Int,
+            body: String,
+            parameters: List<String> = listOf(CONTEXT, "I"),
+        ): Method = ImmutableMethod.of(
+            MutableMethod(
+                ImmutableMethod(
+                    type, name, parameters.map { ImmutableMethodParameter(it, null, null) }, returns,
+                    AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null,
+                    ImmutableMethodImplementation(registers, emptyList(), null, null),
+                ),
+            ).apply { addInstructionsWithLabels(0, body.trimIndent().lines().filter { it.isNotBlank() }.joinToString("\n")) },
+        )
+
+        fun classOf(type: String, vararg methods: Method): ClassDef = ImmutableClassDef(
+            type, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, "Ljava/lang/Object;",
+            null, null, null, null, methods.toList(),
+        )
+    }
+}

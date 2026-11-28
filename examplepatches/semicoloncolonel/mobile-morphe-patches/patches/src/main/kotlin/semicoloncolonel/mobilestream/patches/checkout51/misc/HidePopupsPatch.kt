@@ -1,11 +1,11 @@
 package semicoloncolonel.mobilestream.patches.checkout51.misc
 
+import semicoloncolonel.mobilestream.patches.shared.misc.isOptionOn
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.returnEarly
-import semicoloncolonel.mobilestream.patches.checkout51.shared.Constants
 import semicoloncolonel.mobilestream.patches.checkout51.shared.GetListItemsFromOfferModelsFingerprint
 import semicoloncolonel.mobilestream.patches.checkout51.shared.SHOPPING_ADS_FILTER
 import semicoloncolonel.mobilestream.patches.checkout51.shared.fixStuckDialogPatch
@@ -97,20 +97,14 @@ internal object BrazeBeforeInAppMessageDisplayedFingerprint : Fingerprint(
     returnType = IN_APP_OPERATION,
 )
 
-@Suppress("unused")
-val hidePopupsPatch = bytecodePatch(
-    name = "Hide pop-ups",
-    description = "Removes the sign-up sheet, the welcome walkthrough, the notification and Instant Offers " +
-        "prompts, the location notice, marketing messages, and the card that asks you to rate the app.",
-) {
-    category("Interface")
-    compatibleWith(Constants.COMPATIBILITY)
-
+// Part of hidePromptsAndPopupsPatch: runs only when its "popUps" option is on.
+internal val hidePopupsPatch = bytecodePatch {
     dependsOn(fixStuckDialogPatch)
 
     extendWith("extensions/extension.mpe")
 
     execute {
+        if (!isOptionOn(hidePromptsAndPopupsPatch, "popUps")) return@execute
         ShowSignUpPromptFingerprint.method.addInstructions(0, "return-void")
 
         WelcomeDialogShouldShowFingerprint.method.returnEarly(false)

@@ -63,13 +63,13 @@ class FakePlay:
         self.download = download
         self.discarded = []
 
-    def version(self, package, tv=False):
+    def version(self, package):
         return self.served
 
-    def downloaded(self, package, tv=False):
+    def downloaded(self, package):
         return (Path("base.apk"), Path("app.apks")) if self.download else None
 
-    def discard(self, package, tv=False):
+    def discard(self, package):
         self.discarded.append(package)
 
 
@@ -128,6 +128,63 @@ class TvBuildTest(unittest.TestCase):
         self.assertIn("still serves Tubi `10.44.2` to phones", closes[0][-1])
 
 
+class PlayOnlyTest(unittest.TestCase):
+    """National Forests & Grasslands 1.4.0 was on Google Play while APKPure still
+    had 1.3.0, and Recreation.gov is not on APKPure at all."""
+
+    APPS = {"gov.usda.fs.nfg": {"versions": ["1.3.0"], "patches": ["Block analytics"]}}
+
+    def run_check(self, apkpure, listed, play, inspected=None):
+        with mock.patch.object(app_updates, "apkpure_versions", return_value=apkpure), \
+                mock.patch.object(app_updates, "play_listed_version", return_value=listed) as page, \
+                mock.patch.object(app_updates, "check_version") as check_version, \
+                mock.patch.object(app_updates, "inspect_apk", return_value=inspected or {}) as inspect:
+            results = app_updates.check(self.APPS, {"gov.usda.fs.nfg": "National Forests & Grasslands"}, {},
+                                        "cli", "mpp", "work", "aapt2", "apksigner", None, Path("keep"), play)
+        check_version.assert_not_called()
+        return results[0], inspect, page
+
+    PHONE = {"tv_build": False, "cert": "matches", "version_name": "1.4.0",
+             "patches": {"applied": ["Block analytics"], "failed": []}}
+
+    def test_newer_on_play_is_checked_from_play(self):
+        record, inspect, _ = self.run_check(["1.3.0"], "1.4.0", FakePlay("1.4.0"), self.PHONE)
+        self.assertEqual((record["status"], record["latest"], record["source"]), ("update", "1.4.0", "Google Play"))
+        self.assertEqual(inspect.call_args.args[1:3], (Path("base.apk"), Path("app.apks")))
+        self.assertEqual(app_updates.review_reasons(record), [])
+
+    def test_app_missing_from_apkpure_is_checked_from_play(self):
+        record, _, _ = self.run_check([], "1.4.0", FakePlay("1.4.0"), self.PHONE)
+        self.assertEqual((record["status"], record["latest"]), ("update", "1.4.0"))
+
+    def test_same_version_on_play_is_up_to_date(self):
+        play = FakePlay("1.3.0")
+        record, inspect, _ = self.run_check(["1.3.0"], "1.3.0", play)
+        self.assertEqual(record["status"], "up to date")
+        inspect.assert_not_called()
+
+    def test_rollout_not_served_to_this_phone_is_up_to_date(self):
+        play = FakePlay("1.3.0")
+        record, inspect, _ = self.run_check(["1.3.0"], "1.4.0", play)
+        self.assertEqual(record["status"], "up to date")
+        inspect.assert_not_called()
+        self.assertIn("gov.usda.fs.nfg", play.discarded)
+
+    def test_failed_play_download_is_reported_for_review(self):
+        record, _, _ = self.run_check(["1.3.0"], "1.4.0", FakePlay("1.4.0", download=False))
+        self.assertEqual((record["status"], record["latest"], record["download"]), ("update", "1.4.0", "failed"))
+        self.assertIn("The download from Google Play failed", app_updates.review_reasons(record)[0])
+
+    def test_store_page_is_not_read_when_apkpure_has_an_update(self):
+        with mock.patch.object(app_updates, "apkpure_versions", return_value=["1.4.0", "1.3.0"]), \
+                mock.patch.object(app_updates, "play_listed_version") as page, \
+                mock.patch.object(app_updates, "check_version", return_value=self.PHONE):
+            results = app_updates.check(self.APPS, {}, {}, "cli", "mpp", "work", "aapt2", "apksigner", None,
+                                        Path("keep"), FakePlay("1.4.0"))
+        page.assert_not_called()
+        self.assertEqual(results[0]["status"], "update")
+
+
 class CleanupTest(unittest.TestCase):
     def test_keeps_the_download_folder(self):
         """Run 42789639970: patching Play's com.abc.abcnews.apk must not touch
@@ -141,125 +198,6 @@ class CleanupTest(unittest.TestCase):
             (work / "com.abc.abcnews-patched-temporary-files").mkdir()
             app_updates.remove_patch_outputs(workdir, "com.abc.abcnews")
             self.assertEqual(sorted(p.name for p in work.iterdir()), ["com.abc.abcnews-11.12.0"])
-
-
-CONSTANTS = """
-package x
-
-private const val PHONE_VERSION = "22.0.0.321"
-private const val TV_VERSION = "22.0.0.36"
-
-object Constants {
-    val COMPATIBILITY = Compatibility(
-        name = "HBO Max",
-        packageName = "com.wbd.stream",
-        targets = listOf(
-            AppTarget(version = PHONE_VERSION, versionCode = 1, description = "Phone build"),
-            AppTarget(version = TV_VERSION, versionCode = 2, description = "Android TV build"),
-        )
-    )
-    val JUSTWATCH = Compatibility(
-        name = "JustWatch",
-        packageName = "com.justwatch.justwatch",
-        targets = listOf(
-            AppTarget("26.44.2", 2644002, description = "Phone build"),
-            AppTarget(
-                version = "26.43.8",
-                versionCodes = mapOf(SupportedAbi.ARM64_V8A to 2643008),
-                description = "Android TV build",
-            ),
-        )
-    )
-    val PHONE_ONLY = Compatibility(name = "Tubi", packageName = "com.tubitv", targets = listOf(AppTarget("10.44.2")))
-}
-"""
-
-
-class TvTargetsTest(unittest.TestCase):
-    def test_reads_tv_targets_with_constants_and_multiline_calls(self):
-        import tempfile
-        with tempfile.TemporaryDirectory() as repo:
-            path = Path(repo, "patches/src/main/kotlin/x/shared/Constants.kt")
-            path.parent.mkdir(parents=True)
-            path.write_text(CONSTANTS)
-            self.assertEqual(app_updates.tv_targets(repo),
-                             {"com.wbd.stream": {"22.0.0.36"}, "com.justwatch.justwatch": {"26.43.8"}})
-
-    def test_split_tracks_by_patch_versions(self):
-        app = {"versions": {"3.0.0", "17.0.2"}, "patches": ["Skip ads", "Auto-skip (Android TV)", "Hide rating prompt"],
-               "patch_versions": {"Skip ads": {"3.0.0"}, "Auto-skip (Android TV)": {"17.0.2"},
-                                  "Hide rating prompt": set()}}
-        phone, tv = app_updates.split_tracks(app, {"17.0.2"})
-        self.assertEqual(phone, {"versions": {"3.0.0"}, "patches": ["Skip ads", "Hide rating prompt"]})
-        self.assertEqual(tv, {"versions": {"17.0.2"}, "patches": ["Auto-skip (Android TV)", "Hide rating prompt"]})
-
-
-class TrackPlay:
-    """Google Play serving one version to phones and another to TVs."""
-
-    def __init__(self, phone, tv):
-        self.served = {False: phone, True: tv}
-        self.discarded = []
-
-    def version(self, package, tv=False):
-        return self.served[tv]
-
-    def downloaded(self, package, tv=False):
-        return (Path("tv.apk" if tv else "base.apk"), Path("tv.apks" if tv else "app.apks"))
-
-    def discard(self, package, tv=False):
-        self.discarded.append((package, tv))
-
-
-class TvTrackTest(unittest.TestCase):
-    """Apple TV: the phone build is 3.0.0 and the Android TV build 17.0.2, in one package."""
-
-    APPS = {"com.apple.atve.androidtv.appletv": {
-        "versions": {"3.0.0", "17.0.2"}, "patches": ["Skip ads", "Auto-skip (Android TV)"],
-        "patch_versions": {"Skip ads": {"3.0.0"}, "Auto-skip (Android TV)": {"17.0.2"}}}}
-    TV = {"com.apple.atve.androidtv.appletv": {"17.0.2"}}
-
-    def run_check(self, play, public):
-        tv_build = {"tv_build": True, "cert": "matches", "version_name": "17.0.3",
-                    "patches": {"applied": ["Auto-skip (Android TV)"], "failed": []}}
-        with mock.patch.object(app_updates, "apkpure_versions", return_value=public), \
-                mock.patch.object(app_updates, "check_version", return_value={}), \
-                mock.patch.object(app_updates, "inspect_apk", return_value=tv_build) as inspect:
-            results = app_updates.check(self.APPS, {"com.apple.atve.androidtv.appletv": "Apple TV"}, {}, "cli",
-                                        "mpp", "work", "aapt2", "apksigner", None, Path("keep"), play, self.TV)
-        return results, inspect
-
-    def test_phone_and_tv_are_separate_records(self):
-        results, inspect = self.run_check(TrackPlay("3.0.0", "17.0.3"), ["3.0.0"])
-        phone, tv = results
-        self.assertEqual((phone["name"], phone["pinned"], phone["status"]), ("Apple TV", "3.0.0", "up to date"))
-        self.assertEqual((tv["name"], tv["pinned"], tv["track"]), ("Apple TV (Android TV)", "17.0.2", "tv"))
-        self.assertEqual((tv["status"], tv["latest"], tv["source"]), ("update", "17.0.3", "Google Play"))
-        self.assertEqual(inspect.call_args.args[1:3], (Path("tv.apk"), Path("tv.apks")))
-        self.assertTrue(inspect.call_args.kwargs["expect_tv"])
-        self.assertEqual(inspect.call_args.args[3]["patches"], ["Auto-skip (Android TV)"])
-        self.assertEqual(app_updates.review_reasons(tv), [])
-
-    def test_tv_up_to_date(self):
-        results, inspect = self.run_check(TrackPlay("3.0.0", "17.0.2"), ["3.0.0"])
-        self.assertEqual(results[1]["status"], "up to date")
-        inspect.assert_not_called()
-
-    def test_phone_issue_ignores_tv_issue(self):
-        phone = {"package": "com.apple.atve.androidtv.appletv", "key": "com.apple.atve.androidtv.appletv",
-                 "name": "Apple TV", "pinned": "3.0.0", "status": "up to date"}
-        calls = []
-
-        def gh(*args, stdin=None):
-            calls.append(args)
-            if args[:2] == ("issue", "list"):
-                return '[{"number": 50, "title": "App update: Apple TV (Android TV) 17.0.3"}]'
-            return ""
-
-        with mock.patch.object(app_updates, "gh", side_effect=gh):
-            app_updates.sync_issues([phone], None, {"com.apple.atve.androidtv.appletv": "3.0.0",
-                                                    "com.apple.atve.androidtv.appletv#tv": "17.0.2"})
-        self.assertFalse([c for c in calls if c[:2] in (("issue", "close"), ("issue", "edit"))])
 
 
 class OlderApkTest(unittest.TestCase):
@@ -292,17 +230,6 @@ class OlderApkTest(unittest.TestCase):
     def test_newer_apk_is_still_reported(self):
         record, _ = self.run_phone("9.94.0 build 1 75000", "9.94.0 build 1 75000")
         self.assertEqual((record["status"], record["latest"]), ("update", "9.94.0 build 1 75000"))
-
-    def test_older_tv_apk_is_not_reported(self):
-        apps = {"com.hulu.livingroomplus": {"versions": ["C59F39CFP3.10.33"], "patches": ["Skip ads"]}}
-        tv = {"tv_build": True, "cert": "matches", "version_name": "6344DFC8P3.9.606"}
-        with mock.patch.object(app_updates, "apkpure_versions", return_value=["FFFFFFFFP3.11.0"]), \
-                mock.patch.object(app_updates, "check_version", return_value=tv):
-            record = app_updates.check_tv("com.hulu.livingroomplus", "Hulu (Android TV)",
-                                          apps["com.hulu.livingroomplus"], {}, "cli", "mpp", "work", "aapt2",
-                                          "apksigner", Path("keep"), FakePlay(None))
-        self.assertEqual(record["status"], "up to date")
-
 
 class DevOnlyCloseTest(unittest.TestCase):
     """An app no main release has yet must not be closed as "released"."""
@@ -368,6 +295,36 @@ class CoveredVersionTest(unittest.TestCase):
         self.assertEqual(len(self.run_sync("9.94.0 build 2 75100", stable)), 1)
 
 
+class HashVersionTest(unittest.TestCase):
+    """Nikkei Asia names versions with build hashes, which cannot be put in order."""
+
+    PINNED = "8a14774d3a9cb8f25eaae58f4c4e4f3e"
+    APPS = {"com.nikkei.asia": {"versions": {PINNED}, "patches": ["Block analytics & tracking"]}}
+
+    def run_check(self, listed):
+        with mock.patch.object(app_updates, "apkpure_versions") as apkpure, \
+                mock.patch.object(app_updates, "play_listed_version", return_value=listed), \
+                mock.patch.object(app_updates, "check_version") as download:
+            results = app_updates.check(self.APPS, {}, {}, "cli", "mpp", "work", "aapt2", "apksigner", None,
+                                        Path("keep"), None)
+        apkpure.assert_not_called()
+        download.assert_not_called()
+        return results[0]
+
+    def test_untargeted_play_version_is_an_update_for_review(self):
+        record = self.run_check("e5d58f23e8a98a57519b231696ca744e")
+        self.assertEqual((record["status"], record["latest"]), ("update", "e5d58f23e8a98a57519b231696ca744e"))
+        self.assertIn("build hash", app_updates.review_reasons(record)[0])
+
+    def test_targeted_play_version_is_up_to_date(self):
+        self.assertEqual(self.run_check(self.PINNED)["status"], "up to date")
+
+    def test_only_the_same_hash_is_covered(self):
+        self.assertTrue(app_updates.covered(self.PINNED, self.PINNED))
+        self.assertFalse(app_updates.covered("0" * 32, self.PINNED))
+        self.assertFalse(app_updates.covered("f" * 32, self.PINNED))
+
+
 class IsTvBuildTest(unittest.TestCase):
     """A phone build that lists Android TV as optional is not a TV build."""
 
@@ -384,6 +341,62 @@ class IsTvBuildTest(unittest.TestCase):
     def test_tv_launcher_is_a_tv_build(self):
         self.assertTrue(self.badging(
             "launchable-activity: name='a.Main'\nleanback-launchable-activity: name='a.TvMain'\n"))
+
+    def test_tv_build_that_requires_leanback(self):
+        # Starz 6.12.1 for Android TV (version code 9511).
+        self.assertTrue(self.badging(
+            "launchable-activity: name='com.starz.amznfiretv.SplashActivity'\n"
+            "leanback-launchable-activity: name='com.starz.amznfiretv.SplashActivity'\n"
+            "  uses-feature: name='android.software.leanback'\n"))
+
+    def test_one_apk_for_phones_and_tvs_is_a_phone_build(self):
+        # Substack 3.14.0 has a TV activity, but leanback is optional (issue 95).
+        self.assertFalse(self.badging(
+            "launchable-activity: name='com.substack.app.ui.AppActivity'\n"
+            "leanback-launchable-activity: name='com.substack.tv.TvActivity'\n"
+            "  uses-feature-not-required: name='android.software.leanback'\n"))
+
+
+# list-patches output of Morphe CLI 2.3.0: a TV package has a "Form factor"
+# line between its name and its versions, and a phone package has none.
+LIST_PATCHES = """INFO: Index: 0
+Name: Skip ads
+Description: Removes the ads.
+Enabled: true
+Compatible packages:
+\tPackage name: com.abc.abcnews
+\tForm factor: TV
+\tCompatible versions:
+\t\t11.12.0
+\tVersion codes:
+\t\t11.12.0: ARM64_V8A=53550563, X86=53550563
+
+Index: 1
+Name: Hide rating prompt
+Description: Hides the prompt.
+Enabled: true
+Compatible packages:
+\tPackage name: com.tubitv
+\tCompatible versions:
+\t\t10.44.1
+\t\t10.46.0
+\tPackage name: com.foxnews.android
+\tForm factor: TV
+\tCompatible versions:
+\t\t5.50.0
+"""
+
+
+class BundleAppsTest(unittest.TestCase):
+    def test_reads_packages_with_and_without_a_form_factor(self):
+        result = mock.Mock(stdout=LIST_PATCHES)
+        with mock.patch.object(app_updates, "run", return_value=result):
+            apps = app_updates.bundle_apps("cli.jar", "patches.mpp")
+        self.assertEqual(apps["com.abc.abcnews"]["versions"], {"11.12.0"})
+        self.assertEqual(apps["com.abc.abcnews"]["patches"], ["Skip ads"])
+        self.assertEqual(apps["com.tubitv"]["versions"], {"10.44.1", "10.46.0"})
+        self.assertEqual(apps["com.foxnews.android"]["versions"], {"5.50.0"})
+        self.assertEqual(apps["com.foxnews.android"]["patches"], ["Hide rating prompt"])
 
 
 if __name__ == "__main__":

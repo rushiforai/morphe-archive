@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-26T22:15:21",
-  "description": "## [1.15.1](https://github.com/BIRDY141/Birdy-Patches/compare/v1.15.0...v1.15.1) (2026-11-26)\n\n### 🐛 Bug Fixes\n\n* **dearrow:** proxy thumbnails through NetBridge as data URIs to satisfy Cobalt CSP ([0feced3](https://github.com/BIRDY141/Birdy-Patches/commit/0feced309ecc3b858f234b9e2ff76c73430dde6b))",
-  "download_url": "https://github.com/BIRDY141/Birdy-Patches/releases/download/v1.15.1/patches-1.15.1.mpp",
+  "created_at": "2026-11-28T02:24:57",
+  "description": "## [2.0.9](https://github.com/BIRDY141/Birdy-Patches/compare/v2.0.8...v2.0.9) (2026-11-28)\n\n### 🐛 Bug Fixes\n\n* **sponsorblock:** align seekbar markers to inner bar and keep original skip prompt position ([a446ed6](https://github.com/BIRDY141/Birdy-Patches/commit/a446ed68027a9e57503e709a1046640c762cc3a7))",
+  "download_url": "https://github.com/BIRDY141/Birdy-Patches/releases/download/v2.0.9/patches-2.0.9.mpp",
   "signature_download_url": "",
-  "version": "1.15.1"
+  "version": "2.0.9"
 }

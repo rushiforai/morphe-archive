@@ -8,6 +8,9 @@ internal object TombRuneDrops {
     const val DROP_TABLE = "assets/bin/Data/0dbcfca3374434d098924e93b5c44354" // HeroTombRuneDropData_9
     const val REWARD_TABLE = "assets/bin/Data/24e543787512040e4b28b9c0b61c2286" // RewardGroupData_152
 
+    const val REWARD_TABLE_272 = "assets/bin/Data/b73522c1dbd774bfc82a5aa01c63d4d5"
+    private const val REWARD_SHA_272 = "641b1e2b55a665d627d2233656cadc3d7e9e484f3273f5c8eb07dbf5da701144"
+    private const val PATCHED_SHA_272 = "c32a9973ee966254af656806c4d40818ad3dd8aff42d067d54f8d71c35201150"
     private const val DROP_SHA = "bfefd20f8e864bb567b86134d43cc1b303c56478e80a4fda6a8f31300f880f56"
     private const val REWARD_SHA = "f6497fb54771d036b0cc571db761519bf57ffceddad0784dad82c7dc596725f4"
     private const val PATCHED_SHA = "ba72679965bd8445869f7e3098b955decaa25d3bf3dcf7abdfb4f6ba351024d4"
@@ -24,9 +27,11 @@ internal object TombRuneDrops {
 
     fun apply(drops: ByteArray, rewards: ByteArray): ByteArray {
         require(sha(drops) == DROP_SHA) { "Unsupported XP Hero 27.0.0 Tomb drop table" }
-        when (sha(rewards)) {
-            PATCHED_SHA -> return rewards
-            REWARD_SHA -> Unit
+        val originalHash = sha(rewards)
+        val expectedPatchedHash = when (originalHash) {
+            PATCHED_SHA, PATCHED_SHA_272 -> return rewards
+            REWARD_SHA -> PATCHED_SHA
+            REWARD_SHA_272 -> PATCHED_SHA_272
             else -> error("Unsupported or modified XP Hero 27.0.0 reward table")
         }
 
@@ -47,7 +52,7 @@ internal object TombRuneDrops {
                 result[row.groups[3]!!.range.first] = highest.code.toByte()
             }
         }
-        check(sha(result) == PATCHED_SHA) { "Unexpected Tomb reward rewrite" }
+        check(sha(result) == expectedPatchedHash) { "Unexpected Tomb reward rewrite" }
         return result
     }
 }
@@ -60,7 +65,8 @@ val xpHeroHighestTombRuneDrops = rawResourcePatch(
 ) {
     compatibleWith(XP_HERO_27)
     execute {
-        val rewards = get(TombRuneDrops.REWARD_TABLE)
+        val v272 = get(TombRuneDrops.REWARD_TABLE_272)
+        val rewards = if (v272.isFile) v272 else get(TombRuneDrops.REWARD_TABLE)
         val edited = TombRuneDrops.apply(get(TombRuneDrops.DROP_TABLE).readBytes(), rewards.readBytes())
         rewards.writeBytes(edited)
     }

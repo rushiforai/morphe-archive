@@ -7,14 +7,21 @@
 package app.tvqa.patches.tvquickactions
 
 import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.returnEarly
 import app.tvqa.patches.shared.Constants.TVQUICKACTIONS
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.BuilderInstruction
+import com.android.tools.smali.dexlib2.builder.Label
+import com.android.tools.smali.dexlib2.builder.BuilderTryBlock
+import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction10x
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction11x
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21c
@@ -389,44 +396,55 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.disableHeartbeat() {
     } ?: throw PatchException("Could not find the Firebase heartbeat storage.")
 
     val storageClass = mutableClassDefBy(storage.type)
-    val list = storageClass.methods.first { it.returnType.toString() == "Ljava/util/ArrayList;" }
 
-    list.replaceInstructions(
-        0,
-        listOf(
-            BuilderInstruction21c(
-                Opcode.NEW_INSTANCE,
-                0,
-                ImmutableTypeReference("Ljava/util/ArrayList;"),
-            ),
-            BuilderInstruction35c(
-                Opcode.INVOKE_DIRECT,
-                1,
-                0,
-                0,
-                0,
-                0,
-                0,
-                ImmutableMethodReference("Ljava/util/ArrayList;", "<init>", listOf(), "V"),
-            ),
-            BuilderInstruction11x(Opcode.RETURN_OBJECT, 0),
-        ),
+    // Both methods are `declared-synchronized`, so the verifier requires the body to open with
+    // `monitor-enter p0`, guard the work in a `:catchall`, and `monitor-exit p0` on every exit.
+    // Emitting a bare return - or a lock pair on a register the frame does not own - leaves the
+    // method without the monitor bookkeeping its flag promises, which the runtime reports as a
+    // destroyed mutex. Each body below keeps that shape while doing no work.
+    val list = storageClass.methods.first { it.returnType.toString() == "Ljava/util/ArrayList;" }
+    emitSynchronizedBody(
+        list,
+        """
+            new-instance v0, Ljava/util/ArrayList;
+            invoke-direct {v0}, Ljava/util/ArrayList;-><init>()V
+        """,
     )
 
-    // Nothing is written back. The method is `declared-synchronized`, so its monitor is taken by
-    // the caller and released by the runtime; emitting the lock pair here would take a monitor the
-    // frame does not own and release one it never took, which the runtime reports as a destroyed
-    // mutex. A bare return is all this needs to be - the write path becomes unreachable.
     storageClass.methods
         .filter { it.name == "d" && it.parameterTypes.size == 2 }
-        .forEach { save ->
-            save.replaceInstructions(
-                0,
-                listOf(BuilderInstruction10x(Opcode.RETURN_VOID)),
-            )
-        }
+        .forEach { save -> emitSynchronizedBody(save, "") }
 
     println("[unlock] disabled the heartbeat in ${storage.type}")
+}
+
+/**
+ * Replaces the body of a `declared-synchronized` method with [body], keeping the monitor
+ * bookkeeping the flag requires: `monitor-enter p0`, the work guarded by a catchall, and
+ * `monitor-exit p0` on both the normal and the throwing path.
+ *
+ * A `declared-synchronized` method whose body never touches p0's monitor - or touches a register
+ * that is not yet assigned - is what the runtime reports as a destroyed mutex, so the shape here
+ * has to match what the compiler would have emitted.
+ */
+private fun emitSynchronizedBody(method: MutableMethod, work: String) {
+    val tail = if (method.returnType.toString() == "V") "return-void" else "return-object v0"
+    val smali = buildString {
+        appendLine("monitor-enter p0")
+        appendLine(":try_start")
+        if (work.isNotBlank()) appendLine(work.trimIndent())
+        appendLine(tail)
+        appendLine(":try_end")
+        appendLine(".catchall {:try_start .. :try_end} :catchall")
+        appendLine("monitor-exit p0")
+        appendLine(":catchall")
+        appendLine("throw p0")
+    }
+    val implementation = method.implementation ?: throw PatchException("Expected a mutable implementation.")
+    while (implementation.getInstructions().isNotEmpty()) {
+        implementation.removeInstruction(0)
+    }
+    method.addInstructions(0, smali)
 }
 
 /** The preference keys Firebase's heartbeat storage seeds on first use. */

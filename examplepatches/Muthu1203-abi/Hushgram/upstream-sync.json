@@ -1,0 +1,12 @@
+{
+  "note": "The last commit of SysAdminDoc/HushGram whose changes are in this repository. The next sync applies upstream's diff from 'synced_commit' to its main onto this repository's main.",
+  "upstream": "https://github.com/SysAdminDoc/HushGram",
+  "first_import_base": "b434aa596",
+  "synced_commit": "634cb499476650ad3543f5781d955acd0f2a967b",
+  "synced_on": "2026-11-27",
+  "kept_custom": [
+    "Liquid Glass navigation bar (app/southstar21/.../liquidglass) replaces upstream's Glass tab bar patch and its settings",
+    "Settings header: Liquid Glass card, default name Muthu12",
+    "Open developer options, Continue through liked Reels, Ghost tab stroke and the other Muthu patches"
+  ]
+}

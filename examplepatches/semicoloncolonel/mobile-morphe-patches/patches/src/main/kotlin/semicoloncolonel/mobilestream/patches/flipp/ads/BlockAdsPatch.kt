@@ -67,6 +67,7 @@ val blockAdsPatch = bytecodePatch(
     name = "Block ads",
     description = "Removes the ads from Flipp's home feed, search results, and flyers.",
 ) {
+    category("Ads")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

@@ -47,6 +47,18 @@ Waar aangeboden zijn er ook verkorten, samenvatten, antwoorden, stijlvoorbeelden
 | **Inline grammar** | Kies op Android 12 of nieuwer de gepatchte Gboard als Android-spellingcontrole en zet **Inline grammar** aan onder **Writing preferences**. Gemma controleert ondersteunde tekstvelden op het toestel. Tik op een blauwe onderstreping om een correctie te bekijken en te kiezen. |
 | **Voice Edit** | Stel zowel gedeelde lokale spraak als het tekstmodel in. Open dan **Voice Edit** en volg de opnamestappen hieronder. |
 
+Open **Grammar check** via de werkbalk om een concept rechtstreeks met Local AI te controleren. Je krijgt een voorbeeld als er een wijziging is. Na toepassen of annuleren van een lokale bewerking, grammaticacontrole of vertaling keer je terug naar het gewone toetsenbord. Bij **Suggest Changes** kies je eerst een bewerkingsinstructie en krijg je daarna een voorbeeld.
+
+## Waar Gemma 4 het beste mee omgaat
+
+Begin met een kort concept met één duidelijk doel, zoals een eenvoudige statusupdate, een rechtstreeks verzoek of een korte vertaling. Controleer het voorbeeld vóór je het toepast. Let op wie wat doet, namen, tijden, getallen, links, ontkenningen en voorwaarden. Ook een vlot geformuleerd resultaat kan zulke details veranderen.
+
+Zowel Gemma 4 E2B als E4B kan tekst weglaten of de betekenis veranderen. Instructies met meerdere stappen, gemengde talen, dubbelzinnige woorden en teksten met meerdere toezeggingen zijn moeilijker te controleren. Verdeel langere concepten in korte stukken die elk op zichzelf begrijpelijk zijn. Ook een korte tekst kan verkeerd worden vertaald; er is geen getoetste woordgrens die nauwkeurigheid garandeert. De keuzelijst toont doeltalen, en de kwaliteit varieert per bron- en doeltaal en per taak.
+
+In een kleine OnePlus-test op de CPU behield E4B de betekenis in zeven van acht eenvoudige Frans-Nederlandse concepten. E2B slaagde bij vijf van dezelfde acht. Deze resultaten gelden voor die voorbeelden. In een andere test behielden beide modellen de twee regels, maar veranderden ze wie de koffie zette.
+
+Local Model Host 0.1.155 en latere versies slaan bij tekstverzoeken met een lege toollijst een onnodige decodeerbeperking over. Die beperking kon een resultaat van meerdere regels na de eerste regel afbreken. Controleer of alle verwachte regels in het voorbeeld staan. Sluit het voorbeeld als informatie ontbreekt of een wijziging onbruikbaar is en behoud het oorspronkelijke concept.
+
 ## Tekst uit een afbeelding lezen
 
 Selecteer Local AI en wacht tot het tekst- en beeldmodel van de host **Ready** meldt. Open een invoerveld en tik in de Gboard-werkbalk op **Scan Text**. Kies **Choose an image** voor een bestaande foto of schermafbeelding, of tik op de ontspanknop om een nieuw beeld vast te leggen. Controleer het resultaat. Selecteer de gewenste tekst en tik op **Insert** om die in het actieve veld te plaatsen.

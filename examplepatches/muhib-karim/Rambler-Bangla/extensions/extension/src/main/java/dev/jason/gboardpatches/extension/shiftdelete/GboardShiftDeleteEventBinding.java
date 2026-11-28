@@ -27,6 +27,12 @@ public final class GboardShiftDeleteEventBinding {
         int map(String action, int code);
     }
 
+    /** Observes one soft-key event (including payload) and returns true to neutralize it. */
+    @FunctionalInterface
+    public interface SoftKeyObserver {
+        boolean onSoftKey(String action, int code, Object payload);
+    }
+
     private static final String SOFT_KEY_DEF =
             "com.google.android.libraries.inputmethod.metadata.SoftKeyDef";
     private static final List<String> ACTION_NAMES = List.of("DOWN", "UP", "PRESS");
@@ -95,6 +101,33 @@ public final class GboardShiftDeleteEventBinding {
         if (!(type instanceof Enum<?> kind)) return event;
         int mapped = mapper.map(kind.name(), original);
         if (mapped == original) return event;
+        return replaceKeyCode(event, entry, mapped);
+    }
+
+    /**
+     * Observes any soft-key event (including events with String punctuation payloads) and, if the
+     * observer requests suppression, returns a copy whose key code is neutralized to
+     * {@link KeyEvent#KEYCODE_UNKNOWN}.
+     */
+    public Object observeSoftKey(Object event, SoftKeyObserver observer)
+            throws ReflectiveOperationException {
+        if (event == null || observer == null || event.getClass() != eventType) return event;
+        if (hardwareEvent.get(event) != null || metadata.get(event) == null) return event;
+        Object data = entries.get(event);
+        if (data == null || Array.getLength(data) != 1) return event;
+        Object entry = Array.get(data, 0);
+        if (entry == null) return event;
+        Object type = action.get(event);
+        if (!(type instanceof Enum<?> kind)) return event;
+        int original = code.getInt(entry);
+        Object entryPayload = payload.get(entry);
+        boolean suppress = observer.onSoftKey(kind.name(), original, entryPayload);
+        if (!suppress) return event;
+        return replaceKeyCode(event, entry, KeyEvent.KEYCODE_UNKNOWN);
+    }
+
+    private Object replaceKeyCode(Object event, Object entry, int mapped)
+            throws ReflectiveOperationException {
         Object replacement = entryConstructor.newInstance(
                 mapped, intention.get(entry), null, flags.getInt(entry));
         Object result = copy.invoke(null, event);

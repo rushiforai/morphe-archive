@@ -53,6 +53,11 @@ public final class GboardBackupRestoreSettingsFeature
     }
 
     @Override
+    public String getRootSectionKey() {
+        return GboardPatchesSettingsContract.ROOT_SECTION_SYSTEM;
+    }
+
+    @Override
     public boolean isAvailable(Context context) {
         return GboardPatchesFeatureAvailability.hasFeature(
                 context,

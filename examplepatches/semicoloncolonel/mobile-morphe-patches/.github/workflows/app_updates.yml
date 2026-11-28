@@ -62,7 +62,11 @@ jobs:
     name: Check app versions
     needs: schedule
     if: needs.schedule.outputs.run == 'true'
-    runs-on: ubuntu-24.04
+    # The mac-mini self-hosted runner: the check runs from a home residential IP,
+    # which APKPure, APKMirror, and the Aurora dispenser accept, unlike GitHub's
+    # datacenter ranges. Safe here because this workflow only triggers on
+    # schedule and workflow_dispatch, never pull_request, so no fork runs code.
+    runs-on: [self-hosted, macOS]
     timeout-minutes: 120
     permissions:
       contents: read
@@ -84,20 +88,16 @@ jobs:
           distribution: 'zulu'
           java-version: '26'
 
-      - name: Setup Python
-        uses: actions/setup-python@v7
-        with:
-          python-version: '3.12'
-
+      # No setup-python: the self-hosted mac-mini uses its own Homebrew python3
+      # (the script is standard-library only). setup-python writes its tool cache
+      # to the GitHub-hosted /Users/runner path, which fails on a self-hosted Mac.
       - name: Install tools
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          mkdir -p "$HOME/bin" tools
-          # gh downloads through the API, which keeps working when direct release links do not.
-          gh release download 1.1.0 -R EFForg/apkeep -p apkeep-x86_64-unknown-linux-gnu -O "$HOME/bin/apkeep"
-          chmod +x "$HOME/bin/apkeep"
-          echo "$HOME/bin" >> "$GITHUB_PATH"
+          # apkeep, the Android build-tools (ANDROID_HOME) and a JDK are already
+          # installed on the self-hosted mac-mini runner; fetch only per-run tools.
+          mkdir -p tools
           gh release download -R MorpheApp/morphe-cli -p '*-all.jar' -D tools
           tag=$(gh release list -R "$GITHUB_REPOSITORY" --limit 1 --json tagName --jq '.[0].tagName')
           gh release download "$tag" -R "$GITHUB_REPOSITORY" -p '*.mpp' -D tools
@@ -112,12 +112,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           ONLY: ${{ inputs.only }}
           # A throwaway Google account, not in any beta program, for reading the
-          # version Google Play serves to an ordinary phone, and as a Sony Bravia
-          # TV, the version it serves to Android TV.
+          # version Google Play serves to an ordinary phone.
           PLAY_EMAIL: ${{ secrets.PLAY_EMAIL }}
           PLAY_AAS_TOKEN: ${{ secrets.PLAY_AAS_TOKEN }}
         run: |
-          python .github/scripts/app_updates.py \
+          python3 .github/scripts/app_updates.py \
             --cli tools/*-all.jar --mpp tools/*.mpp --aapt2 "$AAPT2" --apksigner "$APKSIGNER" \
             --only "$ONLY" --out app-updates --issues --stable-mpp tools/stable/*.mpp
 
@@ -141,10 +140,12 @@ jobs:
       contents: read
       issues: write
     steps:
-      - name: Checkout dev
+      # A run started by hand from a branch other than main uses that branch's
+      # launch check, so a change to it can be tried before it reaches dev.
+      - name: Checkout the launch check
         uses: actions/checkout@v7
         with:
-          ref: dev
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.ref_name != 'main' && github.ref_name || 'dev' }}
 
       - name: Download report
         uses: actions/download-artifact@v8
@@ -170,12 +171,19 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         with:
-          # Android 17. Android 15 to 17 enforce rules that Android 14 does not,
-          # such as edge-to-edge layouts, foreground service types, and stricter
-          # receiver and background-start limits, so an older image passes apps
-          # that break on current phones. The 4 KB page image matches current
-          # phones; the ps16k images would flag 16 KB page devices only.
-          api-level: '37.0'
+          # Android 16. Android 15 and 16 enforce rules that Android 14 does
+          # not, such as edge-to-edge layouts, foreground service types, and
+          # stricter receiver and background-start limits, so an older image
+          # passes apps that break on current phones. The 4 KB page image
+          # matches current phones; the ps16k images would flag 16 KB page
+          # devices only.
+          #
+          # Not Android 17 (api-level 37.0): its surfaceflinger aborts on
+          # "Assertion failed: !rcEnc->featureInfo()->hasReadColorBufferDma"
+          # every 15 to 30 seconds with swiftshader_indirect, and the framework
+          # restarts with it, killing every app. swangle_indirect and guest
+          # fail the same way. Try 37 again with a newer system image.
+          api-level: '36'
           arch: x86_64
           # Android 17 did not finish booting in 10 minutes on the default 2
           # cores. GitHub's Linux runners have 4 cores and 16 GB.

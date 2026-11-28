@@ -8,9 +8,13 @@ package semicoloncolonel.mobilestream.patches.pluto.ads
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
 import semicoloncolonel.mobilestream.patches.pluto.shared.Constants
+import semicoloncolonel.mobilestream.patches.shared.misc.TRANSLATE_OPTION_DESCRIPTION
+import semicoloncolonel.mobilestream.patches.shared.misc.TRANSLATE_OPTION_TITLE
+import semicoloncolonel.mobilestream.patches.shared.misc.enableAdBreakTranslation
 
 private const val LIVE_MASK = "Lsemicoloncolonel/mobilestream/extension/pluto/ads/PlutoLiveMask;"
 
@@ -49,7 +53,16 @@ val maskLiveAdsPatch = bytecodePatch(
 
     extendWith("extensions/extension.mpe")
 
+    val translate by booleanOption(
+        key = "translate",
+        default = false,
+        title = TRANSLATE_OPTION_TITLE,
+        description = TRANSLATE_OPTION_DESCRIPTION,
+    )
+
     execute {
+        if (translate == true) enableAdBreakTranslation()
+
         // 1) Every ad tag is a tick. Call the helper with the finished tag
         //    (p0) before each return in the constructor, after the fields
         //    are set, so the helper can read the ad's timing from it.

@@ -36,7 +36,7 @@ import app.fakh.extension.shared.AppRuntime;
 @SuppressWarnings("unused")
 public final class NavigationBar {
     public static final String GLASS = "fakh_glass_navbar";
-    public static final String HIDE_LABELS = "fakh_hide_nav_labels";
+    public static final String HIDE_NAV_BAR_LABELS = "fakh_hide_nav_labels";
     public static final String SMALLER = "fakh_smaller_navbar";
     /** The Liquid Glass switch, on until turned off: the settings row shows it on before it is ever saved. */
     public static final String LIQUID = "fakh_liquid_glass";
@@ -96,7 +96,7 @@ public final class NavigationBar {
 
     /** Injected before the call that draws a tab: its label composable, or null while labels are hidden. */
     public static Object label(Object label) {
-        return Features.on(HIDE_LABELS) ? null : label;
+        return Features.on(HIDE_NAV_BAR_LABELS) ? null : label;
     }
 
     /**
@@ -338,7 +338,7 @@ public final class NavigationBar {
         float density = bar.getResources().getDisplayMetrics().density;
         if (!glass) {
             ViewGroup.LayoutParams size = bar.getLayoutParams();
-            size.height = Math.round((Features.on(HIDE_LABELS) ? 48 : 52) * density) + bar.getPaddingBottom();
+            size.height = Math.round((Features.on(HIDE_NAV_BAR_LABELS) ? 48 : 52) * density) + bar.getPaddingBottom();
             bar.setLayoutParams(size);
             return;
         }
@@ -346,8 +346,8 @@ public final class NavigationBar {
         int vertical = Math.round((small ? 4 : VERTICAL_MARGIN_DP) * density);
         bar.setPadding(side, vertical, side, vertical);
         // The tabs are at least 80dp tall; a bar that is shorter clamps them and centers the icon and label.
-        int heightDp = small ? (Features.on(HIDE_LABELS) ? 42 : 46)
-                : (Features.on(HIDE_LABELS) ? ICON_ONLY_HEIGHT_DP : LABELED_HEIGHT_DP);
+        int heightDp = small ? (Features.on(HIDE_NAV_BAR_LABELS) ? 42 : 46)
+                : (Features.on(HIDE_NAV_BAR_LABELS) ? ICON_ONLY_HEIGHT_DP : LABELED_HEIGHT_DP);
         ViewGroup.LayoutParams size = bar.getLayoutParams();
         size.height = Math.round(heightDp * density) + 2 * vertical;
         bar.setLayoutParams(size);
@@ -566,25 +566,41 @@ public final class NavigationBar {
             public void onGlobalLayout() {
                 if (host.getWidth() == 0 || host.getHeight() == 0) return;
                 host.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                host.postDelayed(() -> {
-                    if (!host.isAttachedToWindow()) return;
-                    // One pixel copied from what the window shows: drawing the page into a software canvas throws
-                    // on the hardware bitmaps some pages hold, such as avatars on Explore.
-                    int[] place = new int[2];
-                    host.getLocationInWindow(place);
-                    int x = place[0] + 2;
-                    int y = place[1] + host.getHeight() / 2;
-                    android.graphics.Bitmap pixel = android.graphics.Bitmap.createBitmap(1, 1, android.graphics.Bitmap.Config.ARGB_8888);
-                    android.view.PixelCopy.request(activity.getWindow(), new android.graphics.Rect(x, y, x + 1, y + 1), pixel, result -> {
-                        int color = pixel.getPixel(0, 0);
-                        if (result == android.view.PixelCopy.SUCCESS && Color.alpha(color) == 255 && capsule != null) {
-                            pageColor = color;
-                            capsule.setColor(color);
-                        }
-                    }, host.getHandler());
-                }, 600);
+                host.postDelayed(() -> readPageColor(activity, host), 600);
             }
         });
+    }
+
+    /** Copies the pixel of {@code host} that {@link #matchPage} is after, and colors the capsule with it. */
+    private static void readPageColor(Activity activity, View host) {
+        if (!host.isAttachedToWindow()) return;
+        // One pixel copied from what the window shows: drawing the page into a software canvas throws on the
+        // hardware bitmaps some pages hold, such as avatars on Explore.
+        int[] place = new int[2];
+        host.getLocationInWindow(place);
+        int x = place[0] + 2;
+        int y = place[1] + host.getHeight() / 2;
+        android.graphics.Bitmap pixel = android.graphics.Bitmap.createBitmap(1, 1, android.graphics.Bitmap.Config.ARGB_8888);
+        try {
+            android.view.PixelCopy.request(activity.getWindow(), new android.graphics.Rect(x, y, x + 1, y + 1), pixel, result -> {
+                int color = pixel.getPixel(0, 0);
+                if (result == android.view.PixelCopy.SUCCESS && Color.alpha(color) == 255 && capsule != null) {
+                    pageColor = color;
+                    capsule.setColor(color);
+                }
+            }, host.getHandler());
+        } catch (IllegalArgumentException noSurface) {
+            // The window shows nothing yet, as when a theme change rebuilds a screen behind another one. Read the
+            // color once the screen is in front.
+            host.getViewTreeObserver().addOnWindowFocusChangeListener(new android.view.ViewTreeObserver.OnWindowFocusChangeListener() {
+                @Override
+                public void onWindowFocusChanged(boolean focused) {
+                    if (!focused) return;
+                    host.getViewTreeObserver().removeOnWindowFocusChangeListener(this);
+                    host.postDelayed(() -> readPageColor(activity, host), 600);
+                }
+            });
+        }
     }
 
     private static boolean glass() {
@@ -628,8 +644,9 @@ public final class NavigationBar {
         int count = tabCount > 0 ? tabCount : tabIcons.size();
         if (count == 0 || bar.getWidth() == 0) return;
         float density = bar.getResources().getDisplayMetrics().density;
+        int maxTab = Features.on(HIDE_NAV_BAR_LABELS) ? GlassTabs.MAX_ICON_TAB_DP : GlassTabs.MAX_TAB_DP;
         int side = GlassTabs.sidePadding(bar.getWidth(), count, Math.round(TAB_GAP_DP * density),
-                Math.round((SIDE_MARGIN_DP + INNER_PADDING_DP) * density), density);
+                Math.round((SIDE_MARGIN_DP + INNER_PADDING_DP) * density), density, maxTab);
         if (bar.getPaddingLeft() != side || bar.getPaddingRight() != side) {
             bar.setPadding(side, bar.getPaddingTop(), side, bar.getPaddingBottom());
         }

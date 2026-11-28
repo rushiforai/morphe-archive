@@ -58,7 +58,7 @@ val forceDecodeCapabilityPatch = bytecodePatch(
         "cannot decode it. Pair with Video quality set to 2160p.",
     default = false,
 ) {
-    category("Video")
+    category("Playback")
     // Phone only: the Android TV build ships a different media3 whose
     // MediaCodecInfo capability methods are not present, so there is nothing to
     // force there. The TV build reaches 4K through Video quality (track

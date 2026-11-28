@@ -105,7 +105,7 @@
       {
         "assets": [
           {
-            "path": "build/n39/gradle/patches/libs/patches-!(*sources*|*javadoc*).mpp?(.asc)"
+            "path": "patches/build/libs/patches-!(*sources*|*javadoc*).mpp?(.asc)"
           }
         ],
         "successComment": false,

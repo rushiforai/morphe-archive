@@ -26,6 +26,7 @@ val blockAnalyticsPatch = bytecodePatch(
     description = "Stops AppsFlyer, Blueshift, Firebase Analytics, the Meta SDK, and Slickdeals' own event collectors.",
     default = false,
 ) {
+    category("Privacy")
     compatibleWith(Constants.COMPATIBILITY)
 
     dependsOn(analyticsKillSwitchesPatch)

@@ -1,4 +1,22 @@
 <!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://gitlab.com/johninnld/nl-morphe-patches/-/raw/4555984395df7fd68e5f079bf1f5829bd9b17dbe/docs/site/assets/brand/release-banner.png)
+
+**Release · patch bundle v1.108.1.**
+
+[Source metadata](https://gitlab.com/johninnld/nl-morphe-patches/-/raw/main/patches-bundle.json) · [User guide](https://gitlab.com/johninnld/nl-morphe-patches/-/blob/main/docs/site/en/index.md)
+
+Source: [4555984395df](https://gitlab.com/johninnld/nl-morphe-patches/-/commit/4555984395df7fd68e5f079bf1f5829bd9b17dbe). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.108.1](https://gitlab.com/johninnld/nl-morphe-patches/compare/v1.108.0...v1.108.1) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* **gboard:** pair Local AI with Host 155 and document Gemma limits ([cd038a5](https://gitlab.com/johninnld/nl-morphe-patches/commit/cd038a57c3a386f54e0aa72b6fe77c0507dcc96e))
+* **Gboard:** restore typing after Local AI edits and add direct grammar checks ([4555984](https://gitlab.com/johninnld/nl-morphe-patches/commit/4555984395df7fd68e5f079bf1f5829bd9b17dbe))
+
+<!-- dap-release-branding:v1 -->
 ![Dutch App Patches. Dutch apps. Your choices.](https://gitlab.com/johninnld/nl-morphe-patches/-/raw/dddd8923e40f5bfdc54f925a216af9c48e9ef488/docs/site/assets/brand/release-banner.png)
 
 **Release · patch bundle v1.108.0.**

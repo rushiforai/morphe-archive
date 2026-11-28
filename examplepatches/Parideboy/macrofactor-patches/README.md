@@ -18,7 +18,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.0](https://github.com/Parideboy/macrofactor-patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;3 patches total
+> **[v1.1.1](https://github.com/Parideboy/macrofactor-patches/releases/tag/v1.1.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;3 patches total
 <details open>
 <summary>📦 MacroFactor&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -68,10 +68,19 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 
 ### 🛠️ Building locally
 
-- Run `./gradlew buildAndroid`
-- The built patches .mpp file is found in `patches/build/libs/patches-*.mpp`
-- Patch the mpp file using [Morphe-Desktop](https://github.com/MorpheApp/morphe-desktop)
-  like any other patch bundle.
+Prerequisites: JDK 21, an Android SDK (platform + build-tools), and a GitHub personal access
+token with `read:packages` — the `app.morphe.patches` plugin resolves
+`maven.pkg.github.com/MorpheApp/registry` with those credentials.
+
+1. Point Gradle at your SDK: `local.properties` with `sdk.dir=/path/to/android-sdk`, or export
+   `ANDROID_HOME`.
+2. Build: `GITHUB_ACTOR=<your-github-user> GITHUB_TOKEN=<pat> ./gradlew buildAndroid`
+   (or put `gpr.user`/`gpr.key` in `~/.gradle/gradle.properties`, never in this repo).
+3. The built patches bundle is `patches/build/libs/patches-*.mpp`.
+4. Patch the `.mpp` file using [Morphe-Desktop](https://github.com/MorpheApp/morphe-desktop)
+   like any other patch bundle.
+
+Only need the bundle? `./gradlew :patches:buildAndroid` skips the extension tests.
 
 See the [Morphe documentation](https://github.com/MorpheApp/morphe-documentation) for more information.
 

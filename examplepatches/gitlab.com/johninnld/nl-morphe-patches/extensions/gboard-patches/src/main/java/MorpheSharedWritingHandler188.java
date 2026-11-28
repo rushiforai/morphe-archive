@@ -27,7 +27,7 @@ public final class MorpheSharedWritingHandler188 implements advh {
         advj prompt=null;
         for(Object value:messages){if(!(value instanceof advj) || ((advj)value).d()!=1 || prompt!=null)return immediate(errorResult("NO_OR_EMPTY_RESPONSE"));prompt=(advj)value;}
         if(prompt==null)return immediate(errorResult("NO_OR_EMPTY_RESPONSE"));
-        return text("generate",prompt.c(),"Follow the explicit writing request and output format in the supplied prompt. Preserve facts, names, numbers and negation. Do not add an introduction or unrequested language changes.",operation("prompt"));
+        return text("generate",prompt.c(),"Rule 1: Follow the explicit writing request and output format in the supplied prompt. Rule 2: Preserve facts, names, numbers and negation. Rule 3: Keep the original language unless translation is requested. Rule 4: Return only the requested result.",operation("prompt"));
     }
     public avvx d(Context c,auaz messages,EditorInfo info,adve options,advf callback){return c(c,messages,info,options);}
     public avvx e(Context c,String text,String other,EditorInfo info,akpu options,axjl language,aisu source,advf callback){if(SharedWritingDiagnostics.enabled())SharedWritingDiagnostics.event("backend.proofread");return text("proofread",text,null,operation("proofread"));}
@@ -45,7 +45,7 @@ public final class MorpheSharedWritingHandler188 implements advh {
         result.whenComplete((value,error)->{pending.remove(result);if(result.isCancelled())request.cancel(false);});
         request.whenComplete((value,error)->{
             if(result.isDone())return;
-            if(error instanceof java.util.concurrent.CancellationException){result.cancel(false);return;}
+            // Host-side cancellation invalidates the edit, but the native panel still needs a terminal result.
             if(error!=null){try{result.complete(errorResult("NO_OR_EMPTY_RESPONSE"));}catch(Throwable drift){if(SharedWritingDiagnostics.enabled())SharedWritingDiagnostics.event("backend.result error="+drift.getClass().getSimpleName());result.completeExceptionally(drift);}return;}
             try {
             aeai builder=aeak.b();builder.i(value);builder.d(0);builder.g(1.0);builder.h(java.util.UUID.randomUUID().toString());builder.f("Gemma 4 E2B local");builder.b(aeaf.a);builder.k(j$.util.Optional.ofNullable(nativeOperation));builder.c(code(original.equals(value)?"SAME_WITH_REQUEST":"NO_ERROR"));result.complete(auaz.q(builder.a()));

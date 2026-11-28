@@ -1,0 +1,9 @@
+nicoid Re dev.38: additional network dependencies
+OkHttp Android 5.5.1 — OkHttp authors, Square/Block, and contributors (Apache-2.0), https://github.com/lysine-dev/okhttp
+Okio JVM 3.18.2 — Square and contributors (Apache-2.0), https://github.com/lysine-dev/okio
+Kotlin stdlib 2.1.21 — JetBrains s.r.o. and contributors (Apache-2.0), https://github.com/JetBrains/kotlin
+AndroidX Annotation JVM 1.10.0 — Android Open Source Project (Apache-2.0), https://android.googlesource.com/platform/frameworks/support
+PublicSuffixDatabase.list from OkHttp Android AAR — Public Suffix List data (Mozilla Public License 2.0), https://publicsuffix.org/list/
+Changes: isolated namespaces, dependency shrinking, explicit initialization in place of AndroidX Startup, original list bytes packaged as a compressed stream, DEX compilation and consumer references adapted to nicoid Re. This is an experimental integration, not an unmodified AAR distribution.
+
+Dev.120: CertificatePinner hostname matching normalizes a single trailing DNS dot, adapted from upstream https://github.com/lysine-dev/okhttp/commit/30aa589761a9b4f5fe84c00e21e5ab44b22bd7c1 (Apache-2.0).

@@ -1,3 +1,99 @@
+## 2.2.0 (2026-11-27)
+
+## ✨ New Features
+
+* **nicoid:** Add pull-to-refresh support to playlists, Mylists, Watch Later, public Mylists, uploaded videos, local viewing history, and cached video lists, allowing users to reload content directly without navigating away from the current screen
+* **nicoid:** Add a configurable comment length limit from 1 to 100 characters, including an unlimited option, to provide greater control over comment visibility and readability ([#185](https://github.com/chikuwadon/nicoid-re-patches/issues/185))
+* **nicoid:** Add a separate option to apply the comment length limit to fixed top and bottom comments ([#185](https://github.com/chikuwadon/nicoid-re-patches/issues/185))
+
+## 🐛 Bug Fixes
+
+* **nicoid:** Fix unnecessarily low-resolution playback during initial video loading by refining the initial adaptive bitrate selection
+* **nicoid:** Reduce unnecessary delays when switching to higher video quality after playback starts
+* **nicoid:** Fix inaccurate network bandwidth estimation caused by locally cached video data being treated as network transfers
+* **nicoid:** Fix incorrect scroll position restoration when refreshing Mylists, preventing the list from unexpectedly returning to its previous position
+* **nicoid:** Improve recovery from temporary loading failures in Mylists, Watch Later, and account viewing history
+* **nicoid:** Fix pull-to-refresh indicators remaining visible or behaving inconsistently after requests complete
+* **nicoid:** Fix conflicts between pull-to-refresh gestures, vertical scrolling, and touch event handling
+* **nicoid:** Fix resource leaks caused by improperly closed streams when reading cached video information, comments, thumbnails, bookmarks, and viewing history
+* **nicoid:** Fix potential crashes and race conditions caused by concurrent reading and closing of network response streams
+* **nicoid:** Fix inconsistent like status when loading video information from the local cache
+* **nicoid:** Fix like button rendering and state synchronization issues when switching between videos
+* **nicoid:** Fix residual black overlays caused by incomplete mini player cleanup
+* **nicoid:** Prevent unintended playback transitions and unexpected playback resumption after closing the popup player or mini player
+* **nicoid:** Fix inconsistent playback state restoration when transitioning between background playback and popup playback
+* **nicoid:** Prevent duplicate playback and network requests during transitions between playback modes
+* **nicoid:** Fix socket closure errors and improve connection cleanup when shutting down the internal local server
+* **nicoid:** Improve related-video retrieval by attempting alternative retrieval paths when the initial tag-based request fails
+* **nicoid:** Prevent modern HLS playlist URLs from being incorrectly processed as legacy comment data
+* **nicoid:** Correct misplaced playback and comment settings to improve settings organization and consistency
+
+## 🔧 Improvements
+
+* **nicoid:** Extensively modernize the internal networking architecture by migrating legacy communication paths to a more consistent and maintainable HTTP infrastructure
+* **nicoid:** Modernize core networking libraries, including OkHttp and Okio, to improve connection management, request handling, stream processing, and compatibility with modern network environments
+* **nicoid:** Modernize Kotlin runtime components, Guava, Apache Commons Lang, and related dependencies while reducing reliance on obsolete library implementations
+* **nicoid:** Modernize AndroidX components, including AppCompat, Core, Lifecycle, RecyclerView, ViewPager, and SwipeRefreshLayout
+* **nicoid:** Improve interoperability between updated libraries and existing application components while maintaining compatibility with supported Android versions
+* **nicoid:** Improve Activity lifecycle handling to ensure more consistent initialization, state restoration, and resource cleanup
+* **nicoid:** Improve Fragment lifecycle compatibility and reduce potential inconsistencies during screen transitions
+* **nicoid:** Improve saved UI state management when navigating between screens, switching tabs, or restoring application state
+* **nicoid:** Improve compatibility with modern Android versions through updated framework integrations and lifecycle-aware processing
+* **nicoid:** Modernize the pull-to-refresh implementation to provide more consistent refresh behavior across supported screens
+* **nicoid:** Improve pull-to-refresh animations, progress indicators, and gesture responsiveness
+* **nicoid:** Improve nested scrolling coordination between scrollable content and surrounding UI components
+* **nicoid:** Refine swipe gesture recognition to reduce unintended interactions during scrolling and tab navigation
+* **nicoid:** Improve fling behavior and scrolling responsiveness, particularly during rapid list navigation
+* **nicoid:** Improve touch event processing and gesture conflict resolution across list-based interfaces
+* **nicoid:** Improve thumbnail image quality in Android media controls and playback notifications by retrieving more suitable artwork
+* **nicoid:** Improve artwork retrieval, retry handling, and fallback behavior when preferred thumbnail images are unavailable
+* **nicoid:** Strengthen thumbnail response validation to prevent invalid or incomplete image data from being used
+* **nicoid:** Modernize authentication-related communication and improve consistency across authenticated network requests
+* **nicoid:** Modernize video information retrieval and improve the handling of network failures and unexpected responses
+* **nicoid:** Migrate Mylist and Watch Later communication paths to the modernized networking infrastructure
+* **nicoid:** Modernize comment retrieval, including request execution, response processing, and connection lifecycle management
+* **nicoid:** Modernize comment posting and improve authenticated request handling
+* **nicoid:** Improve video streaming session management, including session initialization, renewal, and cleanup
+* **nicoid:** Improve network communication for video downloads and reduce unnecessary connection and stream handling overhead
+* **nicoid:** Improve authenticated HTTP request processing through more consistent header and cookie management
+* **nicoid:** Improve authentication cookie handling and reduce unnecessary reliance on legacy cookie implementations
+* **nicoid:** Strengthen cookie domain and path validation to improve authentication security and request isolation
+* **nicoid:** Improve HTTP response validation and error handling across modernized communication paths
+* **nicoid:** Improve recovery from interrupted, incomplete, malformed, or otherwise unexpected network responses
+* **nicoid:** Improve network request cancellation and connection cleanup to prevent unnecessary background processing
+* **nicoid:** Improve input and output stream lifecycle management to reduce resource leaks and redundant allocations
+* **nicoid:** Refine initial adaptive bitrate selection to allow more appropriate starting resolutions while preserving existing bandwidth and buffering safeguards
+* **nicoid:** Improve bandwidth estimation by separating locally cached data transfers from actual network throughput measurements
+* **nicoid:** Optimize scrolling comment rendering to reduce unnecessary per-frame processing and improve rendering efficiency
+* **nicoid:** Optimize fixed top and bottom comment rendering to reduce repeated positioning and layout calculations
+* **nicoid:** Optimize fixed-comment collision detection and placement to reduce computational overhead when many comments are displayed simultaneously
+* **nicoid:** Improve comment rendering efficiency under heavy comment loads while preserving existing comment visibility and placement behavior
+* **nicoid:** Improve comment source synchronization and incremental updates to reduce unnecessary reconstruction of active comment data
+* **nicoid:** Reduce temporary object allocations and redundant calculations in frequently executed comment rendering paths
+* **nicoid:** Improve playback session lifecycle management across normal playback, fullscreen playback, popup playback, mini player, and background playback
+* **nicoid:** Improve playback resource ownership, allocation, and release to reduce unnecessary player and rendering resource retention
+* **nicoid:** Improve cached video playback handling and coordination between cached content and network-based playback
+* **nicoid:** Improve cached file access, stream management, and cleanup to reduce unnecessary resource consumption
+* **nicoid:** Remove obsolete HTTP and networking library implementations after migrating their remaining communication paths
+* **nicoid:** Remove obsolete advertising SDKs and associated application components that are no longer required
+* **nicoid:** Remove unnecessary advertising-related resources, configuration files, and residual references
+* **nicoid:** Remove unused AndroidX classes and components while retaining those required by existing application features
+* **nicoid:** Remove unused optional library components and redundant compatibility implementations
+* **nicoid:** Remove unnecessary annotation, reflection, and auxiliary library components from the final application payload
+* **nicoid:** Introduce reference-aware class removal and validation to safely eliminate obsolete classes without breaking required application dependencies
+* **nicoid:** Eliminate 5,500 unnecessary classes, reducing the combined class count from 16,914 to 11,414, a reduction of approximately 32.5%
+* **nicoid:** Reduce unnecessary memory allocations, retained resources, and processing overhead throughout the application
+* **nicoid:** Improve compatibility with recent Morphe Manager and Patcher versions, including support for optimized STRIP_SAFE patch compilation
+* **nicoid:** Strengthen network security through modernized communication libraries and stricter connection handling
+* **nicoid:** Improve certificate pinning and HTTPS connection validation
+* **nicoid:** Strengthen URL, request, input, and response validation across network communication paths
+* **nicoid:** Improve protection against excessive memory allocation when processing unexpected or oversized data
+* **nicoid:** Address known vulnerabilities by modernizing bundled libraries and removing obsolete dependencies
+* **nicoid:** Restrict unnecessary unencrypted network communication and improve secure connection handling
+* **nicoid:** Improve privacy protection by reducing the exposure of sensitive authentication and network information in application logs
+* **nicoid:** Improve patch build reproducibility and strengthen integrity verification to ensure that published patch bundles match their verified build outputs
+* **nicoid:** Extensive application-wide stability improvements, performance optimizations, dependency consolidation, and internal code cleanup
+
 ## 2.1.9 (2026-11-24)
 
 ### ✨ New Features

@@ -228,6 +228,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean inboxTabs() {
+        return false;
+    }
+
     public static boolean inboxSearch() {
         return false;
     }
@@ -876,6 +880,10 @@ public final class SettingsStatus {
     }
 
     public static boolean askBeforeLike() {
+        return false;
+    }
+
+    public static boolean ghostActions() {
         return false;
     }
 

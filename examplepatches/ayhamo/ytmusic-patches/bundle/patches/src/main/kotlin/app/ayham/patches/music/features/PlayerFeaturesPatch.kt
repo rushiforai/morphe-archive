@@ -43,16 +43,16 @@ internal object MusicActivityOnCreateFingerprint : Fingerprint(
 )
 
 /**
- * The player and everything around it: the BitChord screen (fullscreen and animated covers, artist
- * colours, lyric line, stats), automix, the song version of music videos, the equalizer, and the
- * "Fork settings" screen in Morphe's settings.
+ * The player and everything around it: the BitChord screen (fullscreen and animated covers, canvas,
+ * artist colours and pages, lyric line, best part, stats), automix with its transition editor and mix
+ * files, lossless addons (with Dolby Atmos), the equalizer, and the "Fork settings" screen in Morphe's settings.
  * Everything that touches Morphe's own classes runs in finalize, which comes after every
  * patch's execute, so Morphe's extension classes and its ExoPlayer bridge are already there.
  * Each hook is optional: if its target is missing it logs and skips, the build never fails.
  */
 val playerFeaturesPatch = patch(
     name = "BitChord player and automix",
-    description = "BitChord's now-playing screen (fullscreen and animated covers, artist colours, lyric line, stats), automix, song versions of music videos and an equalizer. Settings: Morphe settings > Fork settings.",
+    description = "BitChord's now-playing screen (fullscreen and animated covers, canvas, artist colours, lyric line, best part, stats), automix with a transition editor and mix files, lossless addons with Dolby Atmos, and an equalizer. Settings: Morphe settings > Fork settings.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_YOUTUBE_MUSIC)

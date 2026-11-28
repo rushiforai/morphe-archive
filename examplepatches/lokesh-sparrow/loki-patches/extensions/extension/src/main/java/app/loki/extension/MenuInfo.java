@@ -79,7 +79,17 @@ public final class MenuInfo {
             rows.add(new String[]{"Remove ads (TrackChecker)", flag(flags, "app.loki.menu.hideads")});
         } else if (pkg.startsWith("com.dv.adm")) {
             rows.add(new String[]{"Remove ads (ADM)", flag(flags, "app.loki.menu.hideads")});
-        } else if (pkg.startsWith("net.dinglisch.android.taskerm")) {
+        } else if (pkg.startsWith("com.imo.android.imoimhd")) {
+            rows.add(new String[]{"Remove ads (IMO)", flag(flags, "app.loki.menu.hideads")});
+            rows.add(new String[]{"Hide voice rooms tab (IMO)", flag(flags, "app.loki.menu.hidevoice")});
+            rows.add(new String[]{"Hide emoji suggestions (IMO)", flag(flags, "app.loki.menu.hidesuggest")});
+            rows.add(new String[]{"Spoof signature (IMO)", flag(flags, "app.loki.menu.sigspoof")});
+            rows.add(new String[]{"Allow screenshots (IMO)", flag(flags, "app.loki.menu.screenshots")});
+            rows.add(new String[]{"Allow story recording during calls (IMO)", flag(flags, "app.loki.menu.storycall")});
+            rows.add(new String[]{"Allow sending apps (IMO)", flag(flags, "app.loki.menu.sendapk")});
+            rows.add(new String[]{"Disappearing messages (IMO)", flag(flags, "app.loki.menu.burn")});
+            rows.add(new String[]{"Hide Premium on Me page (IMO)", flag(flags, "app.loki.menu.hidepremium")});
+                } else if (pkg.startsWith("net.dinglisch.android.taskerm")) {
             rows.add(new String[]{"Unlock Tasker", flag(flags, "app.loki.menu.premium")});
         } else if (pkg.startsWith("com.cv.docscanner")) {
             rows.add(new String[]{"Enable premium features (Doc Scanner)", flag(flags, "app.loki.menu.premium")});

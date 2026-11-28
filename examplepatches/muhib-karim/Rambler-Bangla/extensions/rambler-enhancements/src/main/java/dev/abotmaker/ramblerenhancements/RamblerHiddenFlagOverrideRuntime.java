@@ -94,6 +94,19 @@ public final class RamblerHiddenFlagOverrideRuntime {
         return ENTRIES;
     }
 
+    /** Voice-dictation-only hidden flags displayed in Rambler Enhancements (keyboard & clipboard flags live in Patches). */
+    public static List<Entry> voiceEntries() {
+        java.util.ArrayList<Entry> filtered = new java.util.ArrayList<Entry>(ENTRIES.size());
+        for (Entry entry : ENTRIES) {
+            if ("enable_system_clipboard_direct_paste_for_quick_paste".equals(entry.flagName)
+                    || "enable_email_provider_completion".equals(entry.flagName)) {
+                continue;
+            }
+            filtered.add(entry);
+        }
+        return Collections.unmodifiableList(filtered);
+    }
+
     public static boolean isEnabled(Context context, String flagName, boolean defaultValue) {
         SharedPreferences prefs = RamblerEnhancementsSettings.preferencesOrNull(context);
         if (prefs == null) {

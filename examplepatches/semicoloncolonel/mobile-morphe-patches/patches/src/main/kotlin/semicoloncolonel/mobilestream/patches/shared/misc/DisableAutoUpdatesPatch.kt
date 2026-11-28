@@ -8,12 +8,15 @@ package semicoloncolonel.mobilestream.patches.shared.misc
 
 import app.morphe.patcher.patch.resourcePatch
 import semicoloncolonel.mobilestream.patches.fandango.shared.Constants as Fandango
+import semicoloncolonel.mobilestream.patches.moviesanywhere.shared.Constants as MoviesAnywhere
 import semicoloncolonel.mobilestream.patches.cbsnews.shared.Constants as CbsNews
 import semicoloncolonel.mobilestream.patches.nbcnews.shared.Constants as NbcNews
 import semicoloncolonel.mobilestream.patches.foxlocal.shared.Constants as FoxLocal
 import semicoloncolonel.mobilestream.patches.abcnews.shared.Constants as AbcNews
+import semicoloncolonel.mobilestream.patches.consumerreports.shared.Constants as ConsumerReports
 import semicoloncolonel.mobilestream.patches.moviebase.shared.Constants as Moviebase
 import semicoloncolonel.mobilestream.patches.reuters.shared.Constants as Reuters
+import semicoloncolonel.mobilestream.patches.bbcnews.shared.Constants as BbcNews
 import semicoloncolonel.mobilestream.patches.shared.SHOPPING_APPS
 import semicoloncolonel.mobilestream.patches.amc.shared.Constants as Amc
 import semicoloncolonel.mobilestream.patches.appletv.shared.Constants as AppleTv
@@ -36,6 +39,8 @@ import semicoloncolonel.mobilestream.patches.pluto.shared.Constants as Pluto
 import semicoloncolonel.mobilestream.patches.primevideo.shared.Constants as PrimeVideo
 import semicoloncolonel.mobilestream.patches.starz.shared.Constants as Starz
 import semicoloncolonel.mobilestream.patches.tubi.shared.Constants as Tubi
+import semicoloncolonel.mobilestream.patches.viki.shared.Constants as Viki
+import semicoloncolonel.mobilestream.patches.libby.shared.Constants as Libby
 import semicoloncolonel.mobilestream.patches.xumo.shared.Constants as Xumo
 import semicoloncolonel.mobilestream.patches.mlb.shared.Constants as Mlb
 import semicoloncolonel.mobilestream.patches.npr.shared.Constants as Npr
@@ -80,8 +85,11 @@ val disableAutoUpdatesPatch = resourcePatch(
     description = "Stops the Play Store from replacing the patched app with the official version.",
     default = false,
 ) {
-    compatibleWith(*forBundle(
+    category("Setup")
+    compatibleWith(
         Tubi.COMPATIBILITY,
+        Viki.COMPATIBILITY,
+        Libby.COMPATIBILITY,
         Disney.COMPATIBILITY,
         Hulu.COMPATIBILITY,
         Pluto.COMPATIBILITY,
@@ -100,10 +108,11 @@ val disableAutoUpdatesPatch = resourcePatch(
         FoxNews.COMPATIBILITY,
         MsNow.COMPATIBILITY,
         Cnn.COMPATIBILITY,
-        Espn.COMPATIBILITY, Espn.TV_COMPATIBILITY,
+        Espn.COMPATIBILITY,
         Nfl.COMPATIBILITY,
-        Nba.COMPATIBILITY, Nba.TV_COMPATIBILITY,
+        Nba.COMPATIBILITY,
         Fandango.COMPATIBILITY,
+        MoviesAnywhere.COMPATIBILITY,
         CbsNews.COMPATIBILITY,
         NbcNews.COMPATIBILITY,
         FoxLocal.COMPATIBILITY,
@@ -121,9 +130,11 @@ val disableAutoUpdatesPatch = resourcePatch(
         Xfinity.COMPATIBILITY,
         Att.COMPATIBILITY,
         Verizon.COMPATIBILITY,
-        Xumo.COMPATIBILITY, Mlb.COMPATIBILITY, Npr.COMPATIBILITY, ApNews.COMPATIBILITY, NewsBreak.COMPATIBILITY, Shudder.COMPATIBILITY, SundanceNow.COMPATIBILITY, TheScore.COMPATIBILITY, Substack.COMPATIBILITY, Cspan.COMPATIBILITY, NewsNation.COMPATIBILITY, NewsNation.TV_COMPATIBILITY, DailyWire.COMPATIBILITY, UsaToday.COMPATIBILITY,
+        Xumo.COMPATIBILITY, Mlb.COMPATIBILITY, Npr.COMPATIBILITY, ApNews.COMPATIBILITY, NewsBreak.COMPATIBILITY, Shudder.COMPATIBILITY, SundanceNow.COMPATIBILITY, TheScore.COMPATIBILITY, Substack.COMPATIBILITY, Cspan.COMPATIBILITY, NewsNation.COMPATIBILITY, DailyWire.COMPATIBILITY, UsaToday.COMPATIBILITY,
         Reuters.COMPATIBILITY,
-    ))
+        BbcNews.COMPATIBILITY,
+        ConsumerReports.COMPATIBILITY,
+    )
 
     execute {
         document("AndroidManifest.xml").use { document ->

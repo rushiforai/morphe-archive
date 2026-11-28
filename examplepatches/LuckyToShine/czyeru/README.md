@@ -15,7 +15,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.9.5](https://github.com/LuckyToShine/czyeru/releases/tag/v1.9.5)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;71 patches total
+> **[v1.9.6](https://github.com/LuckyToShine/czyeru/releases/tag/v1.9.6)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;71 patches total
 <details open>
 <summary>📦 Conexión Lince UVM&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
@@ -56,8 +56,8 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 
 **🎯 Supported versions:**
 
-| 47.6.3 | 47.4.3 | 47.2.41 |
-| :---: | :---: | :---: |
+| 48.0.2 | 47.6.3 | 47.4.3 | 47.2.41 |
+| :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -113,7 +113,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 | [Remember clear display](#remember-clear-display) | Remembers TikTok's clear-display state between videos. |  |
 | [Resume videos after scrolling](#resume-videos-after-scrolling) | Continues supported videos from where playback stopped when returning after a scroll. |  |
 | [Sanitize sharing links](#sanitize-sharing-links) | Removes tracking parameters from TikTok links before they are shared. |  |
-| [Settings](#settings) | Adds the Crazy Erudite Patches settings menu to TikTok. Supports TikTok 47.6.3, 47.4.3 and 47.2.41. |  |
+| [Settings](#settings) | Adds the Crazy Erudite Patches settings menu to TikTok. Supports TikTok 48.0.2, 47.6.3, 47.4.3 and 47.2.41. |  |
 | [Share sheet modification](#share-sheet-modification) | Adds toggles and allow-lists for the video share sheet's "Send to", "Share via app", and "Video Actions" sections. |  |
 | [Show exact counts](#show-exact-counts) | Shows likes, comments and other counts as full numbers, like 1,234,567 instead of 1.2M. Starts off. Turn it on in Erudite settings > Hushfeed features. |  |
 | [Show seekbar](#show-seekbar) | Shows TikTok's native video seekbar where it would normally be hidden. |  |

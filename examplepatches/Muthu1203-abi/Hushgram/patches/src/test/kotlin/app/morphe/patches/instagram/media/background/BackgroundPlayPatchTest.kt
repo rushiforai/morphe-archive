@@ -1,0 +1,608 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.morphe.patches.instagram.media.background
+
+import app.morphe.ExtensionDex
+import app.morphe.Fixtures
+import app.morphe.PatchContexts
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.instagram.FixtureDex
+import app.morphe.patches.instagram.media.resume.STOPPED
+import app.morphe.patches.instagram.media.taptoplay.ALLOW_START
+import app.morphe.patches.instagram.media.taptoplay.PLAY_INTERNAL
+import app.morphe.patches.shared.compat.AppCompatibilities
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
+import com.android.tools.smali.dexlib2.immutable.ImmutableField
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
+import org.junit.Test
+import java.io.File
+
+class BackgroundPlayPatchTest {
+    private val player = "Lfixture/VideoPlayer;"
+    private val groot = "Lfixture/GrootPlayer;"
+    private val story = "Lfixture/StoryPlayer;"
+    private val storyStart = "Lfixture/StoryStart;"
+    private val runnable = "Ljava/lang/Runnable;"
+    private val state = "Lfixture/PlayerState;"
+    private val clock = "Lfixture/PlayerClock;"
+    private val focusListener = "Landroid/media/AudioManager\$OnAudioFocusChangeListener;"
+    private val activity = "Lcom/instagram/base/activity/IgFragmentActivity;"
+    private val string = "Ljava/lang/String;"
+    private val objectType = "Ljava/lang/Object;"
+    private val playInternal = "$player->A0I($player${string}ZZ)V"
+
+    /**
+     * The pauses and the stop ask the hold hook first, and the release the releasing hook, with the
+     * player and the reason, and return when it says yes; a no lands on the method's own first
+     * instruction. playInternal, the story start, both volume setters and the leave hint each tell
+     * the extension first thing, with their own registers. The other methods are left alone.
+     */
+    @Test
+    fun eachHookGoesFirst() {
+        val context = PatchContexts.of(classes())
+        context.keepPlayingInBackground(context.findBackgroundPlaySites())
+
+        for ((owner, name, hook, first) in listOf(
+            Guarded(player, "A0Z", HOLD, Opcode.CONST_STRING),
+            Guarded(player, "A0d", HOLD, Opcode.CONST_STRING),
+            Guarded(player, "A0a", RELEASING, Opcode.CONST_4),
+            // Outside its lock: a yes never takes it, a no lands on the monitor-enter.
+            Guarded(story, "Ggb", HOLD, Opcode.MONITOR_ENTER),
+        )) {
+            val code = context.method(owner, name).code()
+            assertEquals("$name asks first", hook, code[0].referenceText())
+            assertEquals("$name: this and the reason", listOf(1, 2), code[0].rangeRegisters())
+            assertEquals("$name: the answer in v0", 0, (code[1] as OneRegisterInstruction).registerA)
+            assertEquals(Opcode.IF_EQZ, code[2].opcode)
+            assertEquals("$name: a yes returns", Opcode.RETURN_VOID, code[3].opcode)
+            assertEquals("$name: a no runs Instagram's own code", 4, code.target(2))
+            assertEquals(first, code[4].opcode)
+        }
+        assertEquals(STARTED_PLAYING, context.method(player, "A0I").code()[0].referenceText())
+        assertEquals("playInternal hands its player", listOf(1), context.method(player, "A0I").code()[0].rangeRegisters())
+        assertEquals(STARTED_PLAYING, context.method(story, "A09").code()[0].referenceText())
+        assertEquals("the story start hands its player", listOf(1), context.method(story, "A09").code()[0].rangeRegisters())
+        for ((owner, name) in listOf(player to "A0S", story to "A0H")) {
+            assertEquals(VOLUME, context.method(owner, name).code()[0].referenceText())
+            assertEquals("$name hands this and the volume asked for", listOf(1, 2), context.method(owner, name).code()[0].rangeRegisters())
+        }
+        assertEquals(LEAVING, context.method(activity, "onUserLeaveHint").code()[0].referenceText())
+
+        // The prepared callback tells the extension last thing, past its lock, with this and the start
+        // it parked; the stale engine's jump lands on that call, and the paused path still skips the run.
+        val prepared = context.method(story, "G3G").code()
+        val end = prepared.size
+        assertEquals(
+            listOf(Opcode.MONITOR_EXIT, Opcode.MOVE_OBJECT_FROM16, Opcode.IGET_OBJECT, Opcode.INVOKE_STATIC, Opcode.RETURN_VOID),
+            prepared.takeLast(5).map { it.opcode },
+        )
+        val self = prepared[end - 4] as TwoRegisterInstruction
+        assertEquals("this, into v0", 0 to 2, self.registerA to self.registerB)
+        assertEquals("what's parked", "$story->A0M:$runnable", prepared[end - 3].referenceText())
+        val told = prepared[end - 2] as FiveRegisterInstruction
+        assertEquals(STORY_PREPARED, told.referenceText())
+        assertEquals("the player and what's parked", listOf(2, 0, 1), listOf(told.registerCount, told.registerC, told.registerD))
+        assertEquals("a jump onto the return tells it too", end - 4, prepared.target(0))
+        assertEquals("a paused player still skips the run", end - 5, prepared.target(6))
+        assertEquals("and only there", 1, prepared.count { it.referenceText() == STORY_PREPARED })
+
+        for ((owner, name) in listOf(player to "A0b", player to "Ga8", player to "A0c", player to "A0o", story to "Gzq", story to "Gqk")) {
+            assertTrue("$name stays as it was", context.method(owner, name).code().none { it.referenceText()?.startsWith(BACKGROUND_PLAY) == true })
+        }
+    }
+
+    private data class Guarded(val owner: String, val name: String, val hook: String, val first: Opcode)
+
+    /**
+     * Resume long videos' stopped hook stays first in the pause and the stop, and Tap to play's start
+     * guard first in playInternal, whichever patch runs first: the hold guard and the started call go
+     * in right after them, the hold guard's no still lands on Instagram's own code, and Tap to play's
+     * allowed path runs the started call.
+     */
+    @Test
+    fun theOtherPatchesHooksStayFirstWhicheverRunsFirst() {
+        val othersFirst = PatchContexts.of(classes()).apply {
+            otherPatchesHooks()
+            keepPlayingInBackground(findBackgroundPlaySites())
+        }
+        val oursFirst = PatchContexts.of(classes()).apply {
+            keepPlayingInBackground(findBackgroundPlaySites())
+            otherPatchesHooks()
+        }
+        for ((order, context) in listOf("others first" to othersFirst, "ours first" to oursFirst)) {
+            for (name in listOf("A0Z", "A0d")) {
+                val code = context.method(player, name).code()
+                assertEquals("$order $name: Resume's hook first", STOPPED, code[0].referenceText())
+                assertEquals("$order $name: then the hold", HOLD, code[1].referenceText())
+                assertEquals("$order $name: this and the reason", listOf(1, 2), code[1].rangeRegisters())
+                assertEquals(Opcode.IF_EQZ, code[3].opcode)
+                assertEquals("$order $name: a yes returns", Opcode.RETURN_VOID, code[4].opcode)
+                assertEquals("$order $name: a no runs Instagram's own code", 5, code.target(3))
+                assertEquals(Opcode.CONST_STRING, code[5].opcode)
+            }
+            val internal = context.method(player, "A0I").code()
+            assertEquals("$order: Tap to play's guard first", ALLOW_START, internal[2].referenceText())
+            assertEquals(Opcode.IF_NEZ, internal[4].opcode)
+            assertEquals("$order: then the started call", STARTED_PLAYING, internal[6].referenceText())
+            assertEquals("$order: an allowed start runs it", 6, internal.target(4))
+            assertEquals(Opcode.CONST_STRING, internal[7].opcode)
+        }
+        for (name in listOf("A0Z", "A0d", "A0I")) {
+            assertEquals(
+                "$name: the same code either way",
+                othersFirst.method(player, name).code().map { it.opcode to it.referenceText() },
+                oursFirst.method(player, name).code().map { it.opcode to it.referenceText() },
+            )
+        }
+    }
+
+    /** What Resume long videos and Tap to play put first in the player's methods, the way they do it. */
+    private fun BytecodePatchContext.otherPatchesHooks() {
+        val methods = mutableClassDefBy(player).methods
+        for (name in listOf("A0Z", "A0d")) {
+            methods.single { it.name == name }.addInstructions(0, "invoke-static/range { p0 .. p1 }, $STOPPED")
+        }
+        methods.single { it.name == "A0I" }.apply {
+            addInstructionsWithLabels(
+                0,
+                """
+                    iget-object v0, p0, $player->A0F:$groot
+                    instance-of v0, v0, $groot
+                    invoke-static { p0, p1, v0 }, $ALLOW_START
+                    move-result v0
+                    if-nez v0, :start
+                    return-void
+                """,
+                ExternalLabel("start", getInstruction(0)),
+            )
+        }
+    }
+
+    /**
+     * The stubs check for either player, cast it, and call its own methods or read its engine. The
+     * story player's playing reads down its engine to the same boolean its pause asks.
+     */
+    @Test
+    fun theStubsReachEitherPlayer() {
+        val context = PatchContexts.of(classes())
+        context.keepPlayingInBackground(context.findBackgroundPlaySites())
+
+        assertEquals(
+            listOf(player, player, "$player->A0o()Z", story, story, "$story->A0E:$groot", "$groot->A07:$state", "$state->A0A:$clock", "$clock->A0a()Z"),
+            context.references("playing"),
+        )
+        assertEquals(
+            listOf(player, player, FRAGMENT_PAUSED, "$player->A0Z(${string})V", story, story, FRAGMENT_PAUSED, "$story->Ggb(${string})V"),
+            context.references("pause"),
+        )
+        assertEquals(
+            listOf(player, player, RESUME, "$player->A0c(${string}Z)V", story, story, FRAGMENT_RESUMED, "$story->Gzq(${string}Z)V"),
+            context.references("play"),
+        )
+        assertEquals(listOf(player, player, "$player->A0a(${string})V"), context.references("release"))
+        assertEquals(listOf(player, player, "$player->A0F:$groot", story, story, "$story->A0E:$groot"), context.references("engine"))
+        assertEquals(Opcode.RETURN_OBJECT, context.method(BACKGROUND_PLAY, "engine").code().last().opcode)
+    }
+
+    /** Each shape the patch can't work with stops it before anything changes, saying what's missing. */
+    @Test
+    fun refusesAndChangesNothing() {
+        for ((variant, why) in listOf(
+            Variant(hiddenIsPlaying = true) to "not public",
+            Variant(secondPause = true) to "expected a pause",
+            Variant(clampedOnce = true) to "expected a volume setter",
+            Variant(leaveHint = false) to "has no onUserLeaveHint",
+            Variant(secondEngineField = true) to "expected one $groot field",
+            Variant(stopAsks = false) to "both its pause and its stop ask",
+            Variant(story = false) to "expected one story player",
+            Variant(hiddenClock = true) to "can't reach $clock->A0a()Z",
+            Variant(parkedStarts = false) to "expected a story prepared callback",
+            Variant(knownStart = false) to "expected a story prepared callback",
+        )) {
+            val context = PatchContexts.of(classes(variant))
+            try {
+                context.findBackgroundPlaySites()
+                fail("$variant: found sites")
+            } catch (refused: PatchException) {
+                assertTrue("$variant: ${refused.message}", refused.message.orEmpty().contains(why))
+            }
+            val methods = context.classDefBy(player).methods + (context.classDefByOrNull(story)?.methods ?: emptyList())
+            for (method in methods) {
+                assertTrue("$variant: ${method.name} changed", method.code().none { it.referenceText()?.startsWith(BACKGROUND_PLAY) == true })
+            }
+        }
+    }
+
+    /** On each declared build the player's methods are found and every hook goes in first. */
+    @Test
+    fun eachDeclaredBuildTakesTheHooks() {
+        val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
+        val checked = mutableSetOf<String>()
+        for (version in versions) {
+            for (bundle in Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") }) {
+                builds(bundle, bundle.name)
+                checked += version
+            }
+        }
+        assertEquals("a declared build has no fixture", versions, checked)
+    }
+
+    /** The same on every other build of the version. */
+    @Test
+    fun eachOtherBuildTakesTheHooksToo() {
+        for (base in Fixtures.otherBuilds()) builds(base, base.parentFile.name)
+    }
+
+    private fun builds(bundle: File, label: String) {
+        val players = FixtureDex.classesHolding(bundle, PLAY_INTERNAL)
+        val stories = FixtureDex.classesLoading(bundle, FRAGMENT_RESUMED)
+        val activities = FixtureDex.classes(bundle, setOf(activity)).values
+        // withStringPools carries the pools Redex moved the reasons into.
+        val sliced = (FixtureDex.withStringPools(bundle, players + stories) + activities + ExtensionDex.classDef(BACKGROUND_PLAY))
+            .distinctBy { it.type }
+        // The runnables the story players make where they keep one in a Runnable field, so the prepared
+        // callback's run() is checked to call the start, then the engine's classes its playing check
+        // reads, so their access is checked too.
+        val kept = stories.flatMap { it.methods }
+            .filter { method -> method.code().any { it.opcode == Opcode.IPUT_OBJECT && (it as ReferenceInstruction).reference.toString().endsWith(":$runnable") } }
+            .flatMap { method -> method.code().filter { it.opcode == Opcode.NEW_INSTANCE }.mapNotNull { it.referenceText() } }
+            .toSet()
+        val runnables = FixtureDex.classes(bundle, kept).values
+        val found = PatchContexts.of((sliced + runnables).distinctBy { it.type }).findBackgroundPlaySites().story
+        val engine = FixtureDex.classes(bundle, found.playing.map { it.substringBefore("->") }.toSet()).values
+        val made = found.prepared.code().filter { it.opcode == Opcode.NEW_INSTANCE }.mapNotNull { it.referenceText() }.toSet()
+        val context = PatchContexts.of((sliced + engine + runnables).distinctBy { it.type })
+        val sites = context.findBackgroundPlaySites()
+        val story = sites.story
+        assertEquals("$label: the player", players.single().type, sites.player)
+        assertEquals("$label: the engine's classes", 3, engine.size)
+        val start = "${story.start.definingClass}->${story.start.name}(${story.start.parameterTypes.joinToString("")})${story.start.returnType}"
+        assertEquals(
+            "$label: one runnable the prepared callback makes starts the story",
+            1,
+            runnables.filter { it.type in made }.count { runnable -> runnable.methods.any { it.name == "run" && it.code().any { call -> call.referenceText() == start } } },
+        )
+        assertEquals("$label: the same prepared callback with them", found.prepared.name, story.prepared.name)
+        if ("386314341" in label) {
+            assertEquals(
+                "$label: Instagram's names",
+                listOf("A0b", "A0f", "A0c", "A0e", "A0p", "A0U", "${sites.player}->A0G:LX/06oD;"),
+                listOf(sites.pause.name, sites.stop.name, sites.release.name, sites.play.name, sites.isPlaying.name, sites.setVolume.name, sites.engine),
+            )
+            assertEquals(
+                "$label: the story player's names",
+                listOf(
+                    "LX/0Izr;", "GoV", "H8h", "A0A", "A0K", "LX/0Izr;->A0E:LX/06oD;",
+                    "LX/06oD;->A08:LX/06qM;", "LX/06qM;->A0A:LX/06qU;", "LX/06qU;->A0i()Z",
+                    "G8y", "LX/0Izr;->A0M:Ljava/lang/Runnable;",
+                ),
+                listOf(story.type, story.pause.name, story.resume.name, story.start.name, story.setVolume.name, story.engine) +
+                    story.playing + listOf(story.prepared.name, story.parked),
+            )
+        }
+
+        context.keepPlayingInBackground(sites)
+        for ((method, hook) in listOf(
+            sites.pause to HOLD, sites.stop to HOLD, sites.release to RELEASING, sites.playInternal to STARTED_PLAYING,
+            sites.setVolume to VOLUME, sites.leaveHint to LEAVING,
+            story.pause to HOLD, story.start to STARTED_PLAYING, story.setVolume to VOLUME,
+        )) {
+            val code = context.method(method.definingClass, method.name, method.parameterTypes.map(Any::toString)).code()
+            assertEquals("$label ${method.name}: the hook goes first", hook, code[0].referenceText())
+            assertEquals("$label ${method.name}: and only there", 1, code.count { it.referenceText() == hook })
+            if (hook == HOLD || hook == RELEASING) assertEquals("$label ${method.name}: a no runs Instagram's own code", 4, code.target(2))
+        }
+        // The prepared callback tells the extension right before each return, outside every try block.
+        val prepared = context.method(story.prepared.definingClass, story.prepared.name, story.prepared.parameterTypes.map(Any::toString))
+        val code = prepared.code()
+        val tells = code.indices.filter { code[it].referenceText() == STORY_PREPARED }
+        assertEquals("$label: once per return", code.count { it.opcode == Opcode.RETURN_VOID }, tells.size)
+        assertTrue("$label: each tells and returns", tells.all { code[it + 1].opcode == Opcode.RETURN_VOID })
+        assertTrue("$label: and reads what's parked", tells.all { code[it - 1].referenceText() == story.parked })
+        val tries = ImmutableMethod.of(prepared).implementation!!.tryBlocks
+        for (at in tells.flatMap { listOf(it - 2, it - 1, it) }) {
+            val address = code.take(at).sumOf { it.codeUnits }
+            assertTrue("$label: the call at $at is outside every try", tries.none { address >= it.startCodeAddress && address < it.startCodeAddress + it.codeUnitCount })
+        }
+        assertEquals("$label: playing reads the player's own", "${sites.player}->${sites.isPlaying.name}()Z", context.references("playing")[2])
+        assertEquals("$label: and the story player's", story.playing.last(), context.references("playing").last())
+    }
+
+    private data class Variant(
+        val hiddenIsPlaying: Boolean = false,
+        val secondPause: Boolean = false,
+        val clampedOnce: Boolean = false,
+        val leaveHint: Boolean = true,
+        val secondEngineField: Boolean = false,
+        val stopAsks: Boolean = true,
+        val story: Boolean = true,
+        val hiddenClock: Boolean = false,
+        val parkedStarts: Boolean = true,
+        /** Whether the class of the runnable the prepared callback keeps is among the classes patched. */
+        val knownStart: Boolean = true,
+    )
+
+    private fun classes(v: Variant = Variant()): List<ClassDef> {
+        // playInternal: static (player, reason, playAfterSeek, fromPrepare), one local, so p0 is v1.
+        val internal = method("A0I", listOf(player, string, "Z", "Z"), "V", 5, static = true, body = """
+            const-string v0, "$PLAY_INTERNAL"
+            return-void
+        """)
+        // The pause: this is v1, the reason v2. It hands the reason to the engine's own pause.
+        val pause = method("A0Z", listOf(string), "V", 3, body = """
+            const-string v0, "$FRAGMENT_PAUSED"
+            invoke-virtual { p1, v0 }, $string->equals($objectType)Z
+            move-result v0
+            if-nez v0, :pause
+            const-string v0, "$SINGLE_TAP_PAUSED"
+            :pause
+            invoke-virtual { p0 }, $player->A0o()Z
+            move-result v0
+            if-eqz v0, :done
+            iget-object v0, p0, $player->A0F:$groot
+            invoke-virtual { v0, p1 }, $groot->A0Z($string)V
+            :done
+            return-void
+        """)
+        val stop = method("A0d", listOf(string, "Z"), "V", 4, body = """
+            const-string v0, "$UI_THREAD"
+            invoke-static { v0 }, Lfixture/Threads;->check($string)V
+            ${if (v.stopAsks) "invoke-virtual { p0 }, $player->A0o()Z" else ""}
+            const-string v0, "$FRAGMENT_PAUSED"
+            return-void
+        """)
+        val release = method("A0a", listOf(string), "V", 3, body = """
+            const/4 v0, 0x0
+            invoke-virtual { p0, p1, v0 }, $player->A0d(${string}Z)V
+            return-void
+        """)
+        val other = method("A0b", listOf(string), "V", 3, body = """
+            iget-object v0, p0, $player->A0F:$groot
+            invoke-virtual { v0, p1 }, $groot->A0b($string)V
+            return-void
+        """)
+        val play = method("A0c", listOf(string, "Z"), "V", 5, body = """
+            const-string v0, "$RESUME"
+            const/4 v1, 0x0
+            invoke-static { p0, v0, p2, v1 }, $playInternal
+            return-void
+        """)
+        val otherPlay = method("Ga8", listOf(string, "Z"), "V", 3, body = """
+            invoke-virtual { p0, p1, p2 }, $player->A0c(${string}Z)V
+            return-void
+        """)
+        val isPlaying = method("A0o", emptyList(), "Z", 2, flags = if (v.hiddenIsPlaying) AccessFlags.FINAL.value else PUBLIC, body = """
+            iget-boolean v0, p0, $player->playing:Z
+            return v0
+        """)
+        val setVolume = method("A0S", listOf("F", "I"), "V", 4, body = """
+            const/4 v0, 0x0
+            invoke-static { p1, v0 }, Ljava/lang/Math;->max(FF)F
+            move-result v0
+            ${if (v.clampedOnce) "" else "const/high16 p1, 0x3f800000\ninvoke-static { v0, p1 }, Ljava/lang/Math;->min(FF)F\nmove-result v0"}
+            iput v0, p0, $player->volume:F
+            return-void
+        """)
+        val methods = mutableListOf(internal, pause, stop, release, other, play, otherPlay, isPlaying, setVolume)
+        if (v.secondPause) {
+            methods += method("A0Y", listOf(string), "V", 3, body = """
+                const-string v0, "$FRAGMENT_PAUSED"
+                const-string v0, "$SINGLE_TAP_PAUSED"
+                return-void
+            """)
+        }
+        val fields = mutableListOf(
+            ImmutableField(player, "A0F", groot, PUBLIC, null, null, null),
+            ImmutableField(player, "playing", "Z", PUBLIC, null, null, null),
+            ImmutableField(player, "volume", "F", PUBLIC, null, null, null),
+        )
+        if (v.secondEngineField) fields += ImmutableField(player, "A0G", groot, PUBLIC, null, null, null)
+        val leave = method("onUserLeaveHint", emptyList(), "V", 1, owner = activity, body = """
+            invoke-super { p0 }, Landroid/app/Activity;->onUserLeaveHint()V
+            return-void
+        """)
+        return listOf(
+            classDef(player, methods, fields),
+            classDef(activity, if (v.leaveHint) listOf(leave) else emptyList(), superclass = "Landroid/app/Activity;"),
+            ExtensionDex.classDef(BACKGROUND_PLAY),
+        ) + engineClasses(v) + if (!v.story) emptyList() else if (v.knownStart) listOf(storyPlayer(), storyStart(v)) else listOf(storyPlayer())
+    }
+
+    /**
+     * The story player: it listens for audio focus and drives the same engine. Its pause is
+     * synchronized and asks the engine's state whether the video plays before pausing the engine, its
+     * resume starts it again through the static start, and its volume setter sets the engine's.
+     */
+    private fun storyPlayer(): ClassDef {
+        val pause = method("Ggb", listOf(string), "V", 3, owner = story, body = """
+            monitor-enter p0
+            const-string v0, "$FRAGMENT_PAUSED"
+            iget-object v0, p0, $story->A0E:$groot
+            if-eqz v0, :done
+            iget-object v0, v0, $groot->A07:$state
+            iget-object v0, v0, $state->A0A:$clock
+            invoke-virtual { v0 }, $clock->A0a()Z
+            move-result v0
+            if-eqz v0, :done
+            iget-object v0, p0, $story->A0E:$groot
+            invoke-virtual { v0, p1 }, $groot->A0Z($string)V
+            :done
+            monitor-exit p0
+            return-void
+        """)
+        // Another (String) method handing its reason to the engine, without the pause's reason.
+        val other = method("Gqk", listOf(string), "V", 3, owner = story, body = """
+            iget-object v0, p0, $story->A0E:$groot
+            invoke-virtual { v0, p1 }, $groot->A0b($string)V
+            return-void
+        """)
+        val resume = method("Gzq", listOf(string, "Z"), "V", 4, owner = story, body = """
+            const-string v0, "$FRAGMENT_RESUMED"
+            if-ne p1, v0, :done
+            const/4 v0, 0x1
+            invoke-static { p0, p1, p2, v0 }, $story->A09($story${string}ZZ)V
+            :done
+            return-void
+        """)
+        val start = method("A09", listOf(story, string, "Z", "Z"), "V", 5, static = true, owner = story, body = """
+            const-string v0, "$RESUME"
+            iget-object v0, p0, $story->A0E:$groot
+            invoke-virtual { v0, p1, p2 }, $groot->A0c(${string}Z)V
+            return-void
+        """)
+        val setVolume = method("A0H", listOf("F", "I"), "V", 4, owner = story, body = """
+            iget-object v0, p0, $story->A0E:$groot
+            invoke-virtual { v0, p1 }, $groot->A0P(F)V
+            return-void
+        """)
+        // The engine's prepared callback: it keeps the start in A0M, runs it unless the player is
+        // paused (A0W), and lets go of its lock before it returns. A stale engine jumps straight there.
+        val prepared = method("G3G", listOf(groot), "V", 4, owner = story, body = """
+            if-eqz p1, :out
+            monitor-enter p0
+            new-instance v0, $storyStart
+            invoke-direct { v0, p0 }, $storyStart-><init>($story)V
+            iput-object v0, p0, $story->A0M:$runnable
+            iget-boolean v1, p0, $story->A0W:Z
+            if-nez v1, :done
+            invoke-virtual { v0 }, $storyStart->run()V
+            const/4 v0, 0x0
+            iput-object v0, p0, $story->A0M:$runnable
+            :done
+            monitor-exit p0
+            :out
+            return-void
+        """)
+        return classDef(
+            story, listOf(pause, other, resume, start, setVolume, prepared),
+            listOf(
+                ImmutableField(story, "A0E", groot, PUBLIC, null, null, null),
+                ImmutableField(story, "A0M", runnable, PUBLIC, null, null, null),
+                ImmutableField(story, "A0W", "Z", PUBLIC, null, null, null),
+            ),
+            interfaces = listOf(focusListener),
+        )
+    }
+
+    /** The start the prepared callback keeps: its run() starts the story through the static start. */
+    private fun storyStart(v: Variant): ClassDef {
+        val init = method("<init>", listOf(story), "V", 2, flags = PUBLIC or AccessFlags.CONSTRUCTOR.value, owner = storyStart, body = """
+            invoke-direct { p0 }, $objectType-><init>()V
+            iput-object p1, p0, $storyStart->A00:$story
+            return-void
+        """)
+        val start = if (v.parkedStarts) "invoke-static { v0, v1, v2, v2 }, $story->A09($story${string}ZZ)V" else "invoke-virtual { v0, v1, v2 }, $story->Gzq(${string}Z)V"
+        val run = method("run", emptyList(), "V", 4, owner = storyStart, body = """
+            iget-object v0, p0, $storyStart->A00:$story
+            const-string v1, "prepared"
+            const/4 v2, 0x0
+            $start
+            return-void
+        """)
+        return classDef(
+            storyStart, listOf(init, run),
+            listOf(ImmutableField(storyStart, "A00", story, AccessFlags.FINAL.value, null, null, null)),
+            interfaces = listOf(runnable),
+        )
+    }
+
+    /** The engine and the two classes the story player reads down to whether it plays. */
+    private fun engineClasses(v: Variant): List<ClassDef> {
+        val plays = method("A0a", emptyList(), "Z", 2, flags = if (v.hiddenClock) AccessFlags.FINAL.value else PUBLIC, owner = clock, body = """
+            const/4 v0, 0x1
+            return v0
+        """)
+        return listOf(
+            classDef(groot, emptyList(), listOf(ImmutableField(groot, "A07", state, PUBLIC, null, null, null))),
+            classDef(state, emptyList(), listOf(ImmutableField(state, "A0A", clock, PUBLIC, null, null, null))),
+            classDef(clock, listOf(plays)),
+        )
+    }
+
+    private fun BytecodePatchContext.method(type: String, name: String, parameters: List<String>? = null): Method =
+        classDefBy(type).methods.first { it.name == name && (parameters == null || it.parameterTypes.map(Any::toString) == parameters) }
+
+    /** The references of the extension stub [name] writes, in order: types, strings, methods and fields. */
+    private fun BytecodePatchContext.references(name: String): List<String> =
+        method(BACKGROUND_PLAY, name).code().mapNotNull { instruction ->
+            when (val reference = (instruction as? ReferenceInstruction)?.reference) {
+                is StringReference -> reference.string
+                null -> null
+                else -> reference.toString()
+            }
+        }
+
+    private fun Method.code(): List<Instruction> = implementation?.instructions?.toList() ?: emptyList()
+
+    private fun Instruction.referenceText(): String? = (this as? ReferenceInstruction)?.reference?.toString()
+
+    private fun Instruction.rangeRegisters(): List<Int> {
+        val call = this as RegisterRangeInstruction
+        return (call.startRegister until call.startRegister + call.registerCount).toList()
+    }
+
+    /** The index the branch at [index] lands on. */
+    private fun List<Instruction>.target(index: Int): Int {
+        val address = IntArray(size + 1)
+        forEachIndexed { i, instruction -> address[i + 1] = address[i] + instruction.codeUnits }
+        return address.indexOf(address[index] + (this[index] as OffsetInstruction).codeOffset)
+    }
+
+    private fun method(
+        name: String,
+        parameters: List<String>,
+        returns: String,
+        registers: Int,
+        static: Boolean = false,
+        flags: Int = PUBLIC,
+        owner: String = player,
+        body: String,
+    ): Method {
+        val access = flags or (if (static) AccessFlags.STATIC.value else 0)
+        val mutable = MutableMethod(
+            ImmutableMethod(
+                owner, name, parameters.map { ImmutableMethodParameter(it, null, null) }, returns, access, null, null,
+                ImmutableMethodImplementation(registers, emptyList(), null, null),
+            ),
+        )
+        mutable.addInstructionsWithLabels(0, body.trimIndent())
+        return ImmutableMethod.of(mutable)
+    }
+
+    private fun classDef(
+        type: String,
+        methods: List<Method>,
+        fields: List<ImmutableField> = emptyList(),
+        superclass: String = objectType,
+        interfaces: List<String> = emptyList(),
+    ): ClassDef = ImmutableClassDef(type, PUBLIC, superclass, interfaces, null, null, fields, methods)
+
+    private companion object {
+        val PUBLIC = AccessFlags.PUBLIC.value
+    }
+}

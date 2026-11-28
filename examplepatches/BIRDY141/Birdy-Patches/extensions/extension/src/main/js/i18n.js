@@ -6,6 +6,16 @@
     var lastLanguage = null;
 
     function configuredLanguage() {
+        // User preference in Birdy Settings overrides YouTube/system language
+        try {
+            var saved = localStorage.getItem("yt.leanback.default::YOUTV_LANGUAGE");
+            if (saved !== null) {
+                var parsed = JSON.parse(saved);
+                var l = (typeof parsed === "string" ? parsed : (parsed && parsed.data));
+                if (l && l !== "auto") return l;
+            }
+        } catch (ignored) {}
+
         // YouTube's explicit UI language takes precedence over the device/browser language.
         try {
             if (window.ytcfg && typeof window.ytcfg.get === "function") {
@@ -44,6 +54,13 @@
         t: t,
         locale: locale,
         direction: function () { return locale() === "ar" ? "rtl" : "ltr"; },
-        onChange: function (callback) { listener = callback; lastLanguage = null; locale(); }
+        onChange: function (callback) { listener = callback; lastLanguage = null; locale(); },
+        setLanguage: function (lang) {
+            try {
+                localStorage.setItem("yt.leanback.default::YOUTV_LANGUAGE", JSON.stringify(String(lang)));
+            } catch (e) {}
+            lastLanguage = null;
+            locale();
+        }
     };
 })();

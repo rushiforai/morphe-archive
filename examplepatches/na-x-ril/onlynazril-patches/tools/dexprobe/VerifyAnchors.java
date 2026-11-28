@@ -13,6 +13,7 @@ import org.luckypray.dexkit.query.FindMethod;
 import org.luckypray.dexkit.query.matchers.ClassMatcher;
 import org.luckypray.dexkit.query.matchers.FieldMatcher;
 import org.luckypray.dexkit.query.matchers.MethodMatcher;
+import org.luckypray.dexkit.query.enums.UsingType;
 import org.luckypray.dexkit.result.ClassData;
 import org.luckypray.dexkit.result.ClassDataList;
 import org.luckypray.dexkit.result.FieldData;
@@ -21,7 +22,9 @@ import org.luckypray.dexkit.result.MethodData;
 import org.luckypray.dexkit.result.MethodDataList;
 import org.luckypray.dexkit.result.UsingFieldData;
 
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class VerifyAnchors {
     static {
@@ -34,11 +37,19 @@ public class VerifyAnchors {
             "com.ss.android.ugc.aweme.feed.assem.videoauthorinfo.VideoAuthorInfoRelationAssem";
     private static final String COMMENT_CELL_V2 =
             "com.ss.android.ugc.aweme.commentv2.commentlist.powercell.BaseCommentCell";
-    private static final String FEED_API = "com.ss.android.ugc.aweme.feed.cache.IFeedApi";
     private static final String PHOTO_SEARCH_SERVICE =
             "com.ss.android.ugc.aweme.vision.IPhotoSearchService";
     private static final String SEARCH_VISUAL_TAG_TRIGGER =
             "com.ss.android.ugc.aweme.search.entry.visualsearch.ui.SearchVisualTagComponentTrigger";
+    private static final String FEED_SEARCH_TRIGGER =
+            "com.ss.android.ugc.feed.platform.cell.interact.bottom.bar.FeedSearchBottomBarAssemTrigger";
+    private static final String FEED_SEARCH_TRIGGER_V2 =
+            "com.ss.android.ugc.feed.platform.cell.interact.bottom.bar.FeedSearchBottomBarAssemTriggerV2";
+    private static final String POLL_CELL =
+            "com.ss.android.ugc.aweme.commentv2.commentlist.powercell.PollCell";
+    private static final String POLL_INFO = "com.ss.android.ugc.aweme.comment.model.PollInfo";
+    private static final String VIDEO_CELL_ROOT =
+            "com.ss.android.ugc.aweme.feed.VideoViewCellRootView";
     private static final String VIDEO_ITEM_PARAMS =
             "com.ss.android.ugc.aweme.feed.model.VideoItemParams";
     private static final String FEED_ITEM_LIST =
@@ -127,8 +138,8 @@ public class VerifyAnchors {
             // The comment list's time write, which the region is moved onto.
             requireCommentV2TimeWrite(bridge);
 
-            // Feed filter: the one implementation of IFeedApi#fetchFeedList, hooked at its return.
-            requireFeedFetch(bridge);
+            // Feed filter: the page's entry to the presenter, where every page is filtered.
+            requirePageHandler(bridge);
             // …and the setter, the only other way a page's list is replaced.
             requireItemsSetter(bridge);
             requireMethod(bridge, FEED_ITEM_LIST, "clone", FEED_ITEM_LIST, 0);
@@ -147,6 +158,14 @@ public class VerifyAnchors {
             requirePauseImageSearch(bridge);
             // The second surface: the visual search tag trigger's boolean (VideoItemParams) gate.
             requireVisualSearchTag(bridge);
+            // Feed search suggestion: both bottom bar trigger versions, each gated by the same
+            // boolean (VideoItemParams) signature.
+            requireFeedSearchTrigger(bridge, FEED_SEARCH_TRIGGER);
+            requireFeedSearchTrigger(bridge, FEED_SEARCH_TRIGGER_V2);
+            // Comment poll date: the row's (PollInfo)V write of createTime through TextView.setText.
+            requirePollDate(bridge);
+            // The feed cell root's touch dispatch, which owns the long-press speed-up gesture.
+            requireMethod(bridge, VIDEO_CELL_ROOT, "dispatchTouchEvent", "boolean", 1);
 
             // Host activity
             requireMethod(bridge, AD_PERSONALIZATION, "onCreate", "void", 1);
@@ -202,21 +221,22 @@ public class VerifyAnchors {
     }
 
     /**
-     * The profile-background gate, matched as the patch discovers it: the one
-     * class that reads the AB keys and carries a (boolean) -> boolean method
-     * next to a (boolean) -> void setter. The class is obfuscated and renames
-     * every build (`X.0iZu` on 46.2.3, `X.0kzw` on 47.0.3, `X.0OSK` on
-     * 47.1.4), so the shape is the anchor, not the name.
+     * The profile-background gate, matched as the patch discovers it: the class
+     * of the static no-arg accessor reading `profile_bg_in_allow_list`, which
+     * also carries a (boolean) -> boolean method next to a (boolean) -> void
+     * setter. The class is obfuscated and renames every build (`X.0iZu` on
+     * 46.2.3, `X.0kzw` on 47.0.3, `X.0OSK` on 47.1.4, `X.0Nh8` on 47.9.1), so
+     * the key and shape are the anchor, not the name.
      */
     private static void requireProfileBgGate(DexKitBridge bridge) {
+        MethodDataList accessors = bridge.findMethod(FindMethod.create()
+                .matcher(MethodMatcher.create()
+                        .usingStrings("profile_bg_in_allow_list")
+                        .paramCount(0)));
         java.util.Set<String> candidates = new java.util.LinkedHashSet<>();
-        for (String key : new String[]{"profile_bg_in_allow_list",
-                "profile_bg_enable_consumption_group"}) {
-            MethodDataList methods = bridge.findMethod(FindMethod.create()
-                    .matcher(MethodMatcher.create().usingStrings(key)));
-            for (MethodData m : methods) {
-                candidates.add(m.getDeclaredClassName());
-            }
+        for (MethodData m : accessors) {
+            if ("void".equals(m.getReturnTypeName())) continue;
+            candidates.add(m.getDeclaredClassName());
         }
         int matches = 0;
         String found = null;
@@ -272,42 +292,25 @@ public class VerifyAnchors {
 
     /**
      * The custom-font factory, matched as the patch discovers it: the one
-     * class that reads a bundled TikTok font file and carries a static
-     * (F,I,F,F,Float,F,I,Map,I) -> Typeface method. The class is obfuscated
-     * and renames every build (`X.05oe` on 46.5.3, `X.0lNd` on 47.0.3,
-     * `X.05o5` on 47.1.4), so the shape is the anchor, not the name.
+     * static (F,I,F,F,Float,F,I,Map,I) -> Typeface method in the bundle.
+     * The class is obfuscated and renames every build (`X.05oe` on 46.5.3,
+     * `X.0lNd` on 47.0.3, `X.05o5` on 47.1.4, `X.04G3` on 47.9.1), but every
+     * other Typeface factory takes fewer parameters, so the shape is the
+     * anchor and the bundled-font strings are not.
      */
     private static void requireCustomFontFactory(DexKitBridge bridge) {
-        java.util.Set<String> candidates = new java.util.LinkedHashSet<>();
-        for (String font : new String[]{"font/TikTok-Display-Regular.otf",
-                "font/TikTok-Text-Regular.otf"}) {
-            MethodDataList methods = bridge.findMethod(FindMethod.create()
-                    .matcher(MethodMatcher.create().usingStrings(font)));
-            for (MethodData m : methods) {
-                candidates.add(m.getDeclaredClassName());
-            }
-        }
-        int matches = 0;
-        String found = null;
-        for (String className : candidates) {
-            ClassDataList classes = bridge.findClass(FindClass.create()
-                    .matcher(ClassMatcher.create().className(className)));
-            for (ClassData c : classes) {
-                for (MethodData m : c.getMethods()) {
-                    if (m.getName().startsWith("<")) continue;
-                    if (!"android.graphics.Typeface".equals(m.getReturnTypeName())) continue;
-                    if (!java.util.List.of("float", "int", "float", "float",
-                            "java.lang.Float", "float", "int", "java.util.Map", "int")
-                            .equals(m.getParamTypeNames())) continue;
-                    matches++;
-                    found = c.getName() + "#" + m.getName() + " " + m.getParamTypeNames();
-                }
-            }
-        }
-        if (matches == 1) {
-            pass("custom font factory " + found);
+        MethodDataList methods = bridge.findMethod(FindMethod.create()
+                .matcher(MethodMatcher.create()
+                        .returnType("android.graphics.Typeface")
+                        .paramTypes(java.util.List.of("float", "int", "float", "float",
+                                "java.lang.Float", "float", "int", "java.util.Map", "int"))));
+        if (methods.size() == 1) {
+            MethodData method = methods.get(0);
+            pass("custom font factory " + method.getDeclaredClassName() + "#"
+                    + method.getName() + " " + method.getParamTypeNames());
         } else {
-            fail("custom font factory: expected one, matched " + matches);
+            fail("custom font factory: expected one nine-parameter resolver, matched "
+                    + methods.size());
         }
     }
 
@@ -356,22 +359,33 @@ public class VerifyAnchors {
     }
 
     /**
-     * The app's asset loader, matched as the patch discovers it: the one
-     * (AssetManager, String) -> Typeface method, whose body creates the face from
-     * the asset. The class and method rename every build (`X.0VKh#t4` on 47.0.3,
-     * `X.00kn#s4` on 47.1.4), and Lynx's own TypefaceCache reads the bundled
-     * faces through it, so this is the point that carries the font to Lynx pages.
+     * The app's asset loader, matched as the patch discovers it: the one static
+     * method whose body creates the face from an asset. The AssetManager was
+     * the first parameter through 47.7.x and moved into a field on 47.8.3, so
+     * both shapes are checked and exactly one of them must match. The class and
+     * method rename every build (`X.00kD#x4` on 47.7.3, `X.04Hk#LJII` on
+     * 47.8.3), and Lynx's own TypefaceCache reads the bundled faces through it,
+     * so this is the point that carries the font to Lynx pages.
      */
     private static void requireAssetFontLoader(DexKitBridge bridge) {
-        MethodDataList methods = bridge.findMethod(FindMethod.create()
-                .matcher(MethodMatcher.create()
-                        .paramTypes("android.content.res.AssetManager", "java.lang.String")));
+        String[][] shapes = {
+                {"android.content.res.AssetManager", "java.lang.String"},
+                {"java.lang.String"},
+        };
         int matches = 0;
         String found = null;
-        for (MethodData m : methods) {
-            if (!"android.graphics.Typeface".equals(m.getReturnTypeName())) continue;
-            matches++;
-            found = m.getDeclaredClassName() + "#" + m.getName();
+        for (String[] shape : shapes) {
+            MethodDataList methods = bridge.findMethod(FindMethod.create()
+                    .matcher(MethodMatcher.create()
+                            .paramTypes(shape)
+                            .addInvoke(MethodMatcher.create()
+                                    .declaredClass("android.graphics.Typeface")
+                                    .name("createFromAsset"))));
+            for (MethodData m : methods) {
+                if (!"android.graphics.Typeface".equals(m.getReturnTypeName())) continue;
+                matches++;
+                found = m.getDeclaredClassName() + "#" + m.getName();
+            }
         }
         if (matches == 1) {
             pass("custom font asset loader " + found);
@@ -680,7 +694,9 @@ public class VerifyAnchors {
     /**
      * The pause image-search anchor, matched as the patch's fingerprint does: the one constructor
      * that asks the real-named photo-search service for its item, and the single list method on
-     * that class. The class and method names are obfuscated and move between builds.
+     * that class. The class and method names are obfuscated and move between builds: on 47.9.1 the
+     * item getter itself was renamed and `LJII` became an unrelated entry point, so only the
+     * service owner is matched here.
      */
     private static void requirePauseImageSearch(DexKitBridge bridge) {
         MethodDataList ctors = bridge.findMethod(FindMethod.create()
@@ -689,11 +705,10 @@ public class VerifyAnchors {
                         .paramCount(0)
                         .returnType("void")
                         .addInvoke(MethodMatcher.create()
-                                .declaredClass(PHOTO_SEARCH_SERVICE)
-                                .name("LJII"))));
+                                .declaredClass(PHOTO_SEARCH_SERVICE))));
         if (ctors.size() != 1) {
             fail("pause image search: expected one constructor reading "
-                    + PHOTO_SEARCH_SERVICE + "#LJII, matched " + ctors.size());
+                    + PHOTO_SEARCH_SERVICE + ", matched " + ctors.size());
             return;
         }
         MethodData ctor = ctors.get(0);
@@ -735,33 +750,82 @@ public class VerifyAnchors {
         }
     }
 
-    private static void requireFeedFetch(DexKitBridge bridge) {
+    /**
+     * One version of the feed search bottom bar trigger. The class is real-named but the gate's
+     * name moves (`tq` on 47.7.1, `Iq` on 47.9.1), so the signature is the anchor.
+     */
+    private static void requireFeedSearchTrigger(DexKitBridge bridge, String className) {
+        MethodDataList methods = bridge.findMethod(FindMethod.create()
+                .matcher(MethodMatcher.create()
+                        .declaredClass(className)
+                        .returnType("boolean")
+                        .paramTypes(VIDEO_ITEM_PARAMS)));
+        if (methods.size() == 1) {
+            MethodData method = methods.get(0);
+            pass("feed search " + method.getDeclaredClassName() + "#" + method.getName()
+                    + " " + method.getParamTypeNames());
+        } else {
+            fail("feed search " + className
+                    + ": expected one boolean (VideoItemParams) method, matched " + methods.size());
+        }
+    }
+
+    /**
+     * The comment poll row's date write, matched as the patch's fingerprint does: a
+     * `(PollInfo) -> void` method that reads the poll's create time and writes a TextView. Both the
+     * row and the model keep their names; the method itself moves (`H6` on 47.9.1, `Z6` on 47.7.1).
+     */
+    private static void requirePollDate(DexKitBridge bridge) {
+        MethodDataList methods = bridge.findMethod(FindMethod.create()
+                .matcher(MethodMatcher.create()
+                        .declaredClass(POLL_CELL)
+                        .returnType("void")
+                        .paramTypes(POLL_INFO)
+                        .addUsingField(FieldMatcher.create()
+                                .declaredClass(POLL_INFO)
+                                .name("createTime"), UsingType.Read)
+                        .addInvoke("Landroid/widget/TextView;->setText(Ljava/lang/CharSequence;)V")));
+        if (methods.size() == 1) {
+            MethodData method = methods.get(0);
+            pass("poll date " + method.getDeclaredClassName() + "#" + method.getName()
+                    + " " + method.getParamTypeNames());
+        } else {
+            fail("poll date: expected one (PollInfo) date write, matched " + methods.size());
+        }
+    }
+
+    /**
+     * The home presenter's page entry: the one class carrying the pager model's methods
+     * (`getItems`, `getListCount`, `insertItemList`, `setItems`) that also declares a
+     * `(FeedItemList) -> void` body. The filter hooks that method and nothing else, because the
+     * shared base class is used by every presenter in the app.
+     */
+    private static void requirePageHandler(DexKitBridge bridge) {
         ClassDataList classes = bridge.findClass(FindClass.create()
-                .matcher(ClassMatcher.create().addInterface(FEED_API)));
+                .matcher(ClassMatcher.create()));
         int matches = 0;
         String found = null;
         for (ClassData c : classes) {
+            java.util.Set<String> names = new java.util.HashSet<>();
+            for (MethodData m : c.getMethods()) names.add(m.getName());
+            if (!names.containsAll(List.of("getItems", "getListCount", "insertItemList", "setItems"))) {
+                continue;
+            }
             for (MethodData m : c.getMethods()) {
-                if (m.getName().startsWith("<")) continue;
-                if (!FEED_ITEM_LIST.equals(m.getReturnTypeName())) continue;
-                if (m.getParamTypeNames().size() != 1) continue;
+                if (!m.getParamTypeNames().equals(List.of(FEED_ITEM_LIST))) continue;
+                if (!"void".equals(m.getReturnTypeName())) continue;
                 if (m.getOpCodes().isEmpty()) continue;
                 matches++;
                 found = c.getName() + "#" + m.getName() + " " + m.getParamTypeNames();
             }
         }
         if (matches == 1) {
-            pass("feed filter fetch " + found);
+            pass("feed page handler " + found);
         } else {
-            fail("feed filter fetch: expected one IFeedApi return, matched " + matches);
+            fail("feed page handler: expected one home page entry, matched " + matches);
         }
     }
 
-    /**
-     * The page's item setter, matched as the patch's second fingerprint does: a void method on the
-     * page taking a List that writes the `items` field. The write is the anchor, not the name — the
-     * name only says which of the page's methods to look at.
-     */
     private static void requireItemsSetter(DexKitBridge bridge) {
         ClassDataList classes = bridge.findClass(FindClass.create()
                 .matcher(ClassMatcher.create().className(FEED_ITEM_LIST)));

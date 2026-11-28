@@ -30,10 +30,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # Keep repository-specific workflows, release configuration and
-          # generated release metadata while refreshing upstream source files.
+          # Preserve repository-specific workflows and release metadata.
           mkdir -p /tmp/local-files
-          cp -a .github/workflows /tmp/local-files/workflows
+          if [ -d .github/workflows ]; then
+            cp -a .github/workflows /tmp/local-files/workflows
+          fi
           for path in .releaserc CHANGELOG.md gradle.properties patches-bundle.json patches-list.json README.md; do
             if [ -e "$path" ]; then
               mkdir -p "/tmp/local-files/$(dirname "$path")"
@@ -43,12 +44,25 @@ jobs:
 
           git remote add upstream https://github.com/MorpheApp/morphe-patches.git
           git fetch upstream main --force
-          # Merge instead of resetting: keep published release tags in main history.
-          git merge --no-edit -X theirs upstream/main
 
+          # Keep upstream history and tags while resolving modify/delete conflicts
+          # in favor of upstream. -X theirs alone does not resolve those conflicts.
+          if ! git merge --no-edit -X theirs upstream/main; then
+            while IFS= read -r path; do
+              if ! git checkout --theirs -- "$path" 2>/dev/null; then
+                git rm -f -- "$path" 2>/dev/null || true
+              fi
+            done < <(git diff --name-only --diff-filter=U)
+            git add -A
+            git -c core.editor=true commit --no-edit
+          fi
+
+          # Restore this fork's own workflow and release configuration.
           rm -rf .github/workflows
           mkdir -p .github
-          cp -a /tmp/local-files/workflows .github/workflows
+          if [ -d /tmp/local-files/workflows ]; then
+            cp -a /tmp/local-files/workflows .github/workflows
+          fi
 
           for path in .releaserc CHANGELOG.md gradle.properties patches-bundle.json patches-list.json README.md; do
             if [ -e "/tmp/local-files/$path" ]; then

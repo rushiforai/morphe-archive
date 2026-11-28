@@ -19,6 +19,7 @@ val disableAiPatch = bytecodePatch(
     description = "Turns off the T-Life AI assistant.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

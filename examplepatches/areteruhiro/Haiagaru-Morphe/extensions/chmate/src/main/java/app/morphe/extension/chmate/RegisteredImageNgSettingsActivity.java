@@ -55,14 +55,14 @@ public final class RegisteredImageNgSettingsActivity extends Activity {
         setContentView(scroll);
         scroll.requestApplyInsets();
         TextView heading = new TextView(this);
-        heading.setText("登録画像をあぼーんにする");
+        heading.setText("Haiagaru NG画像追加（判定レベル・一致枚数）");
         heading.setTextSize(20);
         layout.addView(heading);
-        setTitle("登録画像をあぼーんにする");
+        setTitle("Haiagaru NG画像追加");
         SharedPreferences settings = RegisteredImageNg.prefs(this);
 
         Switch enabled = new Switch(this);
-        enabled.setText("登録画像をあぼーんにする");
+        enabled.setText("Haiagaru NG画像の判定を有効にする");
         enabled.setChecked(settings.getBoolean(RegisteredImageNg.ENABLE, false));
         layout.addView(enabled);
         enabled.setOnCheckedChangeListener((button, value) -> {

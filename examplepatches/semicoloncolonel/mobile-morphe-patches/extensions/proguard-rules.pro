@@ -21,14 +21,6 @@
     public static java.net.URL filterJsRequestUrl(java.net.URL);
 }
 -keep class semicoloncolonel.mobilestream.extension.shared.privacy.TrackerBlocker$BlockInterceptor { *; }
--keep class semicoloncolonel.mobilestream.extension.yttvshell.TvScripts {
-    public static void setWebContents(java.lang.Object);
-    public static void setWebContentsFromObserver(java.lang.Object);
-    public static void onObserverNavigation(java.lang.Object);
-    public static void onObserverDocument(java.lang.Object);
-    public static void onPageEvent(java.lang.String);
-    public static void onTitle(java.lang.String);
-}
 
 # Pluto TV — "Skip ads". filter is called only from
 # injected smali via invoke-static.
@@ -226,9 +218,31 @@
 # app's picture-in-picture calls in injected smali.
 -keep class semicoloncolonel.mobilestream.extension.yttv.YttvPictureInPicture { public static *; }
 
+# YouTube TV — "Volume and brightness sliders". onScroll() is called from the
+# player gesture handler via injected invoke-static.
+-keep class semicoloncolonel.mobilestream.extension.yttv.YttvScreenGestures { public static *; }
+
+# YouTube TV — "Press and hold to speed up" and "Set playback speed".
+# onSetRate() and filterRate() are called from injected smali, and holdRate(),
+# defaultRate(), and callSetRate() are overwritten by the patches, so R8 must
+# keep them as they are.
+-keep class semicoloncolonel.mobilestream.extension.yttv.YttvPlaybackSpeed { public static *; }
+
+# YouTube TV — shared player touch hook. onDispatch() and cancelOf() are called
+# from the dispatchTouchEvent added to WatchLayout, and slidersEnabled() and
+# holdEnabled() are overwritten by the patches, so R8 must keep them as they are.
+-keep class semicoloncolonel.mobilestream.extension.yttv.YttvPlayerTouch { public static *; }
+
 # Fox News and The Wall Street Journal — "Hide prediction markets".
 # filterFoxItems() is called only from injected smali.
 -keep class semicoloncolonel.mobilestream.extension.shared.misc.PredictionMarkets { public static *; }
+
+# Fox News — "Hide comments and reactions" and "Hide app promotions". Called
+# only from injected smali in ScreenModel's constructor.
+-keep class semicoloncolonel.mobilestream.extension.foxnews.ArticleComponents { public static *; }
+
+# Yahoo News — "Skip ads". hide is called only from injected smali via invoke-static.
+-keep class semicoloncolonel.mobilestream.extension.yahoonews.ArticleAds { public static *; }
 
 # The Washington Post — "Skip ads". track() is called only from injected smali
 # in the BannerAdView constructors.
@@ -262,9 +276,8 @@
 -keep class semicoloncolonel.mobilestream.extension.truthsocial.MediaSaver { public static *; }
 -keep class semicoloncolonel.mobilestream.extension.truthsocial.MediaTypeFix { *; }
 
-# Apple TV (Android TV) — "Auto-skip". Called only from injected smali, and its
+# Apple TV — "Auto-skip". Called only from injected smali, and its
 # skipPromos / skipRecaps / skipIntros answers are overwritten by the patch.
--keep class semicoloncolonel.mobilestream.extension.appletv.AutoSkipper { public static *; }
 -keep class semicoloncolonel.mobilestream.extension.appletv.PhoneAutoSkipper { public static *; }
 -keep class semicoloncolonel.mobilestream.extension.appletv.ReleaseTimes { public static *; }
 -keep class semicoloncolonel.mobilestream.extension.appletv.PlayerInfo { public static *; }
@@ -341,10 +354,6 @@
     public static *;
 }
 
--keep class semicoloncolonel.mobilestream.extension.hulutv.nativehook.NativeHookLoader {
-    public static void load();
-}
-
 # Netflix — "Bypass tamper protection". load() is called only from injected
 # smali at the top of the Application's attachBaseContext.
 -keep class semicoloncolonel.mobilestream.extension.netflix.bypass.NetflixBypassLoader {
@@ -356,22 +365,13 @@
 -keep class semicoloncolonel.mobilestream.extension.netflix.categories.HiddenCategoriesActivity { *; }
 -keep class semicoloncolonel.mobilestream.extension.netflix.categories.SurpriseMeActivity { *; }
 
--keep class semicoloncolonel.mobilestream.extension.hulutv.privacy.NativeTrackerLoader {
-    public static void load();
-}
+# Netflix — "Auto-skip". The patch overwrites the option/name stubs and calls
+# onSkipCta from the player, so the public static members must keep their names.
+-keep class semicoloncolonel.mobilestream.extension.netflix.misc.NetflixAutoSkipper { public static *; }
 
-# Called from smali by the Reject tracking consent patch.
--keep class semicoloncolonel.mobilestream.extension.shared.privacy.ConsentRejecter {
-    public static boolean reject(java.lang.Object, boolean);
-}
-
-# Prime Video Android TV ad-strip loader — only injected smali calls it.
--keep class semicoloncolonel.mobilestream.extension.primevideotv.PrimeVideoHookLoader {
-    public static void load();
-}
-
-# TvSourceNotice is named only in the manifest, as a provider, so R8 must keep it.
--keep class semicoloncolonel.mobilestream.extension.shared.misc.TvSourceNotice { *; }
+# Netflix — "Respect rotation lock". set/getRequestedOrientation are called only from
+# injected smali via invoke-static.
+-keep class semicoloncolonel.mobilestream.extension.netflix.misc.RotationLock { public static *; }
 
 # Koupon — "Keep new-user promo codes" and "Block analytics & tracking". These
 # methods are called only from injected smali via invoke-static.
@@ -400,4 +400,28 @@
 
 -keep class semicoloncolonel.mobilestream.extension.flipp.GoogleConsent {
     public static java.lang.Object register(java.lang.Object, java.lang.Object, java.lang.Object);
+}
+
+# Prime Video — "Skip ads". isServerInserted() and onAdBreakStart() are called
+# only from injected smali in PrepareAdPlan and ServerInsertedAdBreakState.
+-keep class semicoloncolonel.mobilestream.extension.primevideo.ads.ServerInsertedAdSkipper { public static *; }
+
+# WSJ — "Hide prompts and pop-ups", cookie consent option. onShown() is called
+# only from injected smali in the app's Sourcepoint client (onUIReady).
+-keep class semicoloncolonel.mobilestream.extension.wsj.CookieConsent { public static *; }
+
+# Al Jazeera — "Skip cookie settings". Called only from injected smali in
+# OneTrust's React Native module.
+-keep class semicoloncolonel.mobilestream.extension.aljazeera.OneTrustConsent { public static *; }
+
+# The New York Times — "Library pass reminder". maybeRemind(), onGatewayShown()
+# and recordLevel() are called only from injected smali (BaseAppCompatActivity
+# .onStart, the gateway card, and NYT's SubscriptionLevel getter), and
+# renewUrl() is overwritten by the patch, so R8 must keep them as they are and
+# not fold the URL answer.
+-keep class semicoloncolonel.mobilestream.extension.nytimes.misc.LibraryPassReminder {
+    public static void maybeRemind(android.app.Activity);
+    public static void onGatewayShown(java.lang.Object);
+    public static void recordLevel(java.lang.Object);
+    public static java.lang.String renewUrl();
 }

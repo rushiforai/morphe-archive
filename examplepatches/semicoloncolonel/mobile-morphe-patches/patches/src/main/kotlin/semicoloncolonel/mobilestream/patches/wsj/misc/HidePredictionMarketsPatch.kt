@@ -25,6 +25,7 @@ val hidePredictionMarketsPatch = bytecodePatch(
     name = "Hide prediction markets",
     description = "Removes Polymarket odds from story cards.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

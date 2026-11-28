@@ -1,0 +1,14 @@
+version: 1
+bundleID: com.smartworldarafath.gboardpro
+appName: "Gboard Pro"
+product: GboardProApp
+deploymentTarget: "16.0"
+platforms:
+  - ios
+  - ipados
+infoPath: Config/App-Info.plist
+extensions:
+  - name: GboardProKeyboard
+    bundleID: com.smartworldarafath.gboardpro.keyboard
+    infoPath: Config/Keyboard-Info.plist
+    entitlementsPath: Config/Keyboard.entitlements

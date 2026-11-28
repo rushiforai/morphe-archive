@@ -292,6 +292,8 @@ Blocked %1$s	%1$s bloccato
 Blocked %1$s. Unblock	%1$s bloccato. Sblocca
 Couldn't confirm blocking %1$s. Check their profile.	Blocco non confermato per %1$s. Controlla il profilo.
 Blocked caption words	Parole bloccate nelle descrizioni
+Only show videos with these words	Mostra solo i video con queste parole
+For You only. Separate words or phrases with commas, like #recipe, cooking. A video stays only when its caption or hashtags match one, with the same rules as Blocked caption words. A batch with no match keeps one video so the feed keeps moving. Leave it empty to show everything.	Solo Per te. Separa parole o frasi con virgole, come #recipe, cooking. Un video resta solo se la didascalia o gli hashtag corrispondono a una di esse, con le stesse regole di Parole bloccate nelle descrizioni. Un gruppo senza corrispondenze tiene un video, così il feed continua a scorrere. Lascia vuoto per mostrare tutto.
 Blocked comment words	Parole bloccate nei commenti
 Blocked creators	Creator bloccati
 Blocked sound ids	ID audio bloccati
@@ -3023,6 +3025,8 @@ Crop and stretch to fill the screen	Ritaglia e allunga per riempire lo schermo
 Cover the whole window with half the crop of Fill and half the stretch of Stretch, so neither is easy to spot. A video far from the screen's shape keeps TikTok's size.	Copre tutta la finestra con metà del ritaglio di Riempi e metà dell'allungamento di Allunga, così nessuno dei due si nota molto. Un video con una forma molto diversa da quella dello schermo mantiene le dimensioni di TikTok.
 Watch LIVEs unseen	Guarda le LIVE senza farti vedere
 You stay off the viewer list of LIVEs you open. Tap the eye in a LIVE to let that host see you. Needs Ghost mode on.	Non comparirai nell'elenco degli spettatori delle LIVE che apri. Tocca l'occhio in una LIVE per farti vedere da chi la conduce. Serve la modalità fantasma attiva.
+Double tap to let the host see you	Doppio tocco per farti vedere da chi conduce
+No eye on the video. Double tap a LIVE to let that host see you, and the next LIVE you open hides you again. Needs Watch LIVEs unseen on.	Nessun occhio sul video. Tocca due volte una LIVE per farti vedere da chi la conduce, e la LIVE successiva che apri ti nasconde di nuovo. Serve Guarda le LIVE senza farti vedere attivo.
 Keep likes on this phone	Tieni i Mi piace su questo telefono
 A like you give a video stays on this phone. The heart turns red, but TikTok isn't told, so the creator never sees it and it isn't on your profile. Needs Ghost mode on.	Un Mi piace che metti a un video resta su questo telefono. Il cuore diventa rosso, ma TikTok non lo sa, quindi il creator non lo vede mai e non compare nel tuo profilo. Serve la modalità fantasma attiva.
 My likes on this phone	I miei Mi piace su questo telefono
@@ -3152,8 +3156,8 @@ Sort pinned videos with the rest	Ordina i video in evidenza con gli altri
 Pinned videos take their place in the order instead of staying at the top, so Newest first puts them at the date they were posted.	I video in evidenza prendono il loro posto nell'ordine invece di restare in cima, così Prima i più recenti li mette alla data in cui sono stati pubblicati.
 Hide or reorder profile tabs	Nascondi o riordina le schede del profilo
 Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos, and use the arrows to put the rest in your order. One tab always stays. Restart TikTok to apply this.	Scegli le schede da nascondere nella fascia sopra i video di un profilo, come Repost o Video con Mi piace, e usa le frecce per mettere le altre nel tuo ordine. Una scheda resta sempre. Riavvia TikTok per applicare la modifica.
-Hide Add bio	Nascondi Aggiungi bio
-Hide the Add bio prompt TikTok shows on your own profile while it has no bio. You can still add one from Edit profile.	Nascondi l'invito Aggiungi bio che TikTok mostra sul tuo profilo finché non ha una bio. Puoi comunque aggiungerne una da Modifica profilo.
+Hide tips on your profile	Nascondi i suggerimenti sul tuo profilo
+Hide the Add bio prompt and the tip bubbles TikTok points at things on your own profile. You can still add a bio from Edit profile.	Nascondi l'invito Aggiungi bio e i fumetti dei suggerimenti con cui TikTok indica le cose sul tuo profilo. Puoi comunque aggiungere una bio da Modifica profilo.
 Show the picture before saving	Mostra la foto prima di salvarla
 With the long press save on, holding a profile picture opens it full screen at full size, with a Save button under it.	Con il salvataggio a pressione prolungata attivo, tenere premuta una foto profilo la apre a schermo intero e a piena dimensione, con un pulsante Salva sotto.
 The profile picture couldn't be loaded. Try again.	Impossibile caricare la foto del profilo. Riprova.
@@ -3171,7 +3175,6 @@ Gives each video on profile grids rounded corners, on your own profile and on Li
 Gifter level	Livello donatore
 SecUID	SecUID
 Unknown (TikTok didn't send it)	Sconosciuto (TikTok non l'ha inviato)
-A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, how many posts, liked videos, favorites and reposts it has, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.	Il menu di condivisione di un profilo riceve un pulsante Info sull'account. Mostra ciò che TikTok ha già inviato sull'account: quando si è iscritto, la regione e la lingua, il livello donatore e il SecUID, quanti post, video con Mi piace, preferiti e repost ha, quando nome utente e nome visualizzato sono cambiati l'ultima volta, se è privato e se i video a cui ha messo Mi piace sono pubblici. Non viene scaricato nient'altro.
 # context: LIVE controls: a small line in a LIVE room with the room ID and the viewer's own connection (ping, latency, download speed) from TikTok's player; a tap copies the room ID
 Show the room ID and your connection	Mostra l'ID della stanza e la tua connessione
 Show the room line	Mostra la riga della stanza
@@ -3277,3 +3280,76 @@ Unavailable saved video	Video salvato non disponibile
 Posted %1$s	Pubblicato il %1$s
 Remembered %1$s	Ricordato il %1$s
 Unavailable since %1$s	Non disponibile dal %1$s
+# context: Number row under Round the corners on profile grids; how big the rounded corners are, in dp
+Corner size on profile grids	Dimensione degli angoli nella griglia del profilo
+# context: Summary of Corner size on profile grids; dp is the screen unit shown next to the number
+How round the corners are, in dp. TikTok's own cards use about 8.	Quanto sono arrotondati gli angoli, in dp. Le schede di TikTok usano circa 8.
+# context: Number row in the profile grid settings; extra space between the videos, in dp
+Gap between videos on profile grids	Spazio tra i video nella griglia del profilo
+# context: Summary of Gap between videos on profile grids; 0 keeps the spacing TikTok draws itself
+Adds space between the videos on profile grids, on top of TikTok's own thin line. Use 0 for TikTok's spacing.	Aggiunge spazio tra i video nella griglia del profilo, oltre alla sottile linea di TikTok. Usa 0 per la spaziatura di TikTok.
+# context: Account facts line: the gifter points TikTok sent for the account (pay_grade now_diamond), shown beside Gifter level
+Gifter points	Punti donatore
+# context: Account facts line: the points figure TikTok sent for the next gifter level (pay_grade next_diamond)
+Gifter points for the next level	Punti donatore per il livello successivo
+# context: Account facts line: all the gifter points TikTok counted for the account (pay_grade total_diamond_count)
+Gifter points in total	Punti donatore in totale
+# context: Account facts line: web link to the account's profile picture at its smallest size
+Profile picture (small)	Foto del profilo (piccola)
+# context: Account facts line: web link to the account's profile picture at its middle size
+Profile picture (medium)	Foto del profilo (media)
+# context: Account facts line: web link to the account's profile picture at its largest size
+Profile picture (large)	Foto del profilo (grande)
+# context: Account facts line: web link to the cover picture TikTok keeps for the profile (cover_url)
+Profile cover	Copertina del profilo
+# context: Toast after tapping one value in the Account facts sheet, which copies just that value
+Copied to the clipboard	Copiato negli appunti
+# context: Summary of Account facts on profiles; the sheet lists what TikTok sent, and a tap on one value copies only that value
+A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, how many posts, liked videos, favorites and reposts it has, when its username and display name last changed, whether it's private and whether its liked videos are public. Links to its profile picture and cover come last. Tap a value to copy just that one. Nothing extra is fetched.	Il menu di condivisione di un profilo riceve un pulsante Info sull'account. Mostra ciò che TikTok ha già inviato sull'account: quando si è iscritto, la regione e la lingua, il livello donatore e il SecUID, quanti post, video con Mi piace, preferiti e repost ha, quando nome utente e nome visualizzato sono cambiati l'ultima volta, se è privato e se i video a cui ha messo Mi piace sono pubblici. I link alla foto del profilo e alla copertina sono in fondo. Tocca un valore per copiare solo quello. Non viene scaricato nient'altro.
+# context: Settings toggle title: a profile's Followers or Following count shows in yellow when that list is private
+Yellow counts for private lists	Conteggi gialli per gli elenchi privati
+# context: Settings toggle summary for Yellow counts for private lists; it also applies to your own profile
+On a profile that keeps its followers or following list private, that count shows in yellow, so you can tell it's private before you tap it. Yours too.	Su un profilo che tiene privato l’elenco dei follower o dei seguiti, quel conteggio appare in giallo, così sai che è privato prima di toccarlo. Anche il tuo.
+# context: Settings toggle title: another app's username in a profile bio (IG, Snap, YT, X, Twitch, Threads, FB) becomes a tappable pill that opens its public page
+Links to other apps in bios	Link ad altre app nelle bio
+# context: Settings toggle summary for Links to other apps in bios; IG, Snap, YT, X, Twitch, Threads and FB are the short names people type in bios and stay as written
+A username named after IG, Snap, YT, X, Twitch, Threads or FB in a bio turns into a pill in that app's color. Tapping it opens that account's public page in the app or your browser. Nothing is looked up before you tap.	Un nome utente scritto dopo IG, Snap, YT, X, Twitch, Threads o FB in una bio diventa una pillola del colore di quell’app. Toccandola si apre la pagina pubblica dell’account nell’app o nel browser. Non viene cercato nulla prima del tocco.
+# context: Settings row title: pick a picture that stands in for the blue verified check beside your own name on your own profile, on this phone only
+Badge picture	Immagine del badge
+# context: Settings row title: deletes the picked badge picture so the blue check comes back
+Remove the badge picture	Rimuovi l’immagine del badge
+# context: Summary of the Badge picture row; Local verified badge is the name of the switch just above it
+Pick a picture to show in place of the blue check while Local verified badge is on. It's kept on this phone only and nobody else sees it.	Scegli un’immagine da mostrare al posto della spunta blu mentre Badge di verifica locale è attivo. Resta solo su questo telefono e nessun altro la vede.
+# context: Summary of the Badge picture row while the picked file is being read
+Reading the picture	Lettura dell’immagine
+# context: Summary of the Remove the badge picture row
+Deletes the picture, and the blue check comes back.	Elimina l’immagine e torna la spunta blu.
+# context: Summary of the Remove the badge picture row when there is none
+No badge picture is kept	Nessuna immagine del badge salvata
+# context: Banner after a badge picture was picked while Local verified badge is on
+Badge picture saved. Open your profile to see it.	Immagine del badge salvata. Apri il tuo profilo per vederla.
+# context: Banner after a badge picture was picked while Local verified badge is off; Local verified badge is the switch's name
+Badge picture saved. Turn on Local verified badge to see it.	Immagine del badge salvata. Attiva Badge di verifica locale per vederla.
+# context: Banner when the picked badge picture could not be written to TikTok's private storage
+Couldn't save the picture in TikTok's storage. Free up some space and try again.	Impossibile salvare l’immagine nella memoria di TikTok. Libera un po’ di spazio e riprova.
+# context: Banner when the picked badge picture file is too big; %1$s is the size limit in megabytes
+That picture is larger than %1$s MB. Choose a smaller one.	Quell’immagine supera i %1$s MB. Scegline una più piccola.
+# context: Banner when the picked badge file is not an image; PNG, JPEG and WebP are file formats and stay as written
+That file isn't a picture this phone can open. Choose a PNG, JPEG or WebP.	Quel file non è un’immagine che questo telefono può aprire. Scegli un PNG, JPEG o WebP.
+# context: Banner after the badge picture was deleted
+Badge picture removed. Your profile shows the blue check again.	Immagine del badge rimossa. Il tuo profilo mostra di nuovo la spunta blu.
+# context: Banner when deleting the badge picture failed
+Couldn't remove the badge picture. Try again.	Impossibile rimuovere l’immagine del badge. Riprova.
+Keep the letters after the flag	Tieni le lettere dopo la bandiera
+Shows the country's two letters next to its flag, so a flag you don't recognize still tells you where it is.	Mostra le due lettere del paese accanto alla sua bandiera, così anche una bandiera che non riconosci ti dice da dove viene.
+Write grid dates the way TikTok does	Scrivi le date della griglia come TikTok
+Profile grids show the date the way TikTok writes it by the creator's name, like 2d ago or 10-12, in place of Oct 12. Day before month, Write the month as a word and Date instead of age change it the same way.	Le griglie del profilo mostrano la data come la scrive TikTok accanto al nome del creator, come 2 g fa o 10-12, invece di Oct 12. Giorno prima del mese, Scrivi il mese in lettere e Data invece dell'età la cambiano allo stesso modo.
+Where the date goes on grids	Dove va la data nella griglia
+Under the view count	Sotto il numero di visualizzazioni
+After the view count	Dopo il numero di visualizzazioni
+Above the view count	Sopra il numero di visualizzazioni
+Above the view count takes the video length along with the date.	Sopra il numero di visualizzazioni sposta anche la durata del video insieme alla data.
+Show notices at the top	Mostra gli avvisi in alto
+Put Hushfeed's notices, like a finished save or a block's Undo, just under the status bar instead of above the tab bar. Swipe a notice left or right to close it.	Mette gli avvisi di Hushfeed, come un salvataggio finito o il tasto «Annulla» dopo un blocco, subito sotto la barra di stato invece che sopra la barra delle schede. Scorri un avviso a sinistra o a destra per chiuderlo.
+Blur behind notices	Sfoca dietro gli avvisi
+Blur the video behind Hushfeed's notices so they look like frosted glass. Needs Android 12 and up. Away from a video they keep the plain dark look.	Sfoca il video dietro gli avvisi di Hushfeed, così sembrano vetro smerigliato. Richiede Android 12 o successivo. Lontano da un video mantengono il normale aspetto scuro.

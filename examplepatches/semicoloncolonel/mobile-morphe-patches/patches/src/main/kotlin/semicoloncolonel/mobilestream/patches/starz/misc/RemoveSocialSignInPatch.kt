@@ -18,6 +18,7 @@ val removeSocialSignInPatch = resourcePatch(
     name = "Remove social sign-in",
     description = "Removes the Sign in with Google and Sign in with Apple options.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

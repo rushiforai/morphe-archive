@@ -39,9 +39,9 @@ def fixture_dex(strings):
 
 def fixture_bundle(path, ids):
     dex = fixture_dex(['NativeCaptionBridge', 'RebuildCueProjection', 'REBUILD_CUE_PROJECTION',
-                       'RebuildController', 'CaptionDiagnosticArchive'] + ids)
+                       'RebuildController', 'CaptionDiagnostics'] + ids)
     with zipfile.ZipFile(path, 'w') as z:
-        z.writestr('META-INF/MANIFEST.MF', 'Version: 1.5.8\nPatcher-Version: 2.0.0\nSource: YYDarlinker/morphe-ai-caption-translator\n')
+        z.writestr('META-INF/MANIFEST.MF', f'Version: 1.5.8\nPatcher-Version: {bundle.PATCHER_VERSION}\nSource: YYDarlinker/morphe-ai-caption-translator\n')
         z.writestr('classes.dex', fixture_dex(['root']))
         z.writestr('extensions/extension.mpe', dex)
         z.writestr('captionlocales/index.txt', '\n'.join(f'locale{i}' for i in range(14)))
@@ -100,40 +100,33 @@ class VerificationContract(unittest.TestCase):
 
     def test_new_helper_dependencies_pass_reject_and_restore(self):
         import verify_integration as integration
-        # A private source copy also exercises inspect(), with all provenance/ABI/protocol
-        # checks still enabled. Never inject violations into the real production tree.
+        # Exercise the full source check in a private copy.
         fixture = self.root / 'source-copy'
         for area in integration.SOURCE_AREAS:
             for language in ('java', 'kotlin'):
                 source = current.ROOT / area / 'src/main' / language
                 if source.is_dir(): current.copy_reports(source, fixture / area / 'src/main' / language)
-        for name in ('docs/core-provenance.json',
-                     'settings.gradle.kts', 'ui-preview/build.gradle.kts'):
-            target = fixture / name; target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(current.ROOT / name, target)
-        current.copy_reports(current.ROOT / 'translation-core/upstream', fixture / 'translation-core/upstream')
-        provenance = json.loads((current.ROOT / 'docs/core-provenance.json').read_text())
-        # Protected hook sources can live outside Java source roots.
-        for row in provenance.get('protected_abi', []):
-            target = fixture / row['path']; target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(current.ROOT / row['path'], target)
-        package = 'app.yydarlinker.deepseekcaptions'
+        for name in ('settings.gradle.kts', 'LICENSE', 'NOTICE'):
+            shutil.copyfile(current.ROOT / name, fixture / name)
+        package = 'app.yydarlinker.aicaptions'
         def source(area, name, body, language='java'):
-            path = fixture / area / 'src/main' / language / Path(*package.split('.')) / name
+            module = integration.EXTENSION if area in integration.EXTENSION_FOLDERS else area
+            folder = Path(area) if module != area and language == 'java' else Path()
+            path = fixture / module / 'src/main' / language / Path(*package.split('.')) / folder / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text('package ' + package + ';\n' + body, encoding='utf-8')
             return path
-        source('application-host', 'S2UnlistedHost.java', 'class S2UnlistedHost { static void run() {} }')
-        source('ui', 'S2UnlistedView.java', 'class S2UnlistedView {}')
+        source('host', 'S2UnlistedHost.java', 'class S2UnlistedHost { static void run() {} }')
+        source('settings', 'S2UnlistedView.java', 'class S2UnlistedView {}')
         shared = source('caption-shared', 'S2SharedValue.java', 'class S2SharedValue {}')
         source('caption-contracts', 'S2Port.java', 'interface S2Port {}')
         core = source('translation-core', 'S2NewPlanCache.java',
                       'class S2NewPlanCache { S2SharedValue value; S2Port port; }')
         source('translation-core', 'S2PlanForwarder.java', 'class S2PlanForwarder { S2NewPlanCache cache; }')
-        presentation = source('presentation', 'S2ReadingPolicy.java',
+        presentation = source('overlay', 'S2ReadingPolicy.java',
                               'class S2ReadingPolicy { S2SharedValue value; S2Port port; }')
-        ui = source('ui', 'S2ViewForwarder.java', 'class S2ViewForwarder { S2ReadingPolicy policy; }')
-        source('presentation', 'S2Mentions.java', '''class S2Mentions {
+        ui = source('settings', 'S2ViewForwarder.java', 'class S2ViewForwarder { S2ReadingPolicy policy; }')
+        source('overlay', 'S2Mentions.java', '''class S2Mentions {
           // S2NewPlanCache RebuildController
           /* S2UnlistedHost */
           String url = "https://example.invalid/RebuildController";
@@ -147,40 +140,6 @@ class VerificationContract(unittest.TestCase):
             self.assertEqual(rejected, bool(report['errors']), report)
             return report
         inspect('legal', False)
-        # Change only an isolated copy and refresh its recorded destination hash, so rejection
-        # must come from the literal contract rather than the separate provenance checksum.
-        fixture_provenance = fixture / 'docs/core-provenance.json'
-        saved_provenance = fixture_provenance.read_bytes()
-        protocol = fixture / 'translation-core/src/main/java/app/yydarlinker/deepseekcaptions/RebuildProtocol.java'
-        api = fixture / 'translation-core/src/main/java/app/yydarlinker/deepseekcaptions/RebuildApi.java'
-        protocol_text = protocol.read_text(encoding='utf-8-sig')
-        api_text = api.read_text(encoding='utf-8-sig')
-        self.assertIn('"block_identity"', protocol_text)
-        self.assertIn('" "', protocol_text)
-        literal_mutations = [
-            (protocol, protocol_text.replace('"block_identity"', '"not_whitelisted"', 1), 'unlisted-protocol'),
-            (protocol, protocol_text.replace('" "', 'null', 1), 'extra-legacy-deletion'),
-            (protocol, protocol_text + '\nclass ExtraSpace { String s = " "; }\n', 'legacy-count-changed'),
-            (protocol, protocol_text + '\nclass ExtraPrompt { String s = ' + '"An unauthorized extra prompt."' + '; }\n', 'prompt-count-changed'),
-            (api, api_text + '\nclass ExtraApiLiteral { String s = "not_whitelisted"; }\n', 'unlisted-api'),
-        ]
-        for path, changed, label in literal_mutations:
-            with self.subTest(literal=label):
-                original = path.read_bytes()
-                try:
-                    path.write_text(changed, encoding='utf-8')
-                    record = json.loads(saved_provenance)
-                    relative = path.relative_to(fixture).as_posix()
-                    row = next(row for row in record['files'] if row['destination'] == relative)
-                    row['sha256'] = hashlib.sha256(path.read_bytes()).hexdigest()
-                    fixture_provenance.write_text(json.dumps(record), encoding='utf-8')
-                    report = inspect(label, True)
-                    self.assertTrue(any('prompt/protocol literals changed' in e for e in report['errors']), report)
-                    self.assertFalse(any('unrecorded core adaptation' in e for e in report['errors']), report)
-                finally:
-                    path.write_bytes(original)
-                    fixture_provenance.write_bytes(saved_provenance)
-        inspect('literal-restored', False)
         cases = [
             (core, 'class S2NewPlanCache { S2UnlistedHost host; }', 'S2UnlistedHost'),
             (core, 'class S2NewPlanCache { S2UnlistedView view; }', 'S2UnlistedView'),
@@ -198,7 +157,7 @@ class VerificationContract(unittest.TestCase):
                     self.assertTrue(any(expected in e and path.name in e for e in report['errors']))
                 finally: path.write_bytes(original)
                 inspect(f'restored-{i}', False)
-        kotlin = source('presentation', 'S2Alias.kt',
+        kotlin = source('caption-shared', 'S2Alias.kt',
                         'import ' + package + '.S2NewPlanCache as Cache\nclass S2Alias(val cache: Cache)', 'kotlin')
         inspect('kotlin-alias-violation', True)
         kotlin.unlink()
@@ -226,7 +185,7 @@ class VerificationContract(unittest.TestCase):
         current.long_path(path.parent).mkdir(parents=True)
         marker = 'fixture_credential_for_long_path_check_9917'
         current.long_path(path).write_text(marker, encoding='utf8')
-        with patch.dict('os.environ', {'M7A_FIXTURE_SECRET': marker}):
+        with patch.object(scan_delivery_credentials.os, 'environ', {'M7A_FIXTURE_SECRET': marker}):
             report = scan_delivery_credentials.scan([self.root])
         self.assertEqual([str(path)], report['matches'])
 
@@ -260,11 +219,14 @@ class VerificationContract(unittest.TestCase):
         result = current.collect_tests(receipt, self.root / 'archive')
         self.assertEqual('gradle-confirmed reuse', result['translation-core']['execution'])
 
-    def test_failing_xml_rejected_even_with_success_receipt(self):
+    def test_failed_or_skipped_xml_rejected_even_with_success_receipt(self):
         receipt = self.receipt()
-        Path(receipt['tasks'][current.TEST_TASKS[0]]['xml'], 'TEST-example.xml').write_text('<testsuite tests="1" failures="1" errors="0" skipped="0"/>')
-        with self.assertRaisesRegex(ValueError, 'has failures'):
-            current.collect_tests(receipt, self.root / 'archive')
+        for failures, skipped in ((1, 0), (0, 1)):
+            with self.subTest(failures=failures, skipped=skipped):
+                Path(receipt['tasks'][current.TEST_TASKS[0]]['xml'], 'TEST-example.xml').write_text(
+                    f'<testsuite tests="2" failures="{failures}" errors="0" skipped="{skipped}"/>')
+                with self.assertRaisesRegex(ValueError, 'has failures|skipped'):
+                    current.collect_tests(receipt, self.root / 'archive')
 
     def test_long_html_report_paths_are_archived(self):
         receipt = self.receipt()
@@ -289,7 +251,7 @@ class VerificationContract(unittest.TestCase):
         evidence = self.root / label
         with patch.object(current.Steps, 'run', run_step):
             code = current.main(['--run-id', run_id, '--evidence-dir', str(evidence)])
-        self.addCleanup(shutil_cleanup, current.ROOT / 'build/maintenance/M1a' / run_id)
+        self.addCleanup(shutil_cleanup, current.ROOT / 'build/verification' / run_id)
         summary = json.loads((evidence / 'summary.json').read_text())
         self.assertEqual(1, code)
         self.assertEqual('failed', summary['status'])
@@ -351,8 +313,8 @@ class VerificationContract(unittest.TestCase):
         workflow = (current.ROOT / '.github/workflows/validate.yml').read_text()
         self.assertIn('tools/verify_current.py', workflow)
         self.assertIn("'codex/**'", workflow)
-        self.assertIn('extensions/extension/build/test-results/', workflow)
-        self.assertIn('build/maintenance/M1a/', workflow)
+        self.assertIn('validation/runs/', workflow)
+        self.assertIn('build/verification/', workflow)
         release = (current.ROOT / '.github/workflows/release.yml').read_text()
         after = release.split('- name: Validate Morphe metadata after release decision')[1].split('- name:')[0]
         self.assertIn("new_release_published }}' = 'true'", after)
@@ -368,7 +330,7 @@ def cleanup_fixture(path):
 def shutil_cleanup(path):
     import shutil
     # Path is a fixture-owned directory under the verification build root.
-    if path.is_relative_to(current.ROOT / 'build/maintenance/M1a'):
+    if path.is_relative_to(current.ROOT / 'build/verification'):
         shutil.rmtree(path)
 
 

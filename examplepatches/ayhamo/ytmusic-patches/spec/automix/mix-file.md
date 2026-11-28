@@ -109,7 +109,10 @@ Test: `node --test scripts/test_automix_plan.mjs` (the "mix file" tests).
    auto → 16 bars", "volume: crossfade → drawn", "volume: drawn → another drawing"; a position in
    seconds only reads as its time: "mix-out: bar 40.3 → 218.142 s"). Declining keeps
    every saved override and still adds the new pairs. A pair saved exactly as the file has it counts
-   as "already saved as they are" and needs no confirm. (`gridBpm` alone is not a change.)
+   as "already saved as they are" and needs no confirm. (`gridBpm` alone is not a change.) Beat
+   match is compared as it plays, `beatMatchOf` on both sides (2026-11-27): an own export's
+   `beatMatch: "auto"` against a saved mix with none is the same, and a change is named as it
+   plays ("beat match: auto → sync").
 
 6. **[all] Saving.** Each imported override is saved per pair as the editor would save it: this app's
    `engine`, `savedAt` now, the 300-pair cap and the locked cap (editor.md §1). A lock past the
@@ -123,7 +126,9 @@ Test: `node --test scripts/test_automix_plan.mjs` (the "mix file" tests).
    (`beatMatchOf`), not stored at import, so mixes imported before need no re-import. The editor
    shows such a mix's beat match as Sync. Auto picked there is saved as `beatMatch: "auto"` (kept
    only on a mix with `gridBpm`), and that mix then has Automix's limits again. A loop mix has no
-   beat match. (Until then an imported mix's Auto kept Automix's 8% limit: on the phone an imported
+   beat match. An export writes each mix's beat match as it plays (`beatMatchOf`, 2026-11-27): the
+   file carries `gridBpm`, so a mix made in the app with Auto is written as `beatMatch: "auto"`
+   (left out, it would come back as Sync) and an imported one with none as `"sync"`. (Until then an imported mix's Auto kept Automix's 8% limit: on the phone an imported
    Spotify mix 9% apart played without beat match.)
 
 7. **[all] Afterwards** the app says what happened in one line: "Imported N mixes", then any of

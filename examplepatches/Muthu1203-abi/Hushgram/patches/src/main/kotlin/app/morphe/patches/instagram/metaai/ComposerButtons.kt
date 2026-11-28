@@ -1,0 +1,224 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.morphe.patches.instagram.metaai
+
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patches.instagram.direct.messagebox.BUTTON_HOOK as MESSAGE_BOX_BUTTON_HOOK
+import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.instagram.misc.extension.classesCalling
+import app.morphe.patches.instagram.misc.extension.classesHolding
+import app.morphe.patches.instagram.misc.extension.classesLoading
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
+
+internal const val COMPOSER_BUTTON = "$EXTENSION_PACKAGE/metaai/MetaAi;->composerButton(Ljava/lang/Object;I)Z"
+internal val COMPOSER_BUTTON_NAMES = listOf("META_AI_DISCOVERY", "META_AI_INVOCATION", "META_AI_VOICE")
+
+/**
+ * Instagram 457's row_thread_composer_meta_ai_discover, invocation and voice ids, the same in both
+ * 457 builds (aapt2). 456 had them at 0x7f0b3890 to 0x7f0b3892, 455 at 0x7f0b3885 to 0x7f0b3887, 454 at
+ * 0x7f0b3848 to 0x7f0b384a.
+ */
+internal val COMPOSER_BUTTON_IDS = listOf(0x7f0b3871, 0x7f0b3872, 0x7f0b3873)
+private const val VIEW = "Landroid/view/View;"
+private const val FIND_VIEW = "$VIEW->findViewById(I)$VIEW"
+
+internal class ComposerVisibilitySite(val type: String, val name: String, val parameters: List<String>)
+
+/**
+ * Discover the composer through its three optional resource lookups and the button enum's names.
+ * Then require the native visibility dispatcher: it asks its own nullable view getter, skips an
+ * absent view, branches on the incoming show flag, and sends 0 or 8 to the same visibility call.
+ * Its callback receives that same flag. No instruction changes until every check has passed.
+ */
+internal fun BytecodePatchContext.findComposerButtonVisibility(): ComposerVisibilitySite {
+    val enums = classesHolding(*COMPOSER_BUTTON_NAMES.toTypedArray()).filter { candidate ->
+        candidate.superclass == "Ljava/lang/Enum;" && candidate.methods.any { method ->
+            method.name == "<clinit>" && method.code().mapNotNull { it.string() }.containsAll(COMPOSER_BUTTON_NAMES)
+        }
+    }
+    val buttonEnum = enums.singleOrNull() ?: refuseComposer("${enums.size} composer button enums, not one")
+    val loading = COMPOSER_BUTTON_IDS.map { id -> classesLoading(id.toLong()).mapTo(HashSet()) { it.type } }
+    val lookups = classesLoading(COMPOSER_BUTTON_IDS.first().toLong()).filter { candidate -> loading.all { candidate.type in it } }
+        .flatMap { candidate -> candidate.methods.map { candidate to it } }.filter { (_, method) ->
+        method.parameterTypes.isEmpty() && method.returnType == "Ljava/lang/Object;" &&
+            method.code().mapNotNull { it.literal() }.containsAll(COMPOSER_BUTTON_IDS)
+    }
+    val (lookupClass, lookup) = lookups.singleOrNull() ?: refuseComposer("${lookups.size} optional composer lookup methods, not one")
+    requireOptionalLookups(lookup)
+    val candidates = classesCalling(lookupClass.type, "<init>").filter { candidate ->
+        candidate.methods.any { method ->
+            method.name == "<init>" && method.code().any { instruction ->
+                instruction.methodReference()?.let { it.definingClass == lookupClass.type && it.name == "<init>" } == true
+            }
+        }
+    }.flatMap { candidate ->
+        candidate.methods.filter { method -> isVisibilityDispatcher(candidate, method, buttonEnum.type) }
+            .map { candidate to it }
+    }
+    val (controller, method) = candidates.singleOrNull()
+        ?: refuseComposer("${candidates.size} native composer visibility dispatchers, not one")
+    return ComposerVisibilitySite(controller.type, method.name, method.parameterTypes.map(CharSequence::toString))
+}
+
+/**
+ * One hook, first in the method, so it stays ahead of Message box buttons' hook on the same method
+ * whichever patch runs first. The app keeps its own hiding, inflation and spacing logic.
+ */
+internal fun BytecodePatchContext.holdComposerButtons(site: ComposerVisibilitySite) {
+    val method = mutableClassDefBy(site.type).methods.single {
+        it.name == site.name && it.returnType == "V" && it.parameterTypes.map(CharSequence::toString) == site.parameters
+    }
+    method.addInstructions(0, """
+        invoke-static/range { p2 .. p3 }, $COMPOSER_BUTTON
+        move-result p3
+    """)
+}
+
+private fun requireOptionalLookups(method: Method) {
+    val code = method.code()
+    for (id in COMPOSER_BUTTON_IDS) {
+        val loads = code.indices.filter { code[it].literal() == id }
+        val load = loads.singleOrNull() ?: refuseComposer("composer view $id is loaded ${loads.size} times, not once")
+        val result = code.getOrNull(load + 2) as? OneRegisterInstruction
+        val zero = code.getOrNull(load + 3) as? OneRegisterInstruction
+        val test = code.getOrNull(load + 4) as? OneRegisterInstruction
+        val target = code.target(load + 4)
+        if (code.getOrNull(load + 1)?.methodReference()?.toString() != FIND_VIEW ||
+            code[load + 1].arguments().lastOrNull() != (code[load] as OneRegisterInstruction).registerA ||
+            code.getOrNull(load + 2)?.opcode != Opcode.MOVE_RESULT_OBJECT ||
+            code.getOrNull(load + 3)?.literal() != 0 || code.getOrNull(load + 4)?.opcode != Opcode.IF_EQZ ||
+            result == null || zero == null || test?.registerA != result.registerA ||
+            target == null || code[target].opcode != Opcode.RETURN_OBJECT ||
+            (code[target] as OneRegisterInstruction).registerA != zero.registerA) {
+            refuseComposer("composer view $id isn't an optional lookup returning null when absent")
+        }
+    }
+}
+
+private fun isVisibilityDispatcher(owner: ClassDef, method: Method, buttonEnum: String): Boolean {
+    val parameters = method.parameterTypes.map(CharSequence::toString)
+    if (AccessFlags.STATIC.isSet(method.accessFlags) || method.returnType != "V" ||
+        parameters.size != 3 || parameters[1] != buttonEnum || parameters[2] != "Z") return false
+    val firstParameter = (method.implementation?.registerCount ?: return false) - 4
+    val incoming = (firstParameter..firstParameter + 3).toList()
+    // Message box buttons filters the same pair here, and its hook is first when that patch ran first.
+    val code = method.code().let { it.drop(leadingHookPair(it, MESSAGE_BOX_BUTTON_HOOK, incoming[3])) }
+    val call = code.firstOrNull()?.methodReference() ?: return false
+    val callParameters = call.parameterTypes.map(CharSequence::toString)
+    val getter = owner.methods.singleOrNull {
+        it.name == call.name && it.parameterTypes.map(CharSequence::toString) == callParameters && it.returnType == VIEW
+    } ?: return false
+    // 454 made the getter static and passes the controller among the dispatcher's own three, as
+    // LX/05TH;->HsA calls LX/05TH;->A01(LX/05Uv;LX/05Uu;LX/05TH;Z) with this third on 386014758.
+    val asksItsGetter = when (code[0].opcode) {
+        Opcode.INVOKE_DIRECT -> callParameters == parameters && code[0].arguments() == incoming
+        Opcode.INVOKE_STATIC -> AccessFlags.STATIC.isSet(getter.accessFlags) &&
+            takesThisAmong(callParameters, code[0].arguments(), owner.type, parameters, incoming)
+        else -> false
+    }
+    if (!asksItsGetter || call.definingClass != owner.type || call.returnType != VIEW ||
+        getter.code().none { it.methodReference()?.let { ref -> ref.name == "getView" && ref.parameterTypes.isEmpty() && ref.returnType == VIEW } == true }) return false
+    val result = (code.getOrNull(1) as? OneRegisterInstruction)?.registerA ?: return false
+    val skip = code.target(2) ?: return false
+    val hide = code.target(3) ?: return false
+    if (code.getOrNull(1)?.opcode != Opcode.MOVE_RESULT_OBJECT || code.getOrNull(2)?.opcode != Opcode.IF_EQZ ||
+        (code[2] as OneRegisterInstruction).registerA != result || code[skip].opcode != Opcode.RETURN_VOID ||
+        code.getOrNull(3)?.opcode != Opcode.IF_EQZ || (code[3] as OneRegisterInstruction).registerA != incoming[3]) return false
+    // 454 calls the view's own setVisibility, after logging the call: LX/05TH;->HsA on 386014758
+    // loads 0 or 8, then a trace id and "setVisibility" for LX/0Eml;->A0g, then the setter.
+    val setters = code.indices.filter { index ->
+        val ref = code[index].methodReference()
+        val arguments = code[index].arguments()
+        arguments.firstOrNull() == result && ref?.returnType == "V" && (
+            code[index].opcode == Opcode.INVOKE_STATIC && ref.parameterTypes.map(CharSequence::toString) == listOf(VIEW, "I", "I") ||
+                code[index].opcode == Opcode.INVOKE_VIRTUAL && ref.definingClass == VIEW && ref.name == "setVisibility" &&
+                ref.parameterTypes.map(CharSequence::toString) == listOf("I")
+            )
+    }
+    val setter = setters.singleOrNull() ?: return false
+    val visibility = code[setter].arguments()[1]
+    if (code[hide].literal() != 8 || (code[hide] as? OneRegisterInstruction)?.registerA != visibility ||
+        code.getOrNull(hide + 1)?.opcode !in listOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32)) return false
+    // The hide path joins the show path right after its 0, and nothing on the way to the setter
+    // changes the visibility or goes anywhere else.
+    val join = code.target(hide + 1) ?: return false
+    if (join < 1 || join > setter || code[join - 1].literal() != 0 ||
+        (code[join - 1] as? OneRegisterInstruction)?.registerA != visibility ||
+        (join until setter).any { code[it].writes(visibility) || code[it] is OffsetInstruction || !code[it].opcode.canContinue() }) return false
+    return code.drop(setter + 1).count { instruction ->
+        val ref = instruction.methodReference()
+        ref?.returnType == "V" && ref.parameterTypes.map(CharSequence::toString) == parameters &&
+            instruction.arguments().drop(1) == incoming.drop(1)
+    } == 1
+}
+
+/**
+ * How many instructions at the start of [code] are a hook pair calling [hook]: an invoke-static of it
+ * on the two registers ending at [flag], then the move-result back into [flag]. Two, or 0 without one.
+ * Hide Meta AI and Message box buttons both filter the composer's (button, show) pair first thing,
+ * and each looks past the other's pair to find the method and to keep Meta AI's first.
+ */
+internal fun leadingHookPair(code: List<Instruction>, hook: String, flag: Int): Int {
+    val call = code.getOrNull(0) ?: return 0
+    val result = code.getOrNull(1) ?: return 0
+    if (call.opcode != Opcode.INVOKE_STATIC_RANGE && call.opcode != Opcode.INVOKE_STATIC) return 0
+    if (call.methodReference()?.toString() != hook || call.arguments() != listOf(flag - 1, flag)) return 0
+    if (result.opcode != Opcode.MOVE_RESULT || (result as OneRegisterInstruction).registerA != flag) return 0
+    return 2
+}
+
+/**
+ * Whether a static getter's [callParameters] and [arguments] are the dispatcher's own [parameters]
+ * and [incoming] registers past `this`, with [owner] and `this` put in at one same place.
+ */
+private fun takesThisAmong(callParameters: List<String>, arguments: List<Int>, owner: String, parameters: List<String>, incoming: List<Int>): Boolean =
+    callParameters.size == parameters.size + 1 && arguments.size == incoming.size && callParameters.indices.any { at ->
+        callParameters[at] == owner && arguments[at] == incoming[0] &&
+            callParameters.filterIndexed { index, _ -> index != at } == parameters &&
+            arguments.filterIndexed { index, _ -> index != at } == incoming.drop(1)
+    }
+
+private fun Instruction.writes(register: Int): Boolean {
+    if (!opcode.setsRegister()) return false
+    val written = (this as? OneRegisterInstruction)?.registerA ?: return false
+    return written == register || (opcode.setsWideRegister() && written + 1 == register)
+}
+
+private fun Method.code(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
+private fun Instruction.literal(): Int? = (this as? NarrowLiteralInstruction)?.narrowLiteral
+private fun Instruction.string(): String? = ((this as? ReferenceInstruction)?.reference as? StringReference)?.string
+private fun Instruction.methodReference(): MethodReference? = (this as? ReferenceInstruction)?.reference as? MethodReference
+private fun Instruction.arguments(): List<Int> = when (this) {
+    is RegisterRangeInstruction -> (startRegister until startRegister + registerCount).toList()
+    is FiveRegisterInstruction -> listOf(registerC, registerD, registerE, registerF, registerG).take(registerCount)
+    else -> emptyList()
+}
+
+private fun List<Instruction>.target(index: Int): Int? {
+    val branch = getOrNull(index) as? OffsetInstruction ?: return null
+    val address = take(index).sumOf { it.codeUnits } + branch.codeOffset
+    var current = 0
+    for (candidate in indices) {
+        if (current == address) return candidate
+        current += this[candidate].codeUnits
+    }
+    return null
+}
+
+private fun refuseComposer(detail: String): Nothing = throw PatchException("Hide Meta AI: $detail")

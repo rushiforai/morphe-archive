@@ -1,0 +1,254 @@
+--- dev110/LegacyOkHttpPrune262.java
++++ final/LegacyOkHttpPrune262.java
+@@ -15,7 +15,7 @@
+ import com.android.tools.smali.dexlib2.immutable.instruction.*;
+ import com.android.tools.smali.dexlib2.immutable.reference.*;
+ import com.android.tools.smali.dexlib2.Opcode;
+-/** Conservative prune with automatic FULL compilation for known STRIP_FAST/STRIP_SAFE entry modes. */
++/** Conservative prune with verified FULL or STRIP_SAFE reconstruction for known entry modes. */
+ public final class LegacyOkHttpPrune262 {
+  private static final String APK="17fc6b46228af184437ade7e6f5573915bc655b86996307ff3270fdf35279cce";
+  private static final String ALL="cf64dc9dd7c8905151b5848afa06b1310c3d3096ae4ea4170974a07b63b72928";
+@@ -75,7 +75,7 @@
+  }
+  // Build-time audited exact DEX inputs; never trust a class name or DEX header alone.
+  private static final String CERT_STOCK="0424f25b75e2857b7db7318aa268da57c85454a42ecbe67f113743d117af6cff";
+- private static final String CERT_HELPER="c048054f80cc769d00d23730a55d1bbc1b8873a4f6c455b3eb5f7ffc35d0faa5";
++ private static final String CERT_HELPER="93bb4a9292290bd0483d9c20a6f3e3bd2f6e1c5227e1e4560e5ede90105c031b";
+  private static boolean certifiedClean(ClassDef c,String name,IdentityHashMap<DexBackedDexFile,Integer> memo){
+   if(c.getClass()!=DexBackedClassDef.class||OWNER.equals(name)||name.startsWith("Li/")||name.startsWith("Lokhttp3/"))return false;
+   DexBackedDexFile dex=((DexBackedClassDef)c).dexFile;
+@@ -87,7 +87,7 @@
+    state=0;
+    try{
+     int length=dex.getFileSize();
+-    if(dex.getBaseDataOffset()==0&&dex.getBuffer().getBaseOffset()==dex.getDataBuffer().getBaseOffset()&&(length==6508868||length==9836988)){
++    if(dex.getBaseDataOffset()==0&&dex.getBuffer().getBaseOffset()==dex.getDataBuffer().getBaseOffset()&&(length==6508868||length==9851140)){
+      String sha=hex(readBytesForHash(dex,length));
+      if(CERT_STOCK.equals(sha)||CERT_HELPER.equals(sha))state=1;
+     }
+@@ -109,7 +109,10 @@
+    String initial=((Enum<?>)mode).name();
+    if(!"FULL".equals(initial)&&!"STRIP_FAST".equals(initial)&&!"STRIP_SAFE".equals(initial)){log("skip: unsupported mode "+initial);return;}
+    java.lang.reflect.Method setter=config.getClass().getMethod("setBytecodeMode$morphe_patcher",mode.getClass());
+-   Object full=Enum.valueOf((Class)mode.getClass(),"FULL");
++   Object full=null;
++   for(Object v:mode.getClass().getEnumConstants())if("FULL".equals(((Enum<?>)v).name()))full=v;
++   final boolean safeOnly=full==null;
++   final Object rebuild=safeOnly?Enum.valueOf((Class)mode.getClass(),"STRIP_SAFE"):full;
+    if(!APK.equals(fileHash((File)call(config,"getApkFile$morphe_patcher")))){log("skip: unverified APK");return;}
+    Object pc=call(context,"getPatchClasses$morphe_patcher");Object raw=call(pc,"getClassMap$morphe_patcher");
+    if(raw.getClass()!=HashMap.class&&raw.getClass()!=LinkedHashMap.class){log("skip: unknown class map");return;}
+@@ -118,6 +121,7 @@
+    TreeSet<String> target=new TreeSet<String>();for(String n:map.keySet())if(n.startsWith("Lokhttp3/"))target.add(n);
+    if(target.size()!=264||!OLD.equals(namesHash(target))){log("skip: unverified legacy set");return;}
+    java.lang.reflect.Method getter=map.values().iterator().next().getClass().getMethod("getClassDef");
++   final Set<String> original112=safeOnly?safeLayout112(context,pc,map,getter):null;
+    // Prepare the Okio replacement before auditing, but do not mutate the map.
+    Object[] ioPlan=null;
+    try{ioPlan=prepareIo(map,getter);}catch(Exception|LinkageError e){log("skip legacy Okio: preparation error ("+e.getClass().getSimpleName()+")");}
+@@ -135,11 +139,15 @@
+    }
+    log("legacy dependency audit: certified DEX, skipped "+certified+", scanned "+scanned+", "+((System.nanoTime()-auditStart)/1000000)+" ms");
+    // No changes until every guard has passed. Known mutable map, no callbacks.
++   // A SAFE run is transactional across every deletion stage and compiler-layout check.
++   Map<String,Object> allWrappers=safeOnly?new LinkedHashMap<>(map):null;
++   Map<String,ClassDef> allDefs=safeOnly?new LinkedHashMap<String,ClassDef>():null;
++   if(safeOnly)for(Map.Entry<String,Object> e:map.entrySet())allDefs.put(e.getKey(),(ClassDef)getter.invoke(e.getValue()));
+    Map<String,Object> backup=new LinkedHashMap<String,Object>();for(String n:target)backup.put(n,map.get(n));
+    // STRIP_FAST only strips modified originals; removing a map entry alone is insufficient.
+    // Use the patcher's complete compiler for this exact verified input, without user settings.
+    try{
+-    if(mode!=full){setter.invoke(config,full);if(call(config,"getBytecodeMode$morphe_patcher")!=full)throw new IllegalStateException("mode not applied");}
++    if(mode!=rebuild){setter.invoke(config,rebuild);if(call(config,"getBytecodeMode$morphe_patcher")!=rebuild)throw new IllegalStateException("mode not applied");}
+     for(String n:target)map.remove(n);if(map.size()!=16650)throw new IllegalStateException("unexpected prune size");
+    }catch(Exception|LinkageError e){
+     map.putAll(backup);
+@@ -147,11 +155,79 @@
+     if(call(config,"getBytecodeMode$morphe_patcher")!=mode)throw new IllegalStateException("rollback mode failed",e);
+     throw e;
+    }
+-   log("removed 264 legacy OkHttp classes ("+initial+" -> FULL)");
++   try {
++   log("removed 264 legacy OkHttp classes ("+initial+" -> "+((Enum<?>)rebuild).name()+")");
+    if(ioPlan!=null){pruneIo(map,getter,ioPlan);pruneMutations(map,getter);pruneAds(map,getter);// The separate Google fallback is valid only after the original 608-class ad stage.
+     // Every successful combined stage (including future optional prunes) bypasses it.
+     if(map.size()==16004)pruneGoogle91(map,getter);}
+-  }catch(Exception|LinkageError e){log("skip: unsupported context or audit error ("+e.getClass().getSimpleName()+")");}
++   pruneResidual111(map,getter);
++   if(safeOnly){
++    if(map.size()!=11414||!"c742b7dcfcf77adc9ebb807dd810cdab8bf2533e88369879e20caf539646cba9".equals(namesHash(map.keySet())))throw new IllegalStateException("incomplete audited removal set");
++    ensureSafe112(context,map,getter,original112);
++    if(call(config,"getBytecodeMode$morphe_patcher")!=rebuild)throw new IllegalStateException("compiler mode changed");
++    log("2.2.0 STRIP_SAFE verified: 16914 -> 11414, 5500 removed; original DEX rebuild required; extension copy disabled by SAFE compiler");
++   }
++   }catch(Exception|LinkageError e){
++    if(!safeOnly)throw e;
++    try{
++     map.clear();map.putAll(allWrappers);
++     for(Map.Entry<String,Object> en:map.entrySet()){Object w=en.getValue();ClassDef old=allDefs.get(en.getKey());if(getter.invoke(w)!=old)w.getClass().getMethod("setClassDef",ClassDef.class).invoke(w,old);if(getter.invoke(w)!=old)throw new IllegalStateException("definition rollback");}
++     setter.invoke(config,mode);
++     if(call(config,"getBytecodeMode$morphe_patcher")!=mode||map.size()!=16914||!ALL.equals(namesHash(map.keySet())))throw new IllegalStateException("rollback check");
++    }catch(Exception|LinkageError fatal){throw new AssertionError("2.2.0 rollback failed; do not emit APK",fatal);}
++    log("2.2.0 SAFE deletion rolled back: "+e.getClass().getSimpleName()+" "+e.getMessage());
++   }
++  }catch(Exception|LinkageError e){log("skip: unsupported context or audit error ("+e.getClass().getSimpleName()+": "+e.getMessage()+")");}
++ }
++
++ // Morphe 2.6.0 SAFE writes only new/modified classes first; then rebuilds an original
++ // entry only if a retained original MutableClass is present. It never copies extension DEXs.
++ private static Object field112(Object o,String n)throws Exception{java.lang.reflect.Field f=o.getClass().getDeclaredField(n);f.setAccessible(true);return f.get(o);}
++ private static boolean original112(Object w,int count)throws Exception{int ordinal=((Number)call(w,"getOrdinal$morphe_patcher")).intValue();if(ordinal<0)throw new IllegalStateException("negative ordinal");return ordinal<count;}
++ @SuppressWarnings("unchecked") private static Set<String> safeLayout112(Object context,Object pc,Map<String,Object> map,java.lang.reflect.Method getter)throws Exception{
++  Object r=field112(context,"readResult");
++  if(!"app.morphe.patcher.dex.MultidexReadResult".equals(r.getClass().getName()))throw new IllegalStateException("readResult ABI");
++  Map<?,?> entries=(Map<?,?>)call(r,"getClassDescriptorsByEntry");
++  Map<?,?> mappings=(Map<?,?>)field112(context,"originalDexMappings");
++  if(entries.size()!=1||mappings.size()!=1||!(entries.get("classes.dex") instanceof Set))throw new IllegalStateException("expected single stock DEX");
++  Map.Entry<?,?> mapping=mappings.entrySet().iterator().next();
++  if(!(mapping.getKey() instanceof File)||!"classes.dex".equals(((File)mapping.getKey()).getName()))throw new IllegalStateException("original mapping name");
++  Object mapped=mapping.getValue();String kind=mapped.getClass().getName();
++  if(!kind.equals("app.morphe.patcher.dex.MemoryDexFile")&&!kind.equals("app.morphe.patcher.dex.RandomAccessMappedFile")&&!kind.equals("app.morphe.patcher.dex.FfmMappedFile"))throw new IllegalStateException("unknown original mapping "+kind);
++  if(!(field112(context,"extensionDexFiles") instanceof List))throw new IllegalStateException("extension ABI");
++  int count=((Number)field112(context,"originalClassCount")).intValue();
++  Set<String> stock=new HashSet<>((Set<String>)entries.get("classes.dex"));
++  if(count<=0||count!=stock.size()||!map.keySet().containsAll(stock))throw new IllegalStateException("original descriptors/count mismatch");
++  Set<Integer> ordinals=new HashSet<>();
++  for(Map.Entry<String,Object> en:map.entrySet()){
++   Object w=en.getValue();int ordinal=((Number)call(w,"getOrdinal$morphe_patcher")).intValue();
++   if(ordinal<0||!ordinals.add(ordinal)||original112(w,count)!=stock.contains(en.getKey())||!en.getKey().equals(((ClassDef)getter.invoke(w)).getType()))throw new IllegalStateException("original/extension classification mismatch");
++  }
++  // Cancel background indexing before map mutations; no stale index is used by our audits.
++  call(pc,"cancelBuildingIndexes$morphe_patcher");
++  log("2.2.0 SAFE layout verified: original="+count+", backing="+kind);
++  return stock;
++ }
++ private static void ensureSafe112(Object context,Map<String,Object> map,java.lang.reflect.Method getter,Set<String> stock)throws Exception{
++  int count=((Number)field112(context,"originalClassCount")).intValue();
++  Class<?> mutable=Class.forName("app.morphe.patcher.util.proxy.mutableTypes.MutableClass",false,context.getClass().getClassLoader());
++  boolean anchor=false;String chosen=null;
++  for(Map.Entry<String,Object> en:map.entrySet()){
++   boolean orig=original112(en.getValue(),count);
++   ClassDef def=(ClassDef)getter.invoke(en.getValue());
++   if(orig!=stock.contains(en.getKey())||!en.getKey().equals(def.getType()))throw new IllegalStateException("post-prune class classification mismatch");
++   if(orig){if(mutable.isInstance(def))anchor=true;else if(chosen==null)chosen=en.getKey();}
++  }
++  if(!anchor){
++   if(chosen==null)throw new IllegalStateException("no surviving original anchor");
++   Object w=map.get(chosen);ClassDef old=(ClassDef)getter.invoke(w);
++   ClassDef marker=(ClassDef)mutable.getConstructor(ClassDef.class).newInstance(old);
++   w.getClass().getMethod("setClassDef",ClassDef.class).invoke(w,marker);
++   if(getter.invoke(w)!=marker||!original112(w,count)||!chosen.equals(marker.getType()))throw new IllegalStateException("anchor installation failed");
++   log("2.2.0 added original rebuild anchor "+chosen);
++  }
++  // No call to writeToOriginalFile is necessary: the verified original entry always takes
++  // SAFE's rebuild branch, which reads live definitions before releasing MemoryDexFile.
+  }
+  private static String sig(com.android.tools.smali.dexlib2.iface.Method m){return DexFormatter.INSTANCE.getMethodDescriptor(m);}
+  private static Object[] prepareIo(Map<String,Object> map,java.lang.reflect.Method getter)throws Exception{
+@@ -183,7 +259,7 @@
+     for(String n:targets)map.remove(n);
+     if(map.size()!=16612)throw new IllegalStateException("unexpected Okio prune size");
+    }catch(Exception|LinkageError e){map.putAll(backup);set.invoke(wrapper,orig);if(map.size()!=16650||getter.invoke(wrapper)!=orig)throw new IllegalStateException("Okio rollback failed",e);throw e;}
+-   log("removed 38 legacy Okio classes and 8 unused helper methods (FULL)");
++   log("removed 38 legacy Okio classes and 8 unused helper methods (audited rebuild)");
+   }catch(Exception|LinkageError e){log("skip legacy Okio: unsupported context or audit error ("+e.getClass().getSimpleName()+")");}
+  }
+ 
+@@ -341,7 +417,7 @@
+    try{
+     for(int i=0;i<wrappers.size();i++){Object w=wrappers.get(i);if(getter.invoke(w)!=originals.get(i))throw new IllegalStateException("owner changed");w.getClass().getMethod("setClassDef",ClassDef.class).invoke(w,replacements.get(i));if(getter.invoke(w)!=replacements.get(i))throw new IllegalStateException("owner not replaced");}
+    }catch(Exception|LinkageError e){for(int i=0;i<wrappers.size();i++){Object w=wrappers.get(i);w.getClass().getMethod("setClassDef",ClassDef.class).invoke(w,originals.get(i));}throw e;}
+-   log("removed 7 unused mutation methods (FULL), audit "+((System.nanoTime()-start)/1000000)+" ms");
++   log("removed 7 unused mutation methods (audited rebuild), audit "+((System.nanoTime()-start)/1000000)+" ms");
+   }catch(Exception|LinkageError e){log("skip obsolete mutations: unsupported context or audit error ("+e.getClass().getSimpleName()+")");}
+  }
+ 
+@@ -568,12 +644,12 @@
+    try{detachApp90(map,getter,appOld,appNew);originals.putAll(appOld);replacements.putAll(appNew);detached=true;for(String f:APP90_FIELDS)auditDead.add(f);for(String row:APP90_ROWS){String sig=row.substring(0,row.indexOf('\t'));if(sig.endsWith(ADVIEW90))auditDead.add(sig);}}
+    catch(Exception|LinkageError e){log("skip app ad detachment: "+e.getMessage());targets.remove(NATIVE90);if(targets.size()!=607||!"1bfe21a5d38c42f883744c10f7c14e8e931919a0e07671910de8ca0643f7a890".equals(namesHash(targets)))throw new IllegalStateException("baseline ad target set");}
+    if(detached&&(pruneCombined92(map,getter,targets,auditDead,originals,replacements,start,true,true,true)||pruneCombined92(map,getter,targets,auditDead,originals,replacements,start,true,true,false)||pruneCombined92(map,getter,targets,auditDead,originals,replacements,start,true,false,false)||pruneCombined92(map,getter,targets,auditDead,originals,replacements,start,false,false,false)))return;
+-   IdentityHashMap<DexBackedDexFile,Integer> memo=new IdentityHashMap<>();int skipped=0;for(Map.Entry<String,Object> e:map.entrySet())if(!targets.contains(e.getKey())){ClassDef c=replacements.containsKey(e.getKey())?replacements.get(e.getKey()):(ClassDef)getter.invoke(e.getValue());if(c.getClass()==DexBackedClassDef.class&&((DexBackedClassDef)c).dexFile.getFileSize()==9836988&&certifiedClean(c,e.getKey(),memo)){skipped++;continue;}String hit=adExternal(c,targets,auditDead);if(hit!=null){log("skip obsolete ads: external reference in "+hit);return;}}
++   IdentityHashMap<DexBackedDexFile,Integer> memo=new IdentityHashMap<>();int skipped=0;for(Map.Entry<String,Object> e:map.entrySet())if(!targets.contains(e.getKey())){ClassDef c=replacements.containsKey(e.getKey())?replacements.get(e.getKey()):(ClassDef)getter.invoke(e.getValue());if(c.getClass()==DexBackedClassDef.class&&((DexBackedClassDef)c).dexFile.getFileSize()==9851140&&certifiedClean(c,e.getKey(),memo)){skipped++;continue;}String hit=adExternal(c,targets,auditDead);if(hit!=null){log("skip obsolete ads: external reference in "+hit);return;}}
+    Map<String,Object> backup=new LinkedHashMap<>();for(String n:targets)backup.put(n,map.get(n));
+    try{for(String owner:originals.keySet()){Object w=map.get(owner);w.getClass().getMethod("setClassDef",ClassDef.class).invoke(w,replacements.get(owner));if(getter.invoke(w)!=replacements.get(owner))throw new IllegalStateException("owner not replaced");}for(String n:targets)map.remove(n);if(map.size()!=16612-targets.size())throw new IllegalStateException("unexpected ad prune size");}
+    catch(Exception|LinkageError e){map.putAll(backup);for(String owner:originals.keySet()){Object w=map.get(owner);w.getClass().getMethod("setClassDef",ClassDef.class).invoke(w,originals.get(owner));}throw e;}
+    if(detached)log("detached 13 obsolete ad fields and 56 application methods from Google Ads");
+-   log("removed "+targets.size()+" obsolete advertising classes and 9 advertising-only methods (FULL), certified skipped "+skipped+", audit "+((System.nanoTime()-start)/1000000)+" ms");
++   log("removed "+targets.size()+" obsolete advertising classes and 9 advertising-only methods (audited rebuild), certified skipped "+skipped+", audit "+((System.nanoTime()-start)/1000000)+" ms");
+   }catch(Exception|LinkageError e){log("skip obsolete ads: unsupported context or audit error ("+e.getClass().getSimpleName()+") "+e.getMessage());}
+  }
+ 
+@@ -687,11 +763,11 @@
+    }
+    if(!found.equals(dead))throw new IllegalStateException("Google Ads member mismatch");
+    IdentityHashMap<DexBackedDexFile,Integer> memo=new IdentityHashMap<>();int skipped=0;
+-   for(Map.Entry<String,Object> e:map.entrySet())if(!targets.contains(e.getKey())){ClassDef c=replacements.containsKey(e.getKey())?replacements.get(e.getKey()):(ClassDef)getter.invoke(e.getValue());if(!e.getKey().equals(c.getType()))throw new IllegalStateException("class mismatch");if(c.getClass()==DexBackedClassDef.class&&((DexBackedClassDef)c).dexFile.getFileSize()==9836988&&certifiedClean(c,e.getKey(),memo)){skipped++;continue;}String hit=adExternal(c,targets,dead);if(hit!=null)throw new IllegalStateException("external reference "+hit);if("Le/d/b/b/m/c;".equals(c.getSuperclass())&&!"Le/d/b/b/m/m;".equals(c.getType()))throw new IllegalStateException("unexpected Tasks subclass");}
++   for(Map.Entry<String,Object> e:map.entrySet())if(!targets.contains(e.getKey())){ClassDef c=replacements.containsKey(e.getKey())?replacements.get(e.getKey()):(ClassDef)getter.invoke(e.getValue());if(!e.getKey().equals(c.getType()))throw new IllegalStateException("class mismatch");if(c.getClass()==DexBackedClassDef.class&&((DexBackedClassDef)c).dexFile.getFileSize()==9851140&&certifiedClean(c,e.getKey(),memo)){skipped++;continue;}String hit=adExternal(c,targets,dead);if(hit!=null)throw new IllegalStateException("external reference "+hit);if("Le/d/b/b/m/c;".equals(c.getSuperclass())&&!"Le/d/b/b/m/m;".equals(c.getType()))throw new IllegalStateException("unexpected Tasks subclass");}
+    Map<String,Object> backup=new LinkedHashMap<>();for(String n:targets)backup.put(n,map.get(n));
+    try{for(String owner:originals.keySet()){Object w=map.get(owner);w.getClass().getMethod("setClassDef",ClassDef.class).invoke(w,replacements.get(owner));if(getter.invoke(w)!=replacements.get(owner))throw new IllegalStateException("owner not replaced");}for(String n:targets)map.remove(n);if(map.size()!=12546)throw new IllegalStateException("unexpected Google Ads prune size");}
+    catch(Exception|LinkageError e){map.putAll(backup);for(String owner:originals.keySet()){Object w=map.get(owner);w.getClass().getMethod("setClassDef",ClassDef.class).invoke(w,originals.get(owner));}throw e;}
+-   log("removed 3458 Google Ads SDK/continuation classes, 76 methods and 1 field (FULL), certified skipped "+skipped+", audit "+((System.nanoTime()-start)/1000000)+" ms; cumulative advertising classes=4066 methods=85");
++   log("removed 3458 Google Ads SDK/continuation classes, 76 methods and 1 field (audited rebuild), certified skipped "+skipped+", audit "+((System.nanoTime()-start)/1000000)+" ms; cumulative advertising classes=4066 methods=85");
+   }catch(Exception|LinkageError e){log("skip Google Ads SDK: "+e.getClass().getSimpleName()+" "+e.getMessage());}
+  }
+ 
+@@ -808,17 +884,53 @@
+    if(stockClean.size()!=3451||!"cc2e6be8083c2e45bdc58d97c9499e63a471e89fb3a849ecd46e4d7e9b8c58bc".equals(namesHash(stockClean)))throw new IllegalStateException("stock certificate inventory");
+    Set<String> allDead=new HashSet<>(firstDead);allDead.addAll(dead);
+    IdentityHashMap<DexBackedDexFile,Integer> memo=new IdentityHashMap<>();int skipped=0,stockSkipped=0;
+-   for(Map.Entry<String,Object> e:map.entrySet())if(!targets.contains(e.getKey())){ClassDef c=replacements.containsKey(e.getKey())?replacements.get(e.getKey()):(ClassDef)getter.invoke(e.getValue());if(!e.getKey().equals(c.getType()))throw new IllegalStateException("class mismatch");if(c.getClass()==DexBackedClassDef.class){int size=((DexBackedClassDef)c).dexFile.getFileSize();if((size==9836988||(size==6508868&&stockClean.contains(e.getKey())))&&certifiedClean(c,e.getKey(),memo)){skipped++;if(size==6508868)stockSkipped++;continue;}}String hit=adExternal(c,targets,allDead);if(hit!=null)throw new IllegalStateException("external reference "+hit);if("Le/d/b/b/m/c;".equals(c.getSuperclass())&&!"Le/d/b/b/m/m;".equals(c.getType()))throw new IllegalStateException("unexpected Tasks subclass");}
++   for(Map.Entry<String,Object> e:map.entrySet())if(!targets.contains(e.getKey())){ClassDef c=replacements.containsKey(e.getKey())?replacements.get(e.getKey()):(ClassDef)getter.invoke(e.getValue());if(!e.getKey().equals(c.getType()))throw new IllegalStateException("class mismatch");if(c.getClass()==DexBackedClassDef.class){int size=((DexBackedClassDef)c).dexFile.getFileSize();if((size==9851140||(size==6508868&&stockClean.contains(e.getKey())))&&certifiedClean(c,e.getKey(),memo)){skipped++;if(size==6508868)stockSkipped++;continue;}}String hit=adExternal(c,targets,allDead);if(hit!=null)throw new IllegalStateException("external reference "+hit);if("Le/d/b/b/m/c;".equals(c.getSuperclass())&&!"Le/d/b/b/m/m;".equals(c.getType()))throw new IllegalStateException("unexpected Tasks subclass");}
+    Map<String,Object> backup=new LinkedHashMap<>();for(String n:targets)backup.put(n,map.get(n));
+    try{for(String owner:originals.keySet()){Object w=map.get(owner);w.getClass().getMethod("setClassDef",ClassDef.class).invoke(w,replacements.get(owner));if(getter.invoke(w)!=replacements.get(owner))throw new IllegalStateException("owner not replaced");}for(String n:targets)map.remove(n);if(map.size()!=(extra95?11496:extra94?11808:androidX?12490:12546))throw new IllegalStateException("unexpected combined prune size");}
+    catch(Exception|LinkageError e){map.putAll(backup);for(String owner:originals.keySet()){Object w=map.get(owner);w.getClass().getMethod("setClassDef",ClassDef.class).invoke(w,originals.get(owner));}throw e;}
+    log("detached 13 obsolete ad fields and 56 application methods from Google Ads");
+-   log("removed 4066 obsolete advertising classes and 85 advertising-only methods (FULL), 14 fields; combined audit, certified skipped "+skipped+" (stock "+stockSkipped+"), audit "+((System.nanoTime()-start)/1000000)+" ms");
+-   if(androidX)log("removed 56 unused AndroidX classes (FULL), integrated reference audit");
+-   if(extra94)log("removed 682 unused optional library and test classes (FULL), integrated reference audit");
+-   if(extra95)log("removed 312 additional unused library classes (FULL), integrated reference audit");
++   log("removed 4066 obsolete advertising classes and 85 advertising-only methods (audited rebuild), 14 fields; combined audit, certified skipped "+skipped+" (stock "+stockSkipped+"), audit "+((System.nanoTime()-start)/1000000)+" ms");
++   if(androidX)log("removed 56 unused AndroidX classes (audited rebuild), integrated reference audit");
++   if(extra94)log("removed 682 unused optional library and test classes (audited rebuild), integrated reference audit");
++   if(extra95)log("removed 312 additional unused library classes (audited rebuild), integrated reference audit");
+    return true;
+   }catch(Exception|LinkageError e){log((extra95?"additional library combined audit fallback: ":extra94?"optional library combined audit fallback: ":androidX?"AndroidX combined audit fallback: ":"combined advertising audit fallback: ")+e.getClass().getSimpleName()+" "+e.getMessage());return false;}
++ }
++
++
++ // The entire isolated annotation package and the unused Commons Lang reflection package.
++ // Never apply the existing stock/helper certificates to this additional set.
++ private static boolean residualText111(String s){return s!=null&&(s.contains("nicoid/network238/androidx/annotation")||s.contains("nicoid.network238.androidx.annotation")||s.contains("org/apache/commons/lang3/reflect")||s.contains("org.apache.commons.lang3.reflect"));}
++ private static boolean residualAnnotations111(Iterable<? extends Annotation> annotations){for(Annotation a:annotations){if(residualText111(a.getType()))return true;for(AnnotationElement e:a.getElements())if(residualText111(DexFormatter.INSTANCE.getEncodedValue(e.getValue())))return true;}return false;}
++ private static boolean residualRef111(Reference r){return residualText111(DexFormatter.INSTANCE.getReference(r));}
++ private static String residualExternal111(ClassDef c){
++  if(residualText111(c.getSuperclass())||residualAnnotations111(c.getAnnotations()))return c.getType();for(String i:c.getInterfaces())if(residualText111(i))return c.getType();
++  for(com.android.tools.smali.dexlib2.iface.Field f:c.getFields())if(residualText111(f.getType())||residualAnnotations111(f.getAnnotations())||(f.getInitialValue()!=null&&residualText111(DexFormatter.INSTANCE.getEncodedValue(f.getInitialValue()))))return c.getType();
++  for(com.android.tools.smali.dexlib2.iface.Method m:c.getMethods()){
++   if(residualText111(m.getReturnType())||residualAnnotations111(m.getAnnotations()))return sig(m);
++   for(MethodParameter p:m.getParameters())if(residualText111(p.getType())||residualText111(p.getSignature())||residualAnnotations111(p.getAnnotations()))return sig(m);
++   MethodImplementation impl=m.getImplementation();if(impl==null)continue;
++   for(Instruction i:impl.getInstructions()){
++    if(i instanceof ReferenceInstruction&&residualRef111(((ReferenceInstruction)i).getReference()))return sig(m);
++    if(i instanceof DualReferenceInstruction&&residualRef111(((DualReferenceInstruction)i).getReference2()))return sig(m);
++   }
++   for(TryBlock<? extends ExceptionHandler> x:impl.getTryBlocks())for(ExceptionHandler e:x.getExceptionHandlers())if(residualText111(e.getExceptionType()))return sig(m);
++   for(DebugItem x:impl.getDebugItems())if(x instanceof LocalInfo){LocalInfo l=(LocalInfo)x;if(residualText111(l.getType())||residualText111(l.getSignature()))return sig(m);}
++  }return null;
++ }
++
++ private static void pruneResidual111(Map<String,Object> map,java.lang.reflect.Method getter){
++  try{
++   if(map.size()!=11496||!"872648bf724fe1ebce0bf543ebf1841328ae7780def72ed8be2ae95ee2baaa14".equals(namesHash(map.keySet())))return;
++   Set<String> t=new TreeSet<>();for(String n:map.keySet())if(n.startsWith("Lnicoid/network238/androidx/annotation/")||n.startsWith("Lorg/apache/commons/lang3/reflect/"))t.add(n);
++   if(t.size()!=82||!"3cc08048081ec2d4b05e283d9df876742e54fb3e756c61c45319658c54c34b9a".equals(namesHash(t)))throw new IllegalStateException("residual inventory");
++   long start=System.nanoTime();
++   for(Map.Entry<String,Object> e:map.entrySet())if(!t.contains(e.getKey())){ClassDef c=(ClassDef)getter.invoke(e.getValue());if(!e.getKey().equals(c.getType()))throw new IllegalStateException("class mismatch");String hit=residualExternal111(c);if(hit!=null){log("skip residual dependencies: external reference in "+hit);return;}}
++   Map<String,Object> backup=new LinkedHashMap<>();for(String n:t)backup.put(n,map.get(n));
++   try{for(String n:t)map.remove(n);if(map.size()!=11414||!"c742b7dcfcf77adc9ebb807dd810cdab8bf2533e88369879e20caf539646cba9".equals(namesHash(map.keySet())))throw new IllegalStateException("residual result inventory");}
++   catch(Exception|LinkageError e){map.putAll(backup);throw e;}
++   log("removed 82 residual dependency classes (77 isolated annotations + 5 unused Commons Lang reflection classes), full reference audit "+((System.nanoTime()-start)/1000000)+" ms");
++  }catch(Exception|LinkageError e){log("skip residual dependencies: "+e.getClass().getSimpleName()+" "+e.getMessage());}
+  }
+ 
+  // Root assets/properties only: RAW res/ deletion is not supported by the tested resource API.

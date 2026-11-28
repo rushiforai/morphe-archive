@@ -48,9 +48,12 @@ public final class StampText {
 
     private StampText() {}
 
-    /** The handle element's own text: the name, and nothing else. */
+    /** The handle element's own text: the name with exactly one leading "@". */
     public static String handle(String unique) {
-        return "@" + unique;
+        if (unique == null) return null;
+        int start = 0;
+        while (start < unique.length() && unique.charAt(start) == '@') start++;
+        return "@" + unique.substring(start);
     }
 
     /**

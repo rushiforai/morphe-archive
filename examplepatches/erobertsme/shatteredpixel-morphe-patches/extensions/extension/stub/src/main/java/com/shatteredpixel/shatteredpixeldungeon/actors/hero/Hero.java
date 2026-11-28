@@ -43,4 +43,5 @@ public class Hero extends Char {
 	public int pointsInTalent(Talent talent) { throw new RuntimeException("Stub"); }
 	public boolean hasTalent(Talent talent) { throw new RuntimeException("Stub"); }
 	public void upgradeTalent(Talent talent) { throw new RuntimeException("Stub"); }
+	public java.util.ArrayList<com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob> mindVisionEnemies;
 }

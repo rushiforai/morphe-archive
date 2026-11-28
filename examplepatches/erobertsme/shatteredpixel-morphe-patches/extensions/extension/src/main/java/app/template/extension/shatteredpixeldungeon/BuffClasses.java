@@ -1,7 +1,7 @@
 package app.template.extension.shatteredpixeldungeon;
 
 /**
- * Every concrete status effect class in Shattered Pixel Dungeon 4.0.2 that has a public no-argument constructor.
+ * Every concrete status effect class in Shattered Pixel Dungeon 4.0.3 that has a public no-argument constructor.
  * Classes missing from other versions are skipped at runtime.
  */
 final class BuffClasses {
@@ -13,8 +13,8 @@ final class BuffClasses {
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Amok",
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ArcaneArmor",
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ArtifactRecharge",
-		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge$AscensionBuffBlocker",
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge",
+		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge$AscensionBuffBlocker",
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Awareness",
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barkskin",
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier",
@@ -32,9 +32,9 @@ final class BuffClasses {
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionEnemy$Projecting",
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Charm",
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Chill",
+		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Combo",
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Combo$ParryTracker",
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Combo$RiposteTracker",
-		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Combo",
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Corrosion",
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Corruption",
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CounterBuff",
@@ -71,15 +71,15 @@ final class BuffClasses {
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicalSleep",
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MindVision",
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Momentum",
+		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MonkEnergy",
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MonkEnergy$MonkAbility$FlurryCooldownTracker",
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MonkEnergy$MonkAbility$FlurryEmpowerTracker",
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MonkEnergy$MonkAbility$Focus$FocusBuff",
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MonkEnergy$MonkAbility$Meditate$MeditateResistance",
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MonkEnergy$MonkAbility$UnarmedAbilityTracker",
-		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MonkEnergy",
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Ooze",
-		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Paralysis$ParalysisResist",
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Paralysis",
+		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Paralysis$ParalysisResist",
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.PhysicalEmpower",
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.PinCushion",
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Poison",
@@ -97,8 +97,8 @@ final class BuffClasses {
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SoulMark",
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Speed",
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Stamina",
-		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SuperNovaTracker$NovaBombImmune",
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SuperNovaTracker",
+		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SuperNovaTracker$NovaBombImmune",
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SwarmIntelTracker",
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Terror",
 		"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.TimeStasis",
@@ -199,11 +199,13 @@ final class BuffClasses {
 		"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.quest.vault.VaultBossElemental$PinCushionRemover",
 		"com.shatteredpixel.shatteredpixeldungeon.actors.mobs.quest.vault.VaultBossElemental$ShockResist",
 		"com.shatteredpixel.shatteredpixeldungeon.items.BrokenSeal$WarriorShield",
+		"com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Flow$FlowTracker",
 		"com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Viscosity$DeferedDamage",
 		"com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Viscosity$ViscosityTracker",
 		"com.shatteredpixel.shatteredpixeldungeon.items.artifacts.MasterThievesArmband$StolenTracker",
 		"com.shatteredpixel.shatteredpixeldungeon.items.artifacts.SkeletonKey$KeyReplacementTracker",
 		"com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TalismanOfForesight$CharAwareness",
+		"com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TalismanOfForesight$CharDetectTracker",
 		"com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TalismanOfForesight$HeapAwareness",
 		"com.shatteredpixel.shatteredpixeldungeon.items.artifacts.UnstableSpellbook$ExploitHandler",
 		"com.shatteredpixel.shatteredpixeldungeon.items.food.Berry$SeedCounter",

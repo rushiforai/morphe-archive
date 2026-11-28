@@ -9,7 +9,7 @@ import app.fakh.patches.github.shared.Constants.NAV_TABS
 import app.fakh.patches.github.shared.Constants.BACKGROUND_BLUR
 import app.fakh.patches.github.shared.Constants.COMPATIBILITY_GITHUB
 import app.fakh.patches.github.shared.Constants.GLASS_NAVBAR
-import app.fakh.patches.github.shared.Constants.HIDE_TAB_LABELS
+import app.fakh.patches.github.shared.Constants.HIDE_NAV_BAR_LABELS
 import app.fakh.patches.github.shared.Constants.NAV_RIGHT
 import app.fakh.patches.github.shared.Constants.SMALLER_NAVBAR
 import app.fakh.patches.shared.register
@@ -276,10 +276,9 @@ private fun barCall(): Pair<MutableMethod, RangeCall> {
 }
 
 @Suppress("unused")
-val navigationBarPatch = patch(
-    name = "Navigation bar",
-    description = "Adds a setting in Fakh Patches that chooses which tabs the navigation bar shows and in what order, " +
-        "and adds Repositories and Stars tabs.",
+val navigationBarTabsPatch = patch(
+    name = "Navigation bar tabs",
+    description = "Lets you choose and sort the navigation bar tabs, and adds Repositories and Stars tabs.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_GITHUB)
@@ -341,9 +340,9 @@ val navigationBarPatch = patch(
 }
 
 @Suppress("unused")
-val hideTabLabelsPatch = patch(
-    name = "Hide tab labels",
-    description = "Adds a setting in Fakh Patches that removes the text under the icons of the navigation bar.",
+val hideNavigationBarLabelsPatch = patch(
+    name = "Hide navigation bar labels",
+    description = "Hides the text under the icons of the navigation bar.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_GITHUB)
@@ -364,7 +363,7 @@ val hideTabLabelsPatch = patch(
             """,
         )
 
-        register(HIDE_TAB_LABELS)
+        register(HIDE_NAV_BAR_LABELS)
     }
 }
 
@@ -378,10 +377,10 @@ private val sharedNavLabelHooksPatch = patch {
 }
 
 @Suppress("unused")
-val glassNavigationBarPatch = patch(
-    name = "Glass navigation bar",
-    description = "A floating, translucent navigation bar. Slide a finger along it to switch tabs. The switch is " +
-        "in Fakh Patches.",
+val liquidGlassNavigationBarPatch = patch(
+    name = "Liquid Glass navigation bar",
+    description = "Draws the navigation bar as a floating, translucent capsule with a sliding selection pill. Slide a " +
+        "finger along it to switch tabs. Can blur what's behind it.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_GITHUB)
@@ -523,7 +522,7 @@ val smallerNavigationBarPatch = patch(
 @Suppress("unused")
 val navigationBarRightPatch = patch(
     name = "Landscape navigation bar position",
-    description = "Adds a setting in Fakh Patches that moves the landscape navigation bar to the left or right edge.",
+    description = "Lets you put the navigation bar on the left or right edge in landscape.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_GITHUB)

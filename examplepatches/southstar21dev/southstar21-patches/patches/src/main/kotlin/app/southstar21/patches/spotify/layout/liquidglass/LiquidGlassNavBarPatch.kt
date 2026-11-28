@@ -23,7 +23,7 @@ private fun extensionMethod(name: String, returnType: String) = Fingerprint(
 val spotifyLiquidGlassNavBarPatch = bytecodePatch(
     name = "Liquid Glass navigation bar",
     description = "Turns the bottom tab bar and the mini player above it into floating iOS 26 style " +
-            "Liquid Glass with live background blur and edge refraction, and colors the selected tab Spotify green. " +
+            "Liquid Glass with live background blur and edge refraction. " +
             "Refraction needs Android 13+, blur needs Android 12+, older versions get a tinted pill.",
     default = true
 ) {

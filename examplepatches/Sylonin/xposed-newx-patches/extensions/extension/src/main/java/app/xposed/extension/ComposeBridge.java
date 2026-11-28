@@ -27,6 +27,28 @@ public final class ComposeBridge {
         throw notPatched();
     }
 
+    /** The URL of an Affiliate badge item, or null for X's other badge items. */
+    public static String badgeUrl(Object item) {
+        throw notPatched();
+    }
+
+    /** A text {@code Placeholder} with sizes as packed TextUnits. */
+    public static Object placeholder(long width, long height, int verticalAlign) {
+        throw notPatched();
+    }
+
+    public static long placeholderWidth(Object placeholder) {
+        throw notPatched();
+    }
+
+    public static long placeholderHeight(Object placeholder) {
+        throw notPatched();
+    }
+
+    public static int placeholderAlign(Object placeholder) {
+        throw notPatched();
+    }
+
     /** {@code modifier.clickable(onClick)} with the theme's ripple. */
     public static Object clickable(Object modifier, Function0<?> onClick) {
         throw notPatched();
@@ -78,6 +100,11 @@ public final class ComposeBridge {
 
     /** {@code toImmutableList()}, the list type of X's badge rows. */
     public static Object immutableList(List<?> list) {
+        throw notPatched();
+    }
+
+    /** A new empty list of X's badge list type, unlike {@code persistentListOf()}, which is shared. */
+    public static Object emptyImmutableList() {
         throw notPatched();
     }
 

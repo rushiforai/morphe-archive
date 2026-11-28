@@ -16,7 +16,7 @@ import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
 TEST_TASKS = (':translation-core:testDebugUnitTest', ':extensions:extension:testDebugUnitTest')
-BUILD_TASKS = (':ui-preview:assembleDebug', ':patches:buildAndroid')
+BUILD_TASKS = (':patches:buildAndroid',)
 
 
 def write_json(path, data):
@@ -45,11 +45,10 @@ def git(*args):
 
 def source_manifest():
     """Build/test/verification inputs, including untracked source; excludes narrative/evidence/cache."""
-    prefixes = ('caption-contracts/', 'caption-shared/', 'translation-core/', 'infrastructure/',
-                'application-host/', 'presentation/', 'ui/', 'ui-preview/', 'patches/', 'extensions/',
+    prefixes = ('caption-contracts/', 'caption-shared/', 'translation-core/', 'patches/', 'extensions/',
                 'localization/', 'gradle/', 'tools/workspace/', '.github/')
     roots = {'build.gradle.kts', 'settings.gradle.kts', 'gradle.properties', 'gradlew', 'gradlew.bat',
-             '.releaserc', 'package.json', 'package-lock.json', 'docs/core-provenance.json'}
+             '.releaserc', 'package.json', 'package-lock.json', 'LICENSE', 'NOTICE'}
     files = sorted(set(git('ls-files', '-z').split('\0') + git('ls-files', '--others', '--exclude-standard', '-z').split('\0')))
     rows = []
     for name in files:
@@ -94,8 +93,10 @@ def collect_tests(receipt, archive):
                 if value < 0:
                     raise ValueError(f'negative JUnit count: {p}')
                 counts[key] += value
-        if counts['tests'] <= 0 or counts['failures'] or counts['errors'] or counts['skipped'] >= counts['tests']:
+        if counts['tests'] <= 0 or counts['failures'] or counts['errors']:
             raise ValueError(f'required module has no effective tests or has failures: {task}: {counts}')
+        if counts['skipped']:
+            raise ValueError(f'required module has skipped tests: {task}: {counts}')
         module = task.removesuffix(':testDebugUnitTest').strip(':')
         dst = archive / module.replace(':', '-')
         copy_reports(xml_dir, dst)
@@ -141,7 +142,7 @@ def main(argv=None):
     evidence = (a.evidence_dir or ROOT / 'validation/runs' / a.run_id).resolve()
     if not evidence.is_relative_to(ROOT / 'validation/runs'):
         parser.error('evidence must stay under this repository validation/runs')
-    candidate = ROOT / 'build/maintenance/M1a' / a.run_id
+    candidate = ROOT / 'build/verification' / a.run_id
     # Refuse to overwrite an earlier run or delivery.
     evidence.mkdir(parents=True, exist_ok=False)
     candidate.mkdir(parents=True, exist_ok=False)
@@ -181,11 +182,12 @@ def main(argv=None):
             steps.run('metadata', py + ['.github/scripts/validate_morphe_metadata.py', '--mode', 'published'])
         gradle = [str(ROOT / 'gradlew.bat')] if os.name == 'nt' else ['bash', str(ROOT / 'gradlew')]
         receipt_path = evidence / 'gradle-receipt.json'
-        build_root = 'build/n39/gradle' if a.mode == 'release' else (candidate / 'gradle').relative_to(ROOT).as_posix()
         tasks = TEST_TASKS + BUILD_TASKS + ((':patches:generatePatchesList',) if a.mode == 'release' else ())
         command = gradle + list(tasks) + ['--no-daemon', '--no-parallel', '--console=plain',
                 '--init-script', 'tools/verification.init.gradle', '-Pverification.receipt=' + str(receipt_path),
-                '-Pverification.buildRoot=' + build_root, '-Ptranslation.live=false']
+                '-Ptranslation.live=false']
+        if a.mode == 'candidate':
+            command += ['-Pverification.buildRoot=' + (candidate / 'gradle').relative_to(ROOT).as_posix()]
         if a.mode == 'release':
             command += ['-PcaptionBuildId=' + build_id]
         if a.rerun_tests:
@@ -209,7 +211,7 @@ def main(argv=None):
             steps.run('metadata', py + ['.github/scripts/validate_morphe_metadata.py', version])
         paths = receipt['paths']
         artifacts = {}
-        for key in ('mpp', 'mpe', 'ui_apk'):
+        for key in ('mpp', 'mpe'):
             source = Path(paths[key])
             target = candidate / source.name
             if receipt.get('artifact_hashes', {}).get(key) != sha(source):
@@ -223,7 +225,7 @@ def main(argv=None):
         steps.run('bundle', py + ['.github/scripts/verify_bundle.py', '--mode', a.mode, '--version', version, '--build-id', build_id,
                    '--mpp', artifacts['mpp']['path'], '--mpe', artifacts['mpe']['path'], '--output', evidence / 'bundle.json'])
         steps.run('boundaries', py + ['tools/verify_integration.py', '--core-classes', paths['core_classes'],
-                   '--mpp', artifacts['mpp']['path'], '--mpe', artifacts['mpe']['path'], '--ui-apk', artifacts['ui_apk']['path'], '--output', evidence / 'boundaries.json'])
+                   '--mpp', artifacts['mpp']['path'], '--mpe', artifacts['mpe']['path'], '--output', evidence / 'boundaries.json'])
         after = source_manifest()
         write_json(evidence / 'source-manifest-after.json', after)
         if after != before:
@@ -231,7 +233,7 @@ def main(argv=None):
         summary['source_unchanged_during_verification'] = True
         write_json(evidence / 'summary.json', summary)
         steps.run('credential-scan', py + ['tools/scan_delivery_credentials.py', '--path', evidence, '--path', artifacts['mpp']['path'],
-                   '--path', artifacts['mpe']['path'], '--path', artifacts['ui_apk']['path'], '--output', evidence / 'credential-scan.json'])
+                   '--path', artifacts['mpe']['path'], '--output', evidence / 'credential-scan.json'])
         summary['status'] = 'passed'
     except Exception as exc:
         summary['error'] = str(exc)

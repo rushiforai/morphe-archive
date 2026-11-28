@@ -18,6 +18,7 @@ val skipLocationOnOpenPatch = bytecodePatch(
     name = "Skip location on open",
     description = "Stops the app from reading your precise location every time you open it.",
 ) {
+    category("Privacy")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

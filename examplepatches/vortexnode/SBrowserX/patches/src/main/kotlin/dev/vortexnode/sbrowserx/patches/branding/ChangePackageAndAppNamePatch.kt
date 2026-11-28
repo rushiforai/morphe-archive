@@ -60,21 +60,29 @@ private val EXACT_AUTHORITY_SUFFIXES = setOf(
     "CapsuleProvider",
     "provider.routines.v3",
     "mlkitinitprovider",
+    "widget",
+    "widget2",
 )
+
+private const val ICON_SBROWSERX = "sbrowserx"
+private const val ICON_ORIGINAL = "original"
 
 internal object SBrowserPackageRenameTarget {
     @Volatile
-    var packageName: String = SBROWSER_DEFAULT_PATCHED_PACKAGE_NAME
+    var packageName: String? = null
 
     @Volatile
     var appName: String = SBROWSER_DEFAULT_APP_NAME
+
+    @Volatile
+    var useCustomIcon: Boolean = true
 }
 
 internal val changePackageAndAppNameResourcePatch = resourcePatch(
     description = "Allows changing the app name and package name so the modified browser can be installed alongside the original Samsung Internet.",
 ) {
     finalize {
-        val newPackage = SBrowserPackageRenameTarget.packageName
+        val newPackage = SBrowserPackageRenameTarget.packageName ?: SBROWSER_DEFAULT_PATCHED_PACKAGE_NAME
         val newAppName = SBrowserPackageRenameTarget.appName
 
         document("AndroidManifest.xml").use { manifest ->
@@ -90,17 +98,43 @@ internal val changePackageAndAppNameResourcePatch = resourcePatch(
             }
 
             application.setAttributeNS(ANDROID_NS, "android:label", newAppName)
-            rewriteAppLabels(application, newAppName)
+            rewriteAppLabels(root, newAppName)
+        }
+
+        // Also update app_name & app_name_internet in res/values*/strings.xml so Share sheet,
+        // package managers, and One UI salescode aliases never fall back to "Samsung Browser".
+        val resDir = get("res")
+        if (resDir.exists() && resDir.isDirectory) {
+            resDir.listFiles()?.forEach { valuesDir ->
+                if (valuesDir.isDirectory && (valuesDir.name == "values" || valuesDir.name.startsWith("values-"))) {
+                    val stringsFile = java.io.File(valuesDir, "strings.xml")
+                    if (stringsFile.exists() && stringsFile.isFile) {
+                        val content = stringsFile.readText(Charsets.UTF_8)
+                        if (content.contains("name=\"app_name\"") || content.contains("name=\"app_name_internet\"")) {
+                            val escaped = escapeXmlText(newAppName)
+                            val updated = content
+                                .replace(Regex("""(<string\s+name="app_name"[^>]*>)[^<]*(</string>)""")) { m -> m.groupValues[1] + escaped + m.groupValues[2] }
+                                .replace(Regex("""(<string\s+name="app_name_internet"[^>]*>)[^<]*(</string>)""")) { m -> m.groupValues[1] + escaped + m.groupValues[2] }
+                            if (updated != content) {
+                                stringsFile.writeText(updated, Charsets.UTF_8)
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         // Apply custom SBrowserX launcher icon ("X" badge) across all densities + monochrome theme
-        val iconClassLoader = SBrowserPackageRenameTarget::class.java.classLoader
-        for (density in listOf("mdpi", "xhdpi", "xxhdpi")) {
-            for (fileName in listOf("internet_foreground.webp", "internet_color_theme.webp")) {
-                val targetFile = get("res/drawable-$density/$fileName")
-                if (targetFile.exists()) {
-                    iconClassLoader.getResourceAsStream("sbrowserx/icon/drawable-$density/$fileName")?.use { input ->
-                        targetFile.outputStream().use { output -> input.copyTo(output) }
+        // unless the user chose the original Samsung Internet icon in patch options.
+        if (SBrowserPackageRenameTarget.useCustomIcon) {
+            val iconClassLoader = SBrowserPackageRenameTarget::class.java.classLoader
+            for (density in listOf("mdpi", "xhdpi", "xxhdpi")) {
+                for (fileName in listOf("internet_foreground.webp", "internet_color_theme.webp")) {
+                    val targetFile = get("res/drawable-$density/$fileName")
+                    if (targetFile.exists()) {
+                        iconClassLoader.getResourceAsStream("sbrowserx/icon/drawable-$density/$fileName")?.use { input ->
+                            targetFile.outputStream().use { output -> input.copyTo(output) }
+                        }
                     }
                 }
             }
@@ -111,7 +145,7 @@ internal val changePackageAndAppNameResourcePatch = resourcePatch(
 @Suppress("unused")
 val changePackageAndAppNamePatch = bytecodePatch(
     name = "Change package and app name",
-    description = "Changes the package name, custom permissions, provider authorities, internal content:// URIs, UriMatcher rules, and app display name so SBrowserX runs cleanly alongside stock Samsung Internet.",
+    description = "Changes the package name, custom permissions, provider authorities, internal content:// URIs, UriMatcher rules, app display name, and launcher icon (SBrowserX X logo or original Samsung Internet icon) so SBrowserX runs cleanly alongside stock Samsung Internet.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_SBROWSER)
@@ -146,9 +180,25 @@ val changePackageAndAppNamePatch = bytecodePatch(
         !value.isNullOrBlank()
     }
 
+    val targetAppIcon = stringOption(
+        key = "app_icon",
+        default = ICON_SBROWSERX,
+        values = linkedMapOf(
+            "SBrowserX (X logo)" to ICON_SBROWSERX,
+            "Original Samsung Internet" to ICON_ORIGINAL,
+        ),
+        title = "App icon",
+        description = "Choose between the SBrowserX icon with the X logo (default) or the original Samsung Internet icon.",
+        required = true,
+    ) { value ->
+        val trimmed = value?.trim()
+        trimmed == ICON_SBROWSERX || trimmed == ICON_ORIGINAL
+    }
+
     execute {
         val newPackage = checkNotNull(targetPackageName.value).trim()
         val newAppName = checkNotNull(targetAppName.value).trim()
+        val selectedIcon = checkNotNull(targetAppIcon.value).trim()
         require(PACKAGE_NAME_REGEX.matches(newPackage)) {
             "Invalid package name: '$newPackage'"
         }
@@ -158,17 +208,18 @@ val changePackageAndAppNamePatch = bytecodePatch(
 
         SBrowserPackageRenameTarget.packageName = newPackage
         SBrowserPackageRenameTarget.appName = newAppName
+        SBrowserPackageRenameTarget.useCustomIcon = (selectedIcon != ICON_ORIGINAL)
 
         if (newPackage == SBROWSER_PACKAGE_NAME) return@execute
 
         val classesToPatch = mutableListOf<String>()
         classDefForEach { classDef ->
-            val isProviderClass = classDef.type == SBROWSER_PROVIDER_CLASS
+            val skipExactPkg = classDef.type == "Lcom/osp/app/signin/sasdk/browser/BrowserUtil;"
             val hasCandidate = classDef.methods.any { method ->
                 method.implementation?.instructions?.any { insn ->
                     if (insn.opcode == Opcode.CONST_STRING || insn.opcode == Opcode.CONST_STRING_JUMBO) {
                         val str = ((insn as? ReferenceInstruction)?.reference as? StringReference)?.string
-                        str != null && rewriteCloneString(str, newPackage, isProviderClass) != str
+                        str != null && rewriteCloneString(str, newPackage, !skipExactPkg) != str
                     } else {
                         false
                     }
@@ -180,7 +231,7 @@ val changePackageAndAppNamePatch = bytecodePatch(
         }
 
         for (classType in classesToPatch) {
-            val isProviderClass = classType == SBROWSER_PROVIDER_CLASS
+            val skipExactPkg = classType == "Lcom/osp/app/signin/sasdk/browser/BrowserUtil;"
             val mutableClass = mutableClassDefBy(classType)
             for (method in mutableClass.methods) {
                 val impl = method.implementation ?: continue
@@ -190,7 +241,7 @@ val changePackageAndAppNamePatch = bytecodePatch(
                     if (insn.opcode != Opcode.CONST_STRING && insn.opcode != Opcode.CONST_STRING_JUMBO) continue
                     val ref = (insn as? ReferenceInstruction)?.reference as? StringReference ?: continue
                     val original = ref.string
-                    val updated = rewriteCloneString(original, newPackage, isProviderClass)
+                    val updated = rewriteCloneString(original, newPackage, !skipExactPkg)
                     if (updated != original) {
                         val reg = (insn as OneRegisterInstruction).registerA
                         method.replaceInstruction(index, "const-string v$reg, \"${escapeSmali(updated)}\"")
@@ -204,11 +255,11 @@ val changePackageAndAppNamePatch = bytecodePatch(
 private fun rewriteCloneString(
     value: String,
     newPkg: String,
-    isProviderClass: Boolean,
+    rewriteExactPkg: Boolean,
 ): String {
     val oldPkg = SBROWSER_PACKAGE_NAME
     return when {
-        isProviderClass && value == oldPkg -> newPkg
+        rewriteExactPkg && value == oldPkg -> newPkg
 
         value.startsWith("content://$oldPkg/") ||
             value.startsWith("content://$oldPkg.") ||
@@ -239,14 +290,27 @@ private fun rewriteCloneString(
 private fun escapeSmali(input: String): String =
     input.replace("\\", "\\\\").replace("\"", "\\\"")
 
-private fun rewriteAppLabels(application: Element, newAppName: String) {
-    val allElements = application.getElementsByTagName("*")
+private fun escapeXmlText(input: String): String =
+    input.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("'", "\\'")
+
+private fun rewriteAppLabels(root: Element, newAppName: String) {
+    val allElements = root.getElementsByTagName("*")
     for (i in 0 until allElements.length) {
         val el = allElements.item(i) as? Element ?: continue
-        if (el.tagName == "activity" || el.tagName == "activity-alias" || el.tagName == "intent-filter") {
-            val label = el.getAttributeNS(ANDROID_NS, "label")
-            if (label == "@string/app_name" || label == "@string/app_name_internet") {
-                el.setAttributeNS(ANDROID_NS, "android:label", newAppName)
+        val label = el.getAttributeNS(ANDROID_NS, "label")
+        if (label == "@string/app_name" || label == "@string/app_name_internet") {
+            el.setAttributeNS(ANDROID_NS, "android:label", newAppName)
+        }
+        // SBrowserLauncherActivity handles ACTION_SEND (Share sheet) and MAIN/LAUNCHER
+        // and normally inherits label; set it explicitly so Share sheet shows newAppName.
+        if (el.tagName == "activity" &&
+            el.getAttributeNS(ANDROID_NS, "name") == "com.sec.android.app.sbrowser.SBrowserLauncherActivity"
+        ) {
+            el.setAttributeNS(ANDROID_NS, "android:label", newAppName)
+            val filters = el.getElementsByTagName("intent-filter")
+            for (j in 0 until filters.length) {
+                val inf = filters.item(j) as? Element ?: continue
+                inf.setAttributeNS(ANDROID_NS, "android:label", newAppName)
             }
         }
     }
@@ -307,6 +371,41 @@ private fun rewriteManifestForClone(
                 }
             }
         el.setAttributeNS(ANDROID_NS, "android:authorities", updated)
+    }
+
+    // Also rewrite <meta-data>, <queries><package>, and taskAffinity referencing oldPkg
+    val manifestAll = root.getElementsByTagName("*")
+    for (i in 0 until manifestAll.length) {
+        val el = manifestAll.item(i) as? Element ?: continue
+        when (el.tagName) {
+            "meta-data" -> {
+                val v = el.getAttributeNS(ANDROID_NS, "value")
+                if (v.isNotEmpty()) {
+                    val updated = when {
+                        v == oldPkg -> newPkg
+                        v.startsWith("content://$oldPkg/") || v.startsWith("content://$oldPkg.") || v == "content://$oldPkg" ->
+                            "content://$newPkg" + v.removePrefix("content://$oldPkg")
+                        v.startsWith("$oldPkg.") && EXACT_AUTHORITY_SUFFIXES.contains(v.removePrefix("$oldPkg.")) ->
+                            newPkg + v.removePrefix(oldPkg)
+                        else -> v
+                    }
+                    if (updated != v) {
+                        el.setAttributeNS(ANDROID_NS, "android:value", updated)
+                    }
+                }
+            }
+            "package" -> {
+                if (el.getAttributeNS(ANDROID_NS, "name") == oldPkg) {
+                    el.setAttributeNS(ANDROID_NS, "android:name", newPkg)
+                }
+            }
+            "activity", "activity-alias" -> {
+                val aff = el.getAttributeNS(ANDROID_NS, "taskAffinity")
+                if (aff == oldPkg || aff.startsWith("$oldPkg.")) {
+                    el.setAttributeNS(ANDROID_NS, "android:taskAffinity", newPkg + aff.removePrefix(oldPkg))
+                }
+            }
+        }
     }
 }
 

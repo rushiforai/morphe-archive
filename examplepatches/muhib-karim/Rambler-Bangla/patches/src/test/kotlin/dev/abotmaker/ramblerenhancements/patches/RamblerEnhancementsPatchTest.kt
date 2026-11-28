@@ -9,15 +9,16 @@ import javax.xml.parsers.DocumentBuilderFactory
 
 class RamblerEnhancementsPatchTest {
     @Test
-    fun catalogPublishesAllThirteenSingleAppGboardRamblerPatches() {
+    fun catalogPublishesAllFourteenSingleAppGboardRamblerPatches() {
         val patches = PatchCatalog.morpheRegistrations
-        assertEquals(13, patches.size)
+        assertEquals(14, patches.size)
         val names = patches.mapNotNull { it.name }.toSet()
         assertEquals(
             setOf(
                 "Rambler Bangla Lite Script Policy",
                 "Rambler Bangla Phonetic & Multilingual Engine",
                 "AMOLED Dark Keyboard",
+                "Clipboard Drag-to-Reorder",
                 "Rambler Toolbar & Revert Extras",
                 "Hidden Flags Override",
                 "At-Mention & Email Strip Suggestions",

@@ -1,0 +1,1079 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.hushgram.extension.instagram.download;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.net.Uri;
+import android.os.Looper;
+
+import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.junit.After;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.Shadows;
+import org.robolectric.annotation.Config;
+import org.robolectric.annotation.Implementation;
+import org.robolectric.annotation.Implements;
+import org.robolectric.shadows.ShadowAlertDialog;
+import org.robolectric.shadows.ShadowToast;
+
+import app.hushgram.extension.instagram.reels.ReelAutoScroll;
+import app.hushgram.extension.instagram.reels.ReelWholeTest;
+import app.hushgram.extension.instagram.settings.FamilyNames;
+import app.hushgram.extension.instagram.settings.Settings;
+import app.hushgram.extension.instagram.settings.SettingsStatus;
+import app.hushgram.extension.shared.SettingsContextRule;
+import app.hushgram.extension.shared.Utils;
+import app.hushgram.extension.shared.diagnostics.HookStatus;
+import app.hushgram.extension.shared.settings.preference.LogBufferManager;
+
+/** What the reel menu's hooks answer, and what a tap on Download does with them. */
+@RunWith(RobolectricTestRunner.class)
+public class ReelDownloadTest {
+    @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
+
+    @After
+    public void tearDown() throws InterruptedException {
+        // A save a test started ends before the next test, so none of them holds a slot.
+        long deadline = System.currentTimeMillis() + 10_000;
+        while (MediaSave.savesInFlight() > 0 && System.currentTimeMillis() < deadline) Thread.sleep(20);
+        MediaSave.policyForTests = null;
+        Item.videos = null;
+        Item.manifest = null;
+        Item.pictures = null;
+        Item.music = false;
+        Item.trackUrl = null;
+        Item.fastStartUrl = null;
+        Item.startMs = null;
+        Item.lengthMs = null;
+        Item.rows.clear();
+        HookStatus.clear();
+        Settings.DOWNLOAD_REELS.save(true);
+        Settings.DOWNLOAD_REEL_COVER.resetToDefault();
+        Settings.DOWNLOAD_REEL_AUDIO.resetToDefault();
+        Settings.DOWNLOAD_REEL_SONG.resetToDefault();
+        Settings.POST_DETAILS.resetToDefault();
+        Settings.SPEED_IN_REEL_MENU.resetToDefault();
+        ReelSpeedButton.resetForTests();
+        Built.keepSpeed = true;
+        Built.stopLooping = true;
+        Built.autoScroll = false;
+        Item.id = null;
+        Settings.STOP_VIDEO_LOOPING.resetToDefault();
+        Settings.REEL_AUTO_ADVANCE.resetToDefault();
+        Settings.AUTO_SCROLL_IN_REEL_MENU.resetToDefault();
+        Settings.WHOLE_REEL_IN_REEL_MENU.resetToDefault();
+        Settings.REEL_AUTO_SCROLL_HELD_OFF.resetToDefault();
+        Settings.REEL_AUTO_SCROLL_ON.resetToDefault();
+        ReelAutoScroll.forgetForTests();
+        Utils.setActivity(null);
+    }
+
+    /** With the switch on, every reel gets the row, whatever Instagram and its flag say. */
+    @Test
+    public void withTheSwitchOnEveryReelOffersDownload() {
+        assertTrue(ReelDownload.offer(false));
+        assertTrue(ReelDownload.offer(true));
+        assertFalse(ReelDownload.withhold(true));
+        assertFalse(ReelDownload.withhold(false));
+    }
+
+    /** Off, the menu is Instagram's own. Pause turns the switch off for the whole process, as it does every switch. */
+    @Test
+    public void offInstagramDecides() {
+        Settings.DOWNLOAD_REELS.save(false);
+        assertFalse(ReelDownload.offer(false));
+        assertTrue(ReelDownload.offer(true));
+        assertTrue(ReelDownload.withhold(true));
+        assertFalse(ReelDownload.withhold(false));
+        assertFalse("a tap was taken from Instagram", ReelDownload.save(Option.DOWNLOAD, new Object(), null));
+        List<Object> reduced = options(Option.PLAYBACK_CONTROLS, Option.REPORT);
+        ReelDownload.addTo(reduced, Option.DOWNLOAD);
+        assertEquals(options(Option.PLAYBACK_CONTROLS, Option.REPORT), reduced);
+    }
+
+    /** The patch hands Instagram's answers over as ints, since a boolean method may return one. Non-zero is yes. */
+    @Test
+    public void thePatchsIntEntriesReadNonZeroAsYes() {
+        assertTrue(ReelDownload.offer(0));
+        assertTrue(ReelDownload.offer(2));
+        assertFalse(ReelDownload.withhold(1));
+        Settings.DOWNLOAD_REELS.save(false);
+        assertFalse("with the switch off, 0 became a yes", ReelDownload.offer(0));
+        assertTrue("with the switch off, 1 lost Instagram's yes", ReelDownload.offer(1));
+        assertTrue("2 is a yes too", ReelDownload.offer(2));
+        assertFalse(ReelDownload.withhold(0));
+        assertTrue("with the switch off, Instagram's flag lost its hold", ReelDownload.withhold(1));
+        assertTrue(ReelDownload.withhold(2));
+    }
+
+    /**
+     * The filters of a builder that hands Download to the adder of one row answer as offer() and
+     * withhold() do while Open in another player is off, ints and all, and hold nothing back for the
+     * adder.
+     */
+    @Test
+    public void theAdderBuildersFiltersMatchThePlainOnesWithThePlayerOff() {
+        assertTrue(ReelDownload.offerRow(0, new Object()));
+        assertTrue(ReelDownload.offerRow(1, new Object()));
+        assertFalse(ReelDownload.withholdRow(1));
+        assertFalse(ReelDownload.withholdRow(0));
+        Settings.DOWNLOAD_REELS.save(false);
+        assertFalse(ReelDownload.offerRow(0, new Object()));
+        assertTrue(ReelDownload.offerRow(1, new Object()));
+        assertTrue("2 is a yes too", ReelDownload.offerRow(2, new Object()));
+        assertTrue(ReelDownload.withholdRow(1));
+        assertFalse(ReelDownload.withholdRow(0));
+        assertFalse("Instagram's own Download row stays", ReelDownload.rows(null, new Object(), null, null, null));
+        assertTrue(Item.rows.isEmpty());
+    }
+
+    /** Instagram's option names, as the reduced reel menu's list holds them. */
+    private enum Option { SHOP_SIMILAR, SAVE, UNSAVE, PLAYBACK_CONTROLS, DOWNLOAD, WHY_AM_I_SEEING_THIS, REPORT }
+
+    private static List<Object> options(Object... options) {
+        return new ArrayList<>(Arrays.asList(options));
+    }
+
+    /** The reduced menu gets Download after its save rows, which is above Playback, and only once. */
+    @Test
+    public void theReducedMenuGetsDownloadAboveItsRows() {
+        List<Object> plain = options(Option.PLAYBACK_CONTROLS, Option.WHY_AM_I_SEEING_THIS, Option.REPORT);
+        ReelDownload.addTo(plain, Option.DOWNLOAD);
+        assertEquals(options(Option.DOWNLOAD, Option.PLAYBACK_CONTROLS, Option.WHY_AM_I_SEEING_THIS, Option.REPORT), plain);
+
+        List<Object> saved = options(Option.SHOP_SIMILAR, Option.UNSAVE, Option.PLAYBACK_CONTROLS, Option.REPORT);
+        ReelDownload.addTo(saved, Option.DOWNLOAD);
+        assertEquals(options(Option.SHOP_SIMILAR, Option.UNSAVE, Option.DOWNLOAD, Option.PLAYBACK_CONTROLS, Option.REPORT), saved);
+
+        List<Object> already = options(Option.DOWNLOAD, Option.REPORT);
+        ReelDownload.addTo(already, Option.DOWNLOAD);
+        assertEquals(options(Option.DOWNLOAD, Option.REPORT), already);
+
+        List<Object> empty = options();
+        ReelDownload.addTo(empty, Option.DOWNLOAD);
+        assertEquals(options(Option.DOWNLOAD), empty);
+        ReelDownload.addTo(null, Option.DOWNLOAD);
+    }
+
+    /**
+     * A tap with the switch on is HushGram's, even when the reel gives nothing to save: an unpatched
+     * build's bridges answer nothing, so the save can't start, and the toast says so rather than
+     * Instagram's own download starting.
+     */
+    @Test
+    public void aTapWithNothingToSaveSaysSo() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        HookStatus.clear();
+
+        assertTrue(ReelDownload.save(Option.DOWNLOAD, new Object(), activity));
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+        assertEquals("Download failed", String.valueOf(ShadowToast.getTextOfLatestToast()));
+        assertEquals(List.of(FamilyNames.REEL_DOWNLOAD + ": invoked 1, 0 found, 0 missing. Counted: no video versions 1, no manifest 1"),
+                HookStatus.report());
+    }
+
+    /**
+     * A photo the Reels viewer shows with its music has no video file and no manifest, only its
+     * picture's sizes. A tap saves the picture rather than failing (#71), and the report says which
+     * way it went.
+     */
+    @Test
+    @Config(shadows = Item.class)
+    public void aReelItemWithNoVideoSavesItsPicture() {
+        Item.pictures = List.of(new MediaSave.Rendition(META + "1080.jpg", 1080, 1350, 0),
+                new MediaSave.Rendition(META + "150.jpg", 150, 150, 0));
+        refuseEveryFetch();
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        HookStatus.clear();
+
+        assertTrue(ReelDownload.save(Option.DOWNLOAD, new Object(), activity));
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+        assertEquals(List.of(FamilyNames.REEL_DOWNLOAD + ": invoked 1, 0 found, 0 missing. "
+                + "Counted: no video versions 1, no manifest 1, has image candidates 1, saved as photo 1"), HookStatus.report());
+        assertTrue("the save didn't say it started", ShadowToast.showedToast("Saving...")
+                || ShadowToast.showedToast("Saving... You can cancel from Downloads in HushGram settings."));
+    }
+
+    /** A reel with a video saves the video, never the picture every video has as its cover. */
+    @Test
+    @Config(shadows = Item.class)
+    public void aReelWithAVideoNeverSavesItsCover() {
+        Item.videos = List.of(new MediaSave.Rendition(META + "720.mp4", 720, 1280, 0));
+        Item.pictures = List.of(new MediaSave.Rendition(META + "cover.jpg", 720, 1280, 0));
+        refuseEveryFetch();
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        HookStatus.clear();
+
+        assertTrue(ReelDownload.save(Option.DOWNLOAD, new Object(), activity));
+
+        assertEquals(List.of(FamilyNames.REEL_DOWNLOAD + ": invoked 1, 0 found, 0 missing. Counted: no manifest 1"),
+                HookStatus.report());
+    }
+
+    /** The two options a photo with music gets, by the names the extension gives them. */
+    private enum Ours {
+        HUSHGRAM_DOWNLOAD_AS_VIDEO, HUSHGRAM_DOWNLOAD_AS_PHOTO, HUSHGRAM_DOWNLOAD_REEL, HUSHGRAM_DOWNLOAD_COVER, HUSHGRAM_DOWNLOAD_AUDIO,
+        HUSHGRAM_DOWNLOAD_SONG, HUSHGRAM_REEL_DETAILS, HUSHGRAM_REEL_SPEED, HUSHGRAM_VIDEO_LOOP, HUSHGRAM_REEL_AUTO_SCROLL,
+        HUSHGRAM_REEL_WHOLE
+    }
+
+    /** A photo the Reels viewer shows with music that has a track to fetch. */
+    private static void photoWithMusic() {
+        Item.pictures = List.of(new MediaSave.Rendition(META + "1080.jpg", 1080, 1350, 0));
+        Item.music = true;
+        Item.trackUrl = "https://scontent.cdninstagram.com/o1/v/t2/f2/m69/track.mp4";
+        Item.startMs = 12_000;
+        Item.lengthMs = 15_000;
+    }
+
+    /**
+     * A photo with music gets Download as video and Download as photo in Download's place, in
+     * that order, made by the bridges and labeled as the story menu labels them.
+     */
+    @Test
+    @Config(shadows = Item.class)
+    public void aPhotoWithMusicGetsTwoRows() {
+        photoWithMusic();
+
+        assertTrue(ReelDownload.rows(null, new Object(), null, null, null));
+
+        assertEquals(List.of("HUSHGRAM_DOWNLOAD_AS_VIDEO=Download as video", "HUSHGRAM_DOWNLOAD_AS_PHOTO=Download as photo"),
+                Item.rows);
+        assertTrue(String.valueOf(HookStatus.report()), String.valueOf(HookStatus.report()).contains("has music 1"));
+    }
+
+    /** A video, a photo without music, music with no track to fetch, nothing at all, or the switch off: one Download row. */
+    @Test
+    @Config(shadows = Item.class)
+    public void anythingElseKeepsTheOneRow() {
+        Item.pictures = List.of(new MediaSave.Rendition(META + "1080.jpg", 1080, 1350, 0));
+        assertFalse("a photo without music", ReelDownload.rows(null, new Object(), null, null, null));
+
+        photoWithMusic();
+        Item.videos = List.of(new MediaSave.Rendition(META + "720.mp4", 720, 1280, 0));
+        assertFalse("a video", ReelDownload.rows(null, new Object(), null, null, null));
+        Item.videos = null;
+
+        Item.trackUrl = null;
+        assertFalse("music with no track", ReelDownload.rows(null, new Object(), null, null, null));
+        assertTrue(String.valueOf(HookStatus.report()), String.valueOf(HookStatus.report()).contains("no audio url 1"));
+
+        Item.fastStartUrl = "https://scontent.cdninstagram.com/o1/v/t2/f2/m69/fast.mp4";
+        Settings.DOWNLOAD_REELS.save(false);
+        assertFalse("the switch off", ReelDownload.rows(null, new Object(), null, null, null));
+        Settings.DOWNLOAD_REELS.save(true);
+
+        Item.pictures = null;
+        assertFalse("no picture", ReelDownload.rows(null, new Object(), null, null, null));
+        assertFalse("no media", ReelDownload.rows(null, null, null, null, null));
+        assertTrue("a row went in", Item.rows.isEmpty());
+    }
+
+    /**
+     * With Details in a post's menu on, a photo the Reels viewer shows gets Details after Download,
+     * as a video does: without music, or with music that has no track, Download and Details take
+     * Download's place, and with music Details follows the two rows. Off, the photo keeps the one row.
+     */
+    @Test
+    @Config(shadows = Item.class)
+    public void aPhotoGetsDetailsLikeAVideo() {
+        Settings.POST_DETAILS.save(true);
+        Item.pictures = List.of(new MediaSave.Rendition(META + "1080.jpg", 1080, 1350, 0));
+        assertTrue("a photo without music", ReelDownload.rows(null, new Object(), null, null, null));
+        assertEquals(List.of("HUSHGRAM_DOWNLOAD_REEL=Download", "HUSHGRAM_REEL_DETAILS=Details"), Item.rows);
+
+        Item.rows.clear();
+        photoWithMusic();
+        Item.trackUrl = null;
+        assertTrue("music with no track", ReelDownload.rows(null, new Object(), null, null, null));
+        assertEquals(List.of("HUSHGRAM_DOWNLOAD_REEL=Download", "HUSHGRAM_REEL_DETAILS=Details"), Item.rows);
+
+        Item.rows.clear();
+        photoWithMusic();
+        assertTrue(ReelDownload.rows(null, new Object(), null, null, null));
+        assertEquals(List.of("HUSHGRAM_DOWNLOAD_AS_VIDEO=Download as video", "HUSHGRAM_DOWNLOAD_AS_PHOTO=Download as photo",
+                "HUSHGRAM_REEL_DETAILS=Details"), Item.rows);
+
+        Item.rows.clear();
+        Item.music = false;
+        Settings.POST_DETAILS.save(false);
+        assertFalse("Details off", ReelDownload.rows(null, new Object(), null, null, null));
+        assertTrue(Item.rows.isEmpty());
+    }
+
+    /** The handler knows the two rows by name, and nothing else as ours. */
+    @Test
+    public void theHandlerKnowsOurRows() {
+        assertTrue(ReelDownload.ours(Ours.HUSHGRAM_DOWNLOAD_AS_VIDEO));
+        assertTrue(ReelDownload.ours(Ours.HUSHGRAM_DOWNLOAD_AS_PHOTO));
+        assertTrue(ReelDownload.ours(Ours.HUSHGRAM_DOWNLOAD_REEL));
+        assertTrue(ReelDownload.ours(Ours.HUSHGRAM_DOWNLOAD_COVER));
+        assertFalse(ReelDownload.ours(Option.DOWNLOAD));
+        assertFalse(ReelDownload.ours("HUSHGRAM_DOWNLOAD_AS_VIDEO"));
+        assertFalse(ReelDownload.ours(null));
+    }
+
+    /**
+     * A tap on one of our rows never goes on to Instagram, which doesn't know the option, even with
+     * the switch turned off while the menu was open.
+     */
+    @Test
+    public void ourRowsStayOursWithTheSwitchOff() {
+        Settings.DOWNLOAD_REELS.save(false);
+        assertTrue(ReelDownload.save(Ours.HUSHGRAM_DOWNLOAD_AS_VIDEO, new Object(), null));
+        assertTrue(ReelDownload.save(Ours.HUSHGRAM_DOWNLOAD_AS_PHOTO, new Object(), null));
+        assertTrue(ReelDownload.save(Ours.HUSHGRAM_DOWNLOAD_REEL, new Object(), null));
+        assertTrue(ReelDownload.save(Ours.HUSHGRAM_DOWNLOAD_COVER, new Object(), null));
+        assertFalse(ReelDownload.save(Option.DOWNLOAD, new Object(), null));
+    }
+
+    /**
+     * With Download cover on, a reel with a video or a manifest and a picture gets Download and
+     * Download cover in Download's place, in that order. Off, or with no picture, it keeps the one row.
+     */
+    @Test
+    @Config(shadows = Item.class)
+    public void aVideoReelGetsDownloadCoverWithItsSwitch() {
+        Item.videos = List.of(new MediaSave.Rendition(META + "720.mp4", 720, 1280, 0));
+        Item.pictures = List.of(new MediaSave.Rendition(META + "1080.jpg", 1080, 1920, 0));
+        assertFalse("Download cover starts off", Settings.DOWNLOAD_REEL_COVER.get());
+        assertFalse(ReelDownload.rows(null, new Object(), null, null, null));
+        assertTrue(Item.rows.isEmpty());
+
+        Settings.DOWNLOAD_REEL_COVER.save(true);
+        assertTrue(ReelDownload.rows(null, new Object(), null, null, null));
+        assertEquals(List.of("HUSHGRAM_DOWNLOAD_REEL=Download", "HUSHGRAM_DOWNLOAD_COVER=Download cover"), Item.rows);
+        assertTrue(String.valueOf(HookStatus.report()), String.valueOf(HookStatus.report()).contains("has cover 1"));
+
+        Item.rows.clear();
+        Item.videos = null;
+        Item.manifest = "<MPD/>";
+        assertTrue("a manifest alone", ReelDownload.rows(null, new Object(), null, null, null));
+        assertEquals(2, Item.rows.size());
+
+        Item.rows.clear();
+        Item.pictures = null;
+        assertFalse("no picture to save", ReelDownload.rows(null, new Object(), null, null, null));
+        Settings.DOWNLOAD_REELS.save(false);
+        Item.pictures = List.of(new MediaSave.Rendition(META + "1080.jpg", 1080, 1920, 0));
+        assertFalse("the reel switch off", ReelDownload.rows(null, new Object(), null, null, null));
+        assertTrue(Item.rows.isEmpty());
+    }
+
+    /** A reel's manifest with a picture track and a sound track, the way Instagram streams one. */
+    private static final String WITH_SOUND = "<MPD><Period><AdaptationSet mimeType=\"video/mp4\">"
+            + "<Representation codecs=\"avc1.64001f\" width=\"720\" height=\"1280\" bandwidth=\"900000\">"
+            + "<BaseURL>https://video-iad3-1.xx.fbcdn.net/o1/v/t2/f2/m69/video.mp4?oh=1&amp;oe=2</BaseURL></Representation>"
+            + "</AdaptationSet><AdaptationSet mimeType=\"audio/mp4\">"
+            + "<Representation codecs=\"mp4a.40.2\" bandwidth=\"128000\">"
+            + "<BaseURL>https://video-iad3-1.xx.fbcdn.net/o1/v/t2/f2/m69/sound.mp4?oh=1&amp;oe=2</BaseURL></Representation>"
+            + "</AdaptationSet></Period></MPD>";
+
+    /**
+     * With Download audio on, a reel with a manifest gets Download and Download audio in Download's
+     * place (#216). Off, or with video files and no manifest, there's no track of its own to save.
+     */
+    @Test
+    @Config(shadows = Item.class)
+    public void aReelWithAManifestGetsDownloadAudioWithItsSwitch() {
+        Item.manifest = WITH_SOUND;
+        assertFalse("Download audio starts off", Settings.DOWNLOAD_REEL_AUDIO.get());
+        assertFalse(ReelDownload.rows(null, new Object(), null, null, null));
+        assertTrue(Item.rows.isEmpty());
+
+        Settings.DOWNLOAD_REEL_AUDIO.save(true);
+        assertTrue(ReelDownload.rows(null, new Object(), null, null, null));
+        assertEquals(List.of("HUSHGRAM_DOWNLOAD_REEL=Download", "HUSHGRAM_DOWNLOAD_AUDIO=Download audio"), Item.rows);
+        assertTrue(String.valueOf(HookStatus.report()), String.valueOf(HookStatus.report()).contains("has audio 1"));
+
+        Item.rows.clear();
+        Item.manifest = null;
+        Item.videos = List.of(new MediaSave.Rendition(META + "720.mp4", 720, 1280, 0));
+        assertFalse("video files alone", ReelDownload.rows(null, new Object(), null, null, null));
+        assertTrue(Item.rows.isEmpty());
+    }
+
+    /** Download audio saves the manifest's sound track, and a manifest with no sound saves nothing and says so. */
+    @Test
+    @Config(shadows = Item.class)
+    public void downloadAudioSavesTheSoundTrack() {
+        Item.manifest = WITH_SOUND;
+        refuseEveryFetch();
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        HookStatus.clear();
+
+        assertTrue(ReelDownload.save(Ours.HUSHGRAM_DOWNLOAD_AUDIO, new Object(), activity));
+        assertTrue(String.valueOf(HookStatus.report()), String.valueOf(HookStatus.report()).contains("saved audio 1"));
+        assertEquals("sound.mp4", Uri.parse(DashManifest.bestAudio(DashManifest.parse(WITH_SOUND)).url).getLastPathSegment());
+
+        ShadowToast.reset();
+        Item.manifest = WITH_SOUND.replaceAll("<AdaptationSet mimeType=\"audio/mp4\">.*?</AdaptationSet>", "");
+        assertTrue(ReelDownload.save(Ours.HUSHGRAM_DOWNLOAD_AUDIO, new Object(), activity));
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("Download failed", String.valueOf(ShadowToast.getTextOfLatestToast()));
+        assertFalse(String.valueOf(HookStatus.report()), String.valueOf(HookStatus.report()).contains("saved audio 2"));
+    }
+
+    /**
+     * With Download full song on, a reel playing a song from Instagram's music gets Download full
+     * song after Download audio, and a photo with music after its two rows (#735). Off, or with a
+     * song that has no file of its own, there's nothing whole to save.
+     */
+    @Test
+    @Config(shadows = Item.class)
+    public void aReelPlayingASongGetsDownloadFullSongWithItsSwitch() {
+        Item.manifest = WITH_SOUND;
+        Item.music = true;
+        Item.trackUrl = "https://scontent.cdninstagram.com/o1/v/t2/f2/m69/track.mp4";
+        assertFalse("Download full song starts off", Settings.DOWNLOAD_REEL_SONG.get());
+        assertFalse(ReelDownload.rows(null, new Object(), null, null, null));
+        assertTrue(Item.rows.isEmpty());
+
+        Settings.DOWNLOAD_REEL_SONG.save(true);
+        assertTrue(ReelDownload.rows(null, new Object(), null, null, null));
+        assertEquals(List.of("HUSHGRAM_DOWNLOAD_REEL=Download", "HUSHGRAM_DOWNLOAD_SONG=Download full song"), Item.rows);
+        assertTrue(String.valueOf(HookStatus.report()), String.valueOf(HookStatus.report()).contains("has full song 1"));
+
+        Item.rows.clear();
+        Settings.DOWNLOAD_REEL_AUDIO.save(true);
+        assertTrue(ReelDownload.rows(null, new Object(), null, null, null));
+        assertEquals(List.of("HUSHGRAM_DOWNLOAD_REEL=Download", "HUSHGRAM_DOWNLOAD_AUDIO=Download audio",
+                "HUSHGRAM_DOWNLOAD_SONG=Download full song"), Item.rows);
+
+        Item.rows.clear();
+        Settings.DOWNLOAD_REEL_AUDIO.save(false);
+        Item.trackUrl = null;
+        assertFalse("a song with no file", ReelDownload.rows(null, new Object(), null, null, null));
+        Item.music = false;
+        assertFalse("the reel's own sound", ReelDownload.rows(null, new Object(), null, null, null));
+        assertTrue(Item.rows.isEmpty());
+
+        Item.manifest = null;
+        photoWithMusic();
+        assertTrue(ReelDownload.rows(null, new Object(), null, null, null));
+        assertEquals(List.of("HUSHGRAM_DOWNLOAD_AS_VIDEO=Download as video", "HUSHGRAM_DOWNLOAD_AS_PHOTO=Download as photo",
+                "HUSHGRAM_DOWNLOAD_SONG=Download full song"), Item.rows);
+    }
+
+    /** Download full song saves the song's own file, and a reel whose song has none saves nothing and says so. */
+    @Test
+    @Config(shadows = Item.class)
+    public void downloadFullSongSavesTheSongsOwnFile() {
+        Item.manifest = WITH_SOUND;
+        Item.music = true;
+        Item.trackUrl = "https://scontent.cdninstagram.com/o1/v/t2/f2/m69/track.mp4";
+        refuseEveryFetch();
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        HookStatus.clear();
+
+        assertTrue(ReelDownload.ours(Ours.HUSHGRAM_DOWNLOAD_SONG));
+        assertTrue(ReelDownload.save(Ours.HUSHGRAM_DOWNLOAD_SONG, new Object(), activity));
+        assertTrue(String.valueOf(HookStatus.report()), String.valueOf(HookStatus.report()).contains("saved full song 1"));
+
+        ShadowToast.reset();
+        Item.trackUrl = null;
+        assertTrue(ReelDownload.save(Ours.HUSHGRAM_DOWNLOAD_SONG, new Object(), activity));
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("Download failed", String.valueOf(ShadowToast.getTextOfLatestToast()));
+        assertFalse(String.valueOf(HookStatus.report()), String.valueOf(HookStatus.report()).contains("saved full song 2"));
+    }
+
+    /** [WITH_SOUND] with its sound tracks swapped for [sounds], each "codecs bandwidth name". */
+    private static String withSounds(String... sounds) {
+        StringBuilder tracks = new StringBuilder("<AdaptationSet mimeType=\"audio/mp4\">");
+        for (String sound : sounds) {
+            String[] parts = sound.split(" ");
+            tracks.append("<Representation codecs=\"").append(parts[0]).append("\" bandwidth=\"").append(parts[1])
+                .append("\"><BaseURL>https://video-iad3-1.xx.fbcdn.net/o1/v/t2/f2/m69/").append(parts[2])
+                .append(".mp4?oh=1&amp;oe=2</BaseURL></Representation>");
+        }
+        return WITH_SOUND.replaceAll("<AdaptationSet mimeType=\"audio/mp4\">.*?</AdaptationSet>", tracks + "</AdaptationSet>");
+    }
+
+    /** The diagnostic line Download audio wrote for one tap on [manifest]'s reel, after its save ends. */
+    private static String audioLine(String manifest, Activity activity) throws InterruptedException {
+        Item.manifest = manifest;
+        LogBufferManager.clearLogBuffer();
+        assertTrue(ReelDownload.save(Ours.HUSHGRAM_DOWNLOAD_AUDIO, new Object(), activity));
+        long deadline = System.currentTimeMillis() + 10_000;
+        while (MediaSave.savesInFlight() > 0 && System.currentTimeMillis() < deadline) Thread.sleep(20);
+        for (String line : LogBufferManager.buildExportText().split("\n")) {
+            if (line.contains("reel audio tapped: ")) return line.substring(line.indexOf("reel audio tapped: "));
+        }
+        return "no reel audio line";
+    }
+
+    /**
+     * Download audio takes AAC-LC over HE-AAC and xHE-AAC whatever their bitrates, and HE-AAC over
+     * xHE-AAC, saving the file as it is with nothing to add. With only xHE-AAC listed it still saves
+     * it, since that's the reel's sound, and the line says why some players can't play it.
+     */
+    @Test
+    @Config(shadows = Item.class)
+    public void downloadAudioPrefersAacLcAndSaysWhyItKeepsXheAac() throws Exception {
+        refuseEveryFetch();
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        HookStatus.clear();
+
+        assertEquals("reel audio tapped: mp4a.40.2, 96000 b/s",
+                audioLine(withSounds("mp4a.40.42 200000 xhe", "mp4a.40.5 160000 he", "mp4a.40.2 96000 lc"), activity));
+        assertEquals("reel audio tapped: mp4a.40.5, 64000 b/s",
+                audioLine(withSounds("mp4a.40.42 200000 xhe", "mp4a.40.5 64000 he"), activity));
+        assertEquals("reel audio tapped: mp4a.40.42, 120000 b/s, the sound is xHE-AAC because the manifest offers no "
+                + "AAC-LC or HE-AAC, and some players can't play xHE-AAC, saving it as it is",
+                audioLine(withSounds("mp4a.40.42 39000 xhe39", "mp4a.40.42 120000 xhe120"), activity));
+        // Clearing the log clears the counts too, so this one is the xHE-AAC save's.
+        assertTrue(String.valueOf(HookStatus.report()), String.valueOf(HookStatus.report()).contains("saved audio 1"));
+    }
+
+    /** Download cover saves the reel's picture, and our Download row saves its video. */
+    @Test
+    @Config(shadows = Item.class)
+    public void downloadCoverSavesThePictureAndDownloadTheVideo() throws InterruptedException {
+        Item.videos = List.of(new MediaSave.Rendition(META + "720.mp4", 720, 1280, 0));
+        Item.pictures = List.of(new MediaSave.Rendition(META + "1080.jpg", 1080, 1920, 0),
+                new MediaSave.Rendition(META + "640.jpg", 640, 1138, 0));
+        refuseEveryFetch();
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        HookStatus.clear();
+
+        assertTrue(ReelDownload.save(Ours.HUSHGRAM_DOWNLOAD_COVER, new Object(), activity));
+        String report = String.valueOf(HookStatus.report());
+        assertTrue(report, report.contains("saved cover 1"));
+        assertFalse(report, report.contains("saved as photo"));
+        long deadline = System.currentTimeMillis() + 10_000;
+        while (MediaSave.savesInFlight() > 0 && System.currentTimeMillis() < deadline) Thread.sleep(20);
+
+        assertTrue(ReelDownload.save(Ours.HUSHGRAM_DOWNLOAD_REEL, new Object(), activity));
+        report = String.valueOf(HookStatus.report());
+        assertFalse("the reel row saved the cover", report.contains("saved cover 2"));
+        assertFalse(report, report.contains("saved as photo"));
+        assertFalse(report, report.contains("no video versions"));
+    }
+
+    /** Download as photo saves the picture of a photo with music. */
+    @Test
+    @Config(shadows = Item.class)
+    public void downloadAsPhotoSavesThePicture() {
+        photoWithMusic();
+        refuseEveryFetch();
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        HookStatus.clear();
+
+        assertTrue(ReelDownload.save(Ours.HUSHGRAM_DOWNLOAD_AS_PHOTO, new Object(), activity));
+
+        assertTrue(String.valueOf(HookStatus.report()), String.valueOf(HookStatus.report()).contains("saved as photo 1"));
+    }
+
+    /** Download as video with music that has no track to fetch says so, and the toast says it failed. */
+    @Test
+    @Config(shadows = Item.class)
+    public void downloadAsVideoWithNoTrackSaysSo() {
+        photoWithMusic();
+        Item.trackUrl = null;
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        HookStatus.clear();
+
+        assertTrue(ReelDownload.save(Ours.HUSHGRAM_DOWNLOAD_AS_VIDEO, new Object(), activity));
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+        assertEquals("Download failed", String.valueOf(ShadowToast.getTextOfLatestToast()));
+        assertTrue(String.valueOf(HookStatus.report()), String.valueOf(HookStatus.report()).contains("no audio url 1"));
+    }
+
+    /**
+     * Download as video starts a save that fetches the picture first. A fetch that can't go out
+     * ends it, counted, and leaves no file of its own behind in the work folder.
+     */
+    @Test
+    @Config(shadows = Item.class)
+    public void downloadAsVideoCleansUpAfterAFailedFetch() throws InterruptedException {
+        photoWithMusic();
+        refuseEveryFetch();
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        HookStatus.clear();
+
+        assertTrue(ReelDownload.save(Ours.HUSHGRAM_DOWNLOAD_AS_VIDEO, new Object(), activity));
+        long deadline = System.currentTimeMillis() + 10_000;
+        while (MediaSave.savesInFlight() > 0 && System.currentTimeMillis() < deadline) Thread.sleep(20);
+
+        String report = String.valueOf(HookStatus.report());
+        assertTrue(report, report.contains("saved as video 1"));
+        assertTrue(report, report.contains("picture fetch failed 1"));
+        java.io.File[] left = DashSave.workFolder(activity.getApplicationContext()).listFiles();
+        assertEquals("files left in the work folder", 0, left == null ? 0 : left.length);
+    }
+
+    /** An address on Meta's media servers, which the save takes. */
+    private static final String META = "https://scontent.cdninstagram.com/v/t51.2885-15/";
+
+    /** Every lookup answers a private address, so a started save ends at once and nothing goes out. */
+    private static void refuseEveryFetch() {
+        MediaSave.policyForTests = new MediaUrlPolicy(host -> new InetAddress[] {InetAddress.getByName("10.9.8.7")});
+    }
+
+    /** A reel item as the bridges read it: its video files, its manifest and its picture's sizes. */
+    @Implements(value = InstagramMedia.class, isInAndroidSdk = false)
+    public static class Item {
+        static List<MediaSave.Rendition> videos;
+        static String manifest;
+        static List<MediaSave.Rendition> pictures;
+
+        @Implementation protected static List<?> videoVersions(Object media) { return videos; }
+        @Implementation protected static String dashManifest(Object media) { return manifest; }
+        @Implementation protected static String versionUrl(Object version) { return ((MediaSave.Rendition) version).url; }
+        @Implementation protected static Integer versionWidth(Object version) { return ((MediaSave.Rendition) version).width; }
+        @Implementation protected static Integer versionHeight(Object version) { return ((MediaSave.Rendition) version).height; }
+        @Implementation protected static Object imageVersions(Object media) { return pictures == null ? null : media; }
+        @Implementation protected static List<?> imageCandidates(Object versions) { return pictures; }
+        @Implementation protected static String candidateUrl(Object candidate) { return ((MediaSave.Rendition) candidate).url; }
+        @Implementation protected static int candidateWidth(Object candidate) { return ((MediaSave.Rendition) candidate).width; }
+        @Implementation protected static int candidateHeight(Object candidate) { return ((MediaSave.Rendition) candidate).height; }
+
+        static boolean music;
+        static String trackUrl;
+        static String fastStartUrl;
+        static Integer startMs;
+        static Integer lengthMs;
+        static final List<String> rows = new ArrayList<>();
+
+        @Implementation protected static Object musicMetadata(Object media) { return music ? "metadata" : null; }
+        @Implementation protected static Object metadataMusic(Object metadata) { return "music"; }
+        @Implementation protected static Object clipsMetadata(Object media) { return null; }
+        @Implementation protected static Object musicTrack(Object music) { return "track"; }
+        @Implementation protected static Object musicConsumption(Object music) { return "part"; }
+        @Implementation protected static String trackUrl(Object track) { return trackUrl; }
+        @Implementation protected static String trackFastStartUrl(Object track) { return fastStartUrl; }
+        @Implementation protected static Integer musicStartMs(Object part) { return startMs; }
+        @Implementation protected static Integer musicLengthMs(Object part) { return lengthMs; }
+        @Implementation protected static Object reelOption(String name) { return Ours.valueOf(name); }
+
+        static String id;
+
+        @Implementation protected static String mediaId(Object media) { return id; }
+
+        @Implementation
+        protected static boolean addReelRow(Object menu, Object context, Object option, Object sheet, Object rowState, String label) {
+            rows.add(option + "=" + label);
+            return true;
+        }
+    }
+
+    /** Without the bridges written, a reel has no files and no details, and neither read throws. */
+    @Test
+    public void anUnpatchedReelHasNothing() {
+        Object reel = new Object();
+        assertTrue(ReelDownload.renditions(reel).isEmpty());
+        PostDetails details = ReelDownload.details(reel);
+        assertFalse(details.hasVideoId());
+        assertFalse(details.hasOwner());
+        assertNull(details.posted);
+    }
+
+    /** Details takes the first info glyph its package has; every other row keeps Download's arrow. */
+    @Test
+    public void detailsTakesTheInfoGlyphAndTheOtherRowsKeepTheArrow() {
+        android.content.Context context = org.robolectric.RuntimeEnvironment.getApplication();
+        int download = android.R.drawable.ic_menu_save;
+
+        assertEquals(android.R.drawable.ic_menu_info_details, ReelDownload.rowIcon(ReelDownload.DETAILS_OPTION, download,
+                context, "no_such_icon", "ic_menu_info_details", "ic_menu_delete"));
+        assertEquals(download, ReelDownload.rowIcon(ReelDownload.VIDEO_OPTION, download, context, "ic_menu_info_details"));
+        assertEquals(download, ReelDownload.rowIcon(ReelDownload.PLAYER_OPTION, download, context, "ic_menu_info_details"));
+        assertEquals("the feed menu's Details row too", android.R.drawable.ic_menu_info_details,
+                ReelDownload.rowIcon(PostInfo.OPTION, download, context, "ic_menu_info_details"));
+        for (String feedRow : new String[]{ReelDownload.COVER_OPTION, ExternalPlayer.OPTION, VideoDownload.CHOOSE_OPTION}) {
+            assertEquals(feedRow + " keeps the arrow", download, ReelDownload.rowIcon(feedRow, download, context, "ic_menu_info_details"));
+        }
+        assertEquals("the names Instagram ships", Arrays.asList("instagram_info_outline_24", "instagram_info_pano_outline_24"),
+                Arrays.asList(ReelDownload.DETAILS_ICONS));
+    }
+
+    /** Without the glyph, a context or an arrow to start from, Details keeps Download's, and nothing throws. */
+    @Test
+    public void withoutTheGlyphDetailsKeepsTheArrow() {
+        android.content.Context context = org.robolectric.RuntimeEnvironment.getApplication();
+        int download = android.R.drawable.ic_menu_save;
+
+        assertEquals(download, ReelDownload.rowIcon(ReelDownload.DETAILS_OPTION, download, context, ReelDownload.DETAILS_ICONS));
+        assertEquals(download, ReelDownload.rowIcon(ReelDownload.DETAILS_OPTION, download, null, "ic_menu_info_details"));
+        assertEquals(0, ReelDownload.rowIcon(ReelDownload.DETAILS_OPTION, 0, context, "ic_menu_info_details"));
+        assertEquals(download, ReelDownload.rowIcon(null, download, context, "ic_menu_info_details"));
+        assertEquals("an id no package owns", 0x7f7f7f7f,
+                ReelDownload.rowIcon(ReelDownload.DETAILS_OPTION, 0x7f7f7f7f, context, "ic_menu_info_details"));
+        assertTrue(String.valueOf(HookStatus.report()), String.valueOf(HookStatus.report()).contains("reel menu row icon"));
+    }
+
+    /** Whether this build has Keep the reel speed, as the patch writes its status method. */
+    @Implements(value = SettingsStatus.class, isInAndroidSdk = false)
+    public static class Built {
+        static boolean keepSpeed = true;
+        static boolean stopLooping = true;
+        static boolean autoScroll;
+
+        @Implementation protected static boolean keepReelSpeed() { return keepSpeed; }
+
+        @Implementation protected static boolean stopLooping() { return stopLooping; }
+
+        @Implementation protected static boolean reelAutoScroll() { return autoScroll; }
+    }
+
+    /**
+     * With Stop videos looping on, a video reel gets Loop this video last of ours (#610), and a tap
+     * loops it, says so and turns the label to Stop looping this video. A second tap takes the loop
+     * off. A photo gets none, and neither does a reel while auto scroll keeps Reels looping anyway.
+     * Download on reels off, the row still lets Instagram's Download row in, the way Playback speed does.
+     */
+    @Test
+    @Config(shadows = {Item.class, Built.class})
+    public void aVideoReelGetsLoopThisVideo() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        Item.videos = List.of(new MediaSave.Rendition(META + "720.mp4", 720, 1280, 0));
+        Item.id = "3711_42";
+        Object reel = new Object();
+        assertFalse("Stop videos looping starts off, so Instagram's Download row stays", ReelDownload.rows(null, reel, null, null, null));
+        assertTrue(Item.rows.isEmpty());
+
+        Settings.STOP_VIDEO_LOOPING.save(true);
+        Item.rows.clear();
+        assertTrue(ReelDownload.rows(null, reel, null, null, null));
+        assertEquals(List.of("HUSHGRAM_DOWNLOAD_REEL=Download", "HUSHGRAM_VIDEO_LOOP=Loop this video"), Item.rows);
+
+        assertTrue("the tap is ours", ReelDownload.save(Ours.HUSHGRAM_VIDEO_LOOP, reel, activity));
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("Looping this video", String.valueOf(ShadowToast.getTextOfLatestToast()));
+        Item.rows.clear();
+        assertTrue(ReelDownload.rows(null, reel, null, null, null));
+        assertEquals(List.of("HUSHGRAM_DOWNLOAD_REEL=Download", "HUSHGRAM_VIDEO_LOOP=Stop looping this video"), Item.rows);
+        assertTrue(ReelDownload.save(Ours.HUSHGRAM_VIDEO_LOOP, reel, activity));
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("This video plays once", String.valueOf(ShadowToast.getTextOfLatestToast()));
+
+        Settings.DOWNLOAD_REELS.save(false);
+        Item.rows.clear();
+        assertTrue(ReelDownload.offerRow(0, reel));
+        assertTrue(ReelDownload.rows(null, reel, null, null, null));
+        assertEquals(List.of("HUSHGRAM_VIDEO_LOOP=Loop this video"), Item.rows);
+        List<Object> reduced = options(Option.PLAYBACK_CONTROLS, Option.REPORT);
+        ReelDownload.addTo(reduced, Option.DOWNLOAD);
+        assertEquals(options(Option.DOWNLOAD, Option.PLAYBACK_CONTROLS, Option.REPORT), reduced);
+
+        Built.autoScroll = true;
+        Settings.REEL_AUTO_ADVANCE.save(true);
+        Item.rows.clear();
+        assertFalse("auto scroll keeps Reels looping anyway", ReelDownload.offerRow(0, reel));
+        assertFalse(ReelDownload.rows(null, reel, null, null, null));
+        assertTrue(Item.rows.isEmpty());
+        Settings.REEL_AUTO_ADVANCE.resetToDefault();
+
+        Item.videos = null;
+        Item.rows.clear();
+        assertFalse("a photo has nothing to loop", ReelDownload.rows(null, reel, null, null, null));
+        assertTrue(Item.rows.isEmpty());
+
+        Item.videos = List.of(new MediaSave.Rendition(META + "720.mp4", 720, 1280, 0));
+        Built.stopLooping = false;
+        assertFalse("a build without the patch", ReelDownload.rows(null, reel, null, null, null));
+        assertTrue(Item.rows.isEmpty());
+    }
+
+    /**
+     * With Auto scroll in the reel menu on, a video reel gets Turn on auto scroll last of ours
+     * (#768), and a tap turns it on, says so and turns the label to Turn off auto scroll. A second
+     * tap turns it off and holds it off. Download on reels off, the row still lets Instagram's
+     * Download row in. A photo gets none, and neither does a build without Keep Reels auto scroll on.
+     */
+    @Test
+    @Config(shadows = {Item.class, Built.class})
+    public void aVideoReelGetsAutoScrollWithItsSwitch() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        Item.videos = List.of(new MediaSave.Rendition(META + "720.mp4", 720, 1280, 0));
+        Object reel = new Object();
+        Built.autoScroll = true;
+        assertFalse("Auto scroll in the reel menu starts off", ReelDownload.rows(null, reel, null, null, null));
+        assertTrue(Item.rows.isEmpty());
+
+        Settings.AUTO_SCROLL_IN_REEL_MENU.save(true);
+        assertTrue(ReelDownload.rows(null, reel, null, null, null));
+        assertEquals(List.of("HUSHGRAM_DOWNLOAD_REEL=Download", "HUSHGRAM_REEL_AUTO_SCROLL=Turn on auto scroll"), Item.rows);
+
+        assertTrue("the tap is ours", ReelDownload.save(Ours.HUSHGRAM_REEL_AUTO_SCROLL, reel, activity));
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("Auto scroll on", String.valueOf(ShadowToast.getTextOfLatestToast()));
+        assertTrue(Settings.REEL_AUTO_ADVANCE.get());
+        Item.rows.clear();
+        assertTrue(ReelDownload.rows(null, reel, null, null, null));
+        assertEquals(List.of("HUSHGRAM_DOWNLOAD_REEL=Download", "HUSHGRAM_REEL_AUTO_SCROLL=Turn off auto scroll"), Item.rows);
+        assertTrue(ReelDownload.save(Ours.HUSHGRAM_REEL_AUTO_SCROLL, reel, activity));
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("Auto scroll off", String.valueOf(ShadowToast.getTextOfLatestToast()));
+        assertFalse(Settings.REEL_AUTO_ADVANCE.get());
+        assertTrue("held off over Instagram's own switch", Settings.REEL_AUTO_SCROLL_HELD_OFF.savedValue());
+
+        Settings.DOWNLOAD_REELS.save(false);
+        Item.rows.clear();
+        assertTrue(ReelDownload.offerRow(0, reel));
+        assertTrue(ReelDownload.rows(null, reel, null, null, null));
+        assertEquals(List.of("HUSHGRAM_REEL_AUTO_SCROLL=Turn on auto scroll"), Item.rows);
+        List<Object> reduced = options(Option.PLAYBACK_CONTROLS, Option.REPORT);
+        ReelDownload.addTo(reduced, Option.DOWNLOAD);
+        assertEquals(options(Option.DOWNLOAD, Option.PLAYBACK_CONTROLS, Option.REPORT), reduced);
+        assertEquals(Arrays.asList(ReelDownload.AUTO_SCROLL_ICONS),
+                Arrays.asList(ReelDownload.iconsOf(ReelDownload.AUTO_SCROLL_OPTION)));
+
+        Item.videos = null;
+        Item.rows.clear();
+        assertFalse("a photo doesn't scroll on by itself", ReelDownload.offerRow(0, reel));
+        assertFalse(ReelDownload.rows(null, reel, null, null, null));
+        assertTrue(Item.rows.isEmpty());
+
+        Item.videos = List.of(new MediaSave.Rendition(META + "720.mp4", 720, 1280, 0));
+        Built.autoScroll = false;
+        assertFalse("a build without the patch", ReelDownload.offerRow(0, reel));
+        assertFalse(ReelDownload.rows(null, reel, null, null, null));
+        assertTrue(Item.rows.isEmpty());
+    }
+
+    /**
+     * With Whole reel in the reel menu on and the reel on screen cut at its sides, a video reel gets
+     * Show the whole reel last of ours (#845). Its tap fits that reel inside the screen and turns the
+     * label to Fill the screen, whose tap crops it again. Download on reels off, the row still lets
+     * Instagram's Download row in. A photo gets none.
+     */
+    @Test
+    @Config(shadows = {Item.class, Built.class})
+    public void aCutReelGetsShowTheWholeReelWithItsSwitch() {
+        org.robolectric.android.controller.ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class);
+        ReelWholeTest.Page shown = ReelWholeTest.screen(controller, 500, 400, -100f)[0];
+        Activity activity = controller.get();
+        Utils.setActivity(activity);
+        Item.videos = List.of(new MediaSave.Rendition(META + "720.mp4", 720, 1280, 0));
+        Object reel = new Object();
+        assertFalse("Whole reel in the reel menu starts off", ReelDownload.rows(null, reel, null, null, null));
+        assertTrue(Item.rows.isEmpty());
+
+        Settings.WHOLE_REEL_IN_REEL_MENU.save(true);
+        assertTrue(ReelDownload.rows(null, reel, null, null, null));
+        assertEquals(List.of("HUSHGRAM_DOWNLOAD_REEL=Download", "HUSHGRAM_REEL_WHOLE=Show the whole reel"), Item.rows);
+
+        assertTrue("the tap is ours", ReelDownload.save(Ours.HUSHGRAM_REEL_WHOLE, reel, activity));
+        assertEquals(0.6f, shown.texture.getScaleX(), 0.0001f);
+        Item.rows.clear();
+        assertTrue(ReelDownload.rows(null, reel, null, null, null));
+        assertEquals(List.of("HUSHGRAM_DOWNLOAD_REEL=Download", "HUSHGRAM_REEL_WHOLE=Fill the screen"), Item.rows);
+        assertTrue(ReelDownload.save(Ours.HUSHGRAM_REEL_WHOLE, reel, activity));
+        assertEquals(1f, shown.texture.getScaleX(), 0f);
+
+        Settings.DOWNLOAD_REELS.save(false);
+        Item.rows.clear();
+        assertTrue(ReelDownload.offerRow(0, reel));
+        assertTrue(ReelDownload.rows(null, reel, null, null, null));
+        assertEquals(List.of("HUSHGRAM_REEL_WHOLE=Show the whole reel"), Item.rows);
+        assertEquals(Arrays.asList(ReelDownload.WHOLE_ICONS), Arrays.asList(ReelDownload.iconsOf(ReelDownload.WHOLE_OPTION)));
+
+        Item.videos = null;
+        Item.rows.clear();
+        assertFalse("a photo has nothing to fit", ReelDownload.offerRow(0, reel));
+        assertFalse(ReelDownload.rows(null, reel, null, null, null));
+        assertTrue(Item.rows.isEmpty());
+    }
+
+    /**
+     * With Speed in the reel menu on, a reel with a video file or a manifest gets Playback speed
+     * after Download, and after Details when that's on too (#553). A photo gets none, and neither
+     * does a build without Keep the reel speed, whose player setter a pick goes through.
+     */
+    @Test
+    @Config(shadows = {Item.class, Built.class})
+    public void aVideoReelGetsPlaybackSpeedWithItsSwitch() {
+        Item.videos = List.of(new MediaSave.Rendition(META + "720.mp4", 720, 1280, 0));
+        assertFalse("Speed in the reel menu starts off", Settings.SPEED_IN_REEL_MENU.get());
+        assertFalse(ReelDownload.rows(null, new Object(), null, null, null));
+        assertTrue(Item.rows.isEmpty());
+
+        Settings.SPEED_IN_REEL_MENU.save(true);
+        assertTrue(ReelDownload.rows(null, new Object(), null, null, null));
+        assertEquals(List.of("HUSHGRAM_DOWNLOAD_REEL=Download", "HUSHGRAM_REEL_SPEED=Playback speed"), Item.rows);
+
+        Item.rows.clear();
+        Settings.POST_DETAILS.save(true);
+        assertTrue(ReelDownload.rows(null, new Object(), null, null, null));
+        assertEquals(List.of("HUSHGRAM_DOWNLOAD_REEL=Download", "HUSHGRAM_REEL_DETAILS=Details",
+                "HUSHGRAM_REEL_SPEED=Playback speed"), Item.rows);
+        Settings.POST_DETAILS.save(false);
+
+        Item.rows.clear();
+        Item.videos = null;
+        Item.manifest = "<MPD/>";
+        assertTrue("a manifest alone", ReelDownload.rows(null, new Object(), null, null, null));
+        assertEquals(List.of("HUSHGRAM_DOWNLOAD_REEL=Download", "HUSHGRAM_REEL_SPEED=Playback speed"), Item.rows);
+
+        Item.rows.clear();
+        Item.manifest = null;
+        Item.pictures = List.of(new MediaSave.Rendition(META + "1080.jpg", 1080, 1350, 0));
+        assertFalse("a photo", ReelDownload.rows(null, new Object(), null, null, null));
+        assertTrue(Item.rows.isEmpty());
+
+        Item.pictures = null;
+        Item.videos = List.of(new MediaSave.Rendition(META + "720.mp4", 720, 1280, 0));
+        Built.keepSpeed = false;
+        assertFalse("a build without Keep the reel speed", ReelDownload.rows(null, new Object(), null, null, null));
+        assertTrue(Item.rows.isEmpty());
+    }
+
+    /**
+     * With Download on reels off, Playback speed alone still lets Instagram's Download row into a
+     * video reel's menu and takes its place there, the way Open in another player does. The reduced
+     * menu gets the row too. With Speed in the reel menu off as well, the menu stays Instagram's.
+     */
+    @Test
+    @Config(shadows = {Item.class, Built.class})
+    public void playbackSpeedComesWithoutDownload() {
+        Settings.DOWNLOAD_REELS.save(false);
+        Settings.SPEED_IN_REEL_MENU.save(true);
+        Item.videos = List.of(new MediaSave.Rendition(META + "720.mp4", 720, 1280, 0));
+        Object reel = new Object();
+
+        assertTrue(ReelDownload.offerRow(0, reel));
+        assertTrue("Instagram's own Download row stays out", ReelDownload.rows(null, reel, null, null, null));
+        assertEquals(List.of("HUSHGRAM_REEL_SPEED=Playback speed"), Item.rows);
+
+        Item.rows.clear();
+        assertTrue(ReelDownload.offerRow(1, reel));
+        assertFalse(ReelDownload.withholdRow(1));
+        assertTrue(ReelDownload.rows(null, reel, null, null, null));
+        assertEquals(List.of("HUSHGRAM_REEL_SPEED=Playback speed"), Item.rows);
+
+        List<Object> reduced = options(Option.PLAYBACK_CONTROLS, Option.REPORT);
+        ReelDownload.addTo(reduced, Option.DOWNLOAD);
+        assertEquals(options(Option.DOWNLOAD, Option.PLAYBACK_CONTROLS, Option.REPORT), reduced);
+
+        Item.rows.clear();
+        Settings.SPEED_IN_REEL_MENU.save(false);
+        assertFalse(ReelDownload.offerRow(0, reel));
+        assertFalse(ReelDownload.rows(null, reel, null, null, null));
+        assertTrue(Item.rows.isEmpty());
+        List<Object> plain = options(Option.PLAYBACK_CONTROLS, Option.REPORT);
+        ReelDownload.addTo(plain, Option.DOWNLOAD);
+        assertEquals(options(Option.PLAYBACK_CONTROLS, Option.REPORT), plain);
+    }
+
+    /**
+     * A tap on Playback speed lists the speeds with the one playing checked, and a pick goes on the
+     * reel on screen. A pick that doesn't take says so. With the switch turned off while the menu was
+     * open, nothing is listed, and the row stays ours either way, so Instagram never gets the tap.
+     */
+    @Test
+    @Config(shadows = Built.class)
+    public void aTapOnPlaybackSpeedListsTheSpeedsAndAPickGoesOnTheReel() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        Settings.SPEED_IN_REEL_MENU.save(true);
+        List<Float> listed = new ArrayList<>();
+        List<Float> chosen = new ArrayList<>();
+        boolean[] takes = {true};
+        ReelSpeedButton.speed = new ReelSpeedButton.Speed() {
+            @Override public float playing() {
+                return 1.5f;
+            }
+
+            @Override public boolean choose(float speed) {
+                chosen.add(speed);
+                return takes[0];
+            }
+        };
+        ReelSpeedButton.lists = (on, playing, pick) -> {
+            listed.add(playing);
+            pick.chose(2f);
+        };
+        ShadowToast.reset();
+
+        assertTrue(ReelDownload.save(Ours.HUSHGRAM_REEL_SPEED, new Object(), activity));
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals(List.of(1.5f), listed);
+        assertEquals(List.of(2f), chosen);
+        assertNull("a pick that took said something", ShadowToast.getTextOfLatestToast());
+
+        takes[0] = false;
+        assertTrue(ReelDownload.save(Ours.HUSHGRAM_REEL_SPEED, new Object(), activity));
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("Speed didn't change", String.valueOf(ShadowToast.getTextOfLatestToast()));
+
+        listed.clear();
+        Settings.SPEED_IN_REEL_MENU.save(false);
+        Settings.DOWNLOAD_REELS.save(false);
+        assertTrue("the row went on to Instagram", ReelDownload.save(Ours.HUSHGRAM_REEL_SPEED, new Object(), activity));
+        assertTrue(listed.isEmpty());
+        assertTrue(String.valueOf(HookStatus.report()), String.valueOf(HookStatus.report()).contains("reel menu speed tapped 2"));
+    }
+
+    /** The list a tap shows: the speed icon's speeds, the one playing checked, and a tap on one picks it. */
+    @Test
+    public void theListHasTheIconsSpeedsWithThePlayingOneChecked() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        List<Float> picked = new ArrayList<>();
+
+        ReelSpeedButton.LISTS.show(activity, 1.75f, picked::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
+        assertTrue(dialog.isShowing());
+        List<String> labels = new ArrayList<>();
+        for (CharSequence item : Shadows.shadowOf(dialog).getItems()) labels.add(String.valueOf(item));
+        assertEquals(List.of("0.5x", "1x", "1.5x", "1.75x", "2x", "2.5x", "3x"), labels);
+        assertEquals(3, dialog.getListView().getCheckedItemPosition());
+
+        Shadows.shadowOf(dialog).clickOnItem(4);
+        assertEquals(List.of(2f), picked);
+        assertFalse(dialog.isShowing());
+    }
+
+    /**
+     * Playback speed takes Instagram's 24dp timer, the size of the other rows' glyphs, never the speed
+     * icon's 32dp speedometer, and keeps Download's arrow in a build without the timer.
+     */
+    @Test
+    public void playbackSpeedTakesTheTimerGlyph() {
+        android.content.Context context = org.robolectric.RuntimeEnvironment.getApplication();
+        int download = android.R.drawable.ic_menu_save;
+
+        assertEquals(android.R.drawable.ic_media_ff,
+                ReelDownload.rowIcon(ReelDownload.SPEED_OPTION, download, context, "no_such_icon", "ic_media_ff"));
+        assertEquals(download, ReelDownload.rowIcon(ReelDownload.SPEED_OPTION, download, context, ReelDownload.SPEED_ICONS));
+        for (String icon : ReelDownload.SPEED_ICONS) {
+            assertTrue(icon + " is a 24dp glyph", icon.endsWith("_24"));
+            assertFalse(icon + " is the speed icon's", List.of(ReelSpeedButton.ICON_NAMES).subList(0, 2).contains(icon));
+        }
+    }
+
+    /** Playback speed and Block in a feed post's menu (#743) draw their own glyphs, not Download's arrow. */
+    @Test
+    public void theFeedPostRowsTakeTheirOwnGlyphs() {
+        android.content.Context context = org.robolectric.RuntimeEnvironment.getApplication();
+        int download = android.R.drawable.ic_menu_save;
+
+        for (String row : new String[]{FeedPostRows.SPEED_OPTION, FeedPostRows.BLOCK_OPTION}) {
+            assertEquals(row, android.R.drawable.ic_media_ff, ReelDownload.rowIcon(row, download, context, "no_such_icon", "ic_media_ff"));
+            assertEquals(row + " in a build without the glyph", download, ReelDownload.rowIcon(row, download, context, "no_such_icon"));
+        }
+        assertEquals(Arrays.asList(ReelDownload.SPEED_ICONS), Arrays.asList(ReelDownload.iconsOf(FeedPostRows.SPEED_OPTION)));
+        assertEquals(Arrays.asList(ReelBlockButton.ICON_NAMES), Arrays.asList(ReelDownload.iconsOf(FeedPostRows.BLOCK_OPTION)));
+        assertEquals(Arrays.asList(ReelDownload.DETAILS_ICONS), Arrays.asList(ReelDownload.iconsOf(PostInfo.OPTION)));
+    }
+}

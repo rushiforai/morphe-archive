@@ -1,0 +1,34 @@
+# Hand-written hooks for methods the generator cannot express as plain inserts; same format as hooks.txt.
+
+# reports_v2 cc.t(action): the Mod's report menu actions. The stock method has one register (a string constant that
+# is dead after the null check); the Mod's version took a second one, which cannot be added here, so v0 is reused.
+@method com/waze/reports_v2/presentation/cc t(Lcom/waze/reports_v2/presentation/cc;Lcom/waze/ui/v/a/b;)Lg/ab;
+@insert 2 invoke-direct 0 5
+invoke-static {p0, p1}, Lcom/waze/gw/Gateway;->handleNativeReportMenuAction(Ljava/lang/Object;Ljava/lang/Object;)Z
+move-result v0
+if-eqz v0, :gw_native_report_action_bw
+sget-object p0, Lg/ab;->a:Lg/ab;
+return-object p0
+:gw_native_report_action_bw
+@end
+
+# Android Auto report sub-menu dz.a(category): the Mod needs the category again after the stock code, which it kept in
+# a register added to the method; a register cannot be added here, so the extension remembers it.
+@method com/waze/car_lib/a/dz a(Lcom/waze/reports_v2/b/ad;)Lcom/waze/car_lib/f/a;
+@insert 99 check-cast 0 2
+invoke-static {v0}, Lcom/waze/gw/MorpheCompat;->patchAaSubReportState(Ljava/lang/Object;)Ljava/lang/Object;
+move-result-object v0
+@end
+@insert 2 invoke-virtual 0 1
+invoke-static {p1}, Lcom/waze/gw/MorpheCompat;->rememberAaSubReportCategory(Ljava/lang/Object;)V
+@end
+
+# The drawable a name stands for: the icons the Mod adds have no field in Waze's R class, the id is looked up by name.
+@method com/waze/reports_v2/presentation/bh c(Ljava/lang/String;)I
+@insert 0 const-string 0 4
+invoke-static {p0}, Lcom/waze/gw/MorpheCompat;->modDrawableId(Ljava/lang/String;)I
+move-result v0
+if-eqz v0, :gw_stock_drawable_id
+return v0
+:gw_stock_drawable_id
+@end

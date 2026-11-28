@@ -9,7 +9,6 @@ import app.morphe.patcher.patch.ResourcePatch
 import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
-import app.morphe.patcher.patch.stringOption
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
@@ -19,6 +18,13 @@ import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstructio
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import org.w3c.dom.Element
+import semicoloncolonel.mobilestream.patches.fandango.shared.Constants as Fandango
+import semicoloncolonel.mobilestream.patches.abcnews.shared.Constants as AbcNews
+import semicoloncolonel.mobilestream.patches.cbsnews.shared.Constants as CbsNews
+import semicoloncolonel.mobilestream.patches.nbcuott.shared.Constants as Nbcu
+import semicoloncolonel.mobilestream.patches.foxlocal.shared.Constants as FoxLocal
+import semicoloncolonel.mobilestream.patches.foxnews.shared.Constants as FoxNews
+import semicoloncolonel.mobilestream.patches.moviesanywhere.shared.Constants as MoviesAnywhere
 import semicoloncolonel.mobilestream.patches.pbs.shared.Constants as Pbs
 import semicoloncolonel.mobilestream.patches.starz.shared.Constants as Starz
 import semicoloncolonel.mobilestream.patches.espn.shared.Constants as Espn
@@ -34,7 +40,7 @@ import semicoloncolonel.mobilestream.patches.justwatch.shared.Constants as JustW
 import semicoloncolonel.mobilestream.patches.tubi.shared.Constants as Tubi
 import semicoloncolonel.mobilestream.patches.mlb.shared.Constants as Mlb
 import semicoloncolonel.mobilestream.patches.newsnation.shared.Constants as NewsNation
-import semicoloncolonel.mobilestream.patches.appletv.shared.Constants as AppleTv
+import semicoloncolonel.mobilestream.patches.roku.shared.Constants as Roku
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Hide device identifiers (OPT-IN, default OFF).
@@ -229,6 +235,15 @@ val hideDeviceIdentifiersPatch: BytecodePatch = bytecodePatch(
     default = false,
 ) {
     compatibleWith(
+        Fandango.COMPATIBILITY,
+        MoviesAnywhere.COMPATIBILITY,
+        AbcNews.COMPATIBILITY,
+        CbsNews.COMPATIBILITY,
+        Nbcu.CNBC,
+        Nbcu.NBC_NEWS,
+        Nbcu.MS_NOW,
+        FoxLocal.COMPATIBILITY,
+        FoxNews.COMPATIBILITY,
         Tubi.COMPATIBILITY,
         Disney.COMPATIBILITY,
         Pluto.COMPATIBILITY,
@@ -245,6 +260,7 @@ val hideDeviceIdentifiersPatch: BytecodePatch = bytecodePatch(
         JustWatch.COMPATIBILITY,
         Mlb.COMPATIBILITY,
         NewsNation.COMPATIBILITY,
+        Roku.COMPATIBILITY,
     )
 
     dependsOn(deviceIdentifiersManifestPatch)

@@ -265,15 +265,11 @@ private fun Instruction.isColorLiteral() =
     (opcode == Opcode.CONST_WIDE || opcode == Opcode.CONST_WIDE_32) && (this as WideLiteralInstruction).wideLiteral in COLOR_LITERALS
 
 
-@Suppress("unused")
-val materialYouPatch = patch(
-    name = "Material You",
-    description = "Uses your wallpaper's colors (Android 12+), with an AMOLED black option. The switches are in " +
-        "Fakh Patches.",
-    default = true,
-) {
-    compatibleWith(COMPATIBILITY_GITHUB)
-    category("Theme")
+/**
+ * Lets the extension recolor the app, as the Material You and Pitch black switches say: each switch acts only with the
+ * patch that adds it applied.
+ */
+private val themeColorsPatch = patch {
     dependsOn(materialYouResourcePatch, githubSettingsPatch)
     extendWith("extensions/extension.mpe")
 
@@ -367,6 +363,31 @@ val materialYouPatch = patch(
             ),
         )
 
-        register(MATERIAL_YOU, PITCH_BLACK)
     }
+}
+
+@Suppress("unused")
+val materialYouPatch = patch(
+    name = "Material You",
+    description = "Uses your wallpaper's colors (Android 12+) in light and dark mode.",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_GITHUB)
+    category("Theme")
+    dependsOn(themeColorsPatch)
+
+    execute { register(MATERIAL_YOU) }
+}
+
+@Suppress("unused")
+val pitchBlackPatch = patch(
+    name = "Pitch black",
+    description = "Turns the dark mode backgrounds black (Android 12+).",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_GITHUB)
+    category("Theme")
+    dependsOn(themeColorsPatch)
+
+    execute { register(PITCH_BLACK) }
 }

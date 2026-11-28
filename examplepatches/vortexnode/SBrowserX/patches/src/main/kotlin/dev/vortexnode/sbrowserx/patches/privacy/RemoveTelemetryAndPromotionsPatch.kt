@@ -168,5 +168,107 @@ val removeTelemetryAndPromotionsPatch = bytecodePatch(
                 invoke-static {v0}, Ldev/vortexnode/sbrowserx/extension/SBrowserXHooks;->filterBlockedSearchEngines(Ljava/util/List;)V
             """.trimIndent(),
         )
+
+        // 11. Disable Samsung Internet activation ping (terms.internet.apps.samsung.com/activated)
+        findMethodOrThrow(
+            classType = "Lcom/sec/android/app/sbrowser/common/tnc/SIActivatedLoggingTask;",
+            methodName = "onStartTask",
+            parameterTypes = listOf(
+                "Ljava/lang/String;",
+                "Lcom/sec/android/app/sbrowser/common/model/general/GeneralCallback;",
+            ),
+            returnType = "V",
+        ).returnVoidEarly()
+
+        // 12. Kill residual Samsung Marketing Push background JobService (keeps WebPush intact)
+        findMethodOrThrow(
+            classType = "Lcom/samsung/android/sdk/smp/SmpJobService;",
+            methodName = "onStartJob",
+            parameterTypes = listOf("Landroid/app/job/JobParameters;"),
+            returnType = "Z",
+        ).returnConstantBoolean(false)
+
+        // 13. Disable remote GlobalConfig A/B & JSON fetches (config-api.internet.apps.samsung.com)
+        findMethodOrThrow(
+            classType = "Lcom/sec/android/app/sbrowser/global_config/GlobalConfigUpdateClient;",
+            methodName = "updateIfNeeded",
+            parameterTypes = listOf(
+                "Landroid/content/Context;",
+                "Lcom/sec/android/app/sbrowser/global_config/GlobalConfigDelegate;",
+                "Lcom/sec/android/app/sbrowser/global_config/GlobalConfigUpdateClient${'$'}UpdateCallback;",
+            ),
+            returnType = "V",
+        ).returnVoidEarly()
+
+        // 14. Disable SmartTabDelete background ML model training & job scheduling
+        findMethodOrThrow(
+            classType = "Lcom/sec/android/app/sbrowser/sbrowser_tab/smart_tab_delete/SmartTabDeleteAIModelManager;",
+            methodName = "scheduleJob",
+            parameterTypes = listOf("Landroid/content/Context;"),
+            returnType = "V",
+        ).returnVoidEarly()
+
+        findMethodOrThrow(
+            classType = "Lcom/sec/android/app/sbrowser/sbrowser_tab/smart_tab_delete/SmartTabDeleteAIModelManager;",
+            methodName = "retrain",
+            parameterTypes = emptyList(),
+            returnType = "V",
+        ).returnVoidEarly()
+
+        // 15. Disable Samsung DataLake cloud top-sites/categories telemetry (data-lake-api.internet.apps.samsung.com)
+        findMethodOrThrow(
+            classType = "Lcom/sec/android/app/sbrowser/search_window/model/data_lake/DataLakeTopSites;",
+            methodName = "fetchCategories",
+            parameterTypes = listOf("Lcom/sec/android/app/sbrowser/search_window/model/data_lake/DataLakeTopSites${'$'}Listener;"),
+            returnType = "V",
+        ).returnVoidEarly()
+
+        findMethodOrThrow(
+            classType = "Lcom/sec/android/app/sbrowser/search_window/model/data_lake/DataLakeTopSites;",
+            methodName = "fetchTopSites",
+            parameterTypes = listOf(
+                "Ljava/lang/String;",
+                "I",
+                "I",
+                "Lcom/sec/android/app/sbrowser/search_window/model/data_lake/DataLakeTopSites${'$'}Listener;",
+            ),
+            returnType = "V",
+        ).returnVoidEarly()
+
+        // 16. Disable QuickAccess News Feed background fetches (news-cdn.internet.apps.samsung.com)
+        findMethodOrThrow(
+            classType = "Lcom/sec/android/app/sbrowser/quickaccess/ui/viewmodel/NewsFeedVisibilityLiveData;",
+            methodName = "isNewsFeedSupported",
+            parameterTypes = emptyList(),
+            returnType = "Z",
+        ).addInstructions(
+            0,
+            """
+                const/4 p0, 0x0
+                return p0
+            """.trimIndent(),
+        )
+
+        // 17. Silence the annoying "This page was opened by <App>" snackbar while keeping Intent Blocker intact
+        findMethodOrThrow(
+            classType = "Lcom/sec/android/app/sbrowser/main_activity/BackgroundCallerHandler;",
+            methodName = "showSnackBar",
+            parameterTypes = emptyList(),
+            returnType = "V",
+        ).returnVoidEarly()
+
+        // 18. Disable Samsung "Set Quick Access as homepage" promo card in Settings app bar
+        findMethodOrThrow(
+            classType = "Lcom/sec/android/app/sbrowser/common/suggestion_appbar/QuickAccessPromotionInfo;",
+            methodName = "shouldShowQuickAccessPromotion",
+            parameterTypes = listOf("Landroid/content/Context;"),
+            returnType = "Z",
+        ).addInstructions(
+            0,
+            """
+                const/4 p0, 0x0
+                return p0
+            """.trimIndent(),
+        )
     }
 }

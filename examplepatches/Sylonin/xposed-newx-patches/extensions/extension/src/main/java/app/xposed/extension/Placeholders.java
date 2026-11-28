@@ -67,6 +67,7 @@ final class Placeholders {
             if (handle == null) return false;
             long userId = ModelBridge.userId(user);
             Users.put(userId, handle);
+            Observed.user(handle, user);
             Observed.viewer(ModelBridge.viewerId(post));
             States.observe(handle);
             int reasons = Verdicts.forPost(user, handle, userId, null, true);

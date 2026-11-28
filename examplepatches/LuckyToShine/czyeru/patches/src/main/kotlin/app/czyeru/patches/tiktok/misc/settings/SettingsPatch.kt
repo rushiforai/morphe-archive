@@ -45,7 +45,7 @@ private data class OpenDebugTargets(
 @Suppress("unused")
 val settingsPatch = bytecodePatch(
     name = "Settings",
-    description = "Adds the Crazy Erudite Patches settings menu to TikTok. Supports TikTok 47.6.3, 47.4.3 and 47.2.41.",
+    description = "Adds the Crazy Erudite Patches settings menu to TikTok. Supports TikTok 48.0.2, 47.6.3, 47.4.3 and 47.2.41.",
     default = true,
 ) {
     dependsOn(sharedExtensionPatch)
@@ -144,7 +144,7 @@ val settingsPatch = bytecodePatch(
                 val instruction = insn as? Instruction35c ?: return@firstNotNullOfOrNull null
                 val ref = instruction.reference as? MethodReference
                     ?: return@firstNotNullOfOrNull null
-                if (!ref.definingClass.startsWith("Lkotlin/jvm/internal/AwS")) return@firstNotNullOfOrNull null
+                if (ref.name != "<init>") return@firstNotNullOfOrNull null
                 if (ref.parameterTypes != listOf(openDebugStateClass, "Landroid/content/Context;", "I")) {
                     return@firstNotNullOfOrNull null
                 }
@@ -200,7 +200,7 @@ val settingsPatch = bytecodePatch(
                 if (insn.opcode != Opcode.INVOKE_DIRECT) return@firstNotNullOfOrNull null
                 val ref = (insn as? ReferenceInstruction)?.reference as? MethodReference
                     ?: return@firstNotNullOfOrNull null
-                if (!ref.definingClass.startsWith("Lkotlin/jvm/internal/AwS")) return@firstNotNullOfOrNull null
+                if (ref.name != "<init>") return@firstNotNullOfOrNull null
                 if (ref.parameterTypes.firstOrNull() != openDebugVmClass) return@firstNotNullOfOrNull null
                 ref.definingClass
             } ?: throw PatchException(
@@ -369,7 +369,11 @@ val settingsPatch = bytecodePatch(
 
         OpenDebugCellVmDefaultStateFingerprint.methodOrNull?.let { defaultState ->
             val constructorReference = defaultState.implementation!!.instructions.firstNotNullOfOrNull { instruction ->
-                if (instruction.opcode != Opcode.INVOKE_DIRECT) return@firstNotNullOfOrNull null
+                if (instruction.opcode != Opcode.INVOKE_DIRECT &&
+                    instruction.opcode != Opcode.INVOKE_DIRECT_RANGE
+                ) {
+                    return@firstNotNullOfOrNull null
+                }
                 val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
                     ?: return@firstNotNullOfOrNull null
                 reference.takeIf { it.name == "<init>" && it.definingClass == openDebugStateClass }

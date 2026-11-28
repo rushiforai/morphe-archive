@@ -21,10 +21,14 @@ configure<ApplicationExtension> {
 
 tasks.withType<JavaCompile>().configureEach {
     doLast {
-        // Keep only standalone YouTube fullscreen extension classes in extensions/ytfullscreen.mpe
+        // Keep only standalone YouTube add-on extension classes in extensions/ytfullscreen.mpe
         destinationDirectory.get().asFile.walkTopDown()
             .filter { it.isFile && it.extension == "class" }
-            .filter { !it.name.startsWith("YouTubeFullscreenFilter") }
+            .filter {
+                !it.name.startsWith("YouTubeFullscreenFilter") &&
+                    !it.name.startsWith("YouTubeGlassBlurPreference") &&
+                    !it.name.startsWith("YouTubeTabletWatchLayout")
+            }
             .forEach { it.delete() }
     }
 }

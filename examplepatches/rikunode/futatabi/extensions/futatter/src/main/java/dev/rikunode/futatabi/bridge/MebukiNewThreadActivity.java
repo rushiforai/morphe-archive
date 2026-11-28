@@ -311,7 +311,16 @@ public final class MebukiNewThreadActivity extends Activity {
                 if(!alive())return;
                 if(confirmedId!=null&&saved.equals(MebukiSession.saved(this))){
                     try{
-                        startActivity(new Intent(this,MebukiReaderActivity.class).putExtra(MebukiReaderActivity.ID,confirmedId));
+                        // Reuse the stock Flutter Activity and its AppLinks thread opener.
+                        // The AOT bridge preserves this exact loopback URL (HTTP + port).
+                        if (!confirmedId.matches("[1-9][0-9]{12}") ||
+                                !slug.equals(new MebukiAdapter(this).slugForThreadId(confirmedId)))
+                            throw new IllegalStateException("Thread identity changed");
+                        Intent target = new Intent(Intent.ACTION_VIEW,
+                                Uri.parse("http://127.0.0.1:18765/mebuki/res/" + confirmedId + ".htm"));
+                        target.setClassName(this, "com.Nanasaki.ftutter.MainActivity");
+                        target.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                        startActivity(target);
                         finish();
                         return;
                     }catch(RuntimeException ex){

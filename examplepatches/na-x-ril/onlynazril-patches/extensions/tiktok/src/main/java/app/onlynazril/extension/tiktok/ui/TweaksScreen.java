@@ -24,6 +24,7 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -32,6 +33,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import app.onlynazril.extension.tiktok.AppLocale;
 import app.onlynazril.extension.tiktok.CountryName;
@@ -47,8 +49,11 @@ import app.onlynazril.extension.tiktok.refreshrate.RefreshRate;
 import app.onlynazril.extension.tiktok.settings.CaptchaSettings;
 import app.onlynazril.extension.tiktok.settings.CommentCopySettings;
 import app.onlynazril.extension.tiktok.settings.CustomFontSettings;
+import app.onlynazril.extension.tiktok.settings.DebugSettings;
 import app.onlynazril.extension.tiktok.settings.DownloadSettings;
 import app.onlynazril.extension.tiktok.settings.FeedFilterSettings;
+import app.onlynazril.extension.tiktok.settings.FeatureFlagSettings;
+import app.onlynazril.extension.tiktok.settings.FeedSearchSettings;
 import app.onlynazril.extension.tiktok.settings.HandleSettings;
 import app.onlynazril.extension.tiktok.settings.KeepScreenSettings;
 import app.onlynazril.extension.tiktok.settings.PostDateFormat;
@@ -58,6 +63,7 @@ import app.onlynazril.extension.tiktok.settings.RefreshRateSettings;
 import app.onlynazril.extension.tiktok.settings.ResumePlaybackSettings;
 import app.onlynazril.extension.tiktok.settings.SettingsBackup;
 import app.onlynazril.extension.tiktok.settings.SettingsReset;
+import app.onlynazril.extension.tiktok.settings.SpeedOnlySettings;
 
 /**
  * Tweaks screen: a root category list and one full page per category.
@@ -96,7 +102,7 @@ public final class TweaksScreen extends FrameLayout {
         CONTENT("Content & appearance", "Comment copy, custom font and profile background."),
         PRIVACY("Privacy", "The risk-control CAPTCHA puzzle."),
         DOWNLOAD("Download", "Watermark, share sheets and quality."),
-        MISC("Misc", "Display refresh rate and room for future options."),
+        MISC("Misc", "Display refresh rate, feature flags and the settings backup."),
         ABOUT("About", "Build, diagnostics and restart.");
 
         final String title;
@@ -112,6 +118,25 @@ public final class TweaksScreen extends FrameLayout {
     private final FrameLayout host;
     private final Handler searchHandler = new Handler(Looper.getMainLooper());
     private Category current;
+    /** The flag picker is a leaf page under Misc, so back returns to Misc rather than to the root. */
+    private boolean flagsPage;
+    /** Flag rows a fill adds before yielding a frame. */
+    private static final int FLAG_CHUNK = 10;
+    /** Rows one pull of the infinite list adds; the rest follow as the page is scrolled. */
+    private static final int FLAG_PAGE = 40;
+    /** Bumped on every render and page change, so a fill queued for an older list stops. */
+    private int flagGeneration;
+    private List<FlagEntry> flagEntriesCache;
+    private List<FlagEntry> flagMatches;
+    private LinearLayout flagResults;
+    private String flagQuery = "";
+    /** Empty for every type, otherwise "b", "number", "decimal" or "s". */
+    private String flagType = "";
+    private int flagShown;
+    private boolean flagLoading;
+    private TextView flagFooter;
+    /** Shown only while an override exists, so it follows the list it clears. */
+    private View flagResetRow;
     private View currentView;
     private boolean transitioning;
     private boolean searching;
@@ -137,8 +162,12 @@ public final class TweaksScreen extends FrameLayout {
         super.onDetachedFromWindow();
     }
 
-    /** Returns to the category list; false when the list is already showing. */
+    /** Returns one page; false when the root is already showing. */
     public boolean goBack() {
+        if (flagsPage) {
+            showCategory(Category.MISC, null, false);
+            return true;
+        }
         if (current == null && !searching) return false;
         showRoot(true);
         return true;
@@ -146,6 +175,10 @@ public final class TweaksScreen extends FrameLayout {
 
     private void showRoot(boolean animateBack) {
         current = null;
+        flagsPage = false;
+        flagGeneration++;
+        flagResults = null;
+        flagResetRow = null;
         searching = false;
         cancelPendingSearch();
         Page page = page(topBar("Tweaks", true, true));
@@ -175,14 +208,22 @@ public final class TweaksScreen extends FrameLayout {
     }
 
     private void showCategory(Category category, String highlight) {
+        showCategory(category, highlight, true);
+    }
+
+    private void showCategory(Category category, String highlight, boolean forward) {
         current = category;
+        flagsPage = false;
+        flagGeneration++;
+        flagResults = null;
+        flagResetRow = null;
         searching = false;
         cancelPendingSearch();
         Page page = page(topBar(category.title, false, false));
         page.content.addView(pageIntro(category.summary));
         addCategoryContent(page.content, category);
-        show(page.root, true);
-        if (highlight != null) page.root.post(() -> reveal(page, highlight));
+        show(page.root, forward);
+        if (highlight != null && forward) page.root.post(() -> reveal(page, highlight));
     }
 
     /** Scrolls the named row into view and runs one shimmer across it. */
@@ -380,7 +421,7 @@ public final class TweaksScreen extends FrameLayout {
         }
     }
 
-    private View searchNote(String text) {
+    private TextView searchNote(String text) {
         TextView view = new TextView(context);
         view.setText(text);
         view.setTextSize(Tokens.SUBTITLE_SP);
@@ -414,13 +455,21 @@ public final class TweaksScreen extends FrameLayout {
             return lowerTitle.contains(needle) || lowerSummary.contains(needle);
         }
     }
-    /** Slides the old page out and the new one in with a 1/4 parallax; the whole page moves. */
     private void show(View page, boolean forward) {
+        show(page, forward, null);
+    }
+
+    /**
+     * Slides the old page out and the new one in with a 1/4 parallax; the whole page moves. The
+     * caller's work runs after the transition, so building content never competes with it.
+     */
+    private void show(View page, boolean forward, Runnable after) {
         if (transitioning) return;
 
         if (currentView == null) {
             currentView = page;
             host.addView(page, pageParams());
+            if (after != null) after.run();
             return;
         }
 
@@ -455,6 +504,7 @@ public final class TweaksScreen extends FrameLayout {
                     outgoing.setTranslationX(0f);
                     currentView = page;
                     transitioning = false;
+                    if (after != null) after.run();
                 })
                 .start();
     }
@@ -612,6 +662,15 @@ public final class TweaksScreen extends FrameLayout {
                 "Handle stamp",
                 "Only the @handle. The region and the post time have their own switches below.",
                 masterToggle));
+
+        page.addView(divider(context));
+        page.addView(new RowView(
+                context,
+                "Copy handle on hold",
+                "Hold the name on a feed video or comment to copy its @handle. "
+                        + "Off leaves the hold to TikTok.",
+                toggle(context, HandleSettings.isCopyOnHoldEnabled(context),
+                        checked -> HandleSettings.setCopyOnHoldEnabled(context, checked))));
 
         for (String[] surfaceRow : SURFACE_ROWS) {
             page.addView(divider(context));
@@ -781,25 +840,25 @@ public final class TweaksScreen extends FrameLayout {
         RowView startRow = new RowView(
                 context,
                 "Skip from start",
-                "Seconds before a position is remembered.",
+                "Seconds before a stored position is used.",
                 NumberAction.create(context, "Skip from start",
-                        "Seconds counted from the beginning of the video.",
+                        "Shorter watch does not resume; the video starts over.",
                         "s", ResumePlaybackSettings.startSeconds(context),
                         seconds -> ResumePlaybackSettings.setStartSeconds(context, seconds)));
         RowView endRow = new RowView(
                 context,
                 "Skip from end",
-                "Seconds before the end that are not remembered.",
+                "Seconds before the end that are not resumed.",
                 NumberAction.create(context, "Skip from end",
-                        "Seconds counted back from the end of the video.",
+                        "A video left this close to its end starts over.",
                         "s", ResumePlaybackSettings.endSeconds(context),
                         seconds -> ResumePlaybackSettings.setEndSeconds(context, seconds)));
 
         page.addView(new RowView(
                 context,
                 "Resume playback",
-                "Continue a video from where you stopped. The twelve most recently opened videos "
-                        + "are kept until the app closes.",
+                "Continue a video from where you stopped. The position is the one TikTok keeps; "
+                        + "a video that reached its end starts over.",
                 resumeToggle));
         page.addView(divider(context));
         page.addView(startRow);
@@ -814,6 +873,15 @@ public final class TweaksScreen extends FrameLayout {
         startRow.setRowEnabled(resumeOn);
         endRow.setRowEnabled(resumeOn);
 
+        page.addView(section(context, "Speed up"));
+        page.addView(new RowView(
+                context,
+                "Speed up only",
+                "A hold on the like or comment button speeds the video up without liking it or "
+                        + "opening its comments. A tap still does both.",
+                toggle(context, SpeedOnlySettings.isEnabled(context),
+                        checked -> SpeedOnlySettings.setEnabled(context, checked))));
+
         page.addView(section(context, "Pause"));
         page.addView(new RowView(
                 context,
@@ -821,6 +889,15 @@ public final class TweaksScreen extends FrameLayout {
                 "Hide the image-search entries while a video is paused. Off restores TikTok's entries.",
                 toggle(context, PauseImageSearchSettings.isDisabled(context),
                         checked -> PauseImageSearchSettings.setDisabled(context, checked))));
+
+        page.addView(section(context, "Search"));
+        page.addView(new RowView(
+                context,
+                "Hide feed search suggestion",
+                "Hide the Search · <query> bar TikTok adds under a video in the feed. "
+                        + "Off restores it.",
+                toggle(context, FeedSearchSettings.isHidden(context),
+                        checked -> FeedSearchSettings.setHidden(context, checked))));
     }
 
     private void addContent(LinearLayout page) {
@@ -964,17 +1041,28 @@ public final class TweaksScreen extends FrameLayout {
                     if (RefreshRate.isInstalled()) RefreshRate.applyNow(context);
                 })));
 
+        page.addView(section(context, "Feature flags"));
+        RowView flagsRow = new RowView(
+                context,
+                "Feature flags",
+                FeatureFlagSettings.seenCount() + " flags recorded, "
+                        + FeatureFlagSettings.overrideCount() + " overridden. "
+                        + "Tap to override one.",
+                chevron());
+        flagsRow.setOnClickListener(view -> showFlags());
+        page.addView(flagsRow);
+
         page.addView(section(context, "Settings backup"));
         page.addView(new RowView(
                 context,
                 "Export settings",
-                "Save every setting to a JSON file.",
+                "Save every setting and the imported fonts to a JSON file.",
                 new ActionView(context, "Export", () -> exportSettings(context))));
         page.addView(divider(context));
         page.addView(new RowView(
                 context,
                 "Import settings",
-                "Load settings from a JSON file.",
+                "Load settings and the imported fonts from a JSON file.",
                 new ActionView(context, "Import", () -> importSettings(context))));
         page.addView(divider(context));
         page.addView(new RowView(
@@ -995,10 +1083,21 @@ public final class TweaksScreen extends FrameLayout {
     }
 
     private void addAbout(LinearLayout page) {
+        page.addView(section(context, "Diagnostics"));
+        page.addView(new RowView(
+                context,
+                "Verbose diagnostics",
+                "On, the extension logs every line, the app frames and the higher budgets. Off, "
+                        + "it writes nothing. Costs CPU; off by default.",
+                toggle(context, DebugSettings.isVerbose(context), checked -> {
+                    DebugSettings.setVerbose(context, checked);
+                    Debug.setVerbose(checked);
+                })));
+        page.addView(divider(context));
         page.addView(description(
                 context,
-                "Tweaks for TikTok 47.7.1 to 47.7.3. "
-                        + "The display name is read, never rewritten."));
+                "Tweaks for TikTok" + appVersionSuffix(context) + ". "
+                        + "The display name is read, never rewritten. Build " + Debug.BUILD + "."));
         page.addView(diagnostics(context));
         page.addView(actions(context));
     }
@@ -1162,7 +1261,9 @@ public final class TweaksScreen extends FrameLayout {
      */
     private static void fillFontList(Context context, LinearLayout list) {
         list.removeAllViews();
-        List<String> names = CustomFontSettings.names(context);
+        // The rows are rebuilt right after a delete, so the listing must not come from its cache.
+        CustomFontSettings.refresh();
+        List<String> names = CustomFontSettings.list(context);
         if (names.isEmpty()) {
             RowView hint = new RowView(
                     context,
@@ -1272,6 +1373,17 @@ public final class TweaksScreen extends FrameLayout {
         activity.startActivityForResult(pick, CustomFontBridge.REQUEST_PICK_FONT);
     }
 
+    /** " 48.0.2" from the installed package, or "" when the name cannot be read. */
+    private static String appVersionSuffix(Context context) {
+        try {
+            String version = context.getPackageManager()
+                    .getPackageInfo(context.getPackageName(), 0).versionName;
+            return version == null || version.isEmpty() ? "" : " " + version;
+        } catch (Throwable t) {
+            return "";
+        }
+    }
+
     private static void exportSettings(Context context) {
         Activity activity = Activities.of(context);
         if (activity == null || activity.isFinishing()) return;
@@ -1291,6 +1403,334 @@ public final class TweaksScreen extends FrameLayout {
         open.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{
                 "application/json", "text/json", "text/plain", "application/octet-stream"});
         activity.startActivityForResult(open, SettingsBackup.REQUEST_IMPORT);
+    }
+
+    /** The flag picker: every flag TikTok asked for, with its override. */
+    private void showFlags() {
+        if (transitioning) return;
+        cancelPendingSearch();
+        current = Category.MISC;
+        flagsPage = true;
+        searching = false;
+        FeatureFlagSettings.flushSeen(context);
+        // The entry list is built here, before the transition: sorting thousands of keys is a few
+        // milliseconds, and doing it now keeps it out of the frames the animation is using.
+        flagEntriesCache = null;
+        flagEntries();
+
+        View bar = topBar("Feature flags", false, false);
+        // The arrow goes back to the group that opened this page, not to the category list.
+        ((ViewGroup) bar).getChildAt(0)
+                .setOnClickListener(view -> showCategory(Category.MISC, null, false));
+        Page page = page(bar);
+        page.content.addView(pageIntro(
+                "Flags TikTok has asked for. Tap one to override it; Reset hands it back. "
+                        + "A flag read once at startup needs a restart."));
+
+        flagResetRow = flagsResetRow();
+        page.content.addView(flagResetRow);
+        flagResetRow.setVisibility(
+                FeatureFlagSettings.overrideCount() > 0 ? View.VISIBLE : View.GONE);
+
+        final EditText field = TextField.create(context)
+                .hint("Search flags")
+                .imeOptions(EditorInfo.IME_ACTION_SEARCH)
+                .horizontalPaddingDp(Tokens.SPACE_4)
+                .alignStart()
+                .build();
+        LinearLayout.LayoutParams fieldParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, Tokens.dp(context, 44));
+        fieldParams.setMargins(
+                Tokens.dp(context, Tokens.SPACE_4),
+                Tokens.dp(context, Tokens.SPACE_1),
+                Tokens.dp(context, Tokens.SPACE_4),
+                Tokens.dp(context, Tokens.SPACE_1));
+        page.content.addView(field, fieldParams);
+        page.content.addView(flagChips(this::refreshFlags));
+
+        final LinearLayout results = new LinearLayout(context);
+        results.setOrientation(LinearLayout.VERTICAL);
+        page.content.addView(results);
+
+        final Runnable render = () -> renderFlags(results, field.getText().toString());
+        field.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                cancelPendingSearch();
+                pendingSearch = render;
+                searchHandler.postDelayed(pendingSearch, SEARCH_DEBOUNCE_MS);
+            }
+        });
+
+        // The rest of a long list arrives as the page is scrolled, not all at once.
+        page.scroll.setOnScrollChangeListener((view, x, y, oldX, oldY) -> {
+            if (flagMatches == null || flagLoading || flagShown >= flagMatches.size()) return;
+            ViewGroup group = (ViewGroup) view;
+            int contentBottom = group.getChildCount() == 0
+                    ? 0
+                    : group.getChildAt(0).getBottom();
+            if (contentBottom - (view.getHeight() + y) < Tokens.dp(context, 240)) {
+                loadFlagPage(flagGeneration);
+            }
+        });
+
+        // The list waits for the transition: the animation owns the frames until it is over.
+        show(page.root, true, () -> page.root.post(render));
+    }
+
+    /** Type chips; exactly one is in force and a change rebuilds the list. */
+    private View flagChips(Runnable refresh) {
+        String[][] chips = {
+                {"", "All"},
+                {"b", "Boolean"},
+                {"number", "Whole"},
+                {"decimal", "Decimal"},
+                {"s", "Text"},
+                {"o", "Object"},
+        };
+        HorizontalScrollView scroller = new HorizontalScrollView(context);
+        scroller.setHorizontalScrollBarEnabled(false);
+        LinearLayout row = new LinearLayout(context);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setPadding(
+                Tokens.dp(context, Tokens.SPACE_4),
+                Tokens.dp(context, Tokens.SPACE_2),
+                Tokens.dp(context, Tokens.SPACE_4),
+                0);
+        List<ActionView> views = new ArrayList<>();
+        for (String[] chip : chips) {
+            final String type = chip[0];
+            ActionView view = new ActionView(context, chip[1], Tokens.SURFACE,
+                    Tokens.TEXT_SECONDARY, () -> {
+                flagType = type;
+                for (int i = 0; i < views.size(); i++) {
+                    paintChip(views.get(i), chips[i][0].equals(flagType));
+                }
+                refresh.run();
+            });
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT);
+            params.rightMargin = Tokens.dp(context, Tokens.SPACE_2);
+            views.add(view);
+            row.addView(view, params);
+        }
+        for (int i = 0; i < views.size(); i++) {
+            paintChip(views.get(i), chips[i][0].equals(flagType));
+        }
+        scroller.addView(row);
+        return scroller;
+    }
+
+    /**
+     * A chip shows its state and nothing else: the fill and the label change, and no ripple runs
+     * under the finger, because a filter that is already selected has no press to report.
+     */
+    private void paintChip(ActionView chip, boolean selected) {
+        chip.setTextColor(selected ? Tokens.TEXT_ON_LIGHT : Tokens.TEXT_SECONDARY);
+        GradientDrawable shape = new GradientDrawable();
+        shape.setShape(GradientDrawable.RECTANGLE);
+        shape.setCornerRadius(Tokens.dp(context, 1000));
+        shape.setColor(selected ? Tokens.BG_WHITE : Tokens.SURFACE);
+        shape.setStroke(Tokens.dp(context, 1), Tokens.HAIRLINE);
+        chip.setBackground(shape);
+    }
+
+    /** One flag as the picker shows it: key, type, the value TikTok asked for and the override. */
+    private static final class FlagEntry {
+        final String key;
+        final String type;
+        final String appValue;
+        final String override;
+
+        FlagEntry(String key, String type, String appValue, String override) {
+            this.key = key;
+            this.type = type;
+            this.appValue = appValue;
+            this.override = override;
+        }
+    }
+
+    /** Overridden flags first, then by key, so the ones in force are the ones on screen. */
+    private List<FlagEntry> flagEntries() {
+        if (flagEntriesCache != null) return flagEntriesCache;
+        List<FlagEntry> entries = new ArrayList<>();
+        Map<String, String> seen = FeatureFlagSettings.seen();
+        Map<String, String> overrides = FeatureFlagSettings.overrides();
+        for (Map.Entry<String, String> item : seen.entrySet()) {
+            String[] parts = FeatureFlagSettings.split(item.getValue());
+            if (parts == null) continue;
+            entries.add(new FlagEntry(item.getKey(), parts[0], parts[1],
+                    overrides.get(item.getKey())));
+        }
+        entries.sort((left, right) -> {
+            boolean leftSet = left.override != null;
+            boolean rightSet = right.override != null;
+            if (leftSet != rightSet) return leftSet ? -1 : 1;
+            return left.key.compareToIgnoreCase(right.key);
+        });
+        flagEntriesCache = entries;
+        return entries;
+    }
+
+    private void renderFlags(LinearLayout results, String query) {
+        try {
+            renderFlagsUnsafe(results, query);
+        } catch (Throwable t) {
+            Debug.print("flags: could not render the list: " + t);
+        }
+    }
+
+    private void renderFlagsUnsafe(LinearLayout results, String query) {
+        int generation = ++flagGeneration;
+        if (flagResetRow != null) {
+            flagResetRow.setVisibility(
+                    FeatureFlagSettings.overrideCount() > 0 ? View.VISIBLE : View.GONE);
+        }
+        flagResults = results;
+        flagQuery = query;
+        flagShown = 0;
+        flagLoading = false;
+        flagFooter = null;
+        results.removeAllViews();
+        List<FlagEntry> entries = flagEntries();
+        if (entries.isEmpty()) {
+            flagMatches = new ArrayList<>();
+            results.addView(searchNote(
+                    "No flag recorded yet. Use TikTok for a while, then open this page again."));
+            return;
+        }
+        String needle = query.trim().toLowerCase(Locale.ROOT);
+        List<FlagEntry> matches = new ArrayList<>();
+        for (FlagEntry entry : entries) {
+            if (!flagTypeMatches(entry.type)) continue;
+            if (!needle.isEmpty()
+                    && !entry.key.toLowerCase(Locale.ROOT).contains(needle)) {
+                continue;
+            }
+            matches.add(entry);
+        }
+        flagMatches = matches;
+        if (matches.isEmpty()) {
+            results.addView(searchNote(needle.isEmpty()
+                    ? "No flag of this type recorded yet."
+                    : "No flag matches \"" + query.trim() + "\"."));
+            return;
+        }
+        loadFlagPage(generation);
+    }
+
+    private boolean flagTypeMatches(String type) {
+        if (flagType.isEmpty()) return true;
+        if ("number".equals(flagType)) return "i".equals(type) || "j".equals(type);
+        if ("decimal".equals(flagType)) return "f".equals(type) || "d".equals(type);
+        return flagType.equals(type);
+    }
+
+    /** Adds the next pull of rows, a few per frame. */
+    private void loadFlagPage(int generation) {
+        if (flagLoading || flagMatches == null || generation != flagGeneration) return;
+        int from = flagShown;
+        int to = Math.min(from + FLAG_PAGE, flagMatches.size());
+        if (from >= to) {
+            updateFlagFooter();
+            return;
+        }
+        if (flagFooter != null && flagFooter.getParent() instanceof ViewGroup) {
+            ((ViewGroup) flagFooter.getParent()).removeView(flagFooter);
+        }
+        flagLoading = true;
+        fillFlags(generation, from, to);
+    }
+
+    private void fillFlags(int generation, int from, int end) {
+        if (generation != flagGeneration) return;
+        int next = Math.min(from + FLAG_CHUNK, end);
+        for (int i = from; i < next; i++) {
+            FlagEntry entry = flagMatches.get(i);
+            flagResults.addView(flagRow(entry, () -> {
+                flagEntriesCache = null;
+                renderFlags(flagResults, flagQuery);
+            }));
+            flagResults.addView(divider(context));
+        }
+        if (next < end) {
+            flagResults.postOnAnimation(() -> fillFlags(generation, next, end));
+        } else {
+            flagShown = end;
+            flagLoading = false;
+            updateFlagFooter();
+        }
+    }
+
+    private void updateFlagFooter() {
+        if (flagResults == null || flagMatches == null) return;
+        if (flagFooter != null && flagFooter.getParent() instanceof ViewGroup) {
+            ((ViewGroup) flagFooter.getParent()).removeView(flagFooter);
+        }
+        String text;
+        if (flagShown < flagMatches.size()) {
+            text = "Showing " + flagShown + " of " + flagMatches.size()
+                    + " flags. Scroll for more.";
+        } else {
+            text = flagMatches.size() + " flag" + (flagMatches.size() == 1 ? "" : "s") + ".";
+        }
+        flagFooter = searchNote(text);
+        flagResults.addView(flagFooter);
+    }
+
+    private View flagRow(FlagEntry entry, Runnable refresh) {
+        boolean overridable = !"o".equals(entry.type);
+        String summary = FlagDialog.typeName(entry.type) + " \u00b7 default "
+                + entry.appValue
+                + (entry.override != null ? " \u00b7 override " + entry.override : "");
+        RowView row = new RowView(context, entry.key, summary, overridable ? chevron() : null);
+        row.capTitleWidth(0.62f);
+        if (!overridable) return row;
+        row.setOnClickListener(view -> FlagDialog.show(
+                context, entry.key, entry.type, entry.appValue, entry.override, value -> {
+                    if (value == null) {
+                        FeatureFlagSettings.removeOverride(context, entry.key);
+                    } else {
+                        FeatureFlagSettings.setOverride(context, entry.key, value);
+                    }
+                    refreshFlags();
+                }));
+        return row;
+    }
+
+    /** Rebuilds the list after an override changed, from a fresh entry list. */
+    private void refreshFlags() {
+        if (flagResults == null) return;
+        flagEntriesCache = null;
+        renderFlags(flagResults, flagQuery);
+    }
+
+    private View flagsResetRow() {
+        LinearLayout row = new LinearLayout(context);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.END);
+        row.setPadding(
+                Tokens.dp(context, Tokens.SPACE_4),
+                Tokens.dp(context, Tokens.SPACE_1),
+                Tokens.dp(context, Tokens.SPACE_4),
+                Tokens.dp(context, Tokens.SPACE_1));
+        row.addView(new ActionView(context, "Reset all overrides", () -> Prompt.show(
+                context,
+                "Reset overrides",
+                "Every override is cleared and TikTok's own values return.",
+                "Reset",
+                () -> {
+                    FeatureFlagSettings.clearOverrides(context);
+                    refreshFlags();
+                })));
+        return row;
     }
 
     private static ToggleView surfaceToggle(Context context, String surface) {

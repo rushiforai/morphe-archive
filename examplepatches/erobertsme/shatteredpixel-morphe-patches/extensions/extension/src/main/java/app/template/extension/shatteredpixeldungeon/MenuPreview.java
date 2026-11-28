@@ -57,10 +57,10 @@ final class MenuPreview {
 		Image packIcon = Icons.get(Icons.BACKPACK_LRG);
 		add(scene, at(packIcon, pack.x + (24 - packIcon.width()) / 2f, bottom + (TOOLBAR_HEIGHT - packIcon.height()) / 2f));
 		for (int i = 1; i <= QUICKSLOTS; i++) {
-			add(scene, at(new Image(TOOLBAR, 64, 0, 22, 24), right - 24 - i * 22, bottom + 2));
+			add(scene, at(new Image(TOOLBAR, 64, 0, 22, 24), right - 24 - i * 22, bottom + 2 + QuickslotRow.quickslotDrop()));
 		}
 		if (QuickslotRow.wantsRow()) {
-			for (Image slot : QuickslotRow.standInRow(left, right - left, bottom + TOOLBAR_HEIGHT)) add(scene, slot);
+			for (Image slot : QuickslotRow.standInRow(left, right - left, bottom + QuickslotRow.ROW_HEIGHT + QuickslotRow.quickslotDrop(), right - 24 - QUICKSLOTS * 22, right - 24)) add(scene, slot);
 		}
 
 		if (!withTags) return true;

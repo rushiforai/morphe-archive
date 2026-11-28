@@ -116,6 +116,12 @@ private val carAppManifestPatch = resourcePatch(
                 intent.appendChild(intentAction)
                 queries.appendChild(intent)
             }
+            // Waze Mod itself, so Maps can tell "not installed" from "installed without the Data API".
+            for (name in listOf("com.waze", "com.chisadin.wazemod", "com.chisadin.linhtinh")) {
+                val wazePackage = manifest.createElement("package")
+                wazePackage.setAttribute("android:name", name)
+                queries.appendChild(wazePackage)
+            }
             // xADAS (Pro) shares the distance to the vehicle ahead the same way (https://github.com/drivedeck/link).
             val xadasPackage = manifest.createElement("package")
             xadasPackage.setAttribute("android:name", XADAS_PACKAGE)

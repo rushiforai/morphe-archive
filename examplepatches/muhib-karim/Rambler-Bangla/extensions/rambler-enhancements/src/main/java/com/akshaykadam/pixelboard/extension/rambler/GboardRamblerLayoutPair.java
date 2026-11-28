@@ -64,12 +64,12 @@ public final class GboardRamblerLayoutPair {
 
     public static boolean isToggleOn(SharedPreferences sharedPreferences) {
         if (sharedPreferences == null) {
-            return true;
+            return false;
         }
         try {
-            return sharedPreferences.getBoolean(PREF, true);
+            return sharedPreferences.getBoolean(PREF, false);
         } catch (Throwable ignored) {
-            return true;
+            return false;
         }
     }
 

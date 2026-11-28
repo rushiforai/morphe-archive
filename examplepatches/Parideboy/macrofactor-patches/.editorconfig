@@ -1,3 +1,5 @@
+# No formatter is wired into the build: ktlint is not applied (the existing sources do not pass
+# the standard ruleset without rewriting them). The `ktlint_*` keys that used to live here were
+# inert and have been removed. If ktlint is ever wired up, add its keys back here.
+
 [*.{kt,kts}]
-ktlint_code_style = intellij_idea
-ktlint_standard_no-wildcard-imports = disabled

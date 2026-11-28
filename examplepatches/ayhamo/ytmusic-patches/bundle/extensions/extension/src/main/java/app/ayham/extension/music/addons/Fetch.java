@@ -58,11 +58,13 @@ final class Fetch {
         IOException last = null;
         try {
             for (int attempt = 0; attempt <= RESUMES && !done; attempt++) {
-                HttpURLConnection h = HttpTransport.open(Protocol.audio(s.url, s.headers, total > 0 ? "bytes=" + total + "-" : null));
+                Protocol.Request q = Protocol.audio(s.url, s.headers, total > 0 ? "bytes=" + total + "-" : null);
+                HttpURLConnection h = HttpTransport.open(q);
                 h.setReadTimeout(30_000);
                 // the code first: getInputStream throws on a 4xx, which read as a dropped connection
                 int code;
                 try {
+                    h = HttpTransport.follow(h, q);   // each redirect checked before it is asked (audit B2-04)
                     code = h.getResponseCode();
                 } catch (IOException e) {
                     h.disconnect();

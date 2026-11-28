@@ -40,6 +40,7 @@ val hideSponsoredProductsPatch = bytecodePatch(
     description = "Turns off the sponsored product carousels, ad banners, and partner offers " +
         "after checkout.",
 ) {
+    category("Ads")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

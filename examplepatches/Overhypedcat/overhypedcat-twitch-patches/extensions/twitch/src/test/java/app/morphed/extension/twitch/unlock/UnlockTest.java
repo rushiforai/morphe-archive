@@ -1,6 +1,7 @@
 package app.morphed.extension.twitch.unlock;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -197,5 +198,13 @@ public class UnlockTest {
         assertNull(servers.text("nl"));
         servers.add("nl", kept); // the undo
         assertEquals("5.6.7.8", servers.configs(new ArrayList<>()).get(0).endpointHost);
+    }
+
+    @Test
+    public void aClosedTunnelClearsOnlyTheStatusThatNamesIt() {
+        assertTrue(QualityUnlock.saysUnlockedThrough(new QualityUnlock.Status("Unlocked 1440p60 through Berlin", false), "Berlin"));
+        assertFalse("another stream's", QualityUnlock.saysUnlockedThrough(new QualityUnlock.Status("Unlocked 1440p60 through Paris", false), "Berlin"));
+        assertFalse("a direct stream's", QualityUnlock.saysUnlockedThrough(new QualityUnlock.Status("Nothing locked here", false), "Berlin"));
+        assertFalse(QualityUnlock.saysUnlockedThrough(new QualityUnlock.Status(null, false), "Berlin"));
     }
 }

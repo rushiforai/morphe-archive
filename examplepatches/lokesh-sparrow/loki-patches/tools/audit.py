@@ -183,6 +183,22 @@ def check_versions():
                  f"{len(versions)} versions listed ({', '.join(versions)}); the rule is the newest two")
 
 
+def check_own_ads_guard():
+    """An app with its own ad patch must be on the generic patch's skip list, or a stray tick breaks it."""
+    generic = read(os.path.join(PATCHES, "app", "loki", "patches", "universal", "RemoveAdsAndTrackersPatch.kt"))
+    listed = re.search(r'APPS_WITH_OWN_AD_REMOVAL\s*=\s*setOf\((.*?)\n\)', generic, re.S)
+    listed = set(re.findall(r'"([^"]+)"', listed.group(1))) if listed else set()
+    for app in sorted(os.listdir(os.path.join(PATCHES, "app"))):
+        ads = os.path.join(PATCHES, "app", app, "patches", "ads")
+        constants = os.path.join(PATCHES, "app", app, "patches", "shared", "Constants.kt")
+        if not (os.path.isdir(ads) and os.path.exists(constants)):
+            continue
+        names = set(re.findall(r'"([A-Za-z][\w]*(?:\.[\w]+)+)"', read(constants)))
+        if not names & listed:
+            fail("own ads guard", os.path.relpath(constants, ROOT),
+                 f"{app} has its own ads patch but its package is not in APPS_WITH_OWN_AD_REMOVAL")
+
+
 def check_docs_claims():
     """A patch count in prose must match the patches that exist."""
     count = len(set(re.findall(r'name\s*=\s*"([^"]+)"', "".join(read(p) for p in walk(PATCHES, ".kt")))))
@@ -243,6 +259,7 @@ def main():
     check_row_builders()
     check_featured()
     check_versions()
+    check_own_ads_guard()
     check_docs_claims()
     check_brand()
     check_private()

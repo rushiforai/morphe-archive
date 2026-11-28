@@ -36,7 +36,28 @@ final class BridgeIndex {
         return prefs.getString((thumb ? "thumb." : "src.") + id, null);
     }
 
+    synchronized String catalogThreadId(String uuid, java.util.Map<String,String> pending) {
+        return remember("thread.",uuid,pending);
+    }
+
+    synchronized String catalogImageId(String key,String originalUrl,String thumbnailUrl,java.util.Map<String,String> pending) {
+        String id=remember("image.",key,pending);
+        if(originalUrl!=null&&originalUrl.startsWith("https://storage.nijiurachan.net/"))pending.put("src."+id,originalUrl);
+        if(thumbnailUrl!=null&&thumbnailUrl.startsWith("https://storage.nijiurachan.net/"))pending.put("thumb."+id,thumbnailUrl);
+        return id;
+    }
+
+    synchronized void commitCatalog(java.util.Map<String,String> pending) {
+        if(pending.isEmpty())return;
+        SharedPreferences.Editor editor=prefs.edit();
+        for(java.util.Map.Entry<String,String> entry:pending.entrySet())editor.putString(entry.getKey(),entry.getValue());
+        if(!editor.commit())throw new IllegalStateException("Catalog index save failed");
+    }
+
     private String remember(String kind, String value) {
+        return remember(kind,value,null);
+    }
+    private String remember(String kind, String value, java.util.Map<String,String> pending) {
         if (value == null || value.isEmpty()) throw new IllegalArgumentException("Missing source ID");
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -47,9 +68,12 @@ final class BridgeIndex {
             for (int attempts = 0; attempts < 100; attempts++, candidate++) {
                 if (candidate > 9999999999999L) candidate = 1000000000000L;
                 String id = Long.toString(candidate);
-                String previous = prefs.getString(kind + id, null);
+                String previous = pending!=null&&pending.containsKey(kind+id)?pending.get(kind+id):prefs.getString(kind + id, null);
                 if (previous == null || previous.equals(value)) {
-                    if (previous == null) prefs.edit().putString(kind + id, value).commit();
+                    if (previous == null) {
+                        if(pending!=null)pending.put(kind+id,value);
+                        else prefs.edit().putString(kind + id, value).commit();
+                    }
                     return id;
                 }
             }

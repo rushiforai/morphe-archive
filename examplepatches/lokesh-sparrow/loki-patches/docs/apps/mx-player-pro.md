@@ -3,7 +3,7 @@
 
 ![version](https://img.shields.io/badge/version-1.93.4-2563eb?style=for-the-badge&labelColor=0d1117) ![patches](https://img.shields.io/badge/patches-3-14b8a6?style=for-the-badge&labelColor=0d1117) ![file](https://img.shields.io/badge/file-APK-0ea5e9?style=for-the-badge&labelColor=0d1117) ![menu](https://img.shields.io/badge/menu-Settings-6e7681?style=for-the-badge&labelColor=0d1117)
 
-[← All apps](../../README.md#apps)&nbsp;&nbsp;•&nbsp;&nbsp;`com.mxtech.videoplayer.pro`&nbsp;&nbsp;•&nbsp;&nbsp;[v3.5.0](https://github.com/lokesh-sparrow/loki-patches/releases/tag/v3.5.0)
+[← All apps](../../README.md#apps)&nbsp;&nbsp;•&nbsp;&nbsp;`com.mxtech.videoplayer.pro`&nbsp;&nbsp;•&nbsp;&nbsp;[v3.6.1](https://github.com/lokesh-sparrow/loki-patches/releases/tag/v3.6.1)
 
 **🎯 Supported versions:** `1.93.4`
 <!-- HEADER_END -->

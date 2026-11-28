@@ -1,0 +1,127 @@
+name: Build JaPatch
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js & Java 21
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - uses: actions/setup-java@v6
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Cache build toolchains & hermesc
+        uses: actions/cache@v6
+        with:
+          path: work/tools
+          key: japatch-tools-hbc98-v1-${{ hashFiles('scripts/build.py') }}
+
+      - name: Download pinned hermesc (HBC98 / 250829098.0.19)
+        run: |
+          mkdir -p work/tools
+          if [ ! -x work/tools/hermesc ]; then
+            curl -fsSL "https://registry.npmjs.org/hermes-compiler/-/hermes-compiler-250829098.0.19.tgz" -o work/tools/hermes-compiler.tgz
+            echo "839af099f0926b5ebbd738ba54764a3f40e35dfc3aac91babf56f8eb7c69280e  work/tools/hermes-compiler.tgz" | sha256sum -c -
+            tar -xzf work/tools/hermes-compiler.tgz -C work/tools --strip-components=3 package/hermesc/linux64-bin/hermesc
+            chmod +x work/tools/hermesc
+          fi
+          work/tools/hermesc --version
+
+      - name: Runtime checks (settings and menus, without a phone)
+        run: sh tests/runtime/run.sh
+
+      - name: Docs, versions and translations match the code
+        # Everything here fails cheap and early: a README table that no longer matches the patch list, a
+        # version left behind in one of the seven places, a release note in the wrong section, or a string
+        # that ships in English only. None of them break the bundle, which is exactly why they used to slip
+        # through for several releases.
+        run: |
+          python3 scripts/readme_features.py --check
+          python3 scripts/bump_version.py --check
+          python3 scripts/release_info.py --check
+          python3 scripts/i18n_check.py
+          # The counts every document states (languages, patches, releases) read from the same files the
+          # runtime does. Each check here exists because that sentence shipped wrong once.
+          python3 scripts/audit.py --check
+
+      - name: Build and test .mpp bundle
+        env:
+          # Signs the bundle the way Morphe Manager checks it. Optional on purpose: without the secret
+          # the release is simply unsigned, so a fork still builds.
+          JAPATCH_SIGNING_KEY: ${{ secrets.JAPATCH_SIGNING_KEY }}
+        run: python3 scripts/build.py
+
+      - name: Precompile JaPatch runtime to HBC98 (bootstrap.hbc)
+        run: |
+          sed 's|/\*__FEATURES__\*/|globalThis.__japatchFeatures|g' patches/build/bootstrap.js > patches/build/bootstrap.precompile.js
+          work/tools/hermesc -emit-binary -O -g0 -w \
+            -out=patches/build/bootstrap.hbc \
+            patches/build/bootstrap.precompile.js
+          ls -lh patches/build/bootstrap.hbc
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: japatch-mpp
+          path: |
+            patches/build/libs/*.mpp
+            patches/build/libs/SHA256SUMS
+            patches/build/bootstrap.hbc
+
+      - name: Check the bundle carries the signature this source publishes
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          JAPATCH_SIGNING_KEY: ${{ secrets.JAPATCH_SIGNING_KEY }}
+        run: |
+          if [ -z "$JAPATCH_SIGNING_KEY" ]; then
+            echo "::error::JAPATCH_SIGNING_KEY is not set: the release would be unsigned while patches-bundle.json"
+            echo "publishes a public key, and Manager refuses exactly that mismatch. Add the secret and re-run."
+            exit 1
+          fi
+          VERSION="${GITHUB_REF_NAME#v}"
+          python3 scripts/sign_bundle.py --verify "patches/build/libs/patches-${VERSION}.mpp"
+
+      - name: Publish GitHub Release on tag push
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          python3 scripts/release_info.py "$VERSION" > /tmp/notes.md
+          # A tag that already has a release is updated in place. Re-tagging (which happens when history is
+          # rewritten, as it was when the ReviewDB server left the repository) used to fail the whole build here,
+          # on a step that has nothing to do with whether the bundle is good.
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            # --draft=false matters: a release that is still a draft has working files that nothing can download,
+            # and it looks fine in the API. Creating it for real is what makes the address public.
+            gh release edit "$GITHUB_REF_NAME" --title "$VERSION" --notes-file /tmp/notes.md --draft=false
+            gh release upload "$GITHUB_REF_NAME" \
+              "patches/build/libs/patches-${VERSION}.mpp" \
+              "patches/build/libs/SHA256SUMS" \
+              "patches/build/libs/patches-${VERSION}.mpp.pub" \
+              --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" \
+              "patches/build/libs/patches-${VERSION}.mpp" \
+              "patches/build/libs/SHA256SUMS" \
+              "patches/build/libs/patches-${VERSION}.mpp.pub" \
+              --title "$VERSION" \
+              --notes-file /tmp/notes.md
+          fi

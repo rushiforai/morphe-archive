@@ -1,10 +1,10 @@
 package semicoloncolonel.mobilestream.patches.kanopy.misc
 
+import semicoloncolonel.mobilestream.patches.shared.misc.blockPlayReviewSheet
+import semicoloncolonel.mobilestream.patches.shared.misc.isOptionOn
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.AccessFlags
-import semicoloncolonel.mobilestream.patches.kanopy.shared.Constants
-import semicoloncolonel.mobilestream.patches.shared.misc.blockPlayReviewSheetPatch
 import semicoloncolonel.mobilestream.patches.shared.misc.returnEarly
 
 // Kanopy 6.32.0. After three plays, and again every 120 days, the home shelf
@@ -21,16 +21,14 @@ internal object ShouldShowRatingFingerprint : Fingerprint(
     strings = listOf("APP_RATING_PLAY_COUNT", "APP_RATING_PROMPT_TIME"),
 )
 
-@Suppress("unused")
-val hideRatingPromptPatch = bytecodePatch(
-    name = "Hide rating prompt",
-    description = "Stops the app's rating dialog and the Google Play rating prompt.",
-) {
-    compatibleWith(Constants.COMPATIBILITY)
+// Part of hidePromptsAndPopupsPatch: runs only when its "rating" option is on.
+internal val hideRatingPromptPatch = bytecodePatch {
+    extendWith("extensions/extension.mpe")
 
-    dependsOn(blockPlayReviewSheetPatch)
 
     execute {
+        if (!isOptionOn(hidePromptsAndPopupsPatch, "rating")) return@execute
+        blockPlayReviewSheet()
         ShouldShowRatingFingerprint.method.returnEarly("const/4 v0, 0x0\nreturn v0")
     }
 }

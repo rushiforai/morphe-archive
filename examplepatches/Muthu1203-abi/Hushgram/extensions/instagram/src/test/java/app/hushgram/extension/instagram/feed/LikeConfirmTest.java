@@ -1,0 +1,295 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.hushgram.extension.instagram.feed;
+
+import static org.junit.Assert.*;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.Context;
+import android.content.ContextWrapper;
+import android.os.Looper;
+import java.util.List;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
+import org.robolectric.Shadows;
+import org.robolectric.android.controller.ActivityController;
+import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowDialog;
+import app.hushgram.extension.instagram.settings.FamilyNames;
+import app.hushgram.extension.instagram.settings.Settings;
+import app.hushgram.extension.shared.SettingsContextRule;
+import app.hushgram.extension.shared.Utils;
+import app.hushgram.extension.shared.diagnostics.HookStatus;
+import app.hushgram.extension.shared.settings.BaseSettings;
+import app.hushgram.extension.shared.settings.HushgramPause;
+import app.hushgram.extension.shared.settings.PauseForTests;
+
+@RunWith(RobolectricTestRunner.class)
+@Config(sdk = {28, 37})
+public class LikeConfirmTest {
+    @Rule public final SettingsContextRule settings = new SettingsContextRule();
+    private Activity activity;
+    private int likes;
+
+    @Before public void start() {
+        activity = Robolectric.buildActivity(Activity.class).setup().get();
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+        ShadowDialog.reset();
+        HookStatus.clear();
+    }
+
+    @After public void restore() {
+        Dialog left = LikeConfirm.open();
+        if (left != null) left.dismiss();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        Settings.ASK_BEFORE_LIKE.resetToDefault();
+        PauseForTests.resume();
+        HookStatus.clear();
+    }
+
+    /** A tap on the Like button over [screen]: the second run, after Continue, must go through. */
+    private boolean like(Context screen) {
+        return LikeConfirm.hold(() -> screen, () -> {
+            likes++;
+            assertFalse("the second run goes through", LikeConfirm.hold(() -> screen, () -> fail("asked twice")));
+        });
+    }
+
+    static AlertDialog shown() {
+        Dialog dialog = ShadowDialog.getLatestDialog();
+        assertNotNull("a question is up", dialog);
+        assertTrue(dialog.isShowing());
+        return (AlertDialog) dialog;
+    }
+
+    static void tap(AlertDialog dialog, int button) {
+        dialog.getButton(button).performClick();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+    }
+
+    @Test public void offTheLikeGoesThroughUnasked() {
+        assertFalse(Settings.ASK_BEFORE_LIKE.get());
+        assertFalse(like(activity));
+        assertNull("nothing asked", ShadowDialog.getLatestDialog());
+        assertEquals(0, likes);
+    }
+
+    @Test public void onTheLikeWaitsForContinue() {
+        Settings.ASK_BEFORE_LIKE.save(true);
+        assertTrue("held while the question is up", like(activity));
+        assertEquals(0, likes);
+        tap(shown(), AlertDialog.BUTTON_POSITIVE);
+        assertEquals("Continue runs it once", 1, likes);
+        assertFalse(ShadowDialog.getLatestDialog().isShowing());
+        assertEquals(List.of(FamilyNames.ASK_BEFORE_LIKE + ": invoked 2, 0 found, 0 missing. Counted: " + LikeConfirm.ASKED + " 1"),
+                HookStatus.report());
+    }
+
+    /** A reel's Like button asks over the screen the button is on; one that isn't a view lets the tap through (#603). */
+    @Test public void aReelsLikeAsksOverItsButtonsScreen() {
+        Settings.ASK_BEFORE_LIKE.save(true);
+        assertFalse("no view, no screen", LikeConfirm.holdReel(new Object(), new Object(), null, null, null,
+                "a", "b", "c", "d", null, 1, 0));
+        assertNull("nothing asked", ShadowDialog.getLatestDialog());
+
+        android.view.View button = new android.view.View(activity);
+        assertTrue("held while the question is up", LikeConfirm.holdReel(new Object(), button, null, null, null,
+                "a", "b", "c", "d", null, 1, 0));
+        AlertDialog question = shown();
+        assertSame(activity, ConfirmDialog.activityOf(question.getContext()));
+        assertTrue("a second tap is held", LikeConfirm.holdReel(new Object(), button, null, null, null,
+                "a", "b", "c", "d", null, 0, 1));
+        assertEquals(1, ShadowDialog.getShownDialogs().size());
+        tap(question, AlertDialog.BUTTON_POSITIVE);
+        assertFalse("Continue lets the run through", question.isShowing());
+        assertNull(LikeConfirm.open());
+    }
+
+    /**
+     * A comment's heart (TRUE, or null from the older caller) asks over the screen in front, a
+     * double tap (FALSE) goes through unasked, and Continue lets the second run through (#614).
+     */
+    @Test public void aCommentsHeartAsksAndItsDoubleTapDoesnt() {
+        Settings.ASK_BEFORE_LIKE.save(true);
+        Activity original = Utils.getActivity();
+        try {
+            Utils.setActivity(activity);
+            assertFalse("a double tap", LikeConfirm.holdComment(new Object(), new Object(), Boolean.FALSE, "a", "b"));
+            assertNull("nothing asked", ShadowDialog.getLatestDialog());
+
+            assertTrue("held while the question is up", LikeConfirm.holdComment(new Object(), new Object(), Boolean.TRUE, "a", "b"));
+            AlertDialog question = shown();
+            assertEquals("Like or unlike this comment?", Shadows.shadowOf(question).getTitle().toString());
+            assertSame(activity, ConfirmDialog.activityOf(question.getContext()));
+            assertTrue("a second tap is held", LikeConfirm.holdComment(new Object(), new Object(), null, "a", "b"));
+            assertEquals(1, ShadowDialog.getShownDialogs().size());
+            tap(question, AlertDialog.BUTTON_POSITIVE);
+            assertFalse("Continue lets the run through", question.isShowing());
+            assertNull(LikeConfirm.open());
+
+            Utils.setActivity(null);
+            assertFalse("no screen in front", LikeConfirm.holdComment(new Object(), new Object(), Boolean.TRUE, "a", "b"));
+        } finally {
+            Utils.setActivity(original);
+        }
+        assertTrue("a post still asks about the post", like(activity));
+        assertEquals("Like or unlike this post?", Shadows.shadowOf(shown()).getTitle().toString());
+    }
+
+    /**
+     * A second tap before the question goes away, a quick double tap on Like, is held without a
+     * second question, so Continue likes once. Once it's gone, the question is let go.
+     */
+    @Test public void aSecondTapWhileTheQuestionIsUpIsHeldWithoutASecondQuestion() {
+        Settings.ASK_BEFORE_LIKE.save(true);
+        assertTrue(like(activity));
+        AlertDialog question = shown();
+        assertTrue("the second tap is held", like(activity));
+        assertSame("no second question", question, ShadowDialog.getLatestDialog());
+        assertEquals(1, ShadowDialog.getShownDialogs().size());
+        tap(question, AlertDialog.BUTTON_POSITIVE);
+        assertEquals("Continue likes once", 1, likes);
+        assertNull("the question is let go", LikeConfirm.open());
+
+        assertTrue("the next tap asks again", like(activity));
+        tap(shown(), AlertDialog.BUTTON_NEGATIVE);
+        assertNull(LikeConfirm.open());
+        assertEquals(List.of(FamilyNames.ASK_BEFORE_LIKE + ": invoked 4, 0 found, 0 missing. Counted: " + LikeConfirm.ASKED + " 2"),
+                HookStatus.report());
+    }
+
+    /** A question whose activity went without dismissing it doesn't hold the next tap on another screen. */
+    @Test public void aQuestionWhoseScreenWentDoesntHoldTheNextTap() {
+        Settings.ASK_BEFORE_LIKE.save(true);
+        ActivityController<Activity> gone = Robolectric.buildActivity(Activity.class).setup();
+        assertTrue(like(gone.get()));
+        Dialog left = shown();
+        gone.pause().stop().destroy();
+        assertTrue("it still says it's showing", left.isShowing());
+        assertTrue(like(activity));
+        assertNotSame("a new question on the new screen", left, ShadowDialog.getLatestDialog());
+        tap(shown(), AlertDialog.BUTTON_POSITIVE);
+        assertEquals(1, likes);
+    }
+
+    /**
+     * A question left up behind a screen opened over its own, as a notification opens one, doesn't
+     * hold a tap on the new screen, where nothing would be there to answer. It's taken down and the
+     * tap gets its own question there.
+     */
+    @Test public void aQuestionBehindAnotherScreenDoesntHoldATapThere() {
+        Settings.ASK_BEFORE_LIKE.save(true);
+        ActivityController<Activity> behind = Robolectric.buildActivity(Activity.class).setup();
+        assertTrue(like(behind.get()));
+        Dialog left = shown();
+        behind.pause().stop();
+        assertFalse("its activity is stopped, not finishing", behind.get().isFinishing());
+
+        ActivityController<Activity> over = Robolectric.buildActivity(Activity.class).setup();
+        assertTrue(like(over.get()));
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertFalse("the one behind is taken down", left.isShowing());
+        AlertDialog asked = shown();
+        assertNotSame("a question on the screen tapped", left, asked);
+        assertSame(over.get(), ConfirmDialog.activityOf(asked.getContext()));
+        assertSame(asked, LikeConfirm.open());
+
+        tap(asked, AlertDialog.BUTTON_POSITIVE);
+        assertEquals("Continue likes once", 1, likes);
+        assertNull(LikeConfirm.open());
+    }
+
+    /** A second tap on the same screen while its question is up is still held. */
+    @Test public void aTapOnTheSameScreenIsStillHeld() {
+        Settings.ASK_BEFORE_LIKE.save(true);
+        assertTrue(like(activity));
+        AlertDialog question = shown();
+        assertTrue(like(new android.view.ContextThemeWrapper(activity, android.R.style.Theme_DeviceDefault)));
+        assertSame("a context wrapping the same activity is the same screen", question, ShadowDialog.getLatestDialog());
+        assertTrue(question.isShowing());
+        tap(question, AlertDialog.BUTTON_NEGATIVE);
+        assertEquals(0, likes);
+    }
+
+    @Test public void theQuestionNeedsAnActivityBehindTheScreensContext() {
+        Settings.ASK_BEFORE_LIKE.save(true);
+        Activity showing = Utils.getActivity();
+        try {
+            Utils.setActivity(null);
+            assertFalse("nothing to show it over", like(new ContextWrapper(RuntimeEnvironment.getApplication())));
+            assertNull(ShadowDialog.getLatestDialog());
+        } finally {
+            Utils.setActivity(showing);
+        }
+        assertTrue("a wrapped activity is found", like(new ContextWrapper(activity)));
+        assertNotNull(shown());
+    }
+
+    /** A like button made on a context with no activity under it is asked about over the activity showing, and a second tap is held. */
+    @Test public void aContextWithNoActivityIsAskedOverTheActivityShowing() {
+        Settings.ASK_BEFORE_LIKE.save(true);
+        Activity original = Utils.getActivity();
+        try {
+            Utils.setActivity(activity);
+            Context plain = new ContextWrapper(RuntimeEnvironment.getApplication());
+            assertTrue("the like went through unasked", like(plain));
+            AlertDialog question = shown();
+            assertTrue(like(plain));
+            assertSame(question, ShadowDialog.getLatestDialog());
+            tap(question, AlertDialog.BUTTON_NEGATIVE);
+            assertEquals(0, likes);
+        } finally {
+            Utils.setActivity(original);
+        }
+    }
+
+    @Test public void cancelLeavesThePostAsItWas() {
+        Settings.ASK_BEFORE_LIKE.save(true);
+        assertTrue(like(activity));
+        tap(shown(), AlertDialog.BUTTON_NEGATIVE);
+        assertEquals(0, likes);
+
+        assertTrue(like(activity));
+        shown().cancel();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("backing out of it doesn't like either", 0, likes);
+    }
+
+    /** Paused, unready, with no screen to ask on or throwing, the like goes through as Instagram's. */
+    @Test public void pausedUnreadyScreenlessAndThrowingLetTheLikeThrough() {
+        Settings.ASK_BEFORE_LIKE.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        assertFalse(like(activity));
+        PauseForTests.resume();
+
+        SettingsContextRule.withoutContext(() -> assertFalse(like(activity)));
+        SettingsContextRule.beforeThePauseIsDecided(() -> assertFalse(like(activity)));
+        assertFalse("no screen", like(null));
+        Activity showing = Utils.getActivity();
+        try {
+            Utils.setActivity(null);
+            assertFalse("no activity behind it", like(RuntimeEnvironment.getApplication()));
+        } finally {
+            Utils.setActivity(showing);
+        }
+        activity.finish();
+        assertFalse("an activity going away", like(activity));
+        assertFalse("unpatched, the stub has none", LikeConfirm.hold(new Object(), null, null, null, null, 0));
+        assertFalse(LikeConfirm.hold(() -> { throw new IllegalStateException("no screen"); }, () -> likes++));
+        assertNull("nothing asked", ShadowDialog.getLatestDialog());
+        assertEquals(0, likes);
+        String missing = HookStatus.missing(FamilyNames.ASK_BEFORE_LIKE).toString();
+        assertTrue(missing, missing.contains("'" + LikeConfirm.ASK + "'"));
+    }
+}

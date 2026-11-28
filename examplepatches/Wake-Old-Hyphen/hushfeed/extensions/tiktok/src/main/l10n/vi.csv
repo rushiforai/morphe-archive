@@ -299,6 +299,8 @@ Blocked account,Tài khoản bị chặn
 Blocked accounts,Tài khoản bị chặn
 Blocked and hidden creators,Nhà sáng tạo bị chặn và ẩn
 Blocked caption words,Từ khóa tiêu đề bị chặn
+Only show videos with these words,Chỉ hiện video có những từ này
+"For You only. Separate words or phrases with commas, like #recipe, cooking. A video stays only when its caption or hashtags match one, with the same rules as Blocked caption words. A batch with no match keeps one video so the feed keeps moving. Leave it empty to show everything.","Chỉ trong Dành cho bạn. Ngăn cách từ hoặc cụm từ bằng dấu phẩy, như #recipe, cooking. Video chỉ ở lại khi tiêu đề hoặc hashtag khớp với một mục, theo cùng quy tắc như Từ khóa tiêu đề bị chặn. Một đợt không có video nào khớp sẽ giữ lại một video để bảng tin tiếp tục chạy. Để trống để hiện mọi thứ."
 Blocked comment words,Từ khóa bình luận bị chặn
 Blocked creators,Nhà sáng tạo bị chặn
 Blocked sound ids,ID âm thanh bị chặn
@@ -2868,6 +2870,8 @@ Crop and stretch to fill the screen,Cắt và kéo giãn để lấp đầy màn
 "Cover the whole window with half the crop of Fill and half the stretch of Stretch, so neither is easy to spot. A video far from the screen's shape keeps TikTok's size.","Phủ kín cả cửa sổ với một nửa phần cắt của Lấp đầy và một nửa độ giãn của Kéo giãn, nên cả hai đều khó nhận ra. Video có hình dạng khác xa màn hình sẽ giữ kích thước của TikTok."
 Watch LIVEs unseen,Xem LIVE mà không bị thấy
 You stay off the viewer list of LIVEs you open. Tap the eye in a LIVE to let that host see you. Needs Ghost mode on.,Bạn sẽ không có tên trong danh sách người xem của những LIVE bạn mở. Chạm vào con mắt trong LIVE để chủ phòng thấy bạn. Yêu cầu bật Chế độ ẩn danh.
+Double tap to let the host see you,Chạm hai lần để chủ phòng thấy bạn
+"No eye on the video. Double tap a LIVE to let that host see you, and the next LIVE you open hides you again. Needs Watch LIVEs unseen on.","Không có con mắt trên video. Chạm hai lần vào LIVE để chủ phòng thấy bạn, và LIVE tiếp theo bạn mở sẽ ẩn bạn lại. Yêu cầu bật Xem LIVE mà không bị thấy."
 Keep likes on this phone,Giữ lượt thích trên điện thoại này
 "A like you give a video stays on this phone. The heart turns red, but TikTok isn't told, so the creator never sees it and it isn't on your profile. Needs Ghost mode on.","Lượt thích bạn dành cho video chỉ ở trên điện thoại này. Trái tim chuyển đỏ nhưng TikTok không được báo, nên nhà sáng tạo không bao giờ thấy và nó không có trên hồ sơ của bạn. Yêu cầu bật Chế độ ẩn danh."
 My likes on this phone,Lượt thích của tôi trên điện thoại này
@@ -2991,8 +2995,8 @@ Sort pinned videos with the rest,Sắp xếp video đã ghim cùng các video kh
 "Pinned videos take their place in the order instead of staying at the top, so Newest first puts them at the date they were posted.","Video đã ghim nằm đúng chỗ của nó trong thứ tự thay vì ở trên cùng, nên Mới nhất trước đặt chúng theo ngày đăng."
 Hide or reorder profile tabs,Ẩn hoặc sắp xếp lại thẻ trang cá nhân
 "Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos, and use the arrows to put the rest in your order. One tab always stays. Restart TikTok to apply this.","Chọn các thẻ cần ẩn khỏi dải phía trên video của trang cá nhân, chẳng hạn Đăng lại hoặc Video đã thích, và dùng các mũi tên để xếp các thẻ còn lại theo thứ tự của bạn. Luôn giữ lại một thẻ. Khởi động lại TikTok để áp dụng."
-Hide Add bio,Ẩn Thêm tiểu sử
-Hide the Add bio prompt TikTok shows on your own profile while it has no bio. You can still add one from Edit profile.,Ẩn lời nhắc Thêm tiểu sử mà TikTok hiển thị trên trang cá nhân của bạn khi chưa có tiểu sử. Bạn vẫn có thể thêm tiểu sử trong Sửa hồ sơ.
+Hide tips on your profile,Ẩn mẹo trên trang cá nhân của bạn
+Hide the Add bio prompt and the tip bubbles TikTok points at things on your own profile. You can still add a bio from Edit profile.,Ẩn lời nhắc Thêm tiểu sử và các bong bóng mẹo TikTok chỉ vào những mục trên trang cá nhân của bạn. Bạn vẫn có thể thêm tiểu sử trong Sửa hồ sơ.
 Show the picture before saving,Hiện ảnh trước khi lưu
 "With the long press save on, holding a profile picture opens it full screen at full size, with a Save button under it.","Khi bật lưu bằng nhấn giữ, nhấn giữ ảnh đại diện sẽ mở ảnh toàn màn hình ở kích thước đầy đủ, có nút Lưu bên dưới."
 The profile picture couldn't be loaded. Try again.,Không thể tải ảnh đại diện. Vui lòng thử lại.
@@ -3007,7 +3011,6 @@ Round the corners on profile grids,Bo tròn góc trên lưới trang cá nhân
 Gifter level,Cấp độ người tặng quà
 SecUID,SecUID
 Unknown (TikTok didn't send it),Không rõ (TikTok không gửi)
-"A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, how many posts, liked videos, favorites and reposts it has, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.","Bảng chia sẻ của trang cá nhân có thêm nút Thông tin tài khoản. Nút này hiển thị những gì TikTok đã cung cấp về tài khoản đó: thời gian tham gia, khu vực và ngôn ngữ, cấp độ người tặng quà và SecUID, số bài đăng, video đã thích, mục yêu thích và bài đăng lại, lần thay đổi tên người dùng và tên hiển thị gần nhất, tài khoản có phải riêng tư hay không và danh sách video đã thích có công khai hay không. Không có dữ liệu bổ sung nào được tải thêm."
 Show the room ID and your connection,Hiện ID phòng và kết nối của bạn
 Show the room line,Hiện dòng phòng
 "Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to shrink it to a dot, and tap the dot to bring it back. Hold the line to copy the room ID.","Thêm một dòng nhỏ vào phòng LIVE với ID phòng và tình trạng kết nối của chính bạn tới luồng phát, theo đo đạc của trình phát TikTok: ping, độ trễ và tốc độ tải xuống. Nhấn vào dòng để thu nhỏ thành một chấm, và nhấn vào chấm để hiện lại. Nhấn giữ dòng để sao chép ID phòng."
@@ -3102,3 +3105,46 @@ Unavailable saved video,Video đã lưu không khả dụng
 Posted %1$s,Đăng ngày %1$s
 Remembered %1$s,Ghi nhớ ngày %1$s
 Unavailable since %1$s,Không khả dụng từ %1$s
+Corner size on profile grids,Độ bo góc trên lưới trang cá nhân
+"How round the corners are, in dp. TikTok's own cards use about 8.","Độ bo tròn của góc, tính bằng dp. Thẻ của chính TikTok dùng khoảng 8."
+Gap between videos on profile grids,Khoảng cách giữa các video trên lưới trang cá nhân
+"Adds space between the videos on profile grids, on top of TikTok's own thin line. Use 0 for TikTok's spacing.","Thêm khoảng cách giữa các video trên lưới trang cá nhân, ngoài đường mảnh của chính TikTok. Dùng 0 để giữ khoảng cách của TikTok."
+Gifter points,Điểm người tặng quà
+Gifter points for the next level,Điểm người tặng quà cho cấp độ tiếp theo
+Gifter points in total,Tổng điểm người tặng quà
+Profile picture (small),Ảnh đại diện (nhỏ)
+Profile picture (medium),Ảnh đại diện (vừa)
+Profile picture (large),Ảnh đại diện (lớn)
+Profile cover,Ảnh bìa trang cá nhân
+Copied to the clipboard,Đã sao chép vào bộ nhớ tạm
+"A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, how many posts, liked videos, favorites and reposts it has, when its username and display name last changed, whether it's private and whether its liked videos are public. Links to its profile picture and cover come last. Tap a value to copy just that one. Nothing extra is fetched.","Bảng chia sẻ của trang cá nhân có thêm nút Thông tin tài khoản. Nút này hiển thị những gì TikTok đã cung cấp về tài khoản đó: thời gian tham gia, khu vực và ngôn ngữ, cấp độ người tặng quà và SecUID, số bài đăng, video đã thích, mục yêu thích và bài đăng lại, lần thay đổi tên người dùng và tên hiển thị gần nhất, tài khoản có phải riêng tư hay không và danh sách video đã thích có công khai hay không. Liên kết ảnh đại diện và ảnh bìa nằm ở cuối. Chạm vào một giá trị để chỉ sao chép giá trị đó. Không có dữ liệu bổ sung nào được tải thêm."
+Yellow counts for private lists,Số màu vàng cho danh sách riêng tư
+"On a profile that keeps its followers or following list private, that count shows in yellow, so you can tell it's private before you tap it. Yours too.","Trên hồ sơ để danh sách người theo dõi hoặc đang theo dõi ở chế độ riêng tư, con số đó hiện màu vàng để bạn biết trước khi chạm vào. Cả hồ sơ của bạn."
+Links to other apps in bios,Liên kết đến ứng dụng khác trong tiểu sử
+"A username named after IG, Snap, YT, X, Twitch, Threads or FB in a bio turns into a pill in that app's color. Tapping it opens that account's public page in the app or your browser. Nothing is looked up before you tap.","Tên người dùng viết sau IG, Snap, YT, X, Twitch, Threads hoặc FB trong tiểu sử sẽ thành một nút mang màu của ứng dụng đó. Chạm vào sẽ mở trang công khai của tài khoản trong ứng dụng hoặc trình duyệt. Không có gì được tra cứu trước khi bạn chạm."
+Badge picture,Ảnh huy hiệu
+Remove the badge picture,Xóa ảnh huy hiệu
+Pick a picture to show in place of the blue check while Local verified badge is on. It's kept on this phone only and nobody else sees it.,Chọn một ảnh để hiện thay cho dấu tích xanh khi Huy hiệu xác minh cục bộ (tích xanh) đang bật. Ảnh chỉ được giữ trên điện thoại này và không ai khác thấy.
+Reading the picture,Đang đọc ảnh
+"Deletes the picture, and the blue check comes back.",Xóa ảnh và dấu tích xanh sẽ quay lại.
+No badge picture is kept,Chưa có ảnh huy hiệu nào được lưu
+Badge picture saved. Open your profile to see it.,Đã lưu ảnh huy hiệu. Mở hồ sơ của bạn để xem.
+Badge picture saved. Turn on Local verified badge to see it.,Đã lưu ảnh huy hiệu. Bật Huy hiệu xác minh cục bộ (tích xanh) để xem.
+Couldn't save the picture in TikTok's storage. Free up some space and try again.,Không thể lưu ảnh vào bộ nhớ của TikTok. Hãy giải phóng bớt dung lượng rồi thử lại.
+That picture is larger than %1$s MB. Choose a smaller one.,Ảnh đó lớn hơn %1$s MB. Hãy chọn ảnh nhỏ hơn.
+"That file isn't a picture this phone can open. Choose a PNG, JPEG or WebP.","Tệp đó không phải ảnh mà điện thoại này mở được. Hãy chọn PNG, JPEG hoặc WebP."
+Badge picture removed. Your profile shows the blue check again.,Đã xóa ảnh huy hiệu. Hồ sơ của bạn hiện lại dấu tích xanh.
+Couldn't remove the badge picture. Try again.,Không thể xóa ảnh huy hiệu. Hãy thử lại.
+Keep the letters after the flag,Giữ chữ cái sau lá cờ
+"Shows the country's two letters next to its flag, so a flag you don't recognize still tells you where it is.","Hiển thị hai chữ cái của quốc gia cạnh lá cờ, để lá cờ bạn không nhận ra vẫn cho biết nó đến từ đâu."
+Write grid dates the way TikTok does,Viết ngày trên lưới như TikTok
+"Profile grids show the date the way TikTok writes it by the creator's name, like 2d ago or 10-12, in place of Oct 12. Day before month, Write the month as a word and Date instead of age change it the same way.","Lưới trang cá nhân hiện ngày theo cách TikTok viết cạnh tên nhà sáng tạo, như 2 ngày trước hoặc 10-12, thay cho Oct 12. Ngày trước tháng, Viết tháng bằng chữ và Ngày thay cho thời gian cũng đổi nó theo cùng cách."
+Where the date goes on grids,Vị trí ngày trên lưới
+Under the view count,Bên dưới số lượt xem
+After the view count,Sau số lượt xem
+Above the view count,Phía trên số lượt xem
+Above the view count takes the video length along with the date.,Phía trên số lượt xem sẽ đưa cả độ dài video đi cùng ngày.
+Show notices at the top,Hiện thông báo ở phía trên
+"Put Hushfeed's notices, like a finished save or a block's Undo, just under the status bar instead of above the tab bar. Swipe a notice left or right to close it.","Đặt các thông báo của Hushfeed, như khi lưu xong hoặc nút Hoàn tác sau khi chặn, ngay dưới thanh trạng thái thay vì phía trên thanh thẻ. Vuốt thông báo sang trái hoặc phải để đóng."
+Blur behind notices,Làm mờ phía sau thông báo
+Blur the video behind Hushfeed's notices so they look like frosted glass. Needs Android 12 and up. Away from a video they keep the plain dark look.,"Làm mờ video phía sau các thông báo của Hushfeed để chúng trông như kính mờ. Yêu cầu Android 12 trở lên. Khi không nằm trên video, thông báo vẫn giữ giao diện tối thông thường."

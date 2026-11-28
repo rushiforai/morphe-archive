@@ -435,6 +435,16 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_page_stories", FALSE);
 
     /**
+     * The other way round from {@link #HIDE_PAGE_STORIES}: the buckets of the Stories tray that hold
+     * a person's stories, a friend's or someone's you follow, so the Pages you follow are what's left
+     * (#616). A person's bucket is one whose story_bucket_owner is a User and whose type isn't a
+     * Page's. Your own story, the Add to story tiles, friend requests and the cards stay, and a
+     * suggested story goes by Hide suggested stories. Off until you turn it on.
+     */
+    public static final BooleanSetting HIDE_PEOPLE_STORIES =
+            new BooleanSetting("hushfacebook_hide_people_stories", FALSE);
+
+    /**
      * The buckets of the Stories tray you've watched: their is_bucket_seen_by_viewer flag is true,
      * the one that greys the ring (#317). A new story turns it back, so the bucket comes back with
      * it. Off until you turn it on.
@@ -735,6 +745,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_post_stars_button", FALSE);
     public static final BooleanSetting HIDE_POST_SAVE_BUTTON =
             new BooleanSetting("hushfacebook_hide_post_save_button", FALSE);
+
+    /**
+     * The Messenger "Send message" bar some posts get once you've stayed on them a moment, under the
+     * post and over its reaction counts, is left out ({@link app.morphe.extension.facebook.feed.SendMessageCta},
+     * issue #609). Read as each post's buttons are picked, so a change shows on the posts drawn after it.
+     */
+    public static final BooleanSetting HIDE_POST_SEND_MESSAGE =
+            new BooleanSetting("hushfacebook_hide_post_send_message", FALSE);
 
     /**
      * A tap on the empty part of the row under a post, between its buttons and the reaction faces,
@@ -3712,6 +3730,16 @@ public class Settings extends BaseSettings {
             new StringSetting("hushfacebook_header_picture", "");
 
     /**
+     * The icon on the home screen and in the app drawer ({@link
+     * app.morphe.extension.facebook.misc.AppIcon}, #467): the one Morphe drew when you patched, or one
+     * of the patch's own. It changes once Facebook goes to the background, and a pause leaves it as
+     * it is, so it isn't a switch. Like the Icon style Morphe drew, it belongs to this install, so a
+     * settings file leaves it out.
+     */
+    public static final EnumSetting<app.morphe.extension.facebook.misc.AppIconChoice> APP_ICON =
+            new EnumSetting<>("hushfacebook_app_icon", app.morphe.extension.facebook.misc.AppIconChoice.AS_PATCHED);
+
+    /**
      * The strip some posts carry ("Are you interested in this post?", "Show less", who recently
      * commented, follow and chat suggestions) goes, and so does the room kept for it
      * ({@link app.morphe.extension.facebook.feed.PostPrompts}). A change shows on the posts drawn
@@ -4304,6 +4332,9 @@ public class Settings extends BaseSettings {
         // The launcher shortcut, the logo's long press and the Menu row are ways back to the settings
         // screen, where a pause is lifted, so a pause neither brings them back nor takes them away (#146).
         Setting.keepWhenPaused(SETTINGS_SHORTCUT, SETTINGS_LOGO_PRESS, SETTINGS_MENU_ROW);
+        // The home screen icon is how Facebook is found, like the one Morphe drew, which a pause
+        // leaves too (#467).
+        Setting.keepWhenPaused(APP_ICON);
     }
 
     /**

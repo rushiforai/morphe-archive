@@ -6,9 +6,9 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * What X has already loaded and the filters need later: profile details that timeline users
- * lack, post languages and the signed-in account. Kept in memory only and never sent
- * anywhere, like X-Posed's profile cache.
+ * What X has already loaded and the filters and the account sheet need later: profile details
+ * that timeline users lack, post languages, the accounts X showed and the signed-in account.
+ * Kept in memory only and never sent anywhere, like X-Posed's profile cache.
  */
 final class Observed {
     /** Details only a profile page loads. */
@@ -36,6 +36,10 @@ final class Observed {
     private static final Map<Long, String> languages = lru(5000);
     /** Which post replies to or quotes which, for hiding replies and quotes of filtered posts. */
     static final PostRelations RELATIONS = new PostRelations();
+    /** The last user model X showed per handle, or its copy once the account sheet read it. */
+    private static final Map<String, Object> users = lru(300);
+    /** The latest CanonicalPost per id, for the post card. X keeps the posts it shows; these are the newest. */
+    private static final Map<Long, Object> posts = lru(300);
     private static volatile long viewer;
 
     private Observed() {
@@ -50,11 +54,34 @@ final class Observed {
         };
     }
 
-    /** Called when X creates a ProfileUser, on whichever thread loads it. Kept only while "Use profile details" is on. */
+    /** Called when X creates a ProfileUser, on whichever thread loads it. Details are kept only while "Use profile details" is on. */
     static void profileUser(Object user) {
+        user(FilterText.handle(ModelBridge.screenName(user)), user);
         if (!Settings.sources().profileDetails) return;
         store(ModelBridge.userId(user),
                 new Profile(ModelBridge.profileLocation(user), ModelBridge.website(user), ModelBridge.postCount(user)), true);
+    }
+
+    /** Called with each account X shows: post and quote authors, people rows, profiles and About results. */
+    static void user(String handle, Object user) {
+        if (handle == null || user == null) return;
+        synchronized (users) {
+            users.put(handle, user);
+        }
+    }
+
+    /** What X last showed of an account, or null. Copies X's model once, so the model can be freed. */
+    static AccountCard.Person person(String handle) {
+        Object value;
+        synchronized (users) {
+            value = users.get(handle);
+        }
+        if (value == null || value instanceof AccountCard.Person) return (AccountCard.Person) value;
+        AccountCard.Person person = AccountCard.Person.of(value);
+        synchronized (users) {
+            if (users.get(handle) == value) users.put(handle, person);
+        }
+        return person;
     }
 
     /**
@@ -112,6 +139,9 @@ final class Observed {
     static void canonicalPost(Object post) {
         long id = ModelBridge.canonicalPostId(post);
         if (id == 0) return;
+        synchronized (posts) {
+            posts.put(id, post);
+        }
         String language = ModelBridge.language(post);
         if (language != null) {
             synchronized (languages) {
@@ -131,6 +161,13 @@ final class Observed {
         if (postId == 0) return null;
         synchronized (languages) {
             return languages.get(postId);
+        }
+    }
+
+    /** The CanonicalPost X made last for a post, or null when it's no longer among the recent ones. */
+    static Object canonicalPost(long postId) {
+        synchronized (posts) {
+            return posts.get(postId);
         }
     }
 

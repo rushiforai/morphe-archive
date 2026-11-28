@@ -1,6 +1,6 @@
 name: 💬 Question or idea
 description: A question about using the patches, an idea, or a problem with the documentation. To report something that does not work, use Bug report.
-labels: ["question"]
+labels: ["type: question"]
 body:
   - type: markdown
     attributes:
@@ -10,12 +10,13 @@ body:
     id: before
     attributes:
       label: Before you submit
+      description: "New to this tracker? [Issue labels](https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/docs/issue-labels.md) explains how issues are sorted, tracked, and closed."
       options:
         - label: "I read the README and the [Known issues](https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/docs/known-issues.md)."
           required: true
         - label: "I searched the [open and closed issues](https://github.com/semicoloncolonel/mobile-morphe-patches/issues?q=is%3Aissue) and did not find this topic."
           required: true
-        - label: "I understand that the patches do not currently remove paywalls or unlock paid content."
+        - label: "Unless otherwise stated, I understand that none of the patches bypass paywalls or unlock paid content."
           required: true
         - label: "This is a question or an idea, not a report of something that does not work."
           required: true

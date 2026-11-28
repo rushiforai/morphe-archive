@@ -1,0 +1,542 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.morphe.patches.instagram.download.profile
+
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.morphe.patches.instagram.direct.seen.requireOrigin
+import app.morphe.patches.instagram.download.USER
+import app.morphe.patches.instagram.download.profilePictureBridges
+import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.instagram.misc.extension.classesHolding
+import app.morphe.patches.instagram.misc.extension.classesLoadingString
+import app.morphe.patches.instagram.misc.extension.loadsString
+import app.morphe.patches.instagram.misc.extension.stringLoadedAt
+import app.morphe.patches.instagram.misc.extension.enableStatus
+import app.morphe.patches.instagram.misc.extension.freeLocalsAt
+import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
+import app.morphe.patches.instagram.misc.extension.jumpTargets
+import app.morphe.patches.instagram.misc.extension.originalName
+import app.morphe.patches.instagram.misc.extension.requireStatusMethod
+import app.morphe.patches.instagram.misc.settings.settingsPatch
+import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.ControlFlow
+import app.morphe.util.literalReads
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+
+internal const val PROFILE_PICTURE_PATCH = "Save profile picture"
+internal const val PROFILE_PICTURE = "$EXTENSION_PACKAGE/download/ProfilePicture;"
+internal const val OFFER_PICTURE = "$PROFILE_PICTURE->offer(Ljava/lang/Object;Ljava/lang/Object;Landroid/content/Context;)V"
+internal const val OFFER_POPUP = "$PROFILE_PICTURE->offerPopup(Ljava/util/List;Ljava/lang/Object;Landroid/content/Context;)V"
+internal const val ADD_ROW_STUB = "addRow"
+internal const val POPUP_ITEM_FIELDS = "$PROFILE_PICTURE->popupItemFields()Ljava/lang/String;"
+
+private const val OBJECT = "Ljava/lang/Object;"
+private const val STRING = "Ljava/lang/String;"
+private const val CONTEXT = "Landroid/content/Context;"
+private const val CLICK = "Landroid/view/View\$OnClickListener;"
+private const val LIST = "Ljava/util/List;"
+private const val POPUP_WINDOW = "Landroid/widget/PopupWindow;"
+
+/**
+ * How many arguments the constructor of one of the pop-up list's items takes: 24 on 450 to 453, 26
+ * on 454, 27 on 455, and 28 on 456, which adds an object ahead of 455's Boolean (`LX/0fkR;` on 386214574).
+ */
+internal const val POPUP_ITEM_ARGUMENTS = 28
+
+/** The parameters of the stub [ADD_ROW_STUB], and of the sheet's adder of a plain row after them. */
+internal val ADD_ROW_PARAMETERS = listOf(OBJECT, CONTEXT, CLICK, STRING)
+internal val ROW_ADDER_PARAMETERS = listOf(CONTEXT, CLICK, STRING, "I", "Z")
+
+/**
+ * 452 folds the plain row adder into its callers, which call the sheet's general row adder with the
+ * defaults the plain one gave it: no second listener, no subtitle, full opacity, no flags but one.
+ */
+internal val WIDE_ROW_ADDER_PARAMETERS = listOf(CONTEXT, CLICK, CLICK, STRING, STRING, "F", "I", "I", "Z", "Z", "Z", "Z", "Z")
+
+/**
+ * The names of the two helpers that build the menu on someone's profile, one a bottom sheet and the
+ * other its newer form. Each helper's class keeps its name, and the method that shows the menu
+ * hands the same name to the sheet it builds for that helper.
+ */
+internal val PROFILE_MENUS = listOf("UserOptionsBottomSheetOverflowHelper", "UserOptionsOverflowHelper")
+
+/**
+ * Save profile picture, View profile picture, Copy username and Copy bio in the menu on someone's
+ * profile, through the one hook before the menu shows. Included in the default selection with every
+ * switch off.
+ */
+@Suppress("unused")
+val saveProfilePicturePatch = bytecodePatch(
+    name = "Save profile picture",
+    description = "Adds Save profile picture, View profile picture, Copy username and Copy bio to the menu on " +
+        "someone's profile. View opens the picture full screen and lets you zoom. Starts off. Turn it on in " +
+        "HushGram settings > Downloads.",
+    default = true,
+) {
+    category("Downloads")
+    dependsOn(settingsPatch, instagramExtensionPatch)
+    compatibleWith(*AppCompatibilities.instagram())
+    execute {
+        requireStatusMethod("profilePicture")
+        val menus = findProfileMenus()
+        val extras = findProfileExtras()
+        val hold = findProfilePictureHold()
+        val flip = findCoinFlipHold()
+        val ring = findRingTap()
+        val bridges = profilePictureBridges(PROFILE_PICTURE_PATCH)
+        applyProfileMenus(menus)
+        applyProfileExtras(extras)
+        hold?.let { applyProfilePictureHold(it) }
+        flip?.let { applyCoinFlipHold(it) }
+        ring?.let { applyRingTap(it) }
+        bridges()
+        enableStatus("profilePicture")
+    }
+}
+
+private fun refuse(why: String): Nothing = throw PatchException("$PROFILE_PICTURE_PATCH: $why")
+
+/**
+ * One way the menu shows: right before [index], the new instance of the class that shows the
+ * built sheet, [sheet] holds the sheet and [owner] the helper, whose fields [user] and [context]
+ * hold the profile's account and the context the sheet is shown with. [free] are two locals
+ * nothing reads after [index].
+ */
+internal class AccountSource(val field: FieldReference?, val getter: MethodReference?) {
+    fun load(destination: Int, owner: Int): String = if (field != null) {
+        "iget-object v$destination, v$owner, $field"
+    } else {
+        "invoke-static { v$owner }, $getter\n                move-result-object v$destination"
+    }
+}
+
+internal class ProfileMenuSite(
+    val name: String,
+    val index: Int,
+    val sheet: Int,
+    val owner: Int,
+    val user: AccountSource,
+    val context: FieldReference,
+    val free: List<Int>,
+)
+
+/**
+ * The third way the menu shows, the newer pop-up list next to the profile's three dots: right before
+ * [index], the call that hands the popup its list of items. [list] and [context] are the registers
+ * holding that list and the context the popup is built with, [owner] holds the newer helper the
+ * context was read off, whose field [user] holds the account, and [free] is a local nothing reads
+ * after [index]. [item] is the list's item class and [fields] the field its constructor stores each
+ * argument in, in argument order.
+ */
+internal class ProfilePopupSite(
+    val index: Int,
+    val list: Int,
+    val context: Int,
+    val owner: Int,
+    val user: AccountSource,
+    val free: Int,
+    val item: String,
+    val fields: List<String>,
+)
+
+/** The method that shows the menu, its three ways, the sheet's adder of a plain row and the stub that calls it. */
+internal class ProfileMenus(
+    val method: MutableMethod,
+    val sites: List<ProfileMenuSite>,
+    val popup: ProfilePopupSite,
+    val sheetType: String,
+    val adder: Method,
+)
+
+/**
+ * Finds the method that shows the menu on someone's profile and checks each way it shows it
+ * before anything changes. For each of [PROFILE_MENUS] the method loads the name and builds a sheet
+ * with it, the same sheet class both times. That sheet goes to a new instance of one class that
+ * shows it, with a context the method reads right then off the helper whose class keeps the same
+ * name. The helper holds the account in its one field of Instagram's account type. The sheet has
+ * one adder of a plain row (context, click listener, label, int, boolean), which the method calls.
+ */
+internal fun BytecodePatchContext.findProfileMenus(): ProfileMenus {
+    val hosts = classesLoadingString(PROFILE_MENUS[0]).filter { host -> PROFILE_MENUS.all { name -> host in classesLoadingString(name) } }
+    val candidates = hosts.flatMap { host ->
+        host.methods.filter { method -> !(method.returnType == STRING && method.parameters() == listOf("I")) && PROFILE_MENUS.all { loadsString(method, it) } }.map { host.type to it }
+    }
+    val (hostType, found) = candidates.singleOrNull()
+        ?: refuse("expected one method loading ${PROFILE_MENUS.joinToString(" and ")}, found ${candidates.size}")
+    val method = mutableClassDefBy(hostType).methods.single { it.name == found.name && it.parameters() == found.parameters() && it.returnType == found.returnType }
+    val code = method.code()
+    val targets = method.jumpTargets()
+
+    var sheetType: String? = null
+    var showType: String? = null
+    val sites = PROFILE_MENUS.map { name ->
+        val loads = code.indices.filter { at ->
+            if (code[at].opcode == Opcode.CONST_STRING || code[at].opcode == Opcode.CONST_STRING_JUMBO) (code[at].reference() as? StringReference)?.string == name
+            else stringLoadedAt(code, at) == name && code.getOrNull(at + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT
+        }.map { if (code[it].opcode == Opcode.INVOKE_STATIC) it + 1 else it }
+        val load = loads.singleOrNull() ?: refuse("expected one load of \"$name\", found ${loads.size}")
+        val made = code.getOrNull(load + 1)
+        val built = code.getOrNull(load + 2)
+        val sheet = (made as? OneRegisterInstruction)?.registerA
+        val type = (made?.reference() as? TypeReference)?.type
+        val init = built?.call()
+        val takes = init?.parameters().orEmpty()
+        val handed = built?.arguments().orEmpty()
+        if (made?.opcode != Opcode.NEW_INSTANCE || sheet == null || type == null || built?.opcode != Opcode.INVOKE_DIRECT ||
+            init?.name != "<init>" || init.definingClass != type || takes.size != 2 || !takes[0].startsWith("L") || takes[1] != STRING ||
+            handed.size != 3 || handed[0] != sheet || handed[2] != (code[load] as OneRegisterInstruction).registerA
+        ) refuse("\"$name\" isn't handed to a new sheet right after it's loaded")
+        if (sheetType != null && sheetType != type) refuse("the two menus build different sheets, $sheetType and $type")
+        sheetType = type
+
+        // Where the sheet goes to be shown: the one constructor of another class taking just the sheet.
+        val shows = method.literalReads(load + 1).filter { at ->
+            val call = code[at].call()
+            code[at].opcode == Opcode.INVOKE_DIRECT && call?.name == "<init>" && call.parameters() == listOf(type) &&
+                code[at].arguments().getOrNull(1) == sheet
+        }
+        val shown = shows.singleOrNull() ?: refuse("expected the \"$name\" sheet shown once, found ${shows.size}")
+        val shower = (code[shown] as FiveRegisterInstruction).registerC
+        val index = shown - 1
+        val maker = code.getOrNull(index)
+        val read = code.getOrNull(shown + 1)
+        val show = code.getOrNull(shown + 2)
+        val showClass = code[shown].call()!!.definingClass
+        if (maker?.opcode != Opcode.NEW_INSTANCE || (maker as OneRegisterInstruction).registerA != shower ||
+            (maker.reference() as? TypeReference)?.type != showClass
+        ) refuse("the \"$name\" sheet's shower isn't made right before it's handed the sheet")
+        if (showType != null && showType != showClass) refuse("the two menus are shown by different classes, $showType and $showClass")
+        showType = showClass
+        val context = read?.field()
+        val showCall = show?.call()
+        if (read?.opcode != Opcode.IGET_OBJECT || context == null || context.type != CONTEXT ||
+            show?.opcode != Opcode.INVOKE_VIRTUAL || showCall?.definingClass != showClass || showCall.parameters() != listOf(CONTEXT) ||
+            showCall.returnType != "V" || show.arguments() != listOf(shower, (read as TwoRegisterInstruction).registerA)
+        ) refuse("the \"$name\" sheet isn't shown with a context read off its helper right then")
+        val owner = read.registerB
+        if (owner == shower || owner == sheet) refuse("the \"$name\" helper's register is reused before the sheet shows")
+        if (sheet > 15 || owner > 15) refuse("the \"$name\" sheet or helper is in a register over v15")
+        if (index in targets) refuse("something jumps to the \"$name\" sheet's shower, so the hook would be skipped")
+
+        val helper = classDefByOrNull(context.definingClass) ?: refuse("the \"$name\" helper ${context.definingClass} isn't in the app")
+        if (helper.originalName() != name) refuse("${helper.type} isn't the helper named \"$name\"")
+        val users = helper.fields.filter { it.type == USER && !AccessFlags.STATIC.isSet(it.accessFlags) }
+        val getters = helper.methods.filter {
+            AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == USER &&
+                it.parameterTypes.map(CharSequence::toString) == listOf(helper.type)
+        }
+        val user = users.singleOrNull()?.let { AccountSource(it, null) }
+            ?: getters.singleOrNull()?.let { AccountSource(null, it) }
+            ?: refuse("expected one account field or static getter on the \"$name\" helper, found ${users.size} fields and ${getters.size} getters")
+        val free = method.freeLocalsAt(PROFILE_PICTURE_PATCH, index, 2)
+        ProfileMenuSite(name, index, sheet, owner, user, context, free)
+    }
+
+    val sheetClass = classDefByOrNull(sheetType!!) ?: refuse("the sheet $sheetType isn't in the app")
+    fun adders(parameters: List<String>) = sheetClass.methods.filter {
+        it.parameters() == parameters && it.returnType == "V" && AccessFlags.PUBLIC.isSet(it.accessFlags) &&
+            !AccessFlags.STATIC.isSet(it.accessFlags)
+    }
+    val adders = adders(ROW_ADDER_PARAMETERS).ifEmpty { adders(WIDE_ROW_ADDER_PARAMETERS) }
+    val adder = adders.singleOrNull() ?: refuse("expected one adder of a plain row on $sheetType, found ${adders.size}")
+    val adderParameters = adder.parameters()
+    if (code.none { it.call()?.let { call -> call.definingClass == sheetType && call.name == adder.name && call.parameters() == adderParameters } == true }) {
+        refuse("the menu doesn't add its rows with ${adder.name}")
+    }
+    stub()
+    fieldsStub()
+    val popup = findProfilePopup(method, code, targets, sites.single { it.name == PROFILE_MENUS[1] })
+    return ProfileMenus(method, sites, popup, sheetType!!, adder)
+}
+
+/**
+ * Finds the pop-up list, Instagram's newer form of the menu. The method builds one new instance of a
+ * PopupWindow subclass with a context it read off the newer helper, and the call right after hands
+ * the popup its list. The popup's method for that call casts each entry to the one item class, which
+ * has a single constructor of [POPUP_ITEM_ARGUMENTS] arguments with an interface as its fifth, the
+ * click callback.
+ */
+private fun BytecodePatchContext.findProfilePopup(
+    method: MutableMethod,
+    code: List<Instruction>,
+    targets: Set<Int>,
+    newer: ProfileMenuSite,
+): ProfilePopupSite {
+    val made = code.indices.filter { at ->
+        val type = (code[at].reference() as? TypeReference)?.type
+        code[at].opcode == Opcode.NEW_INSTANCE && type != null && classDefByOrNull(type)?.superclass == POPUP_WINDOW
+    }
+    val new = made.singleOrNull() ?: refuse("expected one PopupWindow built in the menu's method, found ${made.size}")
+    val popup = (code[new] as OneRegisterInstruction).registerA
+    val popupType = (code[new].reference() as TypeReference).type
+    val init = (new + 1..minOf(new + 4, code.lastIndex)).firstOrNull { at ->
+        code[at].opcode == Opcode.INVOKE_DIRECT && code[at].call()?.let { it.name == "<init>" && it.definingClass == popupType } == true &&
+            code[at].arguments().firstOrNull() == popup
+    } ?: refuse("the pop-up list isn't constructed right after it's made")
+    val built = code[init].arguments()
+    if (code[init].call()!!.parameters().firstOrNull() != CONTEXT || built.size != 5 || built[1] > 15) {
+        refuse("the pop-up list isn't built with a context in a register up to v15")
+    }
+    val context = built[1]
+
+    val index = init + 1
+    val hand = code.getOrNull(index)
+    val handed = hand?.call()
+    val args = hand?.arguments().orEmpty()
+    if (hand?.opcode != Opcode.INVOKE_VIRTUAL || handed?.definingClass != popupType || handed.parameters() != listOf(LIST) ||
+        handed.returnType != "V" || args.size != 2 || args[0] != popup || args[1] > 15
+    ) refuse("the pop-up list isn't handed its list right after it's built")
+    if (index in targets) refuse("something jumps to where the pop-up list gets its items, so the hook would be skipped")
+    val list = args[1]
+
+    val takes = classDefByOrNull(popupType)!!.methods.singleOrNull { it.name == handed.name && it.parameters() == listOf(LIST) }
+        ?: refuse("the pop-up list has no ${handed.name}(List)")
+    val items = takes.code().mapNotNull { (it.reference() as? TypeReference)?.type }.toSet().filter { type ->
+        val constructors = classDefByOrNull(type)?.methods?.filter { it.name == "<init>" }.orEmpty()
+        val arguments = constructors.singleOrNull()?.parameters()
+        arguments != null && arguments.size == POPUP_ITEM_ARGUMENTS &&
+            classDefByOrNull(arguments[4])?.let { AccessFlags.INTERFACE.isSet(it.accessFlags) } == true
+    }
+    if (items.size != 1) refuse("expected one item class built with $POPUP_ITEM_ARGUMENTS arguments in ${takes.name}, found ${items.size}")
+    val item = classDefByOrNull(items.single())!!
+    val fields = popupItemFields(item)
+
+    // The context was read off the newer helper, which holds the account too. Other branches
+    // write the same register, so only writes that can reach the pop-up list count.
+    val flow = ControlFlow.of(method)
+    val predecessors = HashMap<Int, MutableList<Int>>()
+    for (from in code.indices) {
+        (flow.normal[from] + flow.exceptional[from]).filter { it in code.indices }.forEach { to ->
+            predecessors.getOrPut(to) { mutableListOf() } += from
+        }
+    }
+    val reachesList = HashSet<Int>().apply {
+        val pending = ArrayDeque<Int>()
+        add(index); pending += index
+        while (pending.isNotEmpty()) {
+            predecessors[pending.removeFirst()].orEmpty().forEach { from -> if (add(from)) pending += from }
+        }
+    }
+    val read = (init - 1 downTo 0).firstOrNull { at ->
+        at in reachesList && code[at].opcode == Opcode.IGET_OBJECT && (code[at] as TwoRegisterInstruction).registerA == context &&
+            code[at].field()?.toString() == newer.context.toString()
+    } ?: refuse("the pop-up list's context isn't read off the newer helper")
+    val owner = (code[read] as TwoRegisterInstruction).registerB
+    if (owner > 15 || owner == list || owner == popup || owner == context) {
+        refuse("the newer helper's register is over v15 or reused at the pop-up list")
+    }
+    // Every path to the hand-over passes the read, and neither register is written after it on
+    // the way. On 456 blocks laid out after the read run before it (they jump back above it), so
+    // a check in index order would count their writes.
+    requireOrigin(PROFILE_PICTURE_PATCH, method, index, context, read, "the popup's context before the pop-up list gets its items")
+    requireOrigin(PROFILE_PICTURE_PATCH, method, index, owner, read, "the newer helper before the pop-up list gets its items")
+    val free = method.freeLocalsAt(PROFILE_PICTURE_PATCH, index, 1, except = listOf(context, owner, popup, list)).single()
+    return ProfilePopupSite(index, list, context, owner, newer.user, free, item.type, fields)
+}
+
+/**
+ * The field [item]'s constructor stores each of its arguments in, in argument order. The extension
+ * rebuilds a row through that constructor from a row Instagram made, so it has to read each
+ * argument back from the right field, and the names don't follow the arguments: on 450 the eleventh
+ * argument goes to A0C and the sixteenth to A0A, and the six booleans are stored in reverse. Read
+ * from the constructor's own stores, following each argument through the moves before its store,
+ * in code that doesn't branch, and every argument has to land in a field of its own of its type.
+ */
+private fun popupItemFields(item: ClassDef): List<String> {
+    val constructor = item.methods.single { it.name == "<init>" }
+    val implementation = constructor.implementation ?: refuse("the pop-up item ${item.type} has no constructor code")
+    if (constructor.jumpTargets().isNotEmpty()) refuse("the pop-up item's constructor branches, so where each argument goes can't be read")
+    val parameters = constructor.parameters()
+    val wide = setOf("J", "D")
+    val self = implementation.registerCount - parameters.sumOf { if (it in wide) 2 else 1 } - 1
+    // What each register holds: -1 for the item itself, else the argument's index.
+    val holds = HashMap<Int, Int>()
+    holds[self] = -1
+    var next = self + 1
+    parameters.forEachIndexed { at, type ->
+        holds[next] = at
+        next += if (type in wide) 2 else 1
+    }
+    val stored = arrayOfNulls<String>(parameters.size)
+    for (instruction in implementation.instructions) {
+        val two = instruction as? TwoRegisterInstruction
+        when {
+            instruction.opcode in MOVES && two != null -> {
+                val held = holds[two.registerB]
+                if (held != null) holds[two.registerA] = held else holds.remove(two.registerA)
+            }
+            instruction.opcode in STORES && two != null -> {
+                val field = instruction.field() ?: continue
+                val argument = holds[two.registerA] ?: continue
+                if (field.definingClass != item.type || holds[two.registerB] != -1 || argument < 0) continue
+                if (stored[argument] != null) refuse("the pop-up item's constructor stores argument $argument twice")
+                stored[argument] = field.name
+            }
+            instruction.opcode.setsRegister() -> (instruction as? OneRegisterInstruction)?.registerA?.let {
+                holds.remove(it)
+                if (instruction.opcode.setsWideRegister()) holds.remove(it + 1)
+            }
+        }
+    }
+    val fields = stored.toList()
+    val missing = fields.indices.filter { fields[it] == null }
+    if (missing.isNotEmpty()) refuse("the pop-up item's constructor doesn't store argument(s) ${missing.joinToString()} in a field")
+    if (fields.toSet().size != fields.size) refuse("the pop-up item's constructor stores two arguments in one field")
+    fields.forEachIndexed { at, name ->
+        val field = item.fields.singleOrNull { it.name == name && !AccessFlags.STATIC.isSet(it.accessFlags) }
+        if (field?.type != parameters[at]) refuse("the pop-up item's field $name doesn't have argument $at's type ${parameters[at]}")
+    }
+    return fields.map { it!! }
+}
+
+private val MOVES = setOf(
+    Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16, Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16,
+)
+private val STORES = setOf(
+    Opcode.IPUT, Opcode.IPUT_WIDE, Opcode.IPUT_OBJECT, Opcode.IPUT_BOOLEAN, Opcode.IPUT_BYTE, Opcode.IPUT_CHAR, Opcode.IPUT_SHORT,
+)
+
+/**
+ * The pop-up item's class as the extension sees it, a Java name, then its fields in constructor
+ * argument order: what [POPUP_ITEM_FIELDS] answers once the patch writes it.
+ */
+internal fun ProfilePopupSite.layout(): String =
+    item.removePrefix("L").removeSuffix(";").replace('/', '.') + "|" + fields.joinToString(",")
+
+/** Only called once [findProfileMenus] found everything. */
+internal fun BytecodePatchContext.applyProfileMenus(menus: ProfileMenus) {
+    val parameters = menus.adder.parameterTypes.joinToString("")
+    val adder = "${menus.sheetType}->${menus.adder.name}($parameters)V"
+    val wide = menus.adder.parameterTypes.size == WIDE_ROW_ADDER_PARAMETERS.size
+    // Six locals for the adder's arguments in a row, then the stub's four parameters. No icon (-1), and
+    // false for the plain text color: true draws the row in the red Instagram gives Report.
+    // The general adder takes the plain adder's defaults after the label: no second listener or subtitle, full
+    // opacity, the icon -1, and the flags the plain one passed (only the fourth set). p2 and p3 are v16 and v17
+    // there, past a plain move's four bits, and the assembler drops a plain move-object from them without a word.
+    val call = if (wide) """
+        check-cast p0, ${menus.sheetType}
+        move-object v0, p0
+        move-object v1, p1
+        move-object/from16 v2, p2
+        const/4 v3, 0x0
+        move-object/from16 v4, p3
+        const/4 v5, 0x0
+        const/high16 v6, 0x3f800000
+        const/4 v7, -0x1
+        const/4 v8, 0x0
+        const/4 v9, 0x0
+        const/4 v10, 0x0
+        const/4 v11, 0x0
+        const/4 v12, 0x1
+        const/4 v13, 0x0
+        invoke-virtual/range { v0 .. v13 }, $adder
+        const/4 v0, 0x1
+        return v0
+    """ else """
+        check-cast p0, ${menus.sheetType}
+        move-object v0, p0
+        move-object v1, p1
+        move-object v2, p2
+        move-object v3, p3
+        const/4 v4, -0x1
+        const/4 v5, 0x0
+        invoke-virtual/range { v0 .. v5 }, $adder
+        const/4 v0, 0x1
+        return v0
+    """
+    replace(stub(), if (wide) 18 else 10, call)
+    // No parameters, so v0 is the stub's own.
+    replace(fieldsStub(), 1, """
+        const-string v0, "${menus.popup.layout()}"
+        return-object v0
+    """)
+    // From the end, so an earlier site's index still holds when a later one's code goes in.
+    val popup = menus.popup
+    val places = menus.sites.map { it.index to it }.plus(popup.index to null).sortedByDescending { it.first }
+    for ((index, site) in places) {
+        if (site == null) {
+            menus.method.addInstructions(
+                index,
+                """
+                    ${popup.user.load(popup.free, popup.owner)}
+                    invoke-static { v${popup.list}, v${popup.free}, v${popup.context} }, $OFFER_POPUP
+                """,
+            )
+            continue
+        }
+        val (user, context) = site.free
+        menus.method.addInstructions(
+            index,
+            """
+                ${site.user.load(user, site.owner)}
+                iget-object v$context, v${site.owner}, ${site.context}
+                invoke-static { v${site.sheet}, v$user, v$context }, $OFFER_PICTURE
+            """,
+        )
+    }
+}
+
+private fun BytecodePatchContext.stub(): MutableMethod {
+    val extension = mutableClassDefByOrNull(PROFILE_PICTURE) ?: refuse("the extension has no $PROFILE_PICTURE")
+    for (hook in listOf(OFFER_PICTURE, OFFER_POPUP)) {
+        if (extension.methods.none { "${it.definingClass}->${it.name}(${it.parameters().joinToString("")})${it.returnType}" == hook &&
+                AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
+        ) refuse("the extension has no public static $hook")
+    }
+    return extension.methods.singleOrNull {
+        it.name == ADD_ROW_STUB && it.parameters() == ADD_ROW_PARAMETERS && it.returnType == "Z" &&
+            AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags)
+    } ?: refuse("$PROFILE_PICTURE has no static Z $ADD_ROW_STUB(${ADD_ROW_PARAMETERS.joinToString("")})")
+}
+
+private fun BytecodePatchContext.fieldsStub(): MutableMethod =
+    mutableClassDefBy(PROFILE_PICTURE).methods.singleOrNull {
+        "${it.definingClass}->${it.name}(${it.parameters().joinToString("")})${it.returnType}" == POPUP_ITEM_FIELDS &&
+            AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags)
+    } ?: refuse("the extension has no public static $POPUP_ITEM_FIELDS")
+
+private fun BytecodePatchContext.replace(method: MutableMethod, registers: Int, body: String) {
+    val replacement = ImmutableMethod(method.definingClass, method.name, method.parameters, method.returnType,
+        method.accessFlags, method.annotations, method.hiddenApiRestrictions,
+        ImmutableMethodImplementation(registers, emptyList(), null, null)).toMutable().apply {
+        addInstructionsWithLabels(0, body.trimIndent())
+    }
+    val owner = mutableClassDefBy(method.definingClass)
+    owner.methods.remove(method)
+    owner.methods.add(replacement)
+}
+
+private fun Method.code(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
+private fun Method.parameters(): List<String> = parameterTypes.map { it.toString() }
+private fun Instruction.reference() = (this as? ReferenceInstruction)?.reference
+private fun Instruction.call() = reference() as? MethodReference
+private fun Instruction.field() = reference() as? FieldReference
+private fun MethodReference.parameters(): List<String> = parameterTypes.map { it.toString() }
+private fun Instruction.arguments(): List<Int> = when (this) {
+    is FiveRegisterInstruction -> listOf(registerC, registerD, registerE, registerF, registerG).take(registerCount)
+    is com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction ->
+        (startRegister until startRegister + registerCount).toList()
+    else -> emptyList()
+}

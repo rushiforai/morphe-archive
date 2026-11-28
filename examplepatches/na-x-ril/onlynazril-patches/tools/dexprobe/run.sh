@@ -19,6 +19,15 @@ libdir="$dexkit/dexkit/build/library"
 [ -f "$jar" ] || { echo "missing $jar (build it: ./gradlew :dexkit:jar in $dexkit)" >&2; exit 1; }
 [ -f "$libdir/libdexkit.so" ] || { echo "missing $libdir/libdexkit.so (build it: ./gradlew :dexkit:cmakeBuild)" >&2; exit 1; }
 
+# NixOS: the JNI library is built without a RUNPATH, so the JVM cannot dlopen it until libz and
+# libstdc++ are on the loader path. Resolve them through Nix whenever ldd reports them missing.
+if ldd "$libdir/libdexkit.so" 2>/dev/null | grep -q 'not found' && command -v nix >/dev/null 2>&1; then
+  runtime="$(nix build --no-link --print-out-paths \
+      nixpkgs#zlib nixpkgs#stdenv.cc.cc.lib 2>/dev/null \
+    | sed 's|$|/lib|' | paste -sd: - || true)"
+  [ -n "$runtime" ] && export LD_LIBRARY_PATH="$runtime${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+fi
+
 pick() {
   find "$HOME/.gradle/caches/modules-2/files-2.1/$1" -name "$2" ! -name '*sources*' \
     | sort -V | tail -1

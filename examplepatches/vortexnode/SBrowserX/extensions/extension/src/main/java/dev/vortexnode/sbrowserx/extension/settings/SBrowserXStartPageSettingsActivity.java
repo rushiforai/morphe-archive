@@ -39,6 +39,7 @@ public final class SBrowserXStartPageSettingsActivity extends Activity {
     private TextView weatherCitySummary;
     private TextView weatherUnitSummary;
     private TextView shortcutsCountSummary;
+    private TextView gridColsSummary;
     private LinearLayout weatherCityRow;
     private LinearLayout weatherUnitRow;
 
@@ -158,6 +159,17 @@ public final class SBrowserXStartPageSettingsActivity extends Activity {
         // --- Card 4: Shortcuts ---
         root.addView(sectionHeader(SBrowserXStrings.get(SBrowserXStrings.SP_CAT_SHORTCUTS), textSecondary));
         LinearLayout scCard = card(cardColor);
+        gridColsSummary = addRow(scCard,
+                SBrowserXStrings.get(SBrowserXStrings.SP_SC_GRID_COLS),
+                gridColsLabel(),
+                textPrimary, textSecondary, v -> showGridColsDialog(night));
+        scCard.addView(divider(night));
+        addSwitchRow(scCard,
+                SBrowserXStrings.get(SBrowserXStrings.SP_SC_TILE_FILL),
+                SBrowserXStrings.get(SBrowserXStrings.SP_SC_TILE_FILL_SUM),
+                SBrowserXPrefs.isStartPageTileFillEnabled(this), night, textPrimary, textSecondary,
+                (btn, checked) -> SBrowserXPrefs.setStartPageTileFillEnabled(this, checked));
+        scCard.addView(divider(night));
         addRow(scCard,
                 SBrowserXStrings.get(SBrowserXStrings.SP_SC_ADD),
                 SBrowserXStrings.get(SBrowserXStrings.SP_SC_ADD_SUM),
@@ -196,6 +208,9 @@ public final class SBrowserXStartPageSettingsActivity extends Activity {
         if (shortcutsCountSummary != null) {
             shortcutsCountSummary.setText(shortcutsLabel());
         }
+        if (gridColsSummary != null) {
+            gridColsSummary.setText(gridColsLabel());
+        }
     }
 
     private String wallpaperModeLabel(String mode) {
@@ -208,6 +223,31 @@ public final class SBrowserXStartPageSettingsActivity extends Activity {
         return (city == null || city.trim().isEmpty())
                 ? SBrowserXStrings.get(SBrowserXStrings.SP_WX_CITY_AUTO)
                 : city.trim();
+    }
+
+    private String gridColsLabel() {
+        return SBrowserXPrefs.getStartPageGridColumns(this) == 5
+                ? SBrowserXStrings.get(SBrowserXStrings.SP_SC_GRID_5)
+                : SBrowserXStrings.get(SBrowserXStrings.SP_SC_GRID_4);
+    }
+
+    private void showGridColsDialog(boolean night) {
+        int theme = night ? android.R.style.Theme_DeviceDefault_Dialog_Alert
+                : android.R.style.Theme_DeviceDefault_Light_Dialog_Alert;
+        String[] labels = new String[] {
+                SBrowserXStrings.get(SBrowserXStrings.SP_SC_GRID_4),
+                SBrowserXStrings.get(SBrowserXStrings.SP_SC_GRID_5)
+        };
+        int sel = SBrowserXPrefs.getStartPageGridColumns(this) == 5 ? 1 : 0;
+        new AlertDialog.Builder(this, theme)
+                .setTitle(SBrowserXStrings.get(SBrowserXStrings.SP_SC_GRID_COLS))
+                .setSingleChoiceItems(labels, sel, (d, which) -> {
+                    SBrowserXPrefs.setStartPageGridColumns(this, which == 1 ? 5 : 4);
+                    d.dismiss();
+                    refreshState();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
     }
 
     private String shortcutsLabel() {
@@ -239,6 +279,7 @@ public final class SBrowserXStartPageSettingsActivity extends Activity {
                 .setSingleChoiceItems(labels, sel, (d, which) -> {
                     String chosen = values[which];
                     SBrowserXPrefs.setStartPageWallpaperMode(this, chosen);
+                    SBrowserXStartPageServer.invalidateWallpaperCache();
                     SBrowserXPrefs.bumpStartPageWallpaperVersion(this);
                     d.dismiss();
                     if (SBrowserXStartPageServer.WALLPAPER_LOCAL.equals(chosen)
@@ -388,6 +429,7 @@ public final class SBrowserXStartPageSettingsActivity extends Activity {
                         fos.flush();
                     }
                     SBrowserXPrefs.setStartPageWallpaperMode(this, SBrowserXStartPageServer.WALLPAPER_LOCAL);
+                    SBrowserXStartPageServer.invalidateWallpaperCache();
                     SBrowserXPrefs.bumpStartPageWallpaperVersion(this);
                     runOnUiThread(() -> {
                         refreshState();

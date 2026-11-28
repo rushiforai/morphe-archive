@@ -23,7 +23,7 @@ final class WazeModClient implements ServiceConnection {
     private static final String TAG = "UA-WAZE";
     static final String ACTION_BIND = "com.wazemod.api.action.BIND";
     static final String ACTION_REQUEST_ACCESS = "com.wazemod.api.action.REQUEST_ACCESS";
-    static final String[] HOSTS = {"com.waze", "com.chisadin.wazemod"};
+    static final String[] HOSTS = {"com.waze", "com.chisadin.wazemod", "com.chisadin.linhtinh"};
 
     interface Listener {
         /** New data, or null when there is none (no Waze Mod, or it went away). Called on a worker thread. */

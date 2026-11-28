@@ -25,6 +25,7 @@ val disableAiPatch = bytecodePatch(
     description = "Turns off Mylow, the AI overview in search, and AI review summaries.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

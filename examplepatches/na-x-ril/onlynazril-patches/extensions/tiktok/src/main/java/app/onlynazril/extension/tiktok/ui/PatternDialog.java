@@ -46,6 +46,13 @@ public final class PatternDialog {
 
     private static final long SAMPLE_AGE_MILLIS = 400L * 24L * 60L * 60L * 1000L;
 
+    /**
+     * Above this many characters the date starts pushing the name on the same row: the handle is
+     * the part that gives way, so the dialog warns before the pattern is saved. The sample is the
+     * date alone; a comment adds its clock on top of it.
+     */
+    private static final int SAFE_SAMPLE_LENGTH = 18;
+
     private PatternDialog() {}
 
     public static void show(
@@ -66,8 +73,13 @@ public final class PatternDialog {
         status.setSingleLine(true);
         status.setEllipsize(TextUtils.TruncateAt.END);
         status.setGravity(Gravity.CENTER);
+        TextView warning = secondary(activity);
+        warning.setGravity(Gravity.CENTER);
+        warning.setText("Long dates can push the @handle into an ellipsis.");
+        warning.setTextColor(Tokens.TEXT_WARNING);
+        warning.setVisibility(View.GONE);
 
-        Runnable update = () -> refresh(field, status, locale);
+        Runnable update = () -> refresh(field, status, warning, locale);
         field.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -83,7 +95,7 @@ public final class PatternDialog {
         update.run();
 
         dialog.setContentView(
-                panel(activity, dialog, title, hintText, field, status, locale, save));
+                panel(activity, dialog, title, hintText, field, status, warning, locale, save));
         Window window = dialog.getWindow();
         if (window != null) {
             window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
@@ -106,6 +118,7 @@ public final class PatternDialog {
             String hintText,
             EditText field,
             TextView status,
+            TextView warning,
             Locale locale,
             OnPatternListener save) {
         LinearLayout column = new LinearLayout(activity);
@@ -149,6 +162,7 @@ public final class PatternDialog {
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         statusParams.topMargin = Tokens.dp(activity, Tokens.SPACE_2);
         fieldBlock.addView(status, statusParams);
+        fieldBlock.addView(warning, statusParams);
         column.addView(fieldBlock);
 
         LinearLayout actions = new LinearLayout(activity);
@@ -177,7 +191,7 @@ public final class PatternDialog {
             String pattern = field.getText().toString().trim();
             if (!PostDateFormat.isValidPattern(pattern, locale)) {
                 // The status line is already in its error state; saving stays open on purpose.
-                refresh(field, status, locale);
+                refresh(field, status, warning, locale);
                 return;
             }
             save.onPatternChanged(pattern);
@@ -202,21 +216,22 @@ public final class PatternDialog {
      * when it does not. Keeping both states in the same single-line view is what stops the panel
      * from growing or shrinking as the field is edited.
      */
-    private static void refresh(EditText field, TextView status, Locale locale) {
+    private static void refresh(EditText field, TextView status, TextView warning, Locale locale) {
         String pattern = field.getText().toString().trim();
         if (pattern.isEmpty()) {
+            warning.setVisibility(View.GONE);
             message(status, "A pattern is required.", Tokens.TEXT_DANGER);
             return;
         }
         if (!PostDateFormat.isValidPattern(pattern, locale)) {
+            warning.setVisibility(View.GONE);
             message(status, "Not a date pattern.", Tokens.TEXT_DANGER);
             return;
         }
         long millis = System.currentTimeMillis() - SAMPLE_AGE_MILLIS;
-        message(
-                status,
-                "Sample: " + StampText.date(millis, locale, pattern, false),
-                Tokens.TEXT_SECONDARY);
+        String sample = StampText.date(millis, locale, pattern, false);
+        warning.setVisibility(sample.length() > SAFE_SAMPLE_LENGTH ? View.VISIBLE : View.GONE);
+        message(status, "Sample: " + sample, Tokens.TEXT_SECONDARY);
     }
 
     private static void message(TextView status, String text, int color) {

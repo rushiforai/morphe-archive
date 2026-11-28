@@ -8,6 +8,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.czyeru.patches.shared.compat.AppCompatibilities
 import app.czyeru.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.czyeru.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
+import app.czyeru.util.getFreeRegisterProvider
 import app.czyeru.util.getReference
 import app.czyeru.util.findInstructionIndicesReversedOrThrow
 import com.android.tools.smali.dexlib2.Opcode
@@ -66,13 +67,22 @@ val commentTranslationPatch = bytecodePatch(
                 "Translate comments: could not locate initialized native comment translation manager.",
             )
             val (managerReadyIndex, managerRegister) = managerMatch
+            val neededRegisters = if (managerRegister <= 15) 1 else 2
+            val registers = getFreeRegisterProvider(
+                managerReadyIndex + 1,
+                neededRegisters,
+                listOf(managerRegister),
+            )
+            val cellRegister = registers.getFreeRegister4Bit()
+            val managerArgRegister = if (managerRegister <= 15) managerRegister else registers.getFreeRegister4Bit()
+            val stageManager = if (managerRegister <= 15) "" else "move-object/from16 v$managerArgRegister, v$managerRegister\n"
 
             addInstructions(
                 managerReadyIndex + 1,
                 """
-                    move-object/from16 v0, p0
-                    iget-object v0, v0, Landroidx/recyclerview/widget/RecyclerView${'$'}ViewHolder;->itemView:Landroid/view/View;
-                    invoke-static {v0, v$managerRegister}, $EXTENSION_CLASS_DESCRIPTOR->registerCommentCell(Landroid/view/View;Ljava/lang/Object;)V
+                    move-object/from16 v$cellRegister, p0
+                    iget-object v$cellRegister, v$cellRegister, Landroidx/recyclerview/widget/RecyclerView${'$'}ViewHolder;->itemView:Landroid/view/View;
+                    ${stageManager}invoke-static {v$cellRegister, v$managerArgRegister}, $EXTENSION_CLASS_DESCRIPTOR->registerCommentCell(Landroid/view/View;Ljava/lang/Object;)V
                 """,
             )
         }
@@ -101,11 +111,13 @@ val commentTranslationPatch = bytecodePatch(
             """,
         )
 
-        MultiCommentTranslationCompleteFingerprint.method.addInstructions(
-            0,
-            """
-                invoke-static {p0}, $EXTENSION_CLASS_DESCRIPTOR->onNativeBatchComplete(Ljava/lang/Object;)V
-            """,
-        )
+        MultiCommentTranslationCompleteFingerprint.matchAll().forEach { match ->
+            match.method.addInstructions(
+                0,
+                """
+                    invoke-static {p0}, $EXTENSION_CLASS_DESCRIPTOR->onNativeBatchComplete(Ljava/lang/Object;)V
+                """,
+            )
+        }
     }
 }

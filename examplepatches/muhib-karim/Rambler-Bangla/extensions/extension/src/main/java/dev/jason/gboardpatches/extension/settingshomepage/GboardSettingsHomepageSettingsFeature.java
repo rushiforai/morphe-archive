@@ -79,6 +79,11 @@ public final class GboardSettingsHomepageSettingsFeature
     }
 
     @Override
+    public String getRootSectionKey() {
+        return GboardPatchesSettingsContract.ROOT_SECTION_SYSTEM;
+    }
+
+    @Override
     public boolean isAvailable(Context context) {
         initializeText(context);
         return GboardPatchesFeatureAvailability.hasFeature(

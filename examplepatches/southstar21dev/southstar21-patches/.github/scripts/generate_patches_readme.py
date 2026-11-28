@@ -3,9 +3,11 @@
 Generates the patches section of README.md from patches-list.json
 and injects it between <!-- PATCHES_START --> / <!-- PATCHES_END --> markers.
 
-Spoilers are expanded (open by default) if:
-  1. Total patch count <= AUTO_EXPAND_THRESHOLD.
-  2. The README marker explicitly says: <!-- PATCHES_START EXPANDED -->
+Each app gets a collapsible section with a table of its patches. The first app's
+section is open; with <!-- PATCHES_START EXPANDED --> all of them are.
+
+If the README also has <!-- APP_BADGES_START --> / <!-- APP_BADGES_END --> markers,
+the badges between them are rewritten with each app's supported version.
 
 python3 generate_patches_readme.py <owner/repo> <branch> [patches-list.json] [README.md]
 """
@@ -13,8 +15,8 @@ python3 generate_patches_readme.py <owner/repo> <branch> [patches-list.json] [RE
 import json
 import re
 import sys
-import os
 from pathlib import Path
+from urllib.parse import quote
 
 
 if len(sys.argv) < 3:
@@ -37,22 +39,27 @@ with open(json_path, encoding="utf-8") as f:
     data = json.load(f)
 
 
-# Emoji and label suffix for each form factor. Mobile and unspecified use no suffix.
+# Label suffix for each form factor. Mobile and unspecified use no suffix.
 FORM_FACTORS = {
-    "TV":         ("📺", "Android TV"),
-    "WEARABLE":   ("⌚", "Wear OS"),
-    "AUTOMOTIVE": ("🚗", "Android Automotive"),
+    "TV":         "Android TV",
+    "WEARABLE":   "Wear OS",
+    "AUTOMOTIVE": "Android Automotive",
 }
 
+# Simple Icons slug for each app's badge. Apps not listed get their name as the label instead.
+APP_LOGOS = {
+    "com.instagram.android":                 "instagram",
+    "com.google.android.apps.youtube.music": "youtubemusic",
+    "com.spotify.music":                     "spotify",
+}
 
-def pkg_emoji(form_factor):
-    """Return the emoji for a form factor, or a standard package emoji."""
-    return FORM_FACTORS.get(form_factor, ("📦", None))[0]
+BADGE_COLOR       = "0B0B0F"
+BADGE_LABEL_COLOR = "30363d"
 
 
 def pkg_label(name, form_factor):
     """Return the app name, with the form factor appended if it is not mobile."""
-    suffix = FORM_FACTORS.get(form_factor, (None, None))[1]
+    suffix = FORM_FACTORS.get(form_factor)
     return f"{name} ({suffix})" if suffix else name
 
 
@@ -60,7 +67,7 @@ def pkg_label(name, form_factor):
 # The same package name can be used by different apps for each form factor.
 # JSON structure: compatiblePackages is a list of objects with
 # { packageName, name, formFactor, targets: [{ version, isExperimental, description }] }
-by_pkg = {}   # (packageName, formFactor) -> { name, emoji, patches, targets }
+by_pkg = {}   # (packageName, formFactor) -> { package, name, patches, targets }
 universal = {}
 
 for patch in data["patches"]:
@@ -77,8 +84,8 @@ for patch in data["patches"]:
         key  = (pkg, form_factor)
         if key not in by_pkg:
             by_pkg[key] = {
+                "package": pkg,
                 "name":    pkg_label(name, form_factor),
-                "emoji":   pkg_emoji(form_factor),
                 "patches": {},
                 "targets": pkg_entry.get("targets", []),
             }
@@ -102,69 +109,41 @@ shared_names = {n for n, apps in _name_apps.items() if len(apps) > 1}
 
 
 def patches_table(patches, app=None):
-    """Render a sorted markdown table of patches with name, description, and options."""
+    """Render a sorted markdown table of patches: name, description and whether Morphe Manager selects it."""
     rows = [
-        "| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |",
-        "|----------|----------------|-----------|",
+        "| Patch | What it does | Selected |",
+        "|-------|--------------|:--------:|",
     ]
     for p in sorted(patches, key=lambda x: x["name"]):
         a = anchor(f"{p['name']} ({app})" if app and p["name"] in shared_names else p["name"])
-        options = p.get("options") or []
-        if options:
-            # Show only option titles as a bullet list
-            parts = [opt.get("title") or opt.get("key") or "" for opt in options]
-            opts_cell = "<br>".join(f"• {t}" for t in parts)
-        else:
-            opts_cell = ""
-        desc = (p.get("description") or "").replace("\n", "<br>")
-        rows.append(f"| [{p['name']}](#{a}) | {desc} | {opts_cell} |")
+        desc = (p.get("description") or "").replace("\n", "<br>").replace("|", "\\|")
+        selected = "Yes" if p.get("default", True) else "No"
+        rows.append(f"| [{p['name']}](#{a}) | {desc} | {selected} |")
     return "\n".join(rows)
 
 
-def versions_table(targets):
-    """Render a markdown table of supported versions.
-    Experimental versions get a 🧪 prefix.
-    Versions with a description get it shown in a second row below.
-    """
-    if not targets:
-        return ""
-
-    cells = []
+def versions_text(targets):
+    """The supported versions as text, experimental ones marked."""
+    out = []
     for t in targets:
-        ver   = t["version"]
+        ver = t.get("version")
         if ver is None:
             continue
-        label = f"🧪&nbsp;{ver}" if t.get("isExperimental") else ver
-        cells.append(label)
-
-    if not cells:
-        return ""
-
-    header = "| " + " | ".join(cells) + " |"
-    sep = "| " + " | ".join(":---:" for _ in cells) + " |"
-    rows = [header, sep]
-
-    # Optional description row — only rendered if at least one target has one
-    descs = [(t.get("description") or "").replace("\n", "<br>") for t in targets]
-    if any(descs):
-        rows.append("| " + " | ".join(descs) + " |")
-
-    return "\n".join(rows)
+        out.append(f"{ver} (experimental)" if t.get("isExperimental") else ver)
+    return ", ".join(out)
 
 
-def spoiler(label, count, targets, tbl, expanded=False):
-    """Wrap a patches table in a <details> spoiler with a versions sub-table.
-    If expanded=True, the spoiler is open by default (for repos with few patches).
-    """
+def section(label, count, targets, tbl, open_):
+    """Wrap a patches table in a collapsible section."""
     noun = "patch" if count == 1 else "patches"
-    vtbl = versions_table(targets)
-    versions_section = f"**🎯 Supported versions:**\n\n{vtbl}\n\n" if vtbl else ""
-    tag = "<details open>" if expanded else "<details>"
+    versions = versions_text(targets)
+    details = f"{count} {noun}, {versions}" if versions else f"{count} {noun}"
+    tag = "<details open>" if open_ else "<details>"
     return f"""{tag}
-<summary>{label}&nbsp;&nbsp;•&nbsp;&nbsp;{count} {noun}</summary>
+<summary><b>{label}</b>&nbsp;&nbsp;{details}</summary>
 <br>
 
-{versions_section}{tbl}
+{tbl}
 
 </details>"""
 
@@ -172,33 +151,48 @@ def spoiler(label, count, targets, tbl, expanded=False):
 def build_content(expanded=False):
     """Build the full generated patches section."""
     lines = [
-        f"> **[v{ver}](https://github.com/{owner}/{repo}/releases/tag/v{ver})**"
-        f"&nbsp;&nbsp;•&nbsp;&nbsp;`{branch}`&nbsp;&nbsp;•&nbsp;&nbsp;"
-        f"{total} patches total"
+        f"**[v{ver}](https://github.com/{owner}/{repo}/releases/tag/v{ver})**, {total} patches. "
+        "Click a patch for its settings and how it works.",
+        "",
     ]
 
-    # One spoiler per app, in the order they appear in the JSON
-    for entry in by_pkg.values():
+    # One section per app, in the order they appear in the JSON
+    for i, entry in enumerate(by_pkg.values()):
         patches = list(entry["patches"].values())
-        label   = f"{entry['emoji']} {entry['name']}"
-        lines.append(spoiler(label, len(patches), entry["targets"], patches_table(patches, entry["name"]), expanded))
+        lines.append(section(entry["name"], len(patches), entry["targets"],
+                             patches_table(patches, entry["name"]), expanded or i == 0))
         lines.append("")
 
     # Universal patches (no specific app)
     if universal:
         uni_patches = list(universal.values())
-        noun = "patch" if len(uni_patches) == 1 else "patches"
-        tag  = "<details open>" if expanded else "<details>"
-        lines.append(f"""{tag}
-<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;{len(uni_patches)} {noun}</summary>
-<br>
-
-{patches_table(uni_patches)}
-
-</details>""")
+        lines.append(section("Universal", len(uni_patches), [], patches_table(uni_patches), expanded))
         lines.append("")
 
     return "\n".join(lines)
+
+
+def badge_escape(text):
+    """Escape text for a shields.io static badge path."""
+    return quote(text.replace("-", "--").replace("_", "__"), safe="")
+
+
+def app_badges():
+    """One shields.io badge per app with its first supported version."""
+    badges = []
+    for entry in by_pkg.values():
+        versions = [t["version"] for t in entry["targets"] if t.get("version") is not None]
+        if not versions:
+            continue
+        version = versions[0]
+        logo = APP_LOGOS.get(entry["package"])
+        params = f"style=flat&labelColor={BADGE_LABEL_COLOR}"
+        if logo:
+            url = f"https://img.shields.io/badge/{badge_escape(version)}-{BADGE_COLOR}?{params}&logo={logo}&logoColor=white"
+        else:
+            url = f"https://img.shields.io/badge/{badge_escape(entry['name'])}-{badge_escape(version)}-{BADGE_COLOR}?{params}"
+        badges.append(f'  <img alt="{entry["name"]} {version}" src="{url}">')
+    return "\n".join(badges)
 
 
 # Build and inject
@@ -209,7 +203,7 @@ total = sum(len(e["patches"]) for e in by_pkg.values()) + len(universal)
 
 readme = readme_path.read_text(encoding="utf-8")
 
-# Marker pattern — matches both <!-- PATCHES_START --> and <!-- PATCHES_START EXPANDED -->
+# Marker pattern: matches both <!-- PATCHES_START --> and <!-- PATCHES_START EXPANDED -->
 START_PATTERN = r"<!-- PATCHES_START(?:\s+EXPANDED)?\s*-->"
 END_MARKER    = "<!-- PATCHES_END -->"
 
@@ -219,26 +213,17 @@ if not marker_match or END_MARKER not in readme:
     # Fallback: print to stdout so CI can catch the issue
     print(build_content(expanded=False))
     sys.stderr.write(
-        f"⚠️  Markers <!-- PATCHES_START [EXPANDED] --> / {END_MARKER} not found in {readme_path}. "
+        f"Markers <!-- PATCHES_START [EXPANDED] --> / {END_MARKER} not found in {readme_path}. "
         "Printed to stdout instead.\n"
     )
     sys.exit(1)
 
 actual_start = marker_match.group(0)
 
-# Auto-expand threshold
-AUTO_EXPAND_THRESHOLD = 20
+# Every app's section is open only when the README marker asks for it: <!-- PATCHES_START EXPANDED -->
+expanded = "EXPANDED" in actual_start
 
-# Spoilers are expanded if:
-# 1. Total patch count is small (≤ AUTO_EXPAND_THRESHOLD)
-#    with only a few patches where collapsing adds no benefit.
-# 2. The README marker explicitly requests it: <!-- PATCHES_START EXPANDED -->
-expanded = (
-    total <= AUTO_EXPAND_THRESHOLD or
-    "EXPANDED" in actual_start
-)
-
-generated  = build_content(expanded=expanded)
+generated = build_content(expanded=expanded)
 
 # Replace template links if present
 readme = readme.replace("https://morphe.software/add-source?github=xyz-user/xyz-patches", f"https://morphe.software/add-source?github={repo_full}")
@@ -246,9 +231,21 @@ readme = readme.replace("https://github.com/xyz-user/xyz-patches", f"https://git
 
 new_readme = re.sub(
     rf"{START_PATTERN}.*?{re.escape(END_MARKER)}",
-    f"{actual_start}\n{generated}\n{END_MARKER}",
+    lambda _: f"{actual_start}\n{generated}\n{END_MARKER}",
     readme,
     flags=re.DOTALL,
 )
+
+# The app version badges, if the README has a place for them
+BADGES_START = "<!-- APP_BADGES_START -->"
+BADGES_END   = "<!-- APP_BADGES_END -->"
+if BADGES_START in new_readme and BADGES_END in new_readme:
+    new_readme = re.sub(
+        rf"{re.escape(BADGES_START)}.*?{re.escape(BADGES_END)}",
+        lambda _: f"{BADGES_START}\n{app_badges()}\n  {BADGES_END}",
+        new_readme,
+        flags=re.DOTALL,
+    )
+
 readme_path.write_text(new_readme, encoding="utf-8")
-print(f"✅ Injected patches section into {readme_path} (v{ver}, branch={branch}, {total} patches, expanded={expanded})")
+print(f"Injected patches section into {readme_path} (v{ver}, branch={branch}, {total} patches, expanded={expanded})")

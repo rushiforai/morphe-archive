@@ -377,7 +377,7 @@ Removes the summary, Sources and Ask Meta AI box from a reel's more menu. In you
 Hide Ask Meta AI in About this reel	ซ่อน "ถาม Meta AI" ใน "เกี่ยวกับรีลส์นี้"
 About this reel keeps its summary and Sources, and only the Ask Meta AI box under them goes.	เมนู "เกี่ยวกับรีลส์นี้" จะยังคงมีสรุปย่อและแหล่งที่มา โดยจะลบเฉพาะช่อง "ถาม Meta AI" ที่อยู่ด้านล่างออกเท่านั้น
 Hide Meta AI in the share sheet	ซ่อน Meta AI ในหน้าต่างการแชร์
-Removes Meta AI from the row at the bottom of the share sheet. Some accounts see it as Muse.	ลบ Meta AI ออกจากแถวด้านล่างของหน้าต่างการแชร์ ซึ่งบางบัญชีอาจเห็นเป็น Muse
+Removes Meta AI from the share sheet, both from the people you can send to and from the row at the bottom. Some accounts see it as Muse.	ลบ Meta AI ออกจากหน้าต่างการแชร์ ทั้งจากรายชื่อคนที่คุณส่งถึงได้และจากแถวด้านล่าง ซึ่งบางบัญชีอาจเห็นเป็น Muse
 Hide the Muse card	ซ่อนการ์ด Muse
 Removes the Meet Muse card, with its Try Muse button, from Home and your profile. Your other cards stay.	ลบการ์ด Meet Muse พร้อมปุ่ม Try Muse ออกจากหน้าหลักและโปรไฟล์ของคุณ การ์ดอื่นๆ จะยังคงอยู่
 Hide the Muse button on your profile	ซ่อนปุ่ม Muse บนโปรไฟล์ของคุณ
@@ -602,6 +602,9 @@ Adds an eye button to the top of each story while you view anonymously. Tap it t
 Mark as seen	ทำเครื่องหมายว่าดูแล้ว
 Marked as seen. Tap again to undo.	ทำเครื่องหมายว่าดูแล้ว แตะอีกครั้งเพื่อเลิกทำ
 Marked as seen and sent	ทำเครื่องหมายว่าดูแล้วและส่งแล้ว
+# context: View stories anonymously's third switch, after Mark as seen button. A like is the heart under a story, a quick reaction is an emoji from the row above a story's reply box
+Mark a story seen when you like or reply	ทำเครื่องหมายว่าดูสตอรี่แล้วเมื่อคุณกดถูกใจหรือตอบกลับ
+While you view anonymously, liking a story, replying to it or sending it a quick reaction puts you on that story's viewer list first. The other stories stay hidden.	ขณะที่คุณดูแบบไม่ระบุตัวตน การกดถูกใจสตอรี่ ตอบกลับสตอรี่ หรือส่งการแสดงความรู้สึกด่วนให้สตอรี่นั้น จะทำให้คุณแสดงในรายชื่อผู้ชมของสตอรี่นั้นก่อน สตอรี่อื่นๆ จะยังคงซ่อนอยู่
 View DM photos and videos anonymously	ดูรูปภาพและวิดีโอใน DM แบบไม่ระบุตัวตน
 Stops people seeing that you opened their view once photos and videos. They still disappear after you view them. This is a test feature and starts off.	ป้องกันไม่ให้ผู้อื่นเห็นว่าคุณเปิดดูรูปภาพและวิดีโอแบบดูได้ครั้งเดียวของพวกเขา รูปภาพและวิดีโอจะยังคงหายไปหลังจากที่คุณดู นี่เป็นฟีเจอร์ทดสอบและเริ่มต้นปิดใช้งานอยู่
 Restored %1$d settings. Kept %2$d newer choices.	กู้คืนการตั้งค่าแล้ว %1$d รายการ และคงตัวเลือกที่ใหม่กว่าไว้ %2$d รายการ
@@ -1570,6 +1573,14 @@ All of them. Tap to leave some out, and Ghost mode leaves those as you set them.
 %1$s. The others stay as you set them.	%1$s รายการอื่นๆ จะยังคงเป็นไปตามที่คุณตั้งค่าไว้
 Switches Ghost mode turns	สวิตช์ที่โหมด Ghost สลับการทำงาน
 Ghost mode needs at least one switch to turn.	โหมด Ghost ต้องมีสวิตช์ให้สลับอย่างน้อยหนึ่งตัว
+# context: Ghost mode: the switch under its rows in Ads and privacy that holds likes, story replies, comments, share links and new stories and posts back while Ghost mode is on (#876). A like is the heart under a post, a reel, a story or a comment, a share link is what Copy link and sharing a post out make, and posting is sharing a new story, post or reel from Instagram's camera; the five short ones are toasts shown when a tap is held back
+Block likes, replies and posts in Ghost mode	บล็อกการกดถูกใจ การตอบกลับ และการโพสต์ในโหมด Ghost
+While Ghost mode is on, liking, commenting, replying to a story, posting a story or post and copying or sharing a link do nothing, and a message says why. Nothing is sent.	ขณะที่เปิดโหมด Ghost การกดถูกใจ การแสดงความคิดเห็น การตอบกลับสตอรี่ การโพสต์สตอรี่หรือโพสต์ และการคัดลอกหรือแชร์ลิงก์จะไม่เกิดผลใดๆ และมีข้อความบอกเหตุผล ไม่มีสิ่งใดถูกส่งออกไป
+Likes are off in Ghost mode.	การกดถูกใจปิดอยู่ในโหมด Ghost
+Replies are off in Ghost mode.	การตอบกลับปิดอยู่ในโหมด Ghost
+Comments are off in Ghost mode.	ความคิดเห็นปิดอยู่ในโหมด Ghost
+Share links are off in Ghost mode.	ลิงก์แชร์ปิดอยู่ในโหมด Ghost
+Posting is off in Ghost mode.	การโพสต์ปิดอยู่ในโหมด Ghost
 # context: Ghost mode: turning it on or off with a long press on a tab (#255). %1$s is a tab's name
 Turn Ghost mode on or off with a tab long press	เปิดหรือปิดโหมด Ghost ด้วยการกดค้างที่แท็บ
 Tab long presses keep Instagram's own action. Choose one to turn Ghost mode on or off instead.	การกดค้างที่แท็บจะยังคงใช้การดำเนินการเดิมของ Instagram เลือกแท็บหนึ่งเพื่อใช้เปิดหรือปิดโหมด Ghost แทน
@@ -1810,7 +1821,7 @@ Previous page	หน้าก่อนหน้า
 Next page	หน้าถัดไป
 # context: Feed settings: the Page dots on a pill switch, right under Carousel arrows (#419). A pill is a small bar with round ends that holds the dots.
 Page dots on a pill	จุดบอกหน้าในแถบแคปซูล
-Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue. Hold the pill and slide left or right to move through the pages.	ย้ายจุดบอกหน้าของโพสต์ภาพหมุนไปยังแถบแคปซูลมนที่ด้านล่างของรูปภาพหรือวิดีโอ โดยแสดงหน้าที่คุณเปิดอยู่เป็นสีฟ้า กดแถบแคปซูลค้างไว้แล้วเลื่อนไปทางซ้ายหรือขวาเพื่อเปลี่ยนหน้า
+Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue, or your accent color when Accent color is on. Hold the pill and slide left or right to move through the pages.	ย้ายจุดบอกหน้าของโพสต์ภาพหมุนไปยังแถบแคปซูลมนที่ด้านล่างของรูปภาพหรือวิดีโอ โดยแสดงหน้าที่คุณเปิดอยู่เป็นสีฟ้า หรือเป็นสีเน้นเมื่อเปิดสีเน้นไว้ กดแถบแคปซูลค้างไว้แล้วเลื่อนไปทางซ้ายหรือขวาเพื่อเปลี่ยนหน้า
 # context: Feed settings: the Ambient light switch and its Glow spread and Glow speed lists (#416)
 Ambient light	แสงรอบข้าง
 Puts a soft glow in a post's own colors around its photo or video, and in the bands around a reel that doesn't fill the screen. The glow follows a video as it plays.	แสดงแสงเรืองนุ่มนวลตามโทนสีของโพสต์รอบๆ รูปภาพหรือวิดีโอ และบริเวณขอบรอบรีลส์ที่ไม่เต็มหน้าจอ โดยแสงเรืองจะเปลี่ยนตามวิดีโอขณะเล่น
@@ -1943,6 +1954,10 @@ Hide the Map bubble	ซ่อนบับเบิลแผนที่
 Takes only the Map bubble out of the row of notes. Your notes stay.	นำเฉพาะบับเบิลแผนที่ออกจากแถวโน้ต โดยโน้ตของคุณจะยังคงอยู่
 Split the notes row	แยกแถวโน้ต
 Splits the row of notes into three stacks, Instants, Notes and Stories, the layout Instagram is trying out. Restart Instagram to see the change.	แยกแถวโน้ตออกเป็นสามกลุ่ม ได้แก่ ด่วน โน้ต และสตอรี่ ตามรูปแบบที่ Instagram กำลังทดลองใช้ รีสตาร์ท Instagram เพื่อดูการเปลี่ยนแปลง
+# context: Messages: a switch under Split the notes row (#832). Primary and General are the two tabs Instagram shows professional accounts at the top of their messages. Use the names Instagram's own messages page gives them in this language.
+Primary and General tabs	แท็บหลักและทั่วไป
+# context: the summary under Primary and General tabs; Primary is the tab's name again
+Experimental. Adds the Primary and General tabs that professional accounts get to your messages. Instagram may put every chat in Primary at first. Starts off. Restart Instagram to see the change.	ทดลอง เพิ่มแท็บหลักและทั่วไปที่บัญชีมืออาชีพมีลงในข้อความของคุณ ในช่วงแรก Instagram อาจใส่ทุกแชทไว้ในหลัก เริ่มต้นปิดใช้งานอยู่ รีสตาร์ท Instagram เพื่อดูการเปลี่ยนแปลง
 Hide Saved in the plus menu	ซ่อน "บันทึกแล้ว" ในเมนูเครื่องหมายบวก
 Takes Saved off the menu the plus button opens in a chat's message bar.	นำ "บันทึกแล้ว" ออกจากเมนูที่เปิดด้วยปุ่มเครื่องหมายบวกในแถบข้อความของแชท
 Hide AI images in the plus menu	ซ่อน "รูปภาพ AI" ในเมนูเครื่องหมายบวก
@@ -2126,9 +2141,11 @@ Solid	ทึบแสง
 See-through	โปร่งแสง
 # context: a look for the page-dots pill and the seek bars: blurs what's under it
 Frosted glass	กระจกฝ้า
+Dots only	เฉพาะจุด
 A light pill with dark dots, as it's always been.	แถบแคปซูลสีสว่างพร้อมจุดสีเข้มตามรูปแบบเดิม
 A see-through dark pill with white dots, so more of the photo shows.	แถบแคปซูลสีเข้มแบบโปร่งแสงพร้อมจุดสีขาว เพื่อให้เห็นรูปภาพได้มากขึ้น
 A frosted glass pill that blurs the photo under it. Before Android 12 it's see-through instead.	แถบแคปซูลแบบกระจกฝ้าที่เบลอรูปภาพด้านล่าง สำหรับเวอร์ชันก่อน Android 12 จะแสดงเป็นแบบโปร่งแสงแทน
+Just the white dots with no pill behind them. A soft shadow keeps them clear on a bright photo.	แสดงเฉพาะจุดสีขาวโดยไม่มีแถบแคปซูลด้านหลัง เงาจาง ๆ ช่วยให้มองเห็นได้ชัดบนรูปภาพสีสว่าง
 Turn on Page dots on a pill to use this choice.	เปิด "จุดบอกหน้าในแถบแคปซูล" เพื่อใช้ตัวเลือกนี้
 Turn on Seek bar on feed videos or its button to use this choice.	เปิด "แถบเลื่อนเวลาในวิดีโอฟีด" หรือปุ่มของฟีเจอร์นี้เพื่อใช้ตัวเลือกนี้
 Turn on Seek bar on stories to use this choice.	เปิด "แถบเลื่อนเวลาในสตอรี่" เพื่อใช้ตัวเลือกนี้

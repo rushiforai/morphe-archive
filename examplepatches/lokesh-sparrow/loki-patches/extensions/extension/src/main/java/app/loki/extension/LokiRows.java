@@ -105,6 +105,120 @@ public final class LokiRows {
         }
     }
 
+    private static final java.util.WeakHashMap<Activity, Boolean> IMO_WATCHED = new java.util.WeakHashMap<>();
+
+    /**
+     * IMO: puts a "Loki Patches" row on the Me page, straight under Settings. Called from Home.onResume. The Me page is
+     * inflated later and on demand, so a layout listener (at most every 400 ms) waits for IMO's own Settings row and
+     * adds ours beside it. Never throws.
+     */
+    public static void imoAttachMe(final Activity activity) {
+        try {
+            if (activity == null || !activity.getClass().getName().endsWith(".home.Home")) return;
+            synchronized (IMO_WATCHED) {
+                if (IMO_WATCHED.containsKey(activity)) return;
+                IMO_WATCHED.put(activity, Boolean.TRUE);
+            }
+            final View decor = activity.getWindow().getDecorView();
+            final long[] last = {0};
+            decor.getViewTreeObserver().addOnGlobalLayoutListener(new android.view.ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    long now = android.os.SystemClock.uptimeMillis();
+                    if (now - last[0] < 400) return;
+                    last[0] = now;
+                    try {
+                        imoInsertMeRow(activity, decor);
+                    } catch (Throwable error) {
+                        LokiLog.note("menu row: could not add the row to IMO's Me page: " + error);
+                    }
+                }
+            });
+        } catch (Throwable error) {
+            LokiLog.note("menu row: could not watch IMO's Home screen: " + error);
+        }
+    }
+
+    private static void imoInsertMeRow(Activity activity, View decor) throws Exception {
+        int settingsId = activity.getResources().getIdentifier("xiv_settings", "id", activity.getPackageName());
+        if (settingsId == 0) return;
+        View settings = decor.findViewById(settingsId);
+        if (settings == null || !(settings.getParent() instanceof android.view.ViewGroup)) return;
+        android.view.ViewGroup parent = (android.view.ViewGroup) settings.getParent();
+        for (int i = 0; i < parent.getChildCount(); i++) {
+            if ("loki_me_row".equals(parent.getChildAt(i).getTag())) return;
+        }
+
+        View row = imoMeRow(activity, settings);
+        row.setTag("loki_me_row");
+        row.setId(View.generateViewId());
+
+        // The Me rows hang on a ConstraintLayout Flow, which only lays out the ids it is told about.
+        View flow = null;
+        for (int i = 0; i < parent.getChildCount(); i++) {
+            if (parent.getChildAt(i).getClass().getName().endsWith(".Flow")) {
+                flow = parent.getChildAt(i);
+                break;
+            }
+        }
+        android.view.ViewGroup.LayoutParams neighbour = settings.getLayoutParams();
+        android.view.ViewGroup.LayoutParams params = copyParams(neighbour);
+        if (flow == null) {
+            parent.addView(row, parent.indexOfChild(settings) + 1, params);
+            return;
+        }
+        parent.addView(row, params);
+        int[] ids = (int[]) flow.getClass().getMethod("getReferencedIds").invoke(flow);
+        int[] out = new int[ids.length + 1];
+        int at = ids.length;
+        for (int i = 0; i < ids.length; i++) if (ids[i] == settingsId) at = i + 1;
+        System.arraycopy(ids, 0, out, 0, at);
+        out[at] = row.getId();
+        System.arraycopy(ids, at, out, at + 1, ids.length - at);
+        flow.getClass().getMethod("setReferencedIds", int[].class).invoke(flow, out);
+    }
+
+    /** The neighbour's layout params, margins included, so the new row lines up with IMO's own rows. */
+    private static android.view.ViewGroup.LayoutParams copyParams(android.view.ViewGroup.LayoutParams from) {
+        if (from instanceof android.view.ViewGroup.MarginLayoutParams) {
+            android.view.ViewGroup.MarginLayoutParams source = (android.view.ViewGroup.MarginLayoutParams) from;
+            android.view.ViewGroup.MarginLayoutParams copy = new android.view.ViewGroup.MarginLayoutParams(source.width, source.height);
+            copy.setMargins(source.leftMargin, source.topMargin, source.rightMargin, source.bottomMargin);
+            return copy;
+        }
+        return new android.view.ViewGroup.LayoutParams(
+            android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+    }
+
+    /** A copy of IMO's own Settings row (same view class and style), so it looks like every other Me row. */
+    private static View imoMeRow(Activity activity, View settings) throws Exception {
+        View row = (View) settings.getClass().getConstructor(android.content.Context.class).newInstance(activity);
+        Class<?> type = settings.getClass();
+        try {
+            type.getMethod("setItemStyle", int.class).invoke(row, type.getMethod("getItemStyle").invoke(settings));
+        } catch (Throwable ignored) {
+            // The default style is close enough.
+        }
+        type.getMethod("setTitleText", CharSequence.class).invoke(row, title());
+        int size = Math.round(24 * activity.getResources().getDisplayMetrics().density);
+        android.graphics.drawable.Drawable puzzle = new app.linkedin.extension.IconDrawable(
+            app.linkedin.extension.IconDrawable.EXTENSION, 0xFF2D8CFF).sized(size);
+        try {
+            type.getMethod("setEndViewStyle", int.class).invoke(row, type.getMethod("getEndViewStyle").invoke(settings));
+        } catch (Throwable ignored) {
+            // No arrow is better than a crash.
+        }
+        try {
+            // A fresh row has no icon slot at all (start style 1); copy the Settings row's so the puzzle gets one.
+            type.getMethod("setStartViewStyle", int.class).invoke(row, type.getMethod("getStartViewStyle").invoke(settings));
+        } catch (Throwable ignored) {
+            // Without the slot the row still works, just without its icon.
+        }
+        type.getMethod("setImageDrawable", android.graphics.drawable.Drawable.class).invoke(row, puzzle);
+        row.setOnClickListener(photosClick());
+        return row;
+    }
+
     /** Teal glyph for the Photos account menu. */
     public static int photosIcon() {
         return drawable("loki_glyph");

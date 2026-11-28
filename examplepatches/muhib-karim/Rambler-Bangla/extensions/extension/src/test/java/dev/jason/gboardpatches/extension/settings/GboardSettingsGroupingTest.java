@@ -82,6 +82,9 @@ public final class GboardSettingsGroupingTest {
         String registrySource = readSource(
                 "src/main/java/dev/jason/gboardpatches/extension/settings/"
                         + "GboardPatchesSettingsFeatureRegistry.java");
+        String appearanceGroupSource = readSource(
+                "src/main/java/dev/jason/gboardpatches/extension/keyboard/"
+                        + "GboardKeyboardAppearanceSettingsGroupFeature.java");
         String aiVoiceGroupSource = readSource(
                 "src/main/java/dev/jason/gboardpatches/extension/keyboard/"
                         + "GboardAiVoiceSettingsGroupFeature.java");
@@ -93,12 +96,26 @@ public final class GboardSettingsGroupingTest {
                         + "GboardKeyboardLayoutSettingsGroupFeature.java");
 
         assertInOrder(registrySource,
+                "new GboardAmoledDarkKeyboardSettingsFeature(context)",
+                "new GboardSwiftKeySettingsFeature(context)",
+                "new GboardKeyboardAppearanceSettingsGroupFeature(context)",
+                "new GboardKeyboardLayoutSettingsGroupFeature(context)",
+                "new GboardKeyboardToolsSettingsGroupFeature(context)",
+                "new GboardAtMentionSettingsFeature(context)",
+                "new GboardLauncherIconSettingsFeature(context)",
                 "new GboardAiVoiceSettingsGroupFeature(context)",
                 "new GboardLanguageModelSettingsFeature(context)",
-                "new GboardKeyboardToolsSettingsGroupFeature(context)",
-                "new GboardKeyboardLayoutSettingsGroupFeature(context)",
                 "new GboardClipboardSettingsFeature()",
-                "new GboardMoreSettingsGroupFeature(context)");
+                "new GboardLanFtpSettingsFeature(context)",
+                "new GboardSettingsHomepageSettingsFeature()",
+                "new GboardBackupRestoreSettingsFeature(context)",
+                "new GboardDeveloperOptionsSettingsFeature(context)");
+        assertInOrder(appearanceGroupSource.substring(appearanceGroupSource.indexOf("Arrays.asList(")),
+                "new GboardFrostedGlassSettingsFeature(context)",
+                "new GboardCustomThemeSettingsFeature(context)",
+                "new GboardRoundedKeyboardSettingsFeature(context)",
+                "new GboardSpacebarLogoSettingsFeature(context)",
+                "new GboardEmojiSizeSettingsFeature(context)");
         assertInOrder(aiVoiceGroupSource.substring(aiVoiceGroupSource.indexOf("Arrays.asList(")),
                 "new GboardAiWritingToolsSettingsFeature(context)",
                 "new GboardAdvancedVoiceSettingsFeature(context)",
@@ -114,26 +131,17 @@ public final class GboardSettingsGroupingTest {
                 "new GboardCalculatorSettingsFeature(context)",
                 "new GboardSwipeDismissSettingsFeature(context)");
         assertInOrder(layoutGroupSource.substring(layoutGroupSource.indexOf("Arrays.asList(")),
-                "new GboardSpacebarLogoSettingsFeature(context)",
-                "new GboardCloseProactiveSuggestionsSettingsFeature(context)",
-                "new GboardLatinGlobeKeyIgnoreIntervalSettingsFeature(context)",
-                "new GboardEnglishUppercaseToggleSettingsFeature(context)",
-                "new GboardZhuyinBottomRowWeightSettingsFeature(context)",
-                "new GboardSymbolFooterOrderSettingsFeature(context)",
-                "new GboardEmojiSizeSettingsFeature(context)",
+                "new GboardAccessPointCountSettingsFeature(context)",
                 "new GboardAccessPointsMenuSettingsFeature(context)",
+                "new GboardCloseProactiveSuggestionsSettingsFeature(context)",
+                "new GboardSymbolFooterOrderSettingsFeature(context)",
                 "new GboardSplitKeyboardSettingsFeature(context)",
                 "new GboardAccessibilityLayoutSettingsFeature(context)",
-                "new GboardRoundedKeyboardSettingsFeature(context)",
-                "new GboardAccessPointCountSettingsFeature(context)");
+                "new GboardEnglishUppercaseToggleSettingsFeature(context)",
+                "new GboardLatinGlobeKeyIgnoreIntervalSettingsFeature(context)",
+                "new GboardZhuyinBottomRowWeightSettingsFeature(context)");
         Assert.assertFalse(registrySource.contains("GboardKeyboardSettingsGroupFeature"));
-        String more = readSource("src/main/java/dev/jason/gboardpatches/extension/settings/GboardMoreSettingsGroupFeature.java");
-        assertInOrder(more, "new GboardLanFtpSettingsFeature(context)",
-                "new GboardSettingsHomepageSettingsFeature()",
-                "new GboardBackupRestoreSettingsFeature(context)",
-                "new GboardDeveloperOptionsSettingsFeature(context)");
-        Assert.assertFalse(registrySource.contains("new GboardLanFtpSettingsFeature"));
-        Assert.assertFalse(registrySource.contains("new GboardSettingsHomepageSettingsFeature"));
+        Assert.assertFalse(registrySource.contains("GboardMoreSettingsGroupFeature"));
 
     }
 
@@ -220,10 +228,9 @@ public final class GboardSettingsGroupingTest {
                         });
 
         List<?> rootSections = reflectList(rootScreen, "getSections");
-        Assert.assertEquals(3, rootSections.size());
-        Assert.assertEquals("Features", reflectString(rootSections.get(0), "getTitle"));
-        Assert.assertEquals("Preferences", reflectString(rootSections.get(1), "getTitle"));
-        Assert.assertEquals("About", reflectString(rootSections.get(2), "getTitle"));
+        Assert.assertEquals(2, rootSections.size());
+        Assert.assertEquals("Keyboard", reflectString(rootSections.get(0), "getTitle"));
+        Assert.assertEquals("System & Preferences", reflectString(rootSections.get(1), "getTitle"));
 
         Object keyboardRow = findItem(rootScreen, "Keyboard");
         Assert.assertEquals("NavigationRow", keyboardRow.getClass().getSimpleName());

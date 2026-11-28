@@ -5,6 +5,11 @@
 package app.czyeru.patches.tiktok.misc.settings
 
 import app.morphe.patcher.Fingerprint
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 internal object AddSettingsEntryFingerprint : Fingerprint(
     custom = { method, classDef ->
@@ -52,19 +57,29 @@ internal object NpthExtentTaskInitFingerprint : Fingerprint(
     },
 )
 
+private fun MethodReference.isSettingsRowsSort(): Boolean =
+    parameterTypes == listOf("Ljava/util/Comparator;", "Ljava/lang/Iterable;") &&
+        returnType == "Ljava/util/List;"
+
+private fun isSettingsComposeRowsMethod(method: Method, classDef: ClassDef): Boolean =
+    classDef.type.endsWith("/SettingsComposeRvmpFragment;") &&
+        method.returnType == "V" &&
+        method.implementation?.instructions?.any { instruction ->
+            if (instruction.opcode != Opcode.INVOKE_STATIC) return@any false
+            val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                ?: return@any false
+            reference.isSettingsRowsSort()
+        } == true
+
 /**
  * The compose function that builds the whole settings list: it reads the group view models,
- * sorts their rows and hands the result to the lazy column. It is the only method of the
- * fragment with 11 parameters that takes the support group view model (`ER` in TikTok 46.2.3,
- * `oX` in 47.2.41).
+ * sorts their rows and hands the result to the lazy column. Matched by the comparator-plus-iterable
+ * sort call rather than parameter count so new TikTok builds don't break it.
  */
 internal object SettingsComposeRowsFingerprint : Fingerprint(
-    custom = { method, classDef ->
-        classDef.endsWith("/SettingsComposeRvmpFragment;") &&
-            method.returnType == "V" &&
-            method.parameterTypes.size == 11 &&
-            method.parameterTypes.any { it.endsWith("/group/support/SupportGroupVM;") }
-    },
+    definingClass = "Lcom/ss/android/ugc/aweme/setting/ui/rvmpcompose/SettingsComposeRvmpFragment;",
+    returnType = "V",
+    custom = ::isSettingsComposeRowsMethod,
 )
 
 internal object SupportGroupDefaultStateFingerprint : Fingerprint(

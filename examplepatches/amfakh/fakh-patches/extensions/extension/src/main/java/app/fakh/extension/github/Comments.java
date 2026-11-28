@@ -6,6 +6,13 @@
 package app.fakh.extension.github;
 
 import android.app.Application;
+import android.text.Html;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.TextUtils;
+import android.text.style.ForegroundColorSpan;
+import android.util.Log;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +31,7 @@ import app.fakh.extension.shared.Features;
 public final class Comments {
     // Starts the HTML of a comment to leave out. Screens that do not drop comments draw it as usual.
     private static final String LOW_QUALITY = "<!--fakh-low-quality-->";
+    private static final String TAG = "FakhComments";
 
     // One paragraph with no link or image in it.
     private static final Pattern PARAGRAPH =
@@ -38,7 +46,61 @@ public final class Comments {
     // How many comments the timeline being built on this thread left out.
     private static final ThreadLocal<Integer> LEFT_OUT = new ThreadLocal<>();
 
+    // The HTML of the hidden comment whose header is being drawn, between hiding and preview on the main thread.
+    private static String hidden;
+
     private Comments() {
+    }
+
+    /**
+     * Keeps a comment's HTML on its minimized state, for the header that says the comment is hidden.
+     *
+     * @param state The app's minimized state, to which the patch adds the field {@code fakhBody}.
+     * @param html  The comment's HTML.
+     */
+    public static void remember(Object state, String html) {
+        try {
+            if (state != null) state.getClass().getField("fakhBody").set(state, html);
+        } catch (ReflectiveOperationException error) {
+            Log.w(TAG, "Hidden comment", error);
+        }
+    }
+
+    /**
+     * Called before a header words the reason a comment is hidden.
+     *
+     * @param state The comment's minimized state.
+     */
+    public static void hiding(Object state) {
+        try {
+            hidden = state == null ? null : (String) state.getClass().getField("fakhBody").get(state);
+        } catch (ReflectiveOperationException error) {
+            Log.w(TAG, "Hidden comment", error);
+        }
+    }
+
+    /**
+     * Adds the start of the comment under the reason a header just wrote.
+     *
+     * @param header The text view with the reason.
+     */
+    public static void preview(TextView header) {
+        String html = hidden;
+        hidden = null;
+        if (html == null || !Features.on("fakh_preview_hidden")) return;
+        // One line shows far less than this, and parsing a whole long comment would slow the scroll.
+        String start = html.replaceAll("<summary>[^<]*</summary>", "");
+        String text = Html.fromHtml(start.substring(0, Math.min(start.length(), 2000)), Html.FROM_HTML_MODE_COMPACT)
+                .toString().replaceAll("[\\s\\uFFFC]+", " ").trim();
+        if (text.isEmpty()) return;
+        SpannableStringBuilder shown = new SpannableStringBuilder(header.getText()).append('\n');
+        int from = shown.length();
+        shown.append(text);
+        shown.setSpan(new ForegroundColorSpan(0xFF848D97), from, shown.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        header.setSingleLine(false);
+        header.setMaxLines(2);
+        header.setEllipsize(TextUtils.TruncateAt.END);
+        header.setText(shown);
     }
 
     /**

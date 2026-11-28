@@ -55,6 +55,7 @@ val disableAskNbaPatch = bytecodePatch(
     description = "Hides the Ask NBA AI chat button and its Discover tile.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

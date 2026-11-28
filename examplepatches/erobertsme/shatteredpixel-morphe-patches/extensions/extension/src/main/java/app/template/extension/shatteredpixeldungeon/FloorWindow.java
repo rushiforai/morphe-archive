@@ -21,7 +21,7 @@ public class FloorWindow extends EditorWindow {
 	private static final String[] TABS = { "General", "Effects", "Traps" };
 	private static final String[] INFO = {
 		"General\n\n"
-			+ "## Map\n_Reveal Map:_ maps the whole floor and uncovers every secret door and hidden trap, like a Scroll of Magic Mapping.\n_Mark Explored:_ marks every tile as explored, as if you'd walked past it. Doesn't uncover secrets.\n_Forget Map:_ clears what you've explored.\n\n"
+			+ "## Map\n_Reveal Map:_ maps the whole floor and uncovers every secret door and hidden trap, like a Scroll of Magic Mapping.\n_Mark Explored:_ marks every tile as explored, as if you'd walked past it, uncovers every secret door and hidden trap, and shows every item.\n_Forget Map:_ clears what you've explored.\n_Reveal Creatures:_ shows where every creature is, like Mind Vision, until you next act. Hidden mimics are shown too, still looking like chests. Takes no time.\n_Reveal Items:_ shows where every item is, and you remember where you saw them. Takes no time.\n\n"
 			+ "## Draw\nPick _Floor_, _Wall_ or _Eraser_, then drag across the map to paint tiles. Switch brushes with the buttons at the bottom.\n_Move View:_ drag the map to reach other areas, then pick a brush again.\n_Eraser:_ removes everything on a tile and leaves an empty pit.\nTiles with a creature on them are skipped for walls and the eraser.\n_Finish_ (green, bottom right) keeps your changes. _Cancel_ (red, bottom left) puts the floor back as it was.\n\n"
 			+ "## Creatures\nDefeat every enemy, ally or neutral creature on this floor at once.\n\n"
 			+ "## Edit Floor\nThe button above the tabs. The game is saved, then every tile you tap shows its info with an Edit button and a button for each creature, item, plant or trap on it. Drag to look around.\n_Save_ keeps your changes. _Cancel_ asks first, then puts the whole game back as it was.",
@@ -123,6 +123,9 @@ public class FloorWindow extends EditorWindow {
 		addButton("Mark explored", half + GAP, half, () -> run(FloorEditor::exploreMap));
 		pos += ROW_HEIGHT + GAP;
 		addRowButton("Forget map", null, () -> run(FloorEditor::forgetMap));
+		addButton("Reveal creatures", 0, half, () -> run(FloorEditor::revealCreatures));
+		addButton("Reveal items", half + GAP, half, () -> run(FloorEditor::revealItems));
+		pos += ROW_HEIGHT + GAP;
 
 		addSection("Draw");
 		float third = (WIDTH - 2 * GAP) / 3f;

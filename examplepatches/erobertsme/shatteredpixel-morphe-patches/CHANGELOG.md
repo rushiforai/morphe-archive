@@ -1,3 +1,76 @@
+## [1.11.0](https://github.com/erobertsme/shatteredpixel-morphe-patches/compare/v1.10.1...v1.11.0) (2026-11-27)
+
+### ✨ New Features
+
+* floor editor buttons to reveal every creature or every item, taking no time ([71ab9ff](https://github.com/erobertsme/shatteredpixel-morphe-patches/commit/71ab9fffe030fc3d20d630d2fb65cdc0643bf1cb))
+* improved torches, and status icons no longer cover their stepper's label ([f85fde5](https://github.com/erobertsme/shatteredpixel-morphe-patches/commit/f85fde59ab10e98f332c148e0a160cf982c10b58))
+* Mark explored also uncovers secret doors and hidden traps and shows every item ([31ceff9](https://github.com/erobertsme/shatteredpixel-morphe-patches/commit/31ceff9fe28e3ba8f03ecb0e6ab0eaeec4f5140a))
+* option to join the extra quickslot row to the quickslots at one border ([3a0dbaa](https://github.com/erobertsme/shatteredpixel-morphe-patches/commit/3a0dbaa399631d4fb775e969033ff716a66b6b55))
+* support Shattered Pixel Dungeon 4.0.3 only ([f4db10d](https://github.com/erobertsme/shatteredpixel-morphe-patches/commit/f4db10d8689b5dbe3d1e69287a7f26941845cae8))
+* Teleport to... reaches the Blacksmith's mine and the Ambitious Imp's vault once visited ([adad82b](https://github.com/erobertsme/shatteredpixel-morphe-patches/commit/adad82b191cdd668fbc71fe584a1720f022c61d6))
+
+### 🐛 Bug Fixes
+
+* preview pictures show the dungeon around the hero wherever the view was moved ([cb9d3d7](https://github.com/erobertsme/shatteredpixel-morphe-patches/commit/cb9d3d72119e5141c9a79cc6fcbe42d908b6e695))
+* tapping a floor in the right column of the Adventuring Notes teleports to that floor ([f9fbe38](https://github.com/erobertsme/shatteredpixel-morphe-patches/commit/f9fbe386d5c20d7ee1e3f509f7ab7601ed271f5d))
+* the joined quickslot row finishes the corners at each end of the quickslots ([9f904d3](https://github.com/erobertsme/shatteredpixel-morphe-patches/commit/9f904d33f31e50e3945a2929557a9f17c6a1b821))
+* the joined quickslot row leaves the right end of the quickslots as before ([2510fcf](https://github.com/erobertsme/shatteredpixel-morphe-patches/commit/2510fcfd4c669e8b1b988fc221430f3e5a66bf27))
+
+## [1.11.0-dev.9](https://github.com/erobertsme/shatteredpixel-morphe-patches/compare/v1.11.0-dev.8...v1.11.0-dev.9) (2026-11-27)
+
+### ✨ New Features
+
+* floor editor buttons to reveal every creature or every item, taking no time ([71ab9ff](https://github.com/erobertsme/shatteredpixel-morphe-patches/commit/71ab9fffe030fc3d20d630d2fb65cdc0643bf1cb))
+* Mark explored also uncovers secret doors and hidden traps and shows every item ([31ceff9](https://github.com/erobertsme/shatteredpixel-morphe-patches/commit/31ceff9fe28e3ba8f03ecb0e6ab0eaeec4f5140a))
+
+## [1.11.0-dev.8](https://github.com/erobertsme/shatteredpixel-morphe-patches/compare/v1.11.0-dev.7...v1.11.0-dev.8) (2026-11-27)
+
+### ✨ New Features
+
+* Teleport to... reaches the Blacksmith's mine and the Ambitious Imp's vault once visited ([adad82b](https://github.com/erobertsme/shatteredpixel-morphe-patches/commit/adad82b191cdd668fbc71fe584a1720f022c61d6))
+
+## [1.11.0-dev.7](https://github.com/erobertsme/shatteredpixel-morphe-patches/compare/v1.11.0-dev.6...v1.11.0-dev.7) (2026-11-27)
+
+### ✨ New Features
+
+* support Shattered Pixel Dungeon 4.0.3 only ([f4db10d](https://github.com/erobertsme/shatteredpixel-morphe-patches/commit/f4db10d8689b5dbe3d1e69287a7f26941845cae8))
+
+## [1.11.0-dev.6](https://github.com/erobertsme/shatteredpixel-morphe-patches/compare/v1.11.0-dev.5...v1.11.0-dev.6) (2026-11-27)
+
+### ✨ New Features
+
+* improved torches, and status icons no longer cover their stepper's label ([f85fde5](https://github.com/erobertsme/shatteredpixel-morphe-patches/commit/f85fde59ab10e98f332c148e0a160cf982c10b58))
+
+## [1.11.0-dev.5](https://github.com/erobertsme/shatteredpixel-morphe-patches/compare/v1.11.0-dev.4...v1.11.0-dev.5) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* tapping a floor in the right column of the Adventuring Notes teleports to that floor ([f9fbe38](https://github.com/erobertsme/shatteredpixel-morphe-patches/commit/f9fbe386d5c20d7ee1e3f509f7ab7601ed271f5d))
+
+## [1.11.0-dev.4](https://github.com/erobertsme/shatteredpixel-morphe-patches/compare/v1.11.0-dev.3...v1.11.0-dev.4) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* the joined quickslot row leaves the right end of the quickslots as before ([2510fcf](https://github.com/erobertsme/shatteredpixel-morphe-patches/commit/2510fcfd4c669e8b1b988fc221430f3e5a66bf27))
+
+## [1.11.0-dev.3](https://github.com/erobertsme/shatteredpixel-morphe-patches/compare/v1.11.0-dev.2...v1.11.0-dev.3) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* preview pictures show the dungeon around the hero wherever the view was moved ([cb9d3d7](https://github.com/erobertsme/shatteredpixel-morphe-patches/commit/cb9d3d72119e5141c9a79cc6fcbe42d908b6e695))
+
+## [1.11.0-dev.2](https://github.com/erobertsme/shatteredpixel-morphe-patches/compare/v1.11.0-dev.1...v1.11.0-dev.2) (2026-11-27)
+
+### 🐛 Bug Fixes
+
+* the joined quickslot row finishes the corners at each end of the quickslots ([9f904d3](https://github.com/erobertsme/shatteredpixel-morphe-patches/commit/9f904d33f31e50e3945a2929557a9f17c6a1b821))
+
+## [1.11.0-dev.1](https://github.com/erobertsme/shatteredpixel-morphe-patches/compare/v1.10.1...v1.11.0-dev.1) (2026-11-27)
+
+### ✨ New Features
+
+* option to join the extra quickslot row to the quickslots at one border ([3a0dbaa](https://github.com/erobertsme/shatteredpixel-morphe-patches/commit/3a0dbaa399631d4fb775e969033ff716a66b6b55))
+
 ## [1.10.1](https://github.com/erobertsme/shatteredpixel-morphe-patches/compare/v1.10.0...v1.10.1) (2026-11-27)
 
 ### 🔧 Improvements

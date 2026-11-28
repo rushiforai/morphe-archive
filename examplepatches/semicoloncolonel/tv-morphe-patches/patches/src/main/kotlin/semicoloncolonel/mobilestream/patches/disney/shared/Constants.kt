@@ -4,6 +4,7 @@ import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.FormFactor
+import semicoloncolonel.mobilestream.patches.shared.misc.devTarget
 
 object Constants {
     val COMPATIBILITY = Compatibility(
@@ -19,6 +20,7 @@ object Constants {
             // build is accepted too; the Android TV build crashes on a phone, so use
             // it only on a TV. The older +rc2 phone build is pinned below.
             AppTarget("26.20.0+rc3-2026.11.02"),
+            devTarget("26.21.0+rc3-2026.11.17", versionCode = 1794879420),
         ),
         formFactor = FormFactor.TV,
     )

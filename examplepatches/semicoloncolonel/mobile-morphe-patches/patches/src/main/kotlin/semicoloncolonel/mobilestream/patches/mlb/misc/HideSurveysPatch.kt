@@ -1,11 +1,10 @@
 package semicoloncolonel.mobilestream.patches.mlb.misc
 
+import semicoloncolonel.mobilestream.patches.shared.misc.isOptionOn
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import semicoloncolonel.mobilestream.patches.mlb.shared.Constants
-import semicoloncolonel.mobilestream.patches.shared.misc.phoneOnly
 
 // MLB 26.21.0.49 shows Qualtrics pop-ups: surveys, and a prompt whose
 // positive button opens Google Play's rating sheet. Qualtrics decides on its
@@ -22,15 +21,10 @@ internal object NativeAppReviewsFingerprint : Fingerprint(
     parameters = listOf(),
 )
 
-@Suppress("unused")
-val hideSurveysPatch = bytecodePatch(
-    name = "Hide surveys and rating prompt",
-    description = "Stops the Qualtrics surveys and the Play Store rating pop-up.",
-) {
-    category("Interface")
-    compatibleWith(Constants.COMPATIBILITY.phoneOnly())
-
+// Part of hidePromptsAndPopupsPatch: runs only when its "surveys" option is on.
+internal val hideSurveysPatch = bytecodePatch {
     execute {
+        if (!isOptionOn(hidePromptsAndPopupsPatch, "surveys")) return@execute
         val qualtrics = mutableClassDefBy(QUALTRICS)
         val display = qualtrics.methods.filter {
             it.name in setOf("display", "displayIntercept", "displayTarget") &&

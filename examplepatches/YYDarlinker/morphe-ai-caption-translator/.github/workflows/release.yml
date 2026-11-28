@@ -110,7 +110,7 @@ jobs:
         run: |
           version='${{ steps.release.outputs.new_release_version }}'
           python3 .github/scripts/verify_bundle.py "$version"
-          echo "EXPECTED_ASSET_SHA256=$(sha256sum build/n39/gradle/patches/libs/patches-${version}.mpp | cut -d' ' -f1)" >> "$GITHUB_ENV"
+          echo "EXPECTED_ASSET_SHA256=$(sha256sum patches/build/libs/patches-${version}.mpp | cut -d' ' -f1)" >> "$GITHUB_ENV"
 
       - name: Verify anonymous Manager source chain
         run: python3 .github/scripts/verify_remote_source.py "${{ github.ref_name }}" "$(jq -r .version patches-bundle.json)"
@@ -120,7 +120,7 @@ jobs:
         uses: actions/attest-build-provenance@v4
         with:
           subject-name: 'Morphe Patches ${{ steps.release.outputs.new_release_git_tag }}'
-          subject-path: build/n39/gradle/patches/libs/patches-${{ steps.release.outputs.new_release_version }}.mpp
+          subject-path: patches/build/libs/patches-${{ steps.release.outputs.new_release_version }}.mpp
 
       - name: Verify current source when no release was published
         if: steps.release.outputs.new_release_published != 'true'
@@ -136,11 +136,11 @@ jobs:
           name: release-verification-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             validation/runs/
-            build/n39/gradle/translation-core/reports/tests/
-            build/n39/gradle/translation-core/test-results/
+            translation-core/build/reports/tests/
+            translation-core/build/test-results/
             extensions/extension/build/reports/tests/
             extensions/extension/build/test-results/
-            build/n39/gradle/patches/libs/*.mpp
-            build/maintenance/M1a/**/*.mpp
-            build/maintenance/M1a/**/extension.mpe
+            patches/build/libs/*.mpp
+            build/verification/**/*.mpp
+            build/verification/**/extension.mpe
           retention-days: 7

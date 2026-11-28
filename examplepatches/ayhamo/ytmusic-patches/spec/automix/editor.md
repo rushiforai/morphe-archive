@@ -1,6 +1,6 @@
 # Transition editor
 
-The Automix overview grows into an editor: presets, four lanes (volume, EQ, effect, Effects: §12), a draggable
+The Automix overview grows into an editor: presets, five lanes (volume, EQ, effect, Effects: §12, Looping: §13), a draggable
 transition window and a beat-match mode. The phone and the extension build the same editor from this
 file. The user's edits are saved per pair as an **override** (`override.schema.json`); the planner
 turns an override into a plan whose `curves` (plan.schema.json) both engines play.
@@ -19,8 +19,8 @@ SHORTLIST "Overview → editor".
 - **Key:** `"<fromVideoId>>``<toVideoId>"`, the same key both apps use today for `{style, bars}`.
 - **Fields:**
   - `preset`;
-  - `lanes` {volume, eq, effect, fx} (only for `custom`): each a shape name, or a drawing (§10); `fx`
-    (§12) may be missing, which is none;
+  - `lanes` {volume, eq, effect, fx, looping} (only for `custom`): each a shape name, or a drawing
+    (§10; `looping` is a shape only); `fx` (§12) and `looping` (§13) may be missing, which is none;
   - `bars`;
   - `beatMatch`;
   - `window` {out, in}, each a bar index plus a nudge in ms plus the seconds it meant when saved;
@@ -34,7 +34,9 @@ SHORTLIST "Overview → editor".
   The full shape is in `override.schema.json`.
 - **A missing field means Auto.** An override with nothing but Auto in it is deleted: Auto is the reset.
   - Auto values are never stored: no `preset: "auto"`, no `beatMatch: "auto"`, no `bars: 0`. A
-    migrated `{style: blend}` is saved as `{family: blend}`.
+    migrated `{style: blend}` is saved as `{family: blend}`. One exception: on an imported mix (one
+    with `gridBpm`), which plays as Sync without a beat match, `beatMatch: "auto"` picked is kept
+    (§4, mix-file.md rule 6, `beatMatchOf` / `normalizeOverride`).
   - `preset: loop` stores no `bars`, `window` or `beatMatch` (§2).
   - A nudge that rounds to 0 ms is not stored.
 - **Lock** marks an edit, so it is never saved alone. On a pair with no edit the Lock button is off.
@@ -384,7 +386,7 @@ What the limits are, in words:
 |---|---|
 | `style: loop` | Loop mix · {totalBars} bars · {A BPM}→{B BPM} BPM · {D} s |
 | `style: crossfade` | {Beatless bridge | Hand-over | Fade} · {D} s[ · {reason}] |
-| anything else | {Filter mix | Drop-in | Muffle | Glide blend | Blend} · {bars} bars · {BPM} · {D} s |
+| anything else | {Filter mix | Drop-in | Muffle | Echo out | Glide blend | Blend} · {bars} bars · {BPM} · {D} s |
 
 {BPM} is "{outBpm}→{inBpm} BPM" when the two round to different numbers, else "{bpm} BPM".
 
@@ -396,6 +398,7 @@ With no override the preset row shows "Auto · <what the planner chose>":
 | `style: blend` | Auto · Blend |
 | `style: blend`, `shape: dropin` | Auto · Drop-in |
 | `style: blend`, `shape: muffle` | Auto · Muffle |
+| `style: blend`, `shape: echo` | Auto · Echo out |
 | `style: blend`, `glide` | Auto · Glide |
 | `style: filter` | Auto · Filter |
 | `style: crossfade` | Auto · Fade |
@@ -415,8 +418,8 @@ the window.
 
 `plan({ …, pick })` takes the override (today's `{style, bars}` migrated as in §1):
 1. `preset: loop` → the loop mix (today's `style: loop`).
-2. Beat match Off, or Sync/Glide out of range → the plain overlap (today's crossfade path), at the
-   window and length asked for.
+2. Beat match Off → the plain overlap (today's crossfade path), at the window and length asked for.
+   Sync and Glide, picked, have no tempo range (§4, ruled 2026-11-26).
 3. Otherwise the planner plans its blend at the window and length asked for (`bars`, `window`).
    - A preset other than Auto then replaces the plan's curves with `presetCurves(override, D,
      beatSec)` for gain, the shelves and the filters.

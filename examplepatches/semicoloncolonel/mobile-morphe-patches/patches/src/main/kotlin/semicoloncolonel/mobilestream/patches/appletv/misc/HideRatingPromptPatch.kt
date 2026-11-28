@@ -1,13 +1,13 @@
 package semicoloncolonel.mobilestream.patches.appletv.misc
 
+import semicoloncolonel.mobilestream.patches.shared.misc.blockPlayReviewSheet
+import semicoloncolonel.mobilestream.patches.shared.misc.isOptionOn
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
-import semicoloncolonel.mobilestream.patches.appletv.shared.Constants
-import semicoloncolonel.mobilestream.patches.shared.misc.blockPlayReviewSheetPatch
 
 // Apple TV phone app 3.0.0. The app shows its own "Enjoying Apple TV?" dialog
 // with a "Leave a Review" button, not Google Play's review sheet. Whether it
@@ -24,18 +24,15 @@ internal object StoreReviewConfigurationToStringFingerprint : Fingerprint(
     strings = listOf("StoreReviewConfiguration(isStoreReviewEnabled="),
 )
 
-@Suppress("unused")
-val hideRatingPromptPatch = bytecodePatch(
-    name = "Hide rating prompt",
-    description = "Stops the \"Enjoying Apple TV?\" review prompt.",
-) {
-    category("Interface")
-    compatibleWith(Constants.COMPATIBILITY)
+// Part of hidePromptsAndPopupsPatch: runs only when its "rating" option is on.
+internal val hideRatingPromptPatch = bytecodePatch {
+    extendWith("extensions/extension.mpe")
 
     // Also stops Google Play's review sheet, where the app calls it by name.
-    dependsOn(blockPlayReviewSheetPatch)
 
     execute {
+        if (!isOptionOn(hidePromptsAndPopupsPatch, "rating")) return@execute
+        blockPlayReviewSheet()
         val config = StoreReviewConfigurationToStringFingerprint.classDefOrNull ?: return@execute
         val enabled = config.fields.singleOrNull {
             it.type == "Ljava/lang/Boolean;" && (it.accessFlags and 0x8) == 0

@@ -4,7 +4,7 @@ import java.util.*;
 import dev.jason.gboardpatches.extension.editingaccesspoints.GboardEditingAccessPointsContribution;
 /** All entries are native draggable access points, styled by the applied keyboard theme. */
 public final class GboardSharedToolsContribution {
- private static final String[][] ACTIONS={{"shared_local_translate","AI Translate","translate"},{"shared_local_reply","AI Reply","reply"},{"shared_local_style","My Style","my_style"},{"shared_local_instruction","AI Instruction","edit"},{"shared_local_suggestions","Suggest Changes","suggest_instructions"},{"shared_local_voice","Voice Edit","voice_edit"}};
+ private static final String[][] ACTIONS={{"shared_local_grammar","Grammar check","proofread"},{"shared_local_translate","AI Translate","translate"},{"shared_local_reply","AI Reply","reply"},{"shared_local_style","My Style","my_style"},{"shared_local_instruction","AI Instruction","edit"},{"shared_local_suggestions","Suggest Changes","suggest_instructions"},{"shared_local_voice","Voice Edit","voice_edit"}};
  private GboardSharedToolsContribution(){}
  public static Object extend(Context context,Object original){
   if(!GboardSharedWritingRuntime.selected(context) || !(original instanceof Collection<?>))return original;

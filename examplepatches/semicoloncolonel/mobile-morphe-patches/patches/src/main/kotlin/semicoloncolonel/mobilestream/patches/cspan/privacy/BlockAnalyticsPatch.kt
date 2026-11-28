@@ -28,6 +28,7 @@ val blockAnalyticsPatch = bytecodePatch(
     description = "Stops the Facebook SDK, Firebase/Google Analytics, and on-device ad retargeting.",
     default = false,
 ) {
+    category("Privacy")
     compatibleWith(Constants.COMPATIBILITY)
 
     dependsOn(analyticsKillSwitchesPatch)

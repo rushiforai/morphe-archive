@@ -35,7 +35,9 @@ public final class Curves {
         String style = m.style;
         c.durationSec = D;
         if (m.v2 && !style.equals("crossfade")) {
-            float[][] s = Mix.djShape(m, D, samples(D));
+            // a late entry: A's trim from B's heard gain, as the engine plays it (Mix.planned)
+            double late = m.inDelaySec > 0 && m.shape == null ? Math.min(m.inDelaySec, D) : 0;
+            float[][] s = late > 0 ? Mix.djShape(m.style, m.clash, D, m.bpm, m.swapAt, samples(D), late) : Mix.djShape(m, D, samples(D));
             float[][] g = trimmed(m, s[0], s[1]);
             c.out.put("gain", points(g[1], D));
             c.in.put("gain", points(g[0], D));
@@ -87,7 +89,11 @@ public final class Curves {
         boolean speeds = !Double.isNaN(m.speedIn);
         if (speeds) {
             if (Math.abs(m.outRate - 1) > 1e-9) c.out.put("rate", new double[][]{{0, m.outRate}, {D, m.outRate}});
-            if (Math.abs(m.rate - 1) > 1e-9) c.in.put("rate", new double[][]{{0, m.rate}, {D, m.rate}});
+            // B: a blend's rate glides back to its own speed after the mix, as the engine plays it
+            // (Mix's home), even from x1 (automix.js blendCurves, extension audit 2026-11-27 L2)
+            double sIn = m.speedIn, r = m.rate;
+            if (style.equals("blend") && Math.abs(r - sIn) > 1e-9) c.in.put("rate", new double[][]{{0, r}, {D, r}, {D + glideSec(r, sIn), sIn}});
+            else if (Math.abs(r - 1) > 1e-9) c.in.put("rate", new double[][]{{0, r}, {D, r}});
             return c;
         }
         double rate = style.equals("blend") ? m.rate : 1;
@@ -101,14 +107,15 @@ public final class Curves {
             c.out.put("rate", o.toArray(new double[0][]));
             c.in.put("rate", i.toArray(new double[0][]));
         } else if (Math.abs(rate - 1) > 1e-9) {
-            if (Math.abs(rate - 1) < 0.002) {
-                c.in.put("rate", new double[][]{{0, rate}, {D, rate}, {D, 1}});
-            } else {
-                double sec = Math.ceil(Math.abs(rate - 1) / Mix.GLIDE_STEP) * Mix.GLIDE_STEP_SEC;
-                c.in.put("rate", new double[][]{{0, rate}, {D, rate}, {D + sec, 1}});
-            }
+            c.in.put("rate", new double[][]{{0, rate}, {D, rate}, {D + glideSec(rate, 1), 1}});
         }
         return c;
+    }
+
+    /** The glide back from [from] to [to] after a blend: 0 (a step) under 0.2%, else GLIDE_STEP every GLIDE_STEP_SEC. */
+    private static double glideSec(double from, double to) {
+        double d = Math.abs(from - to);
+        return d < 0.002 ? 0 : Math.ceil(d / Mix.GLIDE_STEP) * Mix.GLIDE_STEP_SEC;
     }
 
     private static List<double[]> rateSteps(double[] rates, double[] at) {

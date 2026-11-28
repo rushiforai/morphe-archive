@@ -23,6 +23,7 @@
         { key: "channel", titleKey: "player.channel.title" },
         { key: "description", titleKey: "player.description.title" },
         { key: "subscribe", titleKey: "player.subscribe.title" },
+        { key: "join", titleKey: "player.join.title" },
         { key: "like", titleKey: "player.like.title" },
         { key: "comments", titleKey: "player.comments.title" },
         { key: "ask", titleKey: "player.ask.title" },
@@ -30,7 +31,8 @@
         { key: "thanks", titleKey: "player.thanks.title" },
         { key: "report", titleKey: "player.report.title" },
         { key: "stats", titleKey: "player.stats.title" },
-        { key: "related", titleKey: "player.related.title", summaryKey: "player.related.summary" }
+        { key: "related", titleKey: "player.related.title", summaryKey: "player.related.summary" },
+        { key: "show_pip", titleKey: "player.show_pip.title", summaryKey: "player.show_pip.summary", defaultVal: false }
     ];
 
     var TOPIC_TABS = [
@@ -41,6 +43,84 @@
         { key: "podcasts", titleKey: "topics.podcasts.title" },
         { key: "movies", titleKey: "topics.movies.title" }
     ];
+
+    var QUALITY_OPTIONS = [
+        { id: "auto", labelKey: "quality.auto" },
+        { id: "hd2160", labelKey: "quality.hd2160" },
+        { id: "hd1440", labelKey: "quality.hd1440" },
+        { id: "hd1080", labelKey: "quality.hd1080" },
+        { id: "hd720", labelKey: "quality.hd720" },
+        { id: "large", labelKey: "quality.large" },
+        { id: "medium", labelKey: "quality.medium" },
+        { id: "small", labelKey: "quality.small" },
+        { id: "tiny", labelKey: "quality.tiny" }
+    ];
+
+    function qualityOptionsList() {
+        return QUALITY_OPTIONS.map(function (q) {
+            return { id: q.id, text: t(q.labelKey) };
+        });
+    }
+
+    var CAPTION_LANGS = [
+        { id: "en", text: "English" },
+        { id: "ar", text: "Arabic (العربية)" },
+        { id: "es", text: "Spanish (Español)" },
+        { id: "fr", text: "French (Français)" },
+        { id: "de", text: "German (Deutsch)" },
+        { id: "it", text: "Italian (Italiano)" },
+        { id: "pt", text: "Portuguese (Português)" },
+        { id: "ru", text: "Russian (Русский)" },
+        { id: "ja", text: "Japanese (日本語)" },
+        { id: "ko", text: "Korean (한국어)" },
+        { id: "zh-Hans", text: "Chinese Simplified (简体中文)" },
+        { id: "zh-Hant", text: "Chinese Traditional (繁體中文)" },
+        { id: "hi", text: "Hindi (हिन्दी)" },
+        { id: "tr", text: "Turkish (Türkçe)" },
+        { id: "nl", text: "Dutch (Nederlands)" },
+        { id: "pl", text: "Polish (Polski)" },
+        { id: "sv", text: "Swedish (Svenska)" },
+        { id: "id", text: "Indonesian (Bahasa Indonesia)" },
+        { id: "vi", text: "Vietnamese (Tiếng Việt)" },
+        { id: "th", text: "Thai (ไทย)" },
+        { id: "uk", text: "Ukrainian (Українська)" },
+        { id: "he", text: "Hebrew (עברית)" },
+        { id: "fa", text: "Persian (فارسی)" },
+        { id: "ur", text: "Urdu (اردو)" },
+        { id: "bn", text: "Bengali (বাংলা)" }
+    ];
+
+    function captionOptionsList() {
+        return [
+            { id: "auto", text: t("captions.lang.auto") },
+            { id: "video", text: t("captions.lang.video") }
+        ].concat(CAPTION_LANGS);
+    }
+
+    var SPEED_OPTIONS = [
+        { id: "1", text: "1x (Normal)" },
+        { id: "0.25", text: "0.25x" },
+        { id: "0.5", text: "0.5x" },
+        { id: "0.75", text: "0.75x" },
+        { id: "1.25", text: "1.25x" },
+        { id: "1.5", text: "1.5x" },
+        { id: "1.75", text: "1.75x" },
+        { id: "2", text: "2x" },
+        { id: "2.25", text: "2.25x" },
+        { id: "2.5", text: "2.5x" },
+        { id: "3", text: "3x" },
+        { id: "3.5", text: "3.5x" },
+        { id: "4", text: "4x" }
+    ];
+
+    function languageOptionsList() {
+        return [
+            { id: "auto", text: t("about.language.auto") },
+            { id: "en", text: "English" },
+            { id: "ar", text: "العربية (Arabic)" },
+            { id: "es", text: "Español (Spanish)" }
+        ];
+    }
 
     // ---- Storage helpers ----------------------------------------------------------------------
     function getBool(key, def) {
@@ -57,6 +137,24 @@
     function setBool(key, val) {
         try {
             localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify({ data: !!val }));
+        } catch (e) {}
+    }
+
+    function getString(key, def) {
+        try {
+            var raw = localStorage.getItem(STORAGE_PREFIX + key);
+            if (raw !== null) {
+                var parsed = JSON.parse(raw);
+                if (typeof parsed === "string") return parsed;
+                if (parsed && typeof parsed.data === "string") return parsed.data;
+            }
+        } catch (e) {}
+        return def !== undefined ? def : "";
+    }
+
+    function setString(key, val) {
+        try {
+            localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(String(val)));
         } catch (e) {}
     }
 
@@ -116,6 +214,11 @@
             ["rect", { x: "2", y: "4", width: "20", height: "16", rx: "3" }],
             ["polygon", { points: "10 9 16 12 10 15 10 9", fill: "currentColor", stroke: "none" }]
         ],
+        video: [
+            ["rect", { x: "2", y: "3", width: "20", height: "14", rx: "2" }],
+            ["line", { x1: "8", y1: "21", x2: "16", y2: "21" }],
+            ["line", { x1: "12", y1: "17", x2: "12", y2: "21" }]
+        ],
         shorts: [
             ["polygon", { points: "13 2 3 14 12 14 11 22 21 10 12 10 13 2" }]
         ],
@@ -173,31 +276,34 @@
         sheet.replaceSync(
             ".birdy-yt-screen {" +
             " position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; z-index: 2147483647;" +
-            " background: #000000; color: #f5f5f5; display: none; flex-direction: column;" +
-            " font-family: 'YouTube Sans', Roboto, Arial, sans-serif; box-sizing: border-box; }" +
+            " background: #0f0f0f; color: #f5f5f5; display: none; flex-direction: column;" +
+            " font-family: Roboto, 'YouTube Sans', Arial, sans-serif; box-sizing: border-box; }" +
             ".birdy-yt-screen.show { display: flex; }" +
             ".birdy-yt-topbar {" +
-            " display: flex; align-items: center; justify-content: space-between; height: 92px; box-sizing: border-box;" +
+            " display: flex; align-items: center; justify-content: space-between; height: 96px; box-sizing: border-box;" +
             " padding: 2rem 3.5rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); flex-shrink: 0; }" +
             ".birdy-yt-page-title { font-size: 2.2rem; font-weight: 700; margin: 0; color: #ffffff; letter-spacing: -0.01em; }" +
             ".birdy-yt-hint { font-size: 0.96rem; color: rgba(255, 255, 255, 0.5); font-weight: 500; }" +
             ".birdy-yt-main {" +
-            " display: flex; height: calc(100vh - 92px); box-sizing: border-box;" +
+            " display: flex; height: calc(100vh - 96px); box-sizing: border-box;" +
             " padding: 1.25rem 3.5rem 2rem; gap: 2.5rem; overflow: hidden; }" +
             ".birdy-yt-sidebar {" +
             " position: relative; width: 320px; height: 100%; box-sizing: border-box; flex-shrink: 0;" +
-            " overflow: hidden; border-right: 1px solid rgba(255, 255, 255, 0.1);" +
+            " overflow: hidden; border-right: 1px solid rgba(255, 255, 255, 0.08);" +
             " padding: 0.25rem 1.5rem 2rem 0; }" +
             ".birdy-yt-sec {" +
             " font-size: 0.78rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;" +
             " color: rgba(255, 255, 255, 0.45); padding: 0.35rem 1rem 0.55rem; flex-shrink: 0; }" +
             ".birdy-yt-cat {" +
-            " display: flex; align-items: center; gap: 0.95rem; padding: 0.9rem 1.15rem; border-radius: 12px;" +
-            " font-size: 1.12rem; font-weight: 500; color: #cccccc; border: 1px solid transparent; cursor: pointer; flex-shrink: 0; }" +
+            " display: flex; align-items: center; gap: 1rem; padding: 0.85rem 1.25rem; border-radius: 18px;" +
+            " font-size: 1.15rem; font-weight: 500; color: #b8b8b8; background: rgba(255, 255, 255, 0.05); margin-bottom: 8px; border: none; cursor: pointer; flex-shrink: 0; transition: background 0.12s, color 0.12s; }" +
             ".birdy-yt-cat-icon { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }" +
             ".birdy-yt-cat-icon svg { width: 20px; height: 20px; }" +
-            ".birdy-yt-cat.active { background: #0a0a0a; border-color: rgba(255, 255, 255, 0.22); color: #ffffff; font-weight: 600; }" +
-            ".birdy-yt-cat.birdy-focus { background: #ffffff; border-color: #ffffff; color: #000000; font-weight: 700; box-shadow: 0 0 18px rgba(255, 255, 255, 0.18); }" +
+            ".birdy-yt-cat.active { background: rgba(255, 255, 255, 0.12); color: #ffffff; font-weight: 600; }" +
+            ".birdy-yt-cat.birdy-focus { background: #ffffff !important; color: #0f0f0f !important; font-weight: 700 !important; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45); transform: none !important; }" +
+            ".birdy-yt-cat.birdy-focus svg { stroke: #0f0f0f !important; fill: none !important; }" +
+            ".birdy-yt-cat.birdy-focus svg [fill='currentColor'] { fill: #0f0f0f !important; }" +
+            ".birdy-yt-cat.birdy-focus svg polygon { fill: #0f0f0f !important; }" +
             ".birdy-yt-content {" +
             " position: relative; flex: 1; height: 100%; box-sizing: border-box;" +
             " overflow: hidden; padding: 0.25rem 0.5rem 2rem 0; }" +
@@ -205,50 +311,84 @@
             " position: relative; display: flex; flex-direction: column; gap: 0.55rem;" +
             " transition: transform 140ms ease-out; }" +
             ".birdy-yt-cat-header {" +
-            " font-size: 1.5rem; font-weight: 700; color: #ffffff; margin: 0 0 0.65rem; padding: 0 0.25rem; flex-shrink: 0; }" +
+            " font-size: 1.6rem; font-weight: 700; color: #ffffff; margin: 0 0 0.75rem; padding: 0 0.25rem; flex-shrink: 0; }" +
             ".birdy-yt-restart-banner {" +
-            " margin: 0 0 0.6rem; padding: 0.85rem 1.25rem; border-radius: 12px;" +
-            " background: #051322; border: 1px solid #3ea6ff;" +
+            " margin: 0 0 0.6rem; padding: 0.85rem 1.25rem; border-radius: 16px;" +
+            " background: rgba(62, 166, 255, 0.12); border: 1px solid rgba(62, 166, 255, 0.4);" +
             " color: #7cc4ff; font-size: 1rem; font-weight: 600; flex-shrink: 0; }" +
             ".birdy-yt-row {" +
             " display: flex; align-items: center; justify-content: space-between; gap: 1.5rem;" +
-            " padding: 1.05rem 1.35rem; border-radius: 14px; background: #000000; border: 1px solid rgba(255, 255, 255, 0.1);" +
-            " color: #f5f5f5; flex-shrink: 0; cursor: pointer; }" +
-            ".birdy-yt-row.birdy-focus { background: #ffffff; color: #000000; border-color: #ffffff; box-shadow: 0 0 22px rgba(255, 255, 255, 0.18); }" +
-            ".birdy-yt-row[data-type='3way'].birdy-focus { background: #050505; border: 1.5px solid rgba(255, 255, 255, 0.55); color: #ffffff; box-shadow: 0 0 18px rgba(255, 255, 255, 0.08); }" +
+            " min-height: 84px; padding: 1.1rem 1.6rem; border-radius: 20px; background: rgba(255, 255, 255, 0.08); border: none;" +
+            " margin-bottom: 8px; color: #f5f5f5; flex-shrink: 0; cursor: pointer; transition: background 0.12s, color 0.12s, box-shadow 0.12s; box-sizing: border-box; }" +
+            ".birdy-yt-row.birdy-focus { background: #ffffff !important; color: #0f0f0f !important; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45) !important; transform: none !important; }" +
+            ".birdy-yt-row[data-type='3way'].birdy-focus { background: #ffffff !important; color: #0f0f0f !important; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45) !important; }" +
             ".birdy-yt-row-left { display: flex; flex-direction: column; gap: 0.22rem; flex: 1; min-width: 0; }" +
             ".birdy-yt-row-title-wrap { display: flex; align-items: center; gap: 0.7rem; }" +
             ".birdy-yt-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }" +
             ".birdy-yt-row-title { font-size: 1.14rem; font-weight: 500; color: inherit; }" +
-            ".birdy-yt-row.birdy-focus .birdy-yt-row-title { font-weight: 700; }" +
+            ".birdy-yt-row.birdy-focus .birdy-yt-row-title { font-weight: 700; color: #0f0f0f !important; }" +
             ".birdy-yt-row-summary { font-size: 0.92rem; color: rgba(255, 255, 255, 0.55); line-height: 1.35; }" +
-            ".birdy-yt-row.birdy-focus .birdy-yt-row-summary { color: #3a3a3a; }" +
-            ".birdy-yt-row[data-type='3way'].birdy-focus .birdy-yt-row-summary { color: #bbbbbb; }" +
+            ".birdy-yt-row.birdy-focus .birdy-yt-row-summary { color: #383838 !important; }" +
+            ".birdy-yt-row[data-type='3way'].birdy-focus .birdy-yt-row-summary { color: #383838 !important; }" +
             ".birdy-yt-switch-wrap { display: flex; align-items: center; gap: 0.85rem; flex-shrink: 0; }" +
             ".birdy-yt-switch-state { font-size: 0.94rem; font-weight: 500; color: rgba(255, 255, 255, 0.55); min-width: 64px; text-align: right; }" +
-            ".birdy-yt-switch-state.on { color: #3ea6ff; font-weight: 600; }" +
-            ".birdy-yt-row.birdy-focus .birdy-yt-switch-state { color: #000000; font-weight: 700; }" +
+            ".birdy-yt-switch-state.on { color: #ffffff; font-weight: 600; }" +
+            ".birdy-yt-row.birdy-focus .birdy-yt-switch-state { color: #0f0f0f !important; font-weight: 700; }" +
             ".birdy-yt-switch {" +
             " position: relative; width: 48px; height: 28px; border-radius: 9999px; flex-shrink: 0;" +
-            " background: #1c1c1c; border: 1px solid rgba(255, 255, 255, 0.22); padding: 0; cursor: pointer; outline: none; }" +
-            ".birdy-yt-switch.on { background: #3ea6ff; border-color: #3ea6ff; }" +
-            ".birdy-yt-row.birdy-focus .birdy-yt-switch { background: #9a9a9a; border-color: #9a9a9a; }" +
-            ".birdy-yt-row.birdy-focus .birdy-yt-switch.on { background: #000000; border-color: #000000; }" +
+            " background: rgba(255, 255, 255, 0.16); border: 2px solid rgba(255, 255, 255, 0.35); padding: 0; cursor: pointer; outline: none; transition: background 0.12s, border-color 0.12s; }" +
+            ".birdy-yt-switch.on { background: #ffffff !important; border-color: #ffffff !important; }" +
             ".birdy-yt-switch::after {" +
-            " content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px;" +
-            " border-radius: 50%; background: #f1f1f1; }" +
-            ".birdy-yt-switch.on::after { transform: translateX(20px); background: #ffffff; }" +
+            " content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px;" +
+            " border-radius: 50%; background: #ffffff; transition: transform 0.14s ease-out, background 0.14s; }" +
+            ".birdy-yt-switch.on::after { transform: translateX(20px); background: #0f0f0f !important; }" +
+            ".birdy-yt-row.birdy-focus .birdy-yt-switch { background: rgba(0, 0, 0, 0.12) !important; border-color: rgba(0, 0, 0, 0.35) !important; }" +
+            ".birdy-yt-row.birdy-focus .birdy-yt-switch::after { background: #0f0f0f !important; }" +
+            ".birdy-yt-row.birdy-focus .birdy-yt-switch.on { background: #ffffff !important; border: 2px solid #0f0f0f !important; }" +
+            ".birdy-yt-row.birdy-focus .birdy-yt-switch.on::after { background: #0f0f0f !important; }" +
             ".birdy-yt-pills { display: flex; align-items: center; gap: 0.55rem; flex-shrink: 0; }" +
             ".birdy-yt-pill {" +
-            " padding: 0.55rem 1.15rem; border-radius: 9999px; font-size: 0.94rem; font-weight: 600;" +
-            " background: #000000; color: #b8b8b8; border: 1.5px solid rgba(255, 255, 255, 0.18); cursor: pointer; outline: none; }" +
-            ".birdy-yt-pill.selected { background: #3ea6ff; color: #000000; border-color: #3ea6ff; font-weight: 700; }" +
-            ".birdy-yt-pill.birdy-focus { background: #ffffff; color: #000000; border-color: #ffffff; font-weight: 700; transform: scale(1.04); box-shadow: 0 0 14px rgba(255, 255, 255, 0.35); }" +
+            " padding: 0.55rem 1.25rem; border-radius: 9999px; font-size: 0.94rem; font-weight: 600;" +
+            " background: rgba(255, 255, 255, 0.08); color: #d0d0d0; border: 1px solid rgba(255, 255, 255, 0.18); cursor: pointer; outline: none; transition: background 0.12s, color 0.12s, border-color 0.12s; }" +
+            ".birdy-yt-pill.selected { background: #ffffff !important; color: #0f0f0f !important; font-weight: 700 !important; border-color: #ffffff !important; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important; }" +
+            ".birdy-yt-row.birdy-focus .birdy-yt-pill { background: rgba(0, 0, 0, 0.08) !important; color: #222222 !important; border-color: rgba(0, 0, 0, 0.22) !important; }" +
+            ".birdy-yt-row.birdy-focus .birdy-yt-pill.selected { background: #0f0f0f !important; color: #ffffff !important; border-color: #0f0f0f !important; font-weight: 700 !important; }" +
+            ".birdy-yt-pill.birdy-focus { background: #0f0f0f !important; color: #ffffff !important; font-weight: 700 !important; border-color: #0f0f0f !important; box-shadow: 0 0 0 2px #ffffff, 0 4px 14px rgba(0, 0, 0, 0.4) !important; transform: none !important; }" +
             ".birdy-yt-btn {" +
-            " padding: 0.95rem 1.85rem; border-radius: 9999px; font-size: 1.06rem; font-weight: 600;" +
-            " background: #000000; color: #f5f5f5; border: 1.5px solid rgba(255, 255, 255, 0.25); cursor: pointer;" +
+            " padding: 0.95rem 1.85rem; border-radius: 18px; font-size: 1.06rem; font-weight: 600;" +
+            " background: rgba(255, 255, 255, 0.1); color: #f5f5f5; border: none; cursor: pointer;" +
             " outline: none; align-self: flex-start; margin: 0.75rem 0 0 0.25rem; flex-shrink: 0; }" +
-            ".birdy-yt-btn.birdy-focus { background: #ffffff; color: #000000; border-color: #ffffff; font-weight: 700; box-shadow: 0 0 18px rgba(255, 255, 255, 0.25); }"
+            ".birdy-yt-btn.birdy-focus { background: #ffffff !important; color: #0f0f0f !important; font-weight: 700 !important; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35); }" +
+            ".birdy-yt-select {" +
+            " display: inline-flex; align-items: center; gap: 0.65rem; padding: 0.6rem 1.25rem;" +
+            " border-radius: 14px; font-size: 0.98rem; font-weight: 600;" +
+            " background: rgba(255, 255, 255, 0.12); color: #f5f5f5; border: none;" +
+            " flex-shrink: 0; cursor: pointer; }" +
+            ".birdy-yt-row.birdy-focus .birdy-yt-select {" +
+            " background: #0f0f0f !important; color: #ffffff !important; border: none !important; }" +
+            ".birdy-yt-dropdown-backdrop {" +
+            " position: fixed; inset: 0; z-index: 2147483647; background: rgba(0, 0, 0, 0.55);" +
+            " display: flex; align-items: center; justify-content: center; }" +
+            ".birdy-yt-dropdown-menu {" +
+            " width: 580px; max-width: 90vw; max-height: 80vh; background: #0f0f0f;" +
+            " border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px;" +
+            " box-shadow: 0 24px 70px rgba(0, 0, 0, 0.98); padding: 32px;" +
+            " display: flex; flex-direction: column; gap: 1rem; box-sizing: border-box; }" +
+            ".birdy-yt-dropdown-title {" +
+            " font-size: 1.6rem; font-weight: 700; color: #ffffff; padding: 0.25rem 0.5rem 0.8rem;" +
+            " border-bottom: 1px solid rgba(255, 255, 255, 0.08); margin: 0; flex-shrink: 0; }" +
+            ".birdy-yt-dropdown-viewport {" +
+            " position: relative; overflow: hidden; max-height: 60vh; flex: 1; }" +
+            ".birdy-yt-dropdown-opt {" +
+            " display: flex; align-items: center; justify-content: space-between; width: 100%;" +
+            " min-height: 68px; padding: 0 24px; border-radius: 18px; font-size: 1.15rem; font-weight: 500;" +
+            " background: rgba(255, 255, 255, 0.08); color: #f1f1f1; border: none;" +
+            " cursor: pointer; text-align: left; box-sizing: border-box; margin-bottom: 8px; transition: background 0.12s, color 0.12s; }" +
+            ".birdy-yt-dropdown-opt.selected { color: #ffffff; font-weight: 600; }" +
+            ".birdy-yt-dropdown-opt.birdy-focus {" +
+            " background: #ffffff !important; color: #0f0f0f !important; font-weight: 700 !important;" +
+            " box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4); transform: none !important; }" +
+            ".birdy-yt-dropdown-opt.birdy-focus svg { fill: #0f0f0f !important; }"
         );
         document.adoptedStyleSheets = document.adoptedStyleSheets.concat([sheet]);
     } catch (e) {}
@@ -276,6 +416,7 @@
         { key: "seekbar", labelKey: "hub.tab.seekbar", icon: ICONS.seekbar },
         { key: "ads", labelKey: "hub.tab.ads", icon: ICONS.ads },
         { key: "player", labelKey: "hub.tab.player", icon: ICONS.player },
+        { key: "video", labelKey: "hub.tab.video", icon: ICONS.video },
         { key: "shorts", labelKey: "hub.tab.shorts", icon: ICONS.shorts },
         { key: "ui_tweaks", labelKey: "hub.tab.ui_tweaks", icon: ICONS.ui_tweaks },
         { key: "dearrow", labelKey: "hub.tab.dearrow", icon: ICONS.dearrow },
@@ -495,9 +636,69 @@
                     t(btn.titleKey),
                     btn.summaryKey ? t(btn.summaryKey) : "",
                     "YOUTV_PLAYER_" + btn.key.toUpperCase(),
-                    false
+                    btn.defaultVal !== undefined ? btn.defaultVal : false
                 ));
             }
+        } else if (activeTabKey === "video") {
+            appendRow(frag, createDropdownRow(
+                t("video.quality.title"),
+                t("video.quality.summary"),
+                qualityOptionsList(),
+                getString("YOUTV_QUALITY_VIDEO", "auto"),
+                function (id) {
+                    setString("YOUTV_QUALITY_VIDEO", id);
+                    if (typeof window.birdyApplyQuality === "function") window.birdyApplyQuality();
+                }
+            ));
+            appendRow(frag, createDropdownRow(
+                t("video.speed.title"),
+                t("video.speed.summary"),
+                SPEED_OPTIONS,
+                getString("YOUTV_VIDEO_SPEED", "1"),
+                function (id) {
+                    setString("YOUTV_VIDEO_SPEED", id);
+                    if (typeof window.birdyApplyQuality === "function") window.birdyApplyQuality();
+                }
+            ));
+            appendRow(frag, createToggleRow(
+                t("video.custom_speed.title"),
+                t("video.custom_speed.summary"),
+                "YOUTV_VIDEO_CUSTOM_SPEED",
+                true
+            ));
+            appendRow(frag, createDropdownRow(
+                t("captions.default.title"),
+                t("captions.default.summary"),
+                captionOptionsList(),
+                getString("YOUTV_VIDEO_CAPTION_LANG", "auto"),
+                function (id) {
+                    setString("YOUTV_VIDEO_CAPTION_LANG", id);
+                    if (typeof window.birdyApplyQuality === "function") window.birdyApplyQuality();
+                }
+            ));
+            appendRow(frag, createToggleRow(
+                t("captions.more_translate.title"),
+                t("captions.more_translate.summary"),
+                "YOUTV_VIDEO_MORE_AUTO_TRANSLATE",
+                false
+            ));
+            appendRow(frag, createToggleRow(
+                t("video.original_title.title"),
+                t("video.original_title.summary"),
+                "YOUTV_VIDEO_ORIGINAL_TITLE",
+                false
+            ));
+            appendRow(frag, createToggleRow(
+                t("video.original_audio.title"),
+                t("video.original_audio.summary"),
+                "YOUTV_VIDEO_ORIGINAL_AUDIO",
+                false,
+                false,
+                null,
+                function () {
+                    if (typeof window.birdyApplyQuality === "function") window.birdyApplyQuality();
+                }
+            ));
         } else if (activeTabKey === "shorts") {
             appendRow(frag, createToggleRow(
                 t("feature.shorts.name"),
@@ -505,6 +706,65 @@
                 "YOUTV_SHORTS",
                 true,
                 true
+            ));
+            appendRow(frag, createDropdownRow(
+                t("shorts.quality.title"),
+                t("shorts.quality.summary"),
+                qualityOptionsList(),
+                getString("YOUTV_QUALITY_SHORTS", "auto"),
+                function (id) {
+                    setString("YOUTV_QUALITY_SHORTS", id);
+                    if (typeof window.birdyApplyQuality === "function") window.birdyApplyQuality();
+                }
+            ));
+            appendRow(frag, createDropdownRow(
+                t("video.speed.title"),
+                t("video.speed.summary"),
+                SPEED_OPTIONS,
+                getString("YOUTV_SHORTS_SPEED", "1"),
+                function (id) {
+                    setString("YOUTV_SHORTS_SPEED", id);
+                    if (typeof window.birdyApplyQuality === "function") window.birdyApplyQuality();
+                }
+            ));
+            appendRow(frag, createToggleRow(
+                t("video.custom_speed.title"),
+                t("video.custom_speed.summary"),
+                "YOUTV_SHORTS_CUSTOM_SPEED",
+                true
+            ));
+            appendRow(frag, createDropdownRow(
+                t("captions.default.title"),
+                t("captions.default.summary"),
+                captionOptionsList(),
+                getString("YOUTV_SHORTS_CAPTION_LANG", "auto"),
+                function (id) {
+                    setString("YOUTV_SHORTS_CAPTION_LANG", id);
+                    if (typeof window.birdyApplyQuality === "function") window.birdyApplyQuality();
+                }
+            ));
+            appendRow(frag, createToggleRow(
+                t("captions.more_translate.title"),
+                t("captions.more_translate.summary"),
+                "YOUTV_SHORTS_MORE_AUTO_TRANSLATE",
+                false
+            ));
+            appendRow(frag, createToggleRow(
+                t("shorts.original_title.title"),
+                t("shorts.original_title.summary"),
+                "YOUTV_SHORTS_ORIGINAL_TITLE",
+                false
+            ));
+            appendRow(frag, createToggleRow(
+                t("video.original_audio.title"),
+                t("video.original_audio.summary"),
+                "YOUTV_SHORTS_ORIGINAL_AUDIO",
+                false,
+                false,
+                null,
+                function () {
+                    if (typeof window.birdyApplyQuality === "function") window.birdyApplyQuality();
+                }
             ));
         } else if (activeTabKey === "ui_tweaks") {
             appendRow(frag, createToggleRow(
@@ -579,6 +839,23 @@
                 true
             ));
         } else if (activeTabKey === "about") {
+            appendRow(frag, createDropdownRow(
+                t("about.language.title"),
+                t("about.language.summary"),
+                languageOptionsList(),
+                getString("YOUTV_LANGUAGE", "auto"),
+                function (newLang) {
+                    setString("YOUTV_LANGUAGE", newLang);
+                    if (window.farotvI18n && typeof window.farotvI18n.setLanguage === "function") {
+                        window.farotvI18n.setLanguage(newLang);
+                    }
+                    pendingRestart = true;
+                    addRestartBannerIfNeeded();
+                    renderContent();
+                    updateFocusUI();
+                }
+            ));
+
             var repoRow = document.createElement("div");
             repoRow.className = "birdy-yt-row";
             var ver = window.__farotvVersion ? "v" + window.__farotvVersion : "";
@@ -674,7 +951,7 @@
         );
     }
 
-    function createToggleRow(titleText, summaryText, storageKey, defaultVal, needsRestart, dotColor) {
+    function createToggleRow(titleText, summaryText, storageKey, defaultVal, needsRestart, dotColor, onChange) {
         var isEnabled = getBool(storageKey, defaultVal);
         var row = document.createElement("div");
         row.className = "birdy-yt-row";
@@ -727,6 +1004,7 @@
                 pendingRestart = true;
                 addRestartBannerIfNeeded();
             }
+            if (typeof onChange === "function") onChange(isEnabled);
         }
 
         row.onclick = function () {
@@ -738,6 +1016,155 @@
         wrap.appendChild(switchBtn);
         row.appendChild(left);
         row.appendChild(wrap);
+        return row;
+    }
+
+    function createCheckSvg(visible) {
+        var svg = document.createElementNS(SVG_NS, "svg");
+        svg.setAttribute("viewBox", "0 0 24 24");
+        svg.style.width = "26px";
+        svg.style.height = "26px";
+        svg.style.fill = "currentColor";
+        svg.style.flexShrink = "0";
+        svg.style.visibility = visible ? "visible" : "hidden";
+        var path = document.createElementNS(SVG_NS, "path");
+        path.setAttribute("d", "M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z");
+        svg.appendChild(path);
+        return svg;
+    }
+
+    var activeDropdown = null;
+
+    function closeDropdown() {
+        if (!activeDropdown) return;
+        if (activeDropdown.backdrop && activeDropdown.backdrop.parentNode) {
+            activeDropdown.backdrop.parentNode.removeChild(activeDropdown.backdrop);
+        }
+        activeDropdown = null;
+        updateFocusUI();
+    }
+
+    function updateDropdownFocus() {
+        if (!activeDropdown) return;
+        var opts = activeDropdown.optionEls;
+        for (var i = 0; i < opts.length; i++) {
+            opts[i].classList.toggle("birdy-focus", i === activeDropdown.focusIdx);
+        }
+        var target = opts[activeDropdown.focusIdx];
+        if (target) {
+            ensureVisible(activeDropdown.viewport, activeDropdown.inner, target, activeDropdown.focusIdx === 0);
+        }
+    }
+
+    function openDropdown(titleText, options, currentId, onSelect) {
+        closeDropdown();
+        if (!screenEl) return;
+
+        var backdrop = document.createElement("div");
+        backdrop.className = "birdy-yt-dropdown-backdrop";
+        backdrop.onclick = function (e) {
+            if (e.target === backdrop) closeDropdown();
+        };
+
+        var menu = document.createElement("div");
+        menu.className = "birdy-yt-dropdown-menu";
+
+        var heading = document.createElement("h3");
+        heading.className = "birdy-yt-dropdown-title";
+        heading.textContent = titleText;
+
+        var viewport = document.createElement("div");
+        viewport.className = "birdy-yt-dropdown-viewport";
+        var inner = document.createElement("div");
+        inner.className = "birdy-yt-list-inner";
+        inner._scrollY = 0;
+
+        var optionEls = [];
+        var initialIdx = 0;
+        for (var i = 0; i < options.length; i++) {
+            (function (opt, idx) {
+                if (opt.id === currentId) initialIdx = idx;
+                var btn = document.createElement("button");
+                btn.className = "birdy-yt-dropdown-opt" + (opt.id === currentId ? " selected" : "");
+
+                var label = document.createElement("span");
+                label.textContent = opt.text;
+                var checkSvg = createCheckSvg(opt.id === currentId);
+
+                btn.appendChild(label);
+                btn.appendChild(checkSvg);
+                btn.onclick = function () {
+                    onSelect(opt.id, opt.text);
+                    closeDropdown();
+                };
+                inner.appendChild(btn);
+                optionEls.push(btn);
+            })(options[i], i);
+        }
+
+        viewport.appendChild(inner);
+        menu.appendChild(heading);
+        menu.appendChild(viewport);
+        backdrop.appendChild(menu);
+        screenEl.appendChild(backdrop);
+
+        activeDropdown = {
+            backdrop: backdrop,
+            viewport: viewport,
+            inner: inner,
+            optionEls: optionEls,
+            focusIdx: initialIdx
+        };
+        updateDropdownFocus();
+    }
+
+    function createDropdownRow(titleText, summaryText, options, currentId, onSelect) {
+        var selectedId = currentId;
+        function findLabel(id) {
+            for (var i = 0; i < options.length; i++) {
+                if (options[i].id === id) return options[i].text;
+            }
+            return options[0] ? options[0].text : id;
+        }
+
+        var row = document.createElement("div");
+        row.className = "birdy-yt-row";
+        row.setAttribute("data-type", "dropdown");
+
+        var left = document.createElement("div");
+        left.className = "birdy-yt-row-left";
+        var titleWrap = document.createElement("div");
+        titleWrap.className = "birdy-yt-row-title-wrap";
+        var rowTitle = document.createElement("span");
+        rowTitle.className = "birdy-yt-row-title";
+        rowTitle.textContent = titleText;
+        titleWrap.appendChild(rowTitle);
+        left.appendChild(titleWrap);
+
+        if (summaryText) {
+            var rowSummary = document.createElement("span");
+            rowSummary.className = "birdy-yt-row-summary";
+            rowSummary.textContent = summaryText;
+            left.appendChild(rowSummary);
+        }
+
+        var selectBtn = document.createElement("button");
+        selectBtn.className = "birdy-yt-select";
+        selectBtn.textContent = findLabel(selectedId) + "  \u25BE";
+
+        function triggerOpen() {
+            openDropdown(titleText, options, selectedId, function (nextId, nextText) {
+                selectedId = nextId;
+                selectBtn.textContent = nextText + "  \u25BE";
+                onSelect(nextId);
+            });
+        }
+
+        row.onclick = triggerOpen;
+        row._openDropdown = triggerOpen;
+
+        row.appendChild(left);
+        row.appendChild(selectBtn);
         return row;
     }
 
@@ -828,6 +1255,31 @@
         if (!isHubOpen()) return;
         var code = e.keyCode || e.which;
 
+        if (activeDropdown) {
+            if (code === 27 || code === 4 || code === 10009 || code === 37 ||
+                e.key === "Escape" || e.key === "GoBack" || e.key === "BrowserBack") {
+                stopEvent(e);
+                closeDropdown();
+            } else if (code === 38) { // UP
+                stopEvent(e);
+                if (activeDropdown.focusIdx > 0) {
+                    activeDropdown.focusIdx--;
+                    updateDropdownFocus();
+                }
+            } else if (code === 40) { // DOWN
+                stopEvent(e);
+                if (activeDropdown.focusIdx < activeDropdown.optionEls.length - 1) {
+                    activeDropdown.focusIdx++;
+                    updateDropdownFocus();
+                }
+            } else if (code === 13 || code === 23) { // OK / ENTER
+                stopEvent(e);
+                var optBtn = activeDropdown.optionEls[activeDropdown.focusIdx];
+                if (optBtn) optBtn.click();
+            }
+            return;
+        }
+
         // BACK: 27 (Escape), 4 (Android Back), 10009 (Tizen Back)
         if (code === 27 || code === 4 || code === 10009 || e.key === "Escape" || e.key === "GoBack" || e.key === "BrowserBack") {
             stopEvent(e);
@@ -896,7 +1348,9 @@
                 }
             } else if (code === 13 || code === 23) { // OK / ENTER
                 stopEvent(e);
-                if (curRow && curRow._pills && curRow._pills[focusPillIndex]) {
+                if (curRow && curRow._openDropdown) {
+                    curRow._openDropdown();
+                } else if (curRow && curRow._pills && curRow._pills[focusPillIndex]) {
                     curRow._pills[focusPillIndex].click();
                 } else if (curRow && curRow._toggle) {
                     curRow._toggle();
@@ -936,6 +1390,7 @@
     }
 
     function closeHub() {
+        closeDropdown();
         if (!screenEl) return;
         screenEl.classList.remove("show");
         window.removeEventListener("keydown", onKeyDown, true);

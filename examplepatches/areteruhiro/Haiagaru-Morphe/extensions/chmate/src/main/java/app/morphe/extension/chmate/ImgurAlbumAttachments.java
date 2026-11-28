@@ -212,6 +212,7 @@ public final class ImgurAlbumAttachments {
                         if (!subscribed && entry.subscribers.size() < 64)
                             entry.subscribers.add(new Subscriber(model, cacheFieldName));
                         if (!entry.pending && System.currentTimeMillis() - entry.lastAttempt > RETRY_MS) {
+                            entry.retryCount = 0;
                             entry.pending = true;
                             entry.lastAttempt = System.currentTimeMillis();
                             request = true;
@@ -340,7 +341,24 @@ public final class ImgurAlbumAttachments {
             entry.images = resolved;
             entry.pending = false;
             subscribers = new ArrayList<>(entry.subscribers);
-            entry.subscribers.clear();
+            if(resolved!=null)entry.subscribers.clear();
+            else entry.subscribers.removeIf(subscriber->subscriber.model.get()==null);
+        }
+        // A transient mobile handover failure must not require a fresh native getter.
+        // Retry only subscribed Imgur albums, at most twice, respecting current policy.
+        if(resolved==null&&!xPost&&!instagramPost){
+            final Entry failed;
+            synchronized(CACHE){failed=CACHE.get(id);if(failed==null||failed.retryCount>=2||failed.subscribers.isEmpty())return;failed.retryCount++;}
+            MAIN.postDelayed(()->{
+                if(!Haiagaru.mediaImageFetchEnabled()&&Haiagaru.mediaAutoFetchMode()==3)return;
+                synchronized(CACHE){
+                    if(CACHE.get(id)!=failed||failed.pending||failed.images!=null)return;
+                    failed.subscribers.removeIf(subscriber->subscriber.model.get()==null);
+                    if(failed.subscribers.isEmpty())return;
+                    failed.pending=true;failed.lastAttempt=System.currentTimeMillis();
+                }
+                WORKER.execute(()->resolve(id));
+            },failed.retryCount==1?2000:5000);
         }
         if (resolved != null) MAIN.post(() -> {
             boolean changed = false;
@@ -469,6 +487,7 @@ public final class ImgurAlbumAttachments {
     private static final class Entry {
         volatile String[] images;
         boolean pending;
+        int retryCount;
         long lastAttempt;
         final List<Subscriber> subscribers = new ArrayList<>();
     }

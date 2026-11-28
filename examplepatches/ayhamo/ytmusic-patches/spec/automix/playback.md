@@ -57,8 +57,9 @@ add, and the output clips.
 
 ## The queue during a mix [all]
 
-Rules for any app with Automix, not sound targets. Phone: Vivimusic 4370de0. The PC hasn't been
-checked against them yet.
+Rules for any app with Automix, not sound targets. Phone: Vivimusic 4370de0. PC: each rule below
+names where `src/automix/crossfade.js` follows it (rule 1: `driveLive`, the queue naming the
+outgoing song again).
 
 1. **Going back aborts the mix.** Once the queue has named the incoming song, the outgoing song named
    again is the listener going back: the mix stops there. (Before the incoming song is named, the

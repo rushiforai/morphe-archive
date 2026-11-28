@@ -346,7 +346,7 @@ public final class MaterialYou {
         if (AMOLED.equals(key)) {
             setAmoled(on);
             if (activity != null) activity.recreate();
-        } else if (activity != null) {
+        } else if (activity != null && Features.needsRestart(key)) {
             showRestartBar(activity);
         }
     }

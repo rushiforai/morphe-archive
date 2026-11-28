@@ -101,9 +101,9 @@ public final class Readable {
         String host = m.group(1);
         String path = m.group(2) == null ? "" : m.group(2);
         String server = host.split("\\.")[0];
-        if (host.contains("usher.")) return "the stream's playlist list";
+        if (host.contains("usher.")) return "the stream's quality list";
         if (path.endsWith(".m3u8")) return "a playlist (" + server + ")";
-        if (path.endsWith(".ts") || path.endsWith(".mp4") || path.contains("/segment")) return "a video piece (" + server + ")";
+        if (path.endsWith(".ts") || path.endsWith(".mp4") || path.contains("/segment")) return "a video segment (" + server + ")";
         return host;
     }
 

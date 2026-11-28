@@ -3,22 +3,14 @@ package dev.jason.gboardpatches.patches.gboard.features.settingshomepage
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
-import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
-import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesExtensionCarrierPatch
 import dev.jason.gboardpatches.patches.gboard.shared.VerifiedTransformationPlan
 import dev.jason.gboardpatches.patches.gboard.shared.VerifiedTransformationState
 import dev.jason.gboardpatches.patches.gboard.shared.applyVerified
+import dev.jason.gboardpatches.patches.gboard.shared.gboardCompatibility18_8
+import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesExtensionCarrierPatch
 import dev.jason.gboardpatches.patches.gboard.shared.isInvoke
 import dev.jason.gboardpatches.patches.gboard.shared.isMethodReference
 import dev.jason.gboardpatches.patches.gboard.shared.isMethodReferenceInClass
@@ -27,59 +19,56 @@ import dev.jason.gboardpatches.patches.gboard.shared.mutableClass
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeAbiCatalog
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
-import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
 
-private const val SETTINGS_ACTIVITY_CLASS =
-    "Lcom/google/android/apps/inputmethod/latin/preference/SettingsActivity;"
 private val SETTINGS_HOMEPAGE_RUNTIME_CALL =
     RuntimeCallId.SETTINGS_HOMEPAGE_RUNTIME_APPLY_SETTINGS_HOMEPAGE_POLICY
 private val SETTINGS_HOMEPAGE_RUNTIME_ABI = RuntimeAbiCatalog.abi(SETTINGS_HOMEPAGE_RUNTIME_CALL)
 private val SETTINGS_HOMEPAGE_RUNTIME_CLASS = SETTINGS_HOMEPAGE_RUNTIME_ABI.owner
 private val SETTINGS_HOMEPAGE_RUNTIME_DESCRIPTOR = SETTINGS_HOMEPAGE_RUNTIME_ABI.reference
 private const val TARGET_METHOD_NAME = "onCreate"
-private val TARGET_PARAMETER_TYPES = listOf("Landroid/os/Bundle;")
-private const val TARGET_RETURN_TYPE = "V"
-private const val TARGET_DESCRIPTOR =
-    "$SETTINGS_ACTIVITY_CLASS->onCreate(Landroid/os/Bundle;)V"
 private const val STOCK_REGISTER_COUNT = 7
 private const val STOCK_RECEIVER_REGISTER = 5
-private val TARGET_ACCESS_FLAGS = AccessFlags.PROTECTED.value or AccessFlags.FINAL.value
 
 internal val gboardSettingsHomepageBytecodePatch = bytecodePatch(
     description = "允許覆蓋 Gboard 設定頁新舊版樣式選擇"
 ) {
-    compatibleWith(COMPATIBILITY_GBOARD)
+    compatibleWith(gboardCompatibility18_8())
 
     dependsOn(gboardPatchesExtensionCarrierPatch)
 
     execute {
+        val targets = settingsHomepageTargets(this)
         val target = selectSettingsActivityOnCreate(
-            mutableClass(SETTINGS_ACTIVITY_CLASS).methods.toList(),
+            mutableClass(targets.activity.ownerDescriptor).methods.toList(),
+            targets,
         )
-        target.applySettingsHomepageOverride()
+        target.applySettingsHomepageOverride(targets)
     }
 }
 
-internal fun selectSettingsActivityOnCreate(methods: List<MutableMethod>): MutableMethod {
+internal fun selectSettingsActivityOnCreate(
+    methods: List<MutableMethod>,
+    targets: SettingsHomepageTargets,
+): MutableMethod {
     val matches = methods.filter { method ->
-        method.definingClass == SETTINGS_ACTIVITY_CLASS &&
-            method.name == TARGET_METHOD_NAME &&
-            method.parameterTypes == TARGET_PARAMETER_TYPES &&
-            method.returnType == TARGET_RETURN_TYPE &&
-            method.accessFlags == TARGET_ACCESS_FLAGS
+        targets.activity.matches(method) &&
+            method.accessFlags == targets.accessFlags
     }
     check(matches.size == 1) {
-        "Expected exactly one protected final instance void $TARGET_DESCRIPTOR target"
+        "Expected exactly one ${targets.activity.reference} target with access flags " +
+            "0x${Integer.toHexString(targets.accessFlags)}"
     }
     return matches.single()
 }
 
-internal fun MutableMethod.applySettingsHomepageOverride(): MutableMethod {
-    requireExactTarget()
+internal fun MutableMethod.applySettingsHomepageOverride(
+    targets: SettingsHomepageTargets,
+): MutableMethod {
+    requireExactTarget(targets)
     return applyVerified(
         VerifiedTransformationPlan(
-            targetName = TARGET_DESCRIPTOR,
-            classify = MutableMethod::classifySettingsHomepageOverride,
+            targetName = targets.activity.reference,
+            classify = { method -> method.classifySettingsHomepageOverride(targets) },
             mutate = { method ->
                 method.addInstructions(
                     0,
@@ -91,99 +80,107 @@ internal fun MutableMethod.applySettingsHomepageOverride(): MutableMethod {
     )
 }
 
-private fun MutableMethod.classifySettingsHomepageOverride(): VerifiedTransformationState {
+private fun MutableMethod.classifySettingsHomepageOverride(
+    targets: SettingsHomepageTargets,
+): VerifiedTransformationState {
     val instructions = implementation?.instructions
-        ?: error("No instructions in $TARGET_DESCRIPTOR")
+        ?: error("No instructions in ${targets.activity.reference}")
     val runtimeReferences = instructions.filter { instruction ->
         instruction.isMethodReferenceInClass(SETTINGS_HOMEPAGE_RUNTIME_CLASS)
     }
     return when {
         runtimeReferences.isEmpty() -> {
-            validateStockBody()
+            validateStockBody(targets)
             VerifiedTransformationState.STOCK
         }
         runtimeReferences.size == 1 &&
             runtimeReferences.single().isMethodReference(
                 SETTINGS_HOMEPAGE_RUNTIME_DESCRIPTOR,
             ) -> {
-            validateCompletedPatch()
+            validateCompletedPatch(targets)
             VerifiedTransformationState.PATCHED
         }
         else -> VerifiedTransformationState.MALFORMED
     }
 }
 
-private fun MutableMethod.requireExactTarget() {
+private fun MutableMethod.requireExactTarget(targets: SettingsHomepageTargets) {
     check(
-        definingClass == SETTINGS_ACTIVITY_CLASS &&
-            name == TARGET_METHOD_NAME &&
-            parameterTypes == TARGET_PARAMETER_TYPES &&
-            returnType == TARGET_RETURN_TYPE &&
-            accessFlags == TARGET_ACCESS_FLAGS,
+        definingClass == targets.activity.ownerDescriptor &&
+            name == targets.activity.name &&
+            parameterTypes.map(CharSequence::toString) == targets.activity.parameterTypes &&
+            returnType == targets.activity.returnType &&
+            accessFlags == targets.accessFlags,
     ) {
         "Refusing non-target Settings Homepage method " +
             definingClass + "->" + name + "(" + parameterTypes.joinToString("") + ")" +
-            returnType
+            returnType + " flags=0x" + Integer.toHexString(accessFlags)
     }
 }
 
-private fun MutableMethod.validateStockBody() {
-    val implementation = implementation ?: error("No instructions in $TARGET_DESCRIPTOR")
+private fun MutableMethod.validateStockBody(targets: SettingsHomepageTargets) {
+    val implementation = implementation
+        ?: error("No instructions in ${targets.activity.reference}")
     check(implementation.registerCount == STOCK_REGISTER_COUNT) {
-        "Unexpected register count in $TARGET_DESCRIPTOR: ${implementation.registerCount}"
+        "Unexpected register count in ${targets.activity.reference}: " +
+            "${implementation.registerCount}"
     }
     check(implementation.tryBlocks.isEmpty()) {
-        "Unexpected try blocks in exact $TARGET_DESCRIPTOR"
+        "Unexpected try blocks in exact ${targets.activity.reference}"
     }
     val instructions = implementation.instructions
     check(instructions.none { instruction ->
         instruction.isMethodReferenceInClass(SETTINGS_HOMEPAGE_RUNTIME_CLASS)
     }) {
-        "$TARGET_DESCRIPTOR contains an orphan Settings Homepage delegate"
+        "${targets.activity.reference} contains an orphan Settings Homepage delegate"
     }
-    validateControlFlow(instructions)
+    validateControlFlow(instructions, targets)
 }
 
-private fun MutableMethod.validateCompletedPatch() {
-    requireExactTarget()
-    val implementation = implementation ?: error("No instructions in $TARGET_DESCRIPTOR")
+private fun MutableMethod.validateCompletedPatch(targets: SettingsHomepageTargets) {
+    requireExactTarget(targets)
+    val implementation = implementation
+        ?: error("No instructions in ${targets.activity.reference}")
     check(implementation.registerCount == STOCK_REGISTER_COUNT)
     check(implementation.tryBlocks.isEmpty())
     val instructions = implementation.instructions
     check(instructions.firstOrNull().isExactEntryDelegate()) {
-        "$TARGET_DESCRIPTOR entry delegate is missing, misplaced, or malformed"
+        "${targets.activity.reference} entry delegate is missing, misplaced, or malformed"
     }
     check(instructions.count { instruction ->
         instruction.isMethodReference(SETTINGS_HOMEPAGE_RUNTIME_DESCRIPTOR)
     } == 1) {
-        "$TARGET_DESCRIPTOR must contain exactly one Settings Homepage delegate"
+        "${targets.activity.reference} must contain exactly one Settings Homepage delegate"
     }
     check(instructions.count { instruction ->
         instruction.isMethodReferenceInClass(SETTINGS_HOMEPAGE_RUNTIME_CLASS)
     } == 1) {
-        "$TARGET_DESCRIPTOR contains an orphan Settings Homepage runtime reference"
+        "${targets.activity.reference} contains an orphan Settings Homepage runtime reference"
     }
 
     val stockInstructions = instructions.drop(1)
-    validateControlFlow(stockInstructions)
+    validateControlFlow(stockInstructions, targets)
 }
 
-private fun validateControlFlow(instructions: List<Instruction>) {
+private fun validateControlFlow(
+    instructions: List<Instruction>,
+    targets: SettingsHomepageTargets,
+) {
     check(instructions.firstOrNull()?.isMethodReference(
-        "$SETTINGS_ACTIVITY_CLASS->getIntent()Landroid/content/Intent;",
+        "${targets.activity.ownerDescriptor}->getIntent()Landroid/content/Intent;",
     ) == true) {
-        "$TARGET_DESCRIPTOR must retain getIntent as its first stock instruction"
+        "${targets.activity.reference} must retain getIntent as its first stock instruction"
     }
     // The superclass (and therefore its obfuscated name) changes between Gboard builds, so the
     // stock shape is pinned as "exactly one super.onCreate(Bundle) call" instead of one class name.
     check(instructions.count { instruction -> instruction.isSuperOnCreateCall() } == 1) {
-        "$TARGET_DESCRIPTOR must retain its exact super onCreate call"
+        "${targets.activity.reference} must retain its exact super onCreate call"
     }
     val returns = instructions.indices.filter { index ->
         instructions[index].isOpcode("RETURN_VOID")
     }
     check(returns == listOf(instructions.lastIndex)) {
-        "$TARGET_DESCRIPTOR must retain its single final RETURN_VOID"
+        "${targets.activity.reference} must retain its single final RETURN_VOID"
     }
 }
 

@@ -5,6 +5,9 @@ import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 
 object Constants {
+    /** SmartThings / OneConnect application id (the stock package we patch). */
+    const val SMARTTHINGS_PACKAGE = "com.samsung.android.oneconnect"
+
     /**
      * Samsung SmartThings (OneConnect).
      *
@@ -27,7 +30,7 @@ object Constants {
      */
     val COMPATIBILITY_SMARTTHINGS = Compatibility(
         name = "SmartThings",
-        packageName = "com.samsung.android.oneconnect",
+        packageName = SMARTTHINGS_PACKAGE,
         apkFileType = ApkFileType.APK,
         appIconColor = 0x1C8CF5, // SmartThings blue
         targets = listOf(

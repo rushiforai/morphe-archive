@@ -112,7 +112,11 @@ internal fun readAddedFields(
     val adapter = instructions[callAt - 1].field!!
     val invoke = if (instructions[callAt].opcode == Opcode.INVOKE_INTERFACE) "invoke-interface" else "invoke-virtual"
 
-    listOf("fakhFirst" to first, "fakhSecond" to second).forEach { (name, take) ->
+    val existing = parserClass.methods.count { it.name.startsWith("fakhFirst") }
+    val firstName = if (existing == 0) "fakhFirst" else "fakhFirst$existing"
+    val secondName = if (existing == 0) "fakhSecond" else "fakhSecond$existing"
+
+    listOf(firstName to first, secondName to second).forEach { (name, take) ->
         parserClass.methods.add(
             ImmutableMethod(
                 type,
@@ -124,7 +128,7 @@ internal fun readAddedFields(
                 null,
                 MutableMethodImplementation(3),
             ).toMutable().apply {
-                val value = any?.takeIf { name == "fakhSecond" }?.let { "invoke-static { p0 }, ${it.smali}" }
+                val value = any?.takeIf { name == secondName }?.let { "invoke-static { p0 }, ${it.smali}" }
                     ?: "sget-object v0, ${adapter.smali}\n$invoke { v0, p0, p1 }, ${call.smali}"
                 addInstructions(
                     0,
@@ -141,9 +145,11 @@ internal fun readAddedFields(
 
     val classInit = parserClass.methods.single { it.name == "<clinit>" }
     val init = classInit.instructions
-    val listAt = init.indices.single { init[it].method?.returnType == LIST }
-    val names = (init[listAt - 2] as? RegisterRangeInstruction)?.registerCount
+    val firstListAt = init.indices.first { init[it].method?.returnType == LIST }
+    val lastListAt = init.indices.last { init[it].method?.returnType == LIST }
+    val baseNames = (init[firstListAt - 2] as? RegisterRangeInstruction)?.registerCount
         ?: throw PatchException("Parser $type: field names not found")
+    val names = baseNames + existing * 2
 
     val register = (instructions[selectAt + 1] as OneRegisterInstruction).registerA
     parser.addInstructionsWithLabels(
@@ -152,10 +158,10 @@ internal fun readAddedFields(
             add-int/lit8 v$register, v$register, -$names
             if-ltz v$register, :known
             if-nez v$register, :second
-            invoke-static/range $passed, $type->fakhFirst($reader$adapters)V
+            invoke-static/range $passed, $type->$firstName($reader$adapters)V
             goto/32 :next
             :second
-            invoke-static/range $passed, $type->fakhSecond($reader$adapters)V
+            invoke-static/range $passed, $type->$secondName($reader$adapters)V
             goto/32 :next
             :known
             add-int/lit8 v$register, v$register, $names
@@ -163,9 +169,9 @@ internal fun readAddedFields(
         ExternalLabel("next", instructions[selectAt - 1]),
     )
 
-    val list = (init[listAt + 1] as OneRegisterInstruction).registerA
+    val list = (init[lastListAt + 1] as OneRegisterInstruction).registerA
     classInit.addInstructions(
-        listAt + 2,
+        lastListAt + 2,
         """
             invoke-static/range { v$list .. v$list }, $extension->names($LIST)$LIST
             move-result-object v$list

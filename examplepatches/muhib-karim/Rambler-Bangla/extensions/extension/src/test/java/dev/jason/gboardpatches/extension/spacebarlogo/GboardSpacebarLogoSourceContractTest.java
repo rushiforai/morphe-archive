@@ -43,16 +43,16 @@ public final class GboardSpacebarLogoSourceContractTest {
     }
 
     @Test
-    public void keyboardGroupKeepsGLogoFirst() throws Exception {
+    public void keyboardAppearanceGroupIncludesSpacebarLogo() throws Exception {
         String source = read(root.resolve(
                 "src/main/java/dev/jason/gboardpatches/extension/keyboard/" +
-                        "GboardKeyboardLayoutSettingsGroupFeature.java"));
+                        "GboardKeyboardAppearanceSettingsGroupFeature.java"));
         int list = source.indexOf("Arrays.asList(");
         int logo = source.indexOf("new GboardSpacebarLogoSettingsFeature", list);
-        int next = source.indexOf("new GboardLatinGlobeKeyIgnoreIntervalSettingsFeature", list);
+        int emoji = source.indexOf("new GboardEmojiSizeSettingsFeature", list);
 
         Assert.assertTrue(logo > list);
-        Assert.assertTrue(logo < next);
+        Assert.assertTrue(logo < emoji);
     }
 
     @Test

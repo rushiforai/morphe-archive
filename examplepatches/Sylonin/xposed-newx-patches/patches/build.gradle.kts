@@ -31,6 +31,13 @@ tasks {
         mainClass.set("util.PatchListGeneratorKt")
     }
 
+    // The bundle's version, shown on post cards.
+    processResources {
+        val bundleVersion = project.version.toString()
+        inputs.property("bundleVersion", bundleVersion)
+        filesMatching("app/xposed/patches/version.txt") { expand("version" to bundleVersion) }
+    }
+
     // Used by gradle-semantic-release-plugin.
     publish {
         dependsOn("generatePatchesList")

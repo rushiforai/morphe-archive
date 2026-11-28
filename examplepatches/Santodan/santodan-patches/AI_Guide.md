@@ -877,18 +877,34 @@ Run `verifyRedditPostBatch` for offline fallback-response checks, including post
 flairs, both ID forms, malformed responses, and HTTP failures. Device checks must cover
 startup with home flairs enabled and keyword/community-flair filtering.
 
-## Peafowl Theme Maker GMS_27.5.1
+## Peafowl Theme Maker GMS_27.5.2
 
 **Peafowl - Unlock Theme Ownership (Experimental)** targets package
-`h7.hamzio.emuithemeotg`. It routes theme initialization through Peafowl's existing
+`h7.hamzio.emuithemeotg` **GMS_27.5.2 / 126** (original
+`../OriginalApps/Peafowl+Theme+Maker+for+EMUI_GMS_27.5.2.xapk`; base plus
+`config.en`/`config.fr`/`config.mdpi` splits). GMS_27.5.1 support is retained, not extended. It routes theme initialization through Peafowl's existing
 local free-theme path, bypassing the RevenueCat ownership preflight without fabricating
 a purchase or modifying a server account. Server-protected downloads are not guaranteed.
+
+**Peafowl - Bypass Signature Verification (Experimental)** targets the same
+`GMS_27.5.2` package. `PeafowlApplication.onCreate` verifies the app's own signing
+certificate at startup (SHA-256 of `signingInfo`/legacy `signatures` against a built-in
+list) and throws `SecurityException("Application signature verification failed.")` on a
+mismatch, so any Morphe-resigned build aborts before any UI. This is the app's own check,
+not Pairip's license/VM protection, so Nai64's "Pairip Bypass" and Morphe's "Spoof
+signature" do not remove it. The patch replaces that one terminal `throw` with an
+equal-width `return-void`: `super.onCreate()` and the whole verification body are kept, but
+a mismatch returns cleanly instead of crashing. It spoofs no certificate and changes no
+Pairip/license code. Enable it alongside the ownership patch to launch a resigned 27.5.2
+build. (GMS_27.5.1 did not enforce this launch check, so the patch targets 27.5.2 only.)
 
 ## Apply and test
 
 1. Disable/remove the old `0.1.0` source, then import the generated `.mpp`
    under `patches/build/libs` as a local patch bundle in Morphe Desktop.
-2. Select the original Peafowl `GMS_27.5.1` APK and enable the patch above.
+2. Select the original Peafowl `GMS_27.5.2` XAPK and enable both the theme-ownership
+   patch and **Peafowl - Bypass Signature Verification (Experimental)** (the latter is
+   needed for the resigned build to start at all).
 3. If you also want the general Pro features, enable Nai64's **Unlock Premium**.
 4. Build and sign the APK with Morphe, then install it using your usual process.
 5. Open a theme that previously showed `RE_ISOWNED`. Check the normal theme action,
@@ -900,7 +916,7 @@ theme initialization. Preserve your current Morphe signing key if you want to up
 installation signed with that key.
 
 Morphe should report `Applied: Peafowl - Unlock Theme Ownership (Experimental)`.
-The new build logs `SantoDan 0.1.1: routed theme initialization through the existing free-theme path`.
+The build logs `SantoDan: routed theme initialization through the existing free-theme path`.
 An unsupported layout raises an error instead of silently succeeding.
 
 ## Build
@@ -929,7 +945,10 @@ ever executes. Version 0.1.1 replaces that strategy.
 The matcher now finds the theme initializer's `sku.equals("free")` decision, its
 paid-theme boolean, the RevenueCat offerings branch, and the alternative
 `Handler.post(Runnable)` free-theme setup. It requires exactly one matching layout
-in `ThemePreviewActivity`; the obfuscated method name is not hard-coded.
+in `ThemePreviewActivity`; the obfuscated method name is not hard-coded (`c0` in 27.5.2).
+GMS_27.5.2 hoists the free path's `const/4 v1, 0` Runnable selector above the
+`if-nez`; the matcher accepts that layout (requiring the hoisted register as the
+Runnable constructor's int argument) and the 27.5.1 in-branch layout.
 
 One `move-result` becomes a same-width `const/4 <original-register>, 1`. The existing
 code clears the paid-theme flag and takes the free-theme branch. This preserves
@@ -945,7 +964,11 @@ the complete download/apply flow works.
 
 ## Peafowl verification
 
-The verification programs under `patches/src/test/java` check a real input DEX for a unique match, reject
+Run `verifyPeafowl` and `verifyPeafowlSignature` (each extracts the base `classes.dex`
+from the 27.5.2 XAPK). `verifyPeafowlSignature` proves a unique `onCreate` verifier match,
+one equal-width `throw`->`return-void` replacement, that no `throw` survives in the method,
+and rejection of empty/ambiguous/changed/already-patched input. The
+verification programs under `patches/src/test/java` check a real input DEX for a unique match, reject
 unrelated/ambiguous/changed/already-patched input, verifies one equal-width
 replacement, and writes/reloads a patched DEX. The regression check interprets the
 actual classification instructions for both paid and free SKUs: both must skip

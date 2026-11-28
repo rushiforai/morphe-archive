@@ -1,0 +1,2 @@
+patchListGeneratorClasspath/com.google.code.gson/gson/2.15.0/gson-2.15.0.jar
+patchListGeneratorClasspath/com.google.errorprone/error_prone_annotations/2.50.0/error_prone_annotations-2.50.0.jar

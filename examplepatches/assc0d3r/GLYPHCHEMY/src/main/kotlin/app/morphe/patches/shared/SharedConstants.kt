@@ -33,6 +33,10 @@ object Constants {
             AppTarget(
                 version = GBOARD_TARGET_VERSION,
                 description = "Download com.google.android.inputmethod.latin v$GBOARD_TARGET_VERSION from APKMirror"
+            ),
+            AppTarget(
+                version = "18.8.1.1022711984-beta-arm64-v8a",
+                description = "Download com.google.android.inputmethod.latin v18.8.1.1022711984-beta-arm64-v8a (arm64-v8a) from APKMirror"
             )
         )
     )

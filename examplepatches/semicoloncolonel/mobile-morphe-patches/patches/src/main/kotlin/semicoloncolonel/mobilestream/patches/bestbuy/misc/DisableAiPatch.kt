@@ -25,6 +25,7 @@ val disableAiPatch = bytecodePatch(
     description = "Hides the AI-written review summaries on product pages.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

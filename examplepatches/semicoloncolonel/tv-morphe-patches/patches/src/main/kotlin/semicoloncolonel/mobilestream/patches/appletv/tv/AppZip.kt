@@ -7,7 +7,7 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
-// Apple TV Android TV 17.0.2 and 17.0.3. The app is JavaScript run by Apple's native
+// Apple TV Android TV 17.0.2 to 17.0.4. The app is JavaScript run by Apple's native
 // engine (libluna), shipped as assets/app.zip. The Java side copies app.zip
 // into the app's data folder each time the APK is installed or updated, with
 // no signature check, so the patches below change the JavaScript in it.

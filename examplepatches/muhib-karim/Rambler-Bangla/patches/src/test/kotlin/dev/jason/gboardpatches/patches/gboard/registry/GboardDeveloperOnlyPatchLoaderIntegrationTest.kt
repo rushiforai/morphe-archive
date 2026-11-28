@@ -155,6 +155,7 @@ class GboardDeveloperOnlyPatchLoaderIntegrationTest {
                             String n = (String) name;
                             if (!n.startsWith("Rambler ")
                                     && !"AMOLED Dark Keyboard".equals(n)
+                                    && !"Clipboard Drag-to-Reorder".equals(n)
                                     && !"Hidden Flags Override".equals(n)
                                     && !"At-Mention & Email Strip Suggestions".equals(n)) {
                                 names.add(n);

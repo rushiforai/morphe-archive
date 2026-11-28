@@ -1,6 +1,6 @@
 # Warung Life Simulator
 
-Patches for **Warung Life Simulator** (`com.neopawstudio.warunglife`), version `1.2`, as an APKS bundle (APKCube)
+Patches for **Warung Life Simulator** (`com.neopawstudio.warunglife`), version `1.3`, as an APKS bundle (APKCube)
 or merged APK.
 
 ## Patches
@@ -17,6 +17,7 @@ Every patch is on by default except Clone. Morphe Manager lists them under **Mod
 | Mods | Legendary fish chance | Makes the legendary fish (Ikan dewa) bite more often than the game's 0.6% of fish that bite. Option: **Chance (%)** (default 75%; 5%, 10%, 25%, 50%, 75% or 100%). |
 | Mods | Unlock tester outfit | Unlocks the Kaos & sarung outfit that is a reward for the game's testers, normally also given on day 30 of the daily gift calendar. |
 | Mods | GmsCore support | Makes "Tautkan akun" with Google work by signing in through microG RE (GmsCore) instead of Google Play services, so the warung saved to your Google account comes back. Needs microG RE installed and signed in to a Google account. |
+| Privacy | Disable analytics | Turns off analytics, crash reporting, Play Integrity checks, and device-ID telemetry, and spoofs the Android device ID. Google cloud save still works. |
 | Theme | Themed icon | Adds the themed (monochrome) app icon of Android 13 and later, which follows the wallpaper colors. |
 
 ## How it works
@@ -54,9 +55,9 @@ See the [repo README](../../README.md).
 With [morphe-desktop](https://github.com/MorpheApp/morphe-desktop/releases) 2.2.0 or newer (needs Java 21):
 
 ```bash
-java -jar morphe-desktop-2.2.0-all.jar patch -p patches/build/libs/patches-<version>.mpp -o warunglife-patched.apk <Warung Life 1.2 APKS>
+java -jar morphe-desktop-2.2.0-all.jar patch -p patches/build/libs/patches-<version>.mpp -o warunglife-patched.apk <Warung Life 1.3 APKS>
 ```
 
 ## Getting the APK
 
-Download the `1.2` APKS from APKCube by hand. Morphe Manager's own lookup only knows APKMirror and Uptodown pages.
+Download the `1.3` APKS from APKCube by hand. Morphe Manager's own lookup only knows APKMirror and Uptodown pages.

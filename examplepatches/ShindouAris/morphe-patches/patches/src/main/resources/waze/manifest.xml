@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- What the Waze Mod adds to Waze's manifest. WazeModPatch.kt merges it: <queries> children into Waze's <queries>,
+     <application> children into <application>, the rest into <manifest>. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <queries>
+    <package android:name="com.google.android.apps.maps" />
+    <package android:name="com.kaibatech.drivedeck.xadas" />
+    <intent>
+      <action android:name="com.kaibatech.drivedeck.xadas.action.BIND_LINK" />
+    </intent>
+  </queries>
+  <uses-feature android:name="android.hardware.usb.host" android:required="false" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+  <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+  <application>
+    <service android:name="com.waze.gw.BubbleKeepAliveService"
+             android:exported="false"
+             android:stopWithTask="false"
+             android:foregroundServiceType="location" />
+    <service android:name="com.waze.gw.HudLinkService"
+             android:exported="false"
+             android:stopWithTask="false"
+             android:foregroundServiceType="connectedDevice" />
+    <activity android:name="com.waze.gw.HudActivity"
+              android:label="Waze HUD"
+              android:exported="false"
+              android:launchMode="singleTask"
+              android:screenOrientation="sensorLandscape"
+              android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
+    <activity android:name="com.waze.gw.PortraitHudActivity"
+              android:label="Waze HUD"
+              android:exported="false"
+              android:launchMode="singleTask"
+              android:screenOrientation="sensorPortrait"
+              android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
+    <activity android:name="com.waze.gw.ModSettingsActivity"
+              android:label="Mod settings"
+              android:exported="false"
+              android:theme="@android:style/Theme.Material.NoActionBar" />
+    <activity android:name="com.waze.gw.HudDevicePickerActivity"
+              android:label="HUD Link devices"
+              android:exported="false"
+              android:theme="@android:style/Theme.Material.Light.NoActionBar" />
+    <service android:name="com.waze.gw.WazeModDataService"
+             android:exported="true">
+      <intent-filter>
+        <action android:name="com.wazemod.api.action.BIND" />
+      </intent-filter>
+    </service>
+    <activity android:name="com.waze.gw.ApiConsentActivity"
+              android:exported="true"
+              android:excludeFromRecents="true"
+              android:theme="@android:style/Theme.Translucent.NoTitleBar">
+      <intent-filter>
+        <action android:name="com.wazemod.api.action.REQUEST_ACCESS" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+    </activity>
+  </application>
+</manifest>

@@ -49,6 +49,7 @@ val cloneAppPatch = resourcePatch(
     description = "Clone futatter for side-by-side installation. Default package suffix: .morphe. Cloning may not work on all devices.",
     default = true,
 ) {
+    dependsOn(dev.rikunode.futatabi.arm64TargetGuard)
     compatibleWith(
         Compatibility(
             name = "futatter",

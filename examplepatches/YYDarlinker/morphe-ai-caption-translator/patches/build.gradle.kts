@@ -15,12 +15,6 @@ patches {
     }
 }
 
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.add("-Xcontext-parameters")
-    }
-}
-
 // Separate configuration so gson is available at runtime for the patch-list generator but is
 // never bundled into the patched YouTube APK.
 val patchListGeneratorClasspath = configurations.create("patchListGeneratorClasspath")
@@ -36,6 +30,7 @@ tasks {
         dependsOn("buildAndroid")
         classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
         mainClass.set("util.PatchListGeneratorKt")
+        args(layout.buildDirectory.file("libs/patches-${project.version}.mpp").get().asFile.absolutePath)
     }
 
     publish {
@@ -45,22 +40,20 @@ tasks {
 
 // Explicit, opt-in separate-bundle integration; never part of publication assets.
 // An official distribution JAR can supply the same Patcher when GitHub Packages is unavailable.
-val compositionPatcherJar = providers.gradleProperty("composition.patcherJar")
-val localCompositionPatcherJar = compositionPatcherJar.orNull?.let { file(it) }
-    ?: rootProject.file(".verification/toolchain/morphe-patcher-2.0.0-all.jar").takeIf { it.isFile }
+val localCompositionPatcherJar = providers.gradleProperty("composition.patcherJar").orNull?.let { file(it) }
 localCompositionPatcherJar?.let { jar ->
     val version = ZipFile(jar).use { zip ->
         Properties().apply {
             zip.getInputStream(zip.getEntry("app/morphe/patcher/version.properties")).use { load(it) }
         }.getProperty("version")
     }
-    require(version in setOf("2.0.0", "2.4.0")) { "Composition requires a verified Patcher (2.0.0 or 2.4.0), got $version" }
+    require(version == libs.versions.morphe.patcher.get()) { "Composition Patcher version mismatch: $version" }
 }
 dependencies {
     if (localCompositionPatcherJar != null) {
         testImplementation(files(localCompositionPatcherJar))
     } else {
-        testImplementation("app.morphe:morphe-patcher:2.0.0") { version { strictly("2.0.0") } }
+        testImplementation("app.morphe:morphe-patcher:${libs.versions.morphe.patcher.get()}")
     }
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
     testImplementation("com.android.tools.build:apkzlib:9.1.1")

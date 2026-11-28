@@ -1,179 +1,106 @@
 # Resume playback
 
-The `Resume playback` patch keeps the play head of the last twelve videos in memory and seeks back
-to it when a video is opened again. It is a bytecode patch plus the
-`extensions/tiktok/playback` code.
+The `Resume playback` patch makes TikTok hand a video back at the position it already stored. It
+opens two of the app's own progress-continue gates and leaves the restore to the player: no seek
+is issued, so there is no frame at zero, no jump and no flash.
 
-Version scope: 47.7.1, 47.7.2 and 47.7.3.
+Version scope: 47.9.1, 47.9.2, 47.9.3, 48.0.1 and 48.0.2.
+
+## What the app already has
+
+TikTok keeps a position per item and, for its own "continue where you left off" behaviour, asks two
+questions before using it:
+
+| Gate | Where | Shape |
+|---|---|---|
+| may this build continue at all | a lambda reading `FeedPlayProgressContinueConfig.enable` | `invoke()Ljava/lang/Object;` |
+| may this feed continue | the resume method's `event_type_list.contains(eventType)` | `(Aweme,String,String)J` |
+
+The second method is the one that answers "where should this video start"; it returns the stored
+millisecond, or `0` when the app does not want to resume.
+
+Both are forced open while the switch in Tweaks is on. The position itself is never read, written
+or converted by this patch: the app's store and the player own it.
 
 ## Hooks
 
-The patch treats playback as a small state machine, because the progress tick alone cannot see
-every position change:
-
 | Hook | Role |
 |---|---|
-| `onPreparePlay(String)` / `onPreparePlay(String, event)` | the open boundary: reset the per-open flags |
-| `onSeekStart(String, int, float)` | a user seek began; progress ticks must not save the intermediate value |
-| `onSeekEnd(String, boolean)` / `onRenderSeekComplete(String, boolean)` | the seek ended; read the exact position, save it, or clear it at the start/end |
-| `onPlayProgressChange(String, long, long)` | the fallback save while playing |
-| `onPausePlay(String)` / `onPausePlay(String, event)` | the exact save before the event handler can move the play head |
-| `onPlayCompleted(String)` / `(String, int)` | the video finished: the entry goes |
-| `onLoopPlay(String, int)` | the video looped: the entry goes, the reset is not a user seek |
-| `onPlayRelease(String)` / `onStopPlay(String)` | the final save when no pause callback arrives |
-| `onPlayFailed(...)` / `onRetryOnError(...)` / `onResolutionSwitchComplete(...)` | the surface is recovering; a temporary zero must not erase the point |
-| `onRenderFirstFrame(String, event)` / `onRenderFirstFrameFromResume(String)` | the restore seek |
+| `onPreparePlay`'s continue lambda | returns `true` while the switch is on |
+| the resume method's event type check | replaces the allow-list answer with the gate below |
+| `PlayerController#onPlayProgressChange(String, long, long)` | keeps the completed set up to date |
+| `PlayerController#onPlayCompleted(String)` / `(String, int)` | marks the item finished |
 
-`onPlayStop` is deliberately not used as the main save; at that point the controller's position has
-already fallen back to the older `lastPosition`. The release/stop hooks above only make a final
-save from the last valid position.
+Nothing else is hooked: the playhead, the seek bar, pause, release, loop and the failure callbacks
+are the app's business again.
 
-## PlayerController callbacks that are not hooked
+## The completed set
 
-The class exposes more callbacks than the feature needs. These are deliberately left alone:
+The app would resume a video that already finished at its last second. `ResumePlayback` keeps an
+in-memory set of item ids that must not resume, and the resume gate refuses those.
 
-| Callback | Why it is not used |
-|---|---|
-| `onPlayCompletedFirstTime` | a subset of `onPlayCompleted`; clearing there as well would be duplicate work |
-| `onPlayStop(...)` (four overloads) | the position has already fallen back to `lastPosition`; `onPlayRelease` / `onStopPlay` are the final-save paths |
-| `onPlayPause`, `onPause()`, `onResume()`, `onPlaying`, `onResumePlay` | state notifications; no position change that the progress/pause hooks do not see first |
-| `onPlayPrepare`, `onPlayPrepared` | prepare aliases; `onPreparePlay` is the open boundary |
-| `onSpeedChanged` | changes the tick cadence, not the position unit (still milliseconds) |
-| `onResolutionSwitchStart` | the completion callback already marks the item suspect |
-| `onBuffering`, `onDecoderBuffering` | buffering state, not a play head |
-| `onVideoSecondFrame`, `onVideoSizeChanged`, `onFrameAboutToBeRendered`, `onRenderReady`, `onPreRenderReady`, `onPreRenderSessionMissed`, `onLiveRenderFirstFrame` | rendering/metrics, not a position to remember |
-| `onRenderFirstFrame(event)` | the event-only overload has no source id; the two-parameter overload is the hooked one |
-| `onPlayerInternalEvent`, `onBufferedPercent`, `onBufferedTimeMs`, `onVideoBitrateChanged`, `onBrightnessChanged`, `onMaskInfoCallback`, `onCrosstalkHappened` | telemetry/player metrics |
-| `onPageScrollStateChanged` | pager scroll, not playback |
-| `onAttach`, `onDetach`, `onDestroyView`, `onPause()`, `onResume()` | lifecycle without a source id; the per-item callbacks carry the id |
-| `getCurrentPosition`, `getPlayerManager`, `getContext`, `getEventType`, `getPageType` | helpers; the extension reads the manager and the controller directly |
+A progress tick marks an item when it
 
-## Per-page or global?
+- reached its duration,
+- is still below the start threshold, or
+- is inside the end threshold of the end.
 
-The store is **global by `aid`**, not per page. A video is the same content whether it is opened
-from the For You feed, search, a profile, or a deep link; giving each surface its own key would
-create several resume points for one video and confuse the next open.
+`onPlayCompleted` marks it as well. A later tick outside those bounds clears the mark, so a video
+rewatched past the start threshold resumes normally the next time it is opened.
 
-The current patch saves and restores by `aid` on every surface. If the feed's autoplay behaviour
-should differ, the policy can be split without changing the key. A sane split is:
+The set holds the 32 most recently marked ids, newest last. It lives in memory only; a process
+death clears it, and the next watch re-marks whatever it sees.
 
-| Surface | Save | Restore |
-|---|---|---|
-| detail, search result detail, profile video, `video lainnya` | yes | yes |
-| For You / Following autoplay | yes, subject to the thresholds | no by default; a video that merely scrolled past should not jump to an old position. A later `Resume in feed` switch can opt in |
-| LIVE, ad, photo mode, story | no | no |
+## Why the restore is not a seek
 
-So: no per-page storage, and no separate hook set per page. `PlayerController` is shared; one set
-of hooks covers every surface. Only the restore decision needs the surface classification, and that
-classification belongs in the extension, not in the map key.
+An earlier version of this feature kept its own twelve-item map and called the manager's
+`seek(float)` at `onPlayPrepared`, with `onRenderFirstFrame` as a fallback. It worked, but the seek
+had to land before the first frame and the guard that protected the target from the pre-seek ticks
+made the restore timing-sensitive: a slow player left the video running from zero for the rest of
+the open, and a missed seek showed the first frame before jumping.
 
-The surface can be read from the controller's real-named `getContext()` activity (the detail pages
-report `com.ss.android.ugc.aweme.detail.ui.DetailActivity`, the main feed reports
-`com.ss.android.ugc.aweme.main.MainActivity`). `getEventType()` / `getPageType()` are the fallback
-when the activity is not one of those.
+The play request was not a substitute. On 47.9.x and 48.x its start-time value does reach the
+engine as `init_start_time_ms`, but playback still began at 0, and the nonzero value brought the
+cover flash back on pause; on 47.7.x and 47.8.3 it never reached the player at all.
 
-## Data
+With the two gates open the app does the whole job itself, at the point in its own pipeline where
+it knows the duration, the player state and the feed. That is why the patch no longer seeks, keeps
+no position and applies no thresholds of its own; the thresholds only decide which items are
+allowed to resume.
 
-`ResumePlayback` keeps one `Entry` per item id:
+## What this does not cover
 
-```text
-Entry {
-  positionMs, durationMs, updatedAtMs, lastKnownPositionMs,
-  openedAtMs, seeking, seekStartedAtMs, seekTargetMs,
-  userSeeking, suspect, started
-}
-```
+The app's store is the only source of positions. If TikTok has no position for an item (a fresh video, a cleared store, a process it no
+longer remembers), nothing is resumed. The patch cannot
+resume further back than the app itself would.
 
-The map is a `LinkedHashMap` with `accessOrder = true`, capped at twelve entries. `get` and `put`
-move an item to the young end, so a thirteenth item evicts the **least recently touched** one, not
-the first one ever saved. Nothing is written to disk; killing the process clears every position.
+The completed set is fed by the feed player's callbacks. A video that finishes in the detail page
+is marked only if the feed controller reports it; otherwise the app's own handling of a finished
+item applies.
 
-The item id is the callback's `sourceId`. The controller's `mCurrentAid` is only the fallback,
-because it can still name the previous cell on a preloaded item.
+## Thresholds
 
-## What is saved
+`Skip from start` (default 4 s) and `Skip from end` (default 4 s) are checked on every progress
+tick, and the completed set is what applies them:
 
-The same thresholds apply to progress ticks, pauses and seek completion:
-
-- before the start threshold: not saved;
-- within the end threshold of the video's end: the entry is removed;
-- otherwise the position and duration are stored together.
-
-Progress ticks smaller than 250 ms do not rewrite the entry; pause and user-seek completion always
-store the exact value. The duration is accepted at once when it is close to the stored one (within
-two seconds). A larger jump is held back until the same new value repeats for three readings: one
-neighbouring preloaded item's duration cannot become this item's seek denominator, but a genuine
-server-side duration change still lands after a few ticks.
-
-A progress tick below the start threshold removes an older resume point only when this open has
-already played past that threshold. Before that, the tick is the pre-seek play head and must leave
-the point it is about to restore alone.
-
-A pause or a successful user seek below the start threshold clears the point explicitly: those
-callbacks are user actions, not the pre-seek tick.
-
-A reported position of `0` is a real position, not a missing one. The manager's value is kept
-unclamped: only a negative value means "position unavailable", and only then does a save fall back
-to the last saved position. Clamping it to zero made a seek back to the start and a released player
-look the same, so seeking to `00:00` and reopening the video resumed at the old point instead of
-clearing it.
-
-## Recovery states
-
-- `onSeekStart` sets `userSeeking`; progress and pause callbacks ignore the item until the seek ends.
-- `onSeekEnd`/`onRenderSeekComplete` read the final position. A failed seek leaves the previous
-  point untouched.
-- `onPlayFailed`, `onRetryOnError` and `onResolutionSwitchComplete` set `suspect`. While suspect, a
-  zero or a sub-start position is ignored; the next position past the start threshold clears the
-  flag and saves normally.
-- `onPlayCompleted` and `onLoopPlay` remove the entry; the loop's reset to zero must not be treated
-  as a user seek.
-- `onPlayRelease`/`onStopPlay` make one final save from the current position, or from the stored
-  position when the player can no longer report one.
-
-## Restore
-
-On the first frame:
-
-1. read the entry, its stored duration and the player's current position;
-2. if the current position is already within one second of the target, do not seek;
-3. otherwise install the guard **before** calling the manager's `seek(float)`:
-
-```text
-seeking = true
-seekStartedAt = now
-seekTarget = clamp(saved position, start, duration - 1s)
-seek(seekTarget * 100 / duration)
-```
-
-While `seeking` is true, progress ticks are ignored until the player reports a position within one
-second of the target, or five seconds pass. This is what keeps the first ticks, which still
-describe the pre-seek play head, from moving the resume point backwards. A pause during the guard
-keeps the target; it does not save the pre-seek position.
-
-The guard is per item, not global: a repeated first-frame callback while the first seek is in
-flight does not issue a second seek.
-
-## Example
-
-Duration 6:00, two-second end threshold:
-
-| Event | Result |
-|---|---|
-| tick at 5:00 | entry `(5:00, 6:00)` |
-| tick at 6:00 | within 2 s of the end: entry removed |
-| tick back at 5:00 | entry `(5:00, 6:00)` again |
-
-There is no "new duration" here: the duration is a property of the video, not of the position. The
-position changes; when the entry was cleared at the end, the return creates it again.
+- a video left inside the start threshold is marked, so it starts over;
+- a video left inside the end threshold is marked, so it starts over;
+- anything between the two thresholds resumes.
 
 ## Diagnostics
 
 The About section prints one line from `ResumePlayback.summary()`:
 
 ```text
-Resume playback: 84 saved, 41 restored, 6 seeked, 7 cleared, 5 evicted · seek ... pos=300000 dur=360000
+Resume playback: 12 resumed, 2 from the start, 3 finished · 7712025979194969351 resumes
 ```
 
-Nothing is logged per tick. Read the line after watching and reopening a video; the counters show
-whether the save, the seek and the eviction paths actually ran.
+With diagnostics on, each gate answer is one line:
+
+```text
+resume: 7712025979194969351 resumes app=true
+resume: 7712025979194969351 starts over app=true
+```
+
+`app=` is TikTok's own allow-list answer before the override; a `resumes` next to `app=false` is
+the override doing its job.

@@ -17,6 +17,7 @@ import app.xposed.patches.twitter.util.replaceStub
 import app.xposed.patches.twitter.util.single
 import app.xposed.patches.twitter.util.stringRef
 import app.xposed.patches.twitter.util.toStringFields
+import app.xposed.patches.twitter.util.toStringFieldsOf
 import app.xposed.patches.twitter.util.typeRef
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -49,12 +50,6 @@ internal fun BytecodePatchContext.hookTimelineProfiles(minimalUser: String) {
     hookQueryVariables()
 }
 
-private fun BytecodePatchContext.toStringOf(type: String, what: String): Map<String, FieldReference> {
-    val toString = classDefBy(type).methods.firstOrNull { it.name == "toString" && it.parameterTypes.isEmpty() }
-        ?: throw PatchException("$what ($type) has no toString")
-    return toStringFields(toString)
-}
-
 /** ModelBridge stubs for the GraphQL user and its profile-only part, and the mapper hook. */
 private fun BytecodePatchContext.writeGraphqlUserBridge(minimalUser: String) {
     val graphqlUser = GraphqlUserToStringFingerprint.matchSingle()
@@ -63,18 +58,18 @@ private fun BytecodePatchContext.writeGraphqlUserBridge(minimalUser: String) {
     val restId = userFields.field("GraphqlUser", "rest_id", "J")
     val profileOnly = userFields.field("GraphqlUser", "userProfileOnly")
 
-    val profileFields = toStringOf(profileOnly.type, "UserProfileOnly")
+    val profileFields = toStringFieldsOf(profileOnly.type)
     val website = profileFields.field("UserProfileOnly", "website")
     val tweetCounts = profileFields.field("UserProfileOnly", "tweet_counts")
     val location = profileFields.field("UserProfileOnly", "location")
     val bio = profileFields.field("UserProfileOnly", "profile_bio")
-    val websiteUrl = toStringOf(website.type, "Website").field("Website", "url", STRING)
-    val tweets = toStringOf(tweetCounts.type, "Tweet_counts").field("Tweet_counts", "tweets", "Ljava/lang/Long;")
-    val locationText = toStringOf(location.type, "Location").field("Location", "location", STRING)
-    val bioEntities = toStringOf(bio.type, "Profile_bio").field("Profile_bio", "entities")
-    val entitiesUrl = toStringOf(bioEntities.type, "Entities").field("Entities", "url")
-    val entitySet = toStringOf(entitiesUrl.type, "Url").field("Url", "graphqlEntitySet")
-    val urls = toStringOf(entitySet.type, "GraphqlEntitySet").field("GraphqlEntitySet", "urls", "Ljava/util/List;")
+    val websiteUrl = toStringFieldsOf(website.type).field("Website", "url", STRING)
+    val tweets = toStringFieldsOf(tweetCounts.type).field("Tweet_counts", "tweets", "Ljava/lang/Long;")
+    val locationText = toStringFieldsOf(location.type).field("Location", "location", STRING)
+    val bioEntities = toStringFieldsOf(bio.type).field("Profile_bio", "entities")
+    val entitiesUrl = toStringFieldsOf(bioEntities.type).field("Entities", "url")
+    val entitySet = toStringFieldsOf(entitiesUrl.type).field("Url", "graphqlEntitySet")
+    val urls = toStringFieldsOf(entitySet.type).field("GraphqlEntitySet", "urls", "Ljava/util/List;")
     val urlsEntity = GraphqlUrlsEntityToStringFingerprint.matchSingle()
     val urlsEntityType = urlsEntity.originalClassDef.type
     val urlsEntityFields = toStringFields(urlsEntity.originalMethod)

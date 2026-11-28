@@ -6,7 +6,7 @@
 package app.fakh.patches.github
 
 import app.fakh.patches.shared.register
-import app.fakh.patches.github.shared.Constants.REPOSITORY_AGE
+import app.fakh.patches.github.shared.Constants.SHOW_REPOSITORY_AGE
 import app.fakh.patches.github.shared.Constants.COMPATIBILITY_GITHUB
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
@@ -179,8 +179,8 @@ private fun MethodReference.isIconRow(composer: String) =
     types.size == 17 && types[6] == STRING && types[8] == "J" && types[13] == composer
 
 @Suppress("unused")
-val repositoryAgePatch = patch(
-    name = "Repository age",
+val showRepositoryAgePatch = patch(
+    name = "Show repository age",
     description = "Shows when a repository was created, under its stars and forks.",
     default = true,
 ) {
@@ -190,7 +190,7 @@ val repositoryAgePatch = patch(
     extendWith("extensions/extension.mpe")
 
     execute {
-        register(REPOSITORY_AGE)
+        register(SHOW_REPOSITORY_AGE)
         var model: String? = null
         val queries = mutableListOf<Pair<String, String>>()
         val parsers = mutableListOf<String>()

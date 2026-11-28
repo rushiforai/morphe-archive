@@ -74,6 +74,7 @@ val disableAiPatch = bytecodePatch(
     description = "Turns off Rufus, Amazon's AI shopping assistant, and the AI assistant in Amazon Pay.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

@@ -1,8 +1,8 @@
 package semicoloncolonel.mobilestream.patches.cbsnews.misc
 
+import semicoloncolonel.mobilestream.patches.shared.misc.isOptionOn
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.patch.bytecodePatch
-import semicoloncolonel.mobilestream.patches.cbsnews.shared.Constants
 import semicoloncolonel.mobilestream.patches.shared.misc.returnEarly
 
 // CBS News 5.20 shows Qualtrics surveys, and the rate-the-app prompt that a
@@ -17,17 +17,12 @@ private fun qualtricsFingerprint(name: String) = object : Fingerprint(
     parameters = listOf("Landroid/app/Activity;", "Ljava/lang/String;"),
 ) {}
 
-@Suppress("unused")
-val hideSurveysPatch = bytecodePatch(
-    name = "Hide surveys",
-    description = "Stops the Qualtrics surveys and the rating prompt they can lead to.",
-) {
-    category("Interface")
-    compatibleWith(Constants.COMPATIBILITY)
-
+// Part of hidePromptsAndPopupsPatch: runs only when its "surveys" option is on.
+internal val hideSurveysPatch = bytecodePatch {
     dependsOn(disableSignatureCheckPatch)
 
     execute {
+        if (!isOptionOn(hidePromptsAndPopupsPatch, "surveys")) return@execute
         listOf("startPromptTargetting", "startNotificationTargetting", "startPromptCBSNTargetting").forEach {
             qualtricsFingerprint(it).method.returnEarly("return-void")
         }

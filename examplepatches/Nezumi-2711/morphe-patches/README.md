@@ -24,7 +24,7 @@ still require device validation; local APK checks alone do not verify them.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.8.0-dev.5](https://github.com/Nezumi-2711/morphe-patches/releases/tag/v1.8.0-dev.5)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;27 patches total
+> **[v1.8.0](https://github.com/Nezumi-2711/morphe-patches/releases/tag/v1.8.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;27 patches total
 <details open>
 <summary>📦 Zalo&nbsp;&nbsp;•&nbsp;&nbsp;27 patches</summary>
 <br>
@@ -53,7 +53,7 @@ still require device validation; local APK checks alone do not verify them.
 | [Hide ads in Messages](#hide-ads-in-messages) | Hide Z Instant Ads rows in Zalo's Messages page when enabled in Nezumi Settings. |  |
 | [Hide delivery receipts](#hide-delivery-receipts) | Suppress outgoing message delivery ACKs when enabled in Nezumi Settings. |  |
 | [Hide feed ads](#hide-feed-ads) | Remove sponsored and advertising items from Zalo's user feed when enabled in Nezumi Settings. |  |
-| [Hide read receipts](#hide-read-receipts) | Keep outgoing read receipts private while retaining delivery ACKs when enabled in Nezumi Settings. Adds a Mark as read button to the chat toolbar for sending a read receipt on demand. |  |
+| [Hide read receipts](#hide-read-receipts) | Keep outgoing read receipts private while retaining delivery ACKs when enabled in Nezumi Settings. Adds a Mark as read button to the chat toolbar for sending a read receipt on demand; the button can be hidden in Nezumi Settings. |  |
 | [Hide text typing](#hide-text-typing) | Hide outgoing text typing in direct and group chats when enabled in Nezumi Settings. |  |
 | [Keep recalled messages](#keep-recalled-messages) | Keep received messages and locally available photos after another user recalls them, when enabled in Nezumi Settings. |  |
 | [Mark as read from notifications](#mark-as-read-from-notifications) | Adds Mark as read to chat, reaction, message error and missed Zalo call notifications, and Mark all as read when two or more conversations have notifications. Read receipts follow the Hide read receipts setting. |  |

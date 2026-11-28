@@ -162,6 +162,7 @@ abstract class EditorWindow extends Window {
 	}
 
 	private Image nextStepperIcon;
+	private int nextStepperHold;
 	private int nextStepperDecimals;
 
 	/**
@@ -187,6 +188,13 @@ abstract class EditorWindow extends Window {
 		nextStepperIcon = icon;
 	}
 
+	/**
+	 * Makes holding - or + on the next stepper change it by [step], instead of ten steps.
+	 */
+	protected void stepperHold(int step) {
+		nextStepperHold = step;
+	}
+
 	protected void addStepper(String label, String display, int current, int step, int min, int max, IntAction setter) {
 		addStepper(label, display, current, step, min, max, setter, true);
 	}
@@ -201,15 +209,17 @@ abstract class EditorWindow extends Window {
 	protected void addStepper(String label, String display, int current, int step, int min, int max, IntAction setter, boolean enabled, Runnable onReset) {
 		int decimals = nextStepperDecimals;
 		nextStepperDecimals = 0;
+		int hold = nextStepperHold > 0 ? nextStepperHold : step * 10;
+		nextStepperHold = 0;
 		float textLeft = 0;
 		Image icon = nextStepperIcon;
 		nextStepperIcon = null;
 		if (icon != null) {
-			icon.x = (ICON_SPACE - icon.width()) / 2f;
+			icon.x = Math.max(0, (ICON_SPACE - icon.width()) / 2f);
 			icon.y = pos + (ROW_HEIGHT - icon.height()) / 2f;
 			PixelScene.align(icon);
 			add(icon);
-			textLeft = ICON_SPACE;
+			textLeft = Math.max(ICON_SPACE, icon.x + icon.width() + GAP);
 		}
 		if (labelAbove) {
 			labelAbove = false;
@@ -237,7 +247,7 @@ abstract class EditorWindow extends Window {
 		}
 
 		float x = right - 2 * STEP_WIDTH - VALUE_WIDTH - 2 * GAP;
-		addStepButton("-", x, current, -step, setter).enable(enabled);
+		addStepButton("-", x, current, -step, -hold, setter).enable(enabled);
 
 		RedButton value = new RedButton(display, 6) {
 			@Override
@@ -252,11 +262,11 @@ abstract class EditorWindow extends Window {
 		value.enable(enabled);
 		add(value);
 
-		addStepButton("+", value.right() + GAP, current, step, setter).enable(enabled);
+		addStepButton("+", value.right() + GAP, current, step, hold, setter).enable(enabled);
 		pos += ROW_HEIGHT + GAP;
 	}
 
-	private RedButton addStepButton(String label, float x, int current, int delta, IntAction setter) {
+	private RedButton addStepButton(String label, float x, int current, int delta, int holdDelta, IntAction setter) {
 		RedButton button = new RedButton(label) {
 			@Override
 			public void onClick() {
@@ -266,7 +276,7 @@ abstract class EditorWindow extends Window {
 
 			@Override
 			public boolean onLongClick() {
-				setter.run(current + delta * 10);
+				setter.run(current + holdDelta);
 				refresh();
 				return true;
 			}

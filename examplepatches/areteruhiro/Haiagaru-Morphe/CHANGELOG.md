@@ -1,3 +1,79 @@
+# Haiagaru 1.56.1 (2026-11-27)
+
+### 修正
+
+ぬこの過去ログ検索で「元スレのURLを取得できませんでした」となる問題を修正しました。Android標準のDalvik User-Agentでは空のHTTP 200が返るため、転送先の問い合わせにブラウザ系User-Agentを指定します。実機Fridaで修正前の200・転送先なしと、修正後の302・元スレURLありを確認し、コンパイルも成功しました。
+
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- Kitadai 様
+- ポジ 様
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+- tesu tesu（ﾜｯﾁｮｲ 12fb-0bb6 ID:.0MKHNvk00）様（エッヂのNG判定高速化の調査・情報提供）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+# Haiagaru 1.56.0 (2026-11-27)
+
+### 追加機能
+
+YouTubeリンクは公開oEmbedから動画タイトル・動画サムネイル・チャンネル名を取得します。通常のHTMLカード取得とは別経路を使用します。前版で自動追加したYouTube初期除外リストは、初期リストと完全一致する場合だけ解除し、利用者が編集した除外リストを保持します。
+
+ぬこの過去ログ検索結果をクリックすると、ぬこの公式PC版への転送先から元スレURLを取得してChMateへ渡します。長押しではスレ名・URLなどの共通コピーメニューを表示します。専用ビューア1・2に対応します。
+
+Imgurアルバム取得が一時的に失敗した場合、表示対象が残り、現在の取得設定が許可する場合に限り、最大2回再試行します。モバイル通信への切り替え中などに失敗した後、サムネイルが追加されない経路を改善します。
+
+画像NGの登録画面名を「Haiagaru NG画像追加（判定レベル・一致枚数）」へ変更しました。既存のスレ一覧画像への適用設定が、ChMate標準Image NGとは独立した設定であることを明記しました。
+
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- Kitadai 様
+- ポジ 様
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+- tesu tesu（ﾜｯﾁｮｲ 12fb-0bb6 ID:.0MKHNvk00）様（エッヂのNG判定高速化の調査・情報提供）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
 # Haiagaru 1.55.1 (2026-11-27)
 
 ### 修正

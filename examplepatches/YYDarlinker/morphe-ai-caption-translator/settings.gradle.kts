@@ -1,4 +1,4 @@
-rootProject.name = "morphe-ai-caption-translator"
+rootProject.name = "anchored-ai-captions"
 
 pluginManagement {
     repositories {
@@ -18,12 +18,11 @@ pluginManagement {
 }
 
 plugins {
-    id("app.morphe.patches") version "2.0.0"
+    id("app.morphe.patches") version "2.1.2"
 }
 
 include(":caption-contracts", ":caption-shared", ":translation-core")
 
-include(":ui-preview")
 
 settings {
     extensions {

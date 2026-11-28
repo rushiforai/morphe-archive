@@ -1,6 +1,7 @@
 package app.onlynazril.patches.tiktok.handle
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -19,12 +20,15 @@ import app.onlynazril.patches.shared.Constants.COMPATIBILITY_TIKTOK
 import app.onlynazril.patches.tiktok.shared.ApplicationOnCreateFingerprint
 
 private const val HANDLE_DELEGATE = "Lapp/onlynazril/extension/tiktok/HandleDelegate;"
+private const val HANDLE_COPY = "Lapp/onlynazril/extension/tiktok/HandleCopy;"
 private const val BIND_BRIDGE = "Lapp/onlynazril/extension/tiktok/BindBridge;"
 private const val APP_CONTEXT = "Lapp/onlynazril/extension/tiktok/internal/AppContext;"
 private const val AUTHOR_INFO_BRIDGE = "Lapp/onlynazril/extension/tiktok/AuthorInfoBridge;"
 private const val COMMENT_DATE_BRIDGE = "Lapp/onlynazril/extension/tiktok/CommentDateBridge;"
+private const val POLL_DATE_BRIDGE = "Lapp/onlynazril/extension/tiktok/PollDateBridge;"
 private const val COMMENT_MODEL = "Lcom/ss/android/ugc/aweme/comment/model/Comment;"
 private const val TEXT_VIEW = "Landroid/widget/TextView;"
+private const val MENTION_TEXT = "Lapp/onlynazril/extension/tiktok/MentionText;"
 
 /**
  * Runs `body` at the method's first instruction with the first [count] parameters in v0, v1, …
@@ -135,7 +139,8 @@ private fun MutableMethod.injectBeforeReturns(body: String) {
 val tiktokHandlePatch = bytecodePatch(
     name = "Handle, time & region",
     description = "Shows the @handle, the region and the post time on feed videos and comments, " +
-        "including a video shared into a chat. Each surface and each part has a switch in Tweaks.",
+        "including comment polls and a video shared into a chat. Each surface and each part has a " +
+        "switch in Tweaks.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_TIKTOK)
@@ -151,6 +156,21 @@ val tiktokHandlePatch = bytecodePatch(
                 invoke-static {p2}, $BIND_BRIDGE->onBind(Ljava/lang/Object;)V
             """.trimIndent(),
         )
+
+        // Comment binds mark the surface themselves. The renderer used to walk the stack for every
+        // name to tell a comment from the feed, and that walk was the comment list's scroll cost.
+        CommentCellBindFingerprint.methodOrNull?.let { bind ->
+            bind.addInstructions(0, "invoke-static {}, $BIND_BRIDGE->enterComments()V")
+            val returns = bind.implementationOrPatchException("Handle")
+                .instructions
+                .withIndex()
+                .filter { it.value.opcode == Opcode.RETURN_VOID }
+                .map { it.index }
+                .sortedDescending()
+            for (index in returns) {
+                bind.addInstructions(index, "invoke-static {}, $BIND_BRIDGE->leaveComments()V")
+            }
+        }
 
         // Capture Aweme region for CC — DexKit verified 47.0.3 Aweme.getRegion real-named, 2 regs
         AwemeGetRegionFingerprint.method.addInstructions(
@@ -286,11 +306,82 @@ val tiktokHandlePatch = bytecodePatch(
             }
         }
 
+        // A poll is its own cell, so its date is written by a different method than a comment's.
+        // The same time and region rules apply: the poll's own create time is the source, and the
+        // creator's region follows it when it is known from the video that was bound.
+        PollDateFingerprint.method.apply {
+            val instructions = implementationOrPatchException("Poll date").instructions.toList()
+            val writeIndex = instructions.indexOfFirst { instruction ->
+                instruction.getReference<MethodReference>()?.let {
+                    it.definingClass == TEXT_VIEW && it.name == "setText"
+                } == true
+            }
+            if (writeIndex < 0) {
+                throw PatchException(
+                    "Poll date: ${definingClass}->${name} writes no poll time text.",
+                )
+            }
+            val write = instructions[writeIndex] as? Instruction35c
+                ?: throw PatchException(
+                    "Poll date: the time write in ${definingClass}->${name} does not name its " +
+                        "view in four bits, so the view cannot be handed over.",
+                )
+            val view = write.registerC
+            val poll = getFreeRegisterProvider(
+                writeIndex + 1,
+                1,
+                listOf(view),
+            ).getFreeRegister4Bit()
+            addInstructions(
+                writeIndex + 1,
+                """
+                    move-object/from16 v$poll, p1
+                    invoke-static {v$poll, v$view}, $POLL_DATE_BRIDGE->attach(Ljava/lang/Object;Landroid/widget/TextView;)V
+                """.trimIndent(),
+            )
+        }
+
         // The application context is stashed at process start. Without it the extension cannot
         // read its preferences, so every switch other than the feed would fall back to its
         // default — which is exactly "the toggle is on but nothing happens".
         ApplicationOnCreateFingerprint.method.injectWithThis(
             "invoke-static {v0}, $APP_CONTEXT->set(Landroid/content/Context;)V",
+        )
+
+        // A mention is built from the stamped name and then prefixed with the app's own "@". The
+        // stamp already carries one, so drop it here and let the composer put back the single "@":
+        // without this the inserted mention reads "@@handle".
+        CommentMentionFingerprint.method.addInstructions(
+            0,
+            """
+                move-object/from16 v0, p2
+                invoke-static {v0}, $MENTION_TEXT->withoutLeadingAt(Ljava/lang/String;)Ljava/lang/String;
+                move-result-object v0
+                move-object/from16 p2, v0
+            """.trimIndent(),
+        )
+
+        // The cell root's own touch dispatch is where long-press speed-up lives. A touch that
+        // started on the name goes straight to the normal dispatch instead, so holding the handle
+        // copies it without starting the 2x playback.
+        val touch = VideoViewCellRootTouchFingerprint.methodOrNull
+            ?: throw PatchException("Handle: the feed cell root's touch dispatch was not found.")
+        val touchSuper = classDefByOrNull(touch.definingClass)?.superclass
+            ?: throw PatchException("Handle: ${touch.definingClass} has no superclass to dispatch to.")
+        // The labels must be real labels of this method: another patch inserts its own guard
+        // ahead of this block, and a compiled-in label would then point into the middle of it.
+        touch.addInstructionsWithLabels(
+            0,
+            """
+                invoke-static {p0, p1}, $HANDLE_COPY->blocksCellGesture(Landroid/view/View;Landroid/view/MotionEvent;)Z
+                move-result v0
+                if-eqz v0, :onlynazril_name_touch
+                invoke-super {p0, p1}, $touchSuper->dispatchTouchEvent(Landroid/view/MotionEvent;)Z
+                move-result v0
+                return v0
+                :onlynazril_name_touch
+                nop
+            """.trimIndent(),
         )
 
         // Primary: override User.getNickname() to return "@handle" / "@handle · CC"

@@ -26,6 +26,7 @@ public final class GboardLanguageModelSettingsFeature implements GboardPatchesSe
     @Override public String getEntrySummary() { return text(R.string.language_models_summary); }
     @Override public int getEntryIcon() { return GboardPatchesIcons.KEYBOARD; }
     @Override public String getEntryTone() { return "teal"; }
+    @Override public String getRootSectionKey() { return GboardPatchesSettingsContract.ROOT_SECTION_VOICE_INPUT; }
     @Override public List<GboardPatchesSettingsContract.Feature> getNavigationChildren() {
         return List.of(new ModelStatusFeature());
     }

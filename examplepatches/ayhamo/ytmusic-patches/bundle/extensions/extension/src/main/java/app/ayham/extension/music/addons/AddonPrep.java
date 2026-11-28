@@ -22,10 +22,12 @@ import java.util.Map;
 
 /**
  * Gets a song's addon file ready before it is needed (protocol.md §8, the phone's Direct mode):
- * YouTube's own copy decoded, the addons asked in the user's order (find, open, probe), the
- * picked file fetched whole, decoded by the same decoder that plays it, fitted to YouTube's
- * audio and levelled (offset-map.md). A row that doesn't fit is refused and the next row, then
- * the next addon, is tried. The result: the local file, its offset and its gain; also its
+ * YouTube's own copy decoded, the addons raced at once (find, open, probe; AddonClient.race), and
+ * the picked row fitted to YouTube's audio and levelled by RMS against YouTube's copy
+ * (offset-map.md). A stereo file is streamed: only a 12 s audition window is read through
+ * StreamCache and fitted, and the player reads the rest as it plays. HLS and DASH, Dolby Atmos
+ * and downloads are fetched whole into a local file, decoded by the same decoder that plays it.
+ * A row that doesn't fit is refused and the next row, then the next addon, is tried. The result: the local file, its offset and its gain; also its
  * opening and end as deck PCM on YouTube's timeline, for automix.
  *
  * <p>One worker, the playing song first, then the next one.
@@ -456,6 +458,8 @@ public final class AddonPrep {
     /** The copy a player reads is gone: a streamed row's bytes, or the file itself. */
     static boolean gone(Prepared p) {
         if (p.stream != null) return p.stream.lost();
+        // an Atmos copy plays its decoded wav: that gone (the cache cleaned) is decoded again once
+        if (p.wav != null && (!p.wav.isFile() || p.wav.length() == 0)) return true;
         return p.file == null || !p.file.isFile() || p.file.length() == 0;
     }
 
@@ -1052,7 +1056,14 @@ public final class AddonPrep {
         } catch (StreamManifest.Refused e) {
             return refusal(s.transport, e);
         }
-        Prepared p = fit(id, o, f, yt, slack, held);
+        Prepared p;
+        try {
+            p = fit(id, o, f, yt, slack, held);
+        } catch (Throwable e) {
+            // a fetched stream that failed its fit has no record: nothing else would delete it (up to 300 MB)
+            deleteQuietly(f);
+            throw e;
+        }
         if (p.score >= 0 && !p.atmos) {
             p.rank = Pick.qualityRank(s);
             p.tier = o.addon.tier;
@@ -1087,7 +1098,8 @@ public final class AddonPrep {
      * Playback, streamed (BitChord; protocol.md §8): only a 12 s window of the addon's file is read,
      * at the playing song's position or at the start of the next one, and fitted to YouTube's audio
      * there (OffsetFit.window, offset-map.md Window check). The rest is read by the player as it
-     * plays, through the same cache. Level: YouTube's loudnessDb. The mix decks take YouTube's audio
+     * plays, through the same cache. Level: the window's RMS against YouTube's copy (streamWindow;
+     * YouTube's loudnessDb is logged, not used). The mix decks take YouTube's audio
      * (no file to write them from).
      */
     private static Prepared streamAndFit(Context c, String id, AddonClient.Opened o, Protocol.Stream s, YtDecode yt) throws Exception {
@@ -1317,8 +1329,10 @@ public final class AddonPrep {
         String name = s.atmos ? id + ".atmos." + ext : id + "." + ext;
         File f = new File(dir(c), name), part = new File(dir(c), name + ".part");
         long t0 = SystemClock.elapsedRealtime();
-        HttpURLConnection h = HttpTransport.open(Protocol.audio(s.url, s.headers, null));
+        Protocol.Request q = Protocol.audio(s.url, s.headers, null);
+        HttpURLConnection h = HttpTransport.open(q);
         h.setReadTimeout(30_000);
+        h = HttpTransport.follow(h, q);   // each redirect checked before it is asked (audit B2-04)
         boolean done = false;
         try (InputStream in = h.getInputStream(); OutputStream out = new FileOutputStream(part)) {
             int code = h.getResponseCode();

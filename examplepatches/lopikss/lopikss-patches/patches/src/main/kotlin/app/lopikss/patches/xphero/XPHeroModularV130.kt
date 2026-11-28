@@ -12,6 +12,9 @@ private object XP130 {
     // Original 27.0.0 XAPK, SHA-256 validated separately.
     const val COST_27 = "assets/bin/Data/179681ef212334eb2bbada9b18361707"
     const val PRODUCTS_27 = "assets/bin/Data/cb943993aad0a47aebbe7ec0a060976a"
+    const val COST_272 = "assets/bin/Data/756d2c27ae42249faac90ee7cad59a5e"
+    const val PRODUCTS_272 = "assets/bin/Data/96ad12508e68c4365aeb9bb3e82789c8"
+    const val HERO_STAR_272 = "assets/bin/Data/2ede4b2afa6744863b5c68a80eaa98a4"
     const val HERO_LEVEL = "assets/bin/Data/00199bb5af76d48728e982d6a69b40eb"
     const val HERO_STAR = "assets/bin/Data/02ce5273e9c794059afe2ada0670d172"
     const val HERO_STAR_27 = "assets/bin/Data/ad2670771b384455ebef2391d9ec5592"
@@ -26,6 +29,10 @@ private object XP130 {
     // Allows multiple independent store modules to modify this one Unity asset.
     private const val NORMALIZED_COST_HASH = "56bb8ae552d1a7cf39518c905dcabeaa5c2fa868ac0df75be7b0014adf763b49"
     private const val NORMALIZED_COST_HASH_27 = "cc3f32818330d55de11167fdde0eb58c32992acd978a9eaba40d2d910a14e7fb"
+
+    private const val PRODUCT_HASH_272 = "0a74abf8125ec3d9ea1c2ee87ba00de331355d393e78be695a2b61b227e08925"
+    private const val NORMALIZED_COST_HASH_272 = "3751bc8e01c103459a8c0222569c2416755cd3d456aa53fff87fee1efad9e876"
+    private val productPattern272 = Regex("""\{"active_time":"-?\d+","category_id":"(\d+)","cost_group_id":"(\d+)",[^{}]*\}""")
 
     private val productPattern = Regex("""\{"category_id":"(\d+)","cost_group_id":"(\d+)",[^{}]*\}""")
     private val pricePattern = Regex("""\{"cost_param":"(\d+)","cost_type":"(\d+)","cost_value":"(\d+)","group_id":"(\d+)","id":"(\d+)","max_purchase_count":"(-?\d+)","org_price_iap":"(\d+)","priority":"(\d+)"\}""")
@@ -84,22 +91,23 @@ private object XP130 {
               expectedRowCount: Int, other: Boolean = false): ByteArray {
         val productDigest = digest(productBytes)
         val v27 = productDigest == PRODUCT_HASH_27
-        require(v27 || productDigest == PRODUCT_HASH) { "Unsupported XP Hero product asset" }
-        val products = productPattern.findAll(String(productBytes, Charsets.ISO_8859_1)).toList()
-        check(products.size == (if (v27) 801 else 777)) { "Unexpected product table" }
+        val v272 = productDigest == PRODUCT_HASH_272
+        require(v272 || v27 || productDigest == PRODUCT_HASH) { "Unsupported XP Hero product asset" }
+        val products = (if (v272) productPattern272 else productPattern).findAll(String(productBytes, Charsets.ISO_8859_1)).toList()
+        check(products.size == (if (v272) 809 else if (v27) 801 else 777)) { "Unexpected product table" }
         val selectedGroups = products.filter {
             val category = it.groupValues[1].toInt()
             if (other) category !in categoryIds else category in categoryIds
         }.map { it.groupValues[2].toInt() }.toSet()
 
         val original = String(costBytes, Charsets.ISO_8859_1)
-        check(pricePattern.findAll(original).count() == (if (v27) 855 else 829)) {
+        check(pricePattern.findAll(original).count() == (if (v272) 865 else if (v27) 855 else 829)) {
             "Unexpected shop price table"
         }
         val normalized = pricePattern.replace(original) {
             if (it.groupValues[2] == "1" && it.groupValues[7] == "0") zero(it) else it.value
         }
-        val expectedCostHash = if (v27) NORMALIZED_COST_HASH_27 else NORMALIZED_COST_HASH
+        val expectedCostHash = if (v272) NORMALIZED_COST_HASH_272 else if (v27) NORMALIZED_COST_HASH_27 else NORMALIZED_COST_HASH
         require(digest(normalized.toByteArray(Charsets.ISO_8859_1)) == expectedCostHash) {
             "Unexpected differences in game cost table"
         }
@@ -141,7 +149,8 @@ private object XP130 {
      */
     fun heroUpgradeOnePiece(data: ByteArray): ByteArray {
         val sha = digest(data)
-        val v27 = sha == "4ad3a365ac10ec3ae2314f0c089ba5803bb4a4fb1265c8eb868be765987f90e1"
+        val v27 = sha == "4ad3a365ac10ec3ae2314f0c089ba5803bb4a4fb1265c8eb868be765987f90e1" ||
+            sha == "b35d09c60a891cd1cae20514e20b8bed401514508cdd4c2f8ccabacb62855e33"
         require(v27 || sha == "818570c2ec087bab93583352fbe6e6ff9dd859b5f06cd14b9d1995842467df87") {
             "Unsupported hero star-upgrade asset"
         }
@@ -195,7 +204,7 @@ val xpHeroFreeShops = rawResourcePatch(
     )
     val invasion = booleanOption(
         key = "invasionShop", default = true, title = "Invasion Shop",
-        description = "Zero 38 Invasion Shop prices.",
+        description = "Zero eligible Invasion Shop prices (39 in 27.2.0).",
     )
     val exchange = booleanOption(
         key = "exchangeShop", default = true, title = "Exchange Shop",
@@ -203,31 +212,34 @@ val xpHeroFreeShops = rawResourcePatch(
     )
     val otherShops = booleanOption(
         key = "otherShops", default = true, title = "Other Shops",
-        description = "Zero 27 additional local non-IAP shop prices.",
+        description = "Zero additional local non-IAP shop prices (31 in 27.2.0).",
     )
 
     execute {
+        val costs272 = get(XP130.COST_272)
+        val products272 = get(XP130.PRODUCTS_272)
+        val v272 = costs272.isFile && products272.isFile
         val v27Costs = get(XP130.COST_27)
         val v27Products = get(XP130.PRODUCTS_27)
         val v27 = v27Costs.isFile && v27Products.isFile
         val selected = listOf(
             Triple(dailyGems.value == true, setOf(15), 300),
-            Triple(chests.value == true, setOf(4, 8), if (v27) 24 else 20),
+            Triple(chests.value == true, setOf(4, 8), if (v272 || v27) 24 else 20),
             Triple(tokens.value == true, setOf(34), 27),
-            Triple(invasion.value == true, setOf(9), 38),
+            Triple(invasion.value == true, setOf(9), if (v272) 39 else 38),
             Triple(exchange.value == true, setOf(6, 7), 24),
         )
         val extra = otherShops.value == true
         if (selected.any { it.first } || extra) {
-            val shopCosts = if (v27) v27Costs else get(XP130.COST)
-            val productData = (if (v27) v27Products else get(XP130.PRODUCTS)).readBytes()
+            val shopCosts = if (v272) costs272 else if (v27) v27Costs else get(XP130.COST)
+            val productData = (if (v272) products272 else if (v27) v27Products else get(XP130.PRODUCTS)).readBytes()
             var bytes = shopCosts.readBytes()
             for ((enabled, categories, expected) in selected) {
                 if (enabled) bytes = XP130.store(bytes, productData, categories, expected)
             }
             if (extra) {
                 bytes = XP130.store(bytes, productData,
-                    setOf(15, 4, 8, 34, 9, 6, 7), 27, true)
+                    setOf(15, 4, 8, 34, 9, 6, 7), if (v272) 31 else 27, true)
             }
             shopCosts.writeBytes(bytes)
         }
@@ -279,7 +291,8 @@ val xp131OnePieceHeroUpgradeTest = rawResourcePatch(
     compatibleWith(XP_HERO)
     execute {
         val v27 = get(XP130.HERO_STAR_27)
-        val file = if (v27.isFile) v27 else get(XP130.HERO_STAR)
+        val v272 = get(XP130.HERO_STAR_272)
+        val file = if (v272.isFile) v272 else if (v27.isFile) v27 else get(XP130.HERO_STAR)
         file.writeBytes(XP130.heroUpgradeOnePiece(file.readBytes()))
     }
 }

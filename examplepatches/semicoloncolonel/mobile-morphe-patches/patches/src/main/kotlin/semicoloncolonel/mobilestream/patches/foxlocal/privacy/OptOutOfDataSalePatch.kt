@@ -1,5 +1,6 @@
 package semicoloncolonel.mobilestream.patches.foxlocal.privacy
 
+import semicoloncolonel.mobilestream.patches.shared.misc.isOptionOn
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
@@ -9,7 +10,6 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
-import semicoloncolonel.mobilestream.patches.foxlocal.shared.Constants
 import semicoloncolonel.mobilestream.patches.shared.misc.returnEarly
 
 // FOX LOCAL 7.22.0 keeps its privacy choice in Ketch. Until you choose, the
@@ -53,14 +53,10 @@ private fun MutableMethod.optOutByDefault() {
     if (replaced == 0) throw PatchException("$definingClass->$name has no default privacy string")
 }
 
-@Suppress("unused")
-val optOutOfDataSalePatch = bytecodePatch(
-    name = "Opt out of data sale & sharing",
-    description = "Starts the app opted out of the sale and sharing of your data.",
-) {
-    compatibleWith(Constants.COMPATIBILITY)
-
+// Part of blockAnalyticsPatch: runs only when its "dataSale" option is on.
+internal val optOutOfDataSalePatch = bytecodePatch {
     execute {
+        if (!isOptionOn(blockAnalyticsPatch, "dataSale")) return@execute
         StoredPrivacyFingerprint.method.optOutByDefault()
         PlayerPrivacyDefaultFingerprint.method.optOutByDefault()
         LimitAdTrackingFingerprint.method.returnEarly("const/4 v0, 0x1\nreturn v0")

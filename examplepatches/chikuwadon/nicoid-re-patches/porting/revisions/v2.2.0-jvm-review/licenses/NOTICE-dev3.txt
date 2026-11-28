@@ -1,0 +1,7 @@
+nicoid Re v2.2.0-dev.3 additional third-party components
+AndroidX Annotation Experimental 1.6.0 — The Android Open Source Project
+https://developer.android.com/jetpack/androidx/releases/annotation
+Kotlin standard library 2.4.21 — JetBrains and Kotlin contributors
+https://github.com/JetBrains/kotlin
+Both Apache License, Version 2.0; see license texts in this directory.
+The Kotlin component is a reduced support subset derived using R8, not the complete standard library.

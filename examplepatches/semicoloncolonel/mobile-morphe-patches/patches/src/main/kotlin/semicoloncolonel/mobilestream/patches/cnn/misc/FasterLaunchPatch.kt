@@ -62,6 +62,16 @@ val fasterLaunchPatch = bytecodePatch(
                 replaced++
             }
         }
+        // Morphe Manager can apply a patch to a version it does not support when
+        // the user allows that. On 26.23.0 and later, the call is gone because
+        // the app already starts from its saved settings, so say that plainly.
+        if (replaced == 0) {
+            throw PatchException(
+                "Faster launch supports only CNN 26.21.0. CNN 26.23.0 and later already start without " +
+                    "waiting for this download, so they do not need the patch. Turn it off for this version. " +
+                    "(No Optimizely initialize call was found in OptimizelyClientFactory.)",
+            )
+        }
         if (replaced != 1) throw PatchException("Optimizely initialize call: expected 1, found $replaced")
     }
 }

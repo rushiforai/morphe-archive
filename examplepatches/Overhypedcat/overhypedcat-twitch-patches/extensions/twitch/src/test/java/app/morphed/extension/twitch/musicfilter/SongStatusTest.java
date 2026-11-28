@@ -120,4 +120,16 @@ public class SongStatusTest {
         assertTrue("only after it played on alone for a while: " + (ms - stopped) + " ms",
                 ms - stopped >= 2 * SongRemoval.ADOPT_MS - 100);
     }
+
+    @Test
+    public void aProblemToldBeforeTheFirstSessionIsShownByIt() {
+        SongRemoval.takeHeldProblem();
+        SongRemoval.holdForFirstSession("Song list unreadable | songs.json is damaged", false);
+        assertEquals("handed to the first session", "Song list unreadable | songs.json is damaged", SongRemoval.takeHeldProblem());
+        assertNull("once", SongRemoval.takeHeldProblem());
+        SongRemoval.holdForFirstSession("Filter broke | x", true);
+        assertNull("a lasting one is shown always, not handed over", SongRemoval.takeHeldProblem());
+        SongRemoval.holdForFirstSession("Shazam unreachable | x", false); // (the clock reads 0 in tests)
+        assertNull("old news by the time a session starts", SongRemoval.takeHeldProblem(SongRemoval.HELD_PROBLEM_MS + 1));
+    }
 }

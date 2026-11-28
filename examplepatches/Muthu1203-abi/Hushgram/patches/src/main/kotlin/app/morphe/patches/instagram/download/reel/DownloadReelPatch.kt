@@ -1,0 +1,683 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.morphe.patches.instagram.download.reel
+
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.instagram.download.INSTAGRAM_MEDIA
+import app.morphe.patches.instagram.download.MEDIA
+import app.morphe.patches.instagram.download.carouselBridge
+import app.morphe.patches.instagram.download.coverBridges
+import app.morphe.patches.instagram.download.imageBridges
+import app.morphe.patches.instagram.download.mediaBridges
+import app.morphe.patches.instagram.download.musicBridges
+import app.morphe.patches.instagram.download.playerQueriesPatch
+import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.instagram.misc.extension.classesAccessing
+import app.morphe.patches.instagram.misc.extension.classesLoadingString
+import app.morphe.patches.instagram.misc.extension.enableStatus
+import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
+import app.morphe.patches.instagram.media.surface.playerSurfacesPatch
+import app.morphe.patches.instagram.misc.extension.jumpTargets
+import app.morphe.patches.instagram.misc.extension.loadsString
+import app.morphe.patches.instagram.misc.extension.patchLog
+import app.morphe.patches.instagram.misc.extension.requireLocals
+import app.morphe.patches.instagram.misc.extension.requireStatusMethod
+import app.morphe.patches.instagram.misc.settings.settingsPatch
+import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.ControlFlow
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+
+private const val PATCH = "Download any reel"
+
+/** The options of a post's or a reel's more menu, which keep their names, Download among them. */
+internal const val OPTION = "Lcom/instagram/feed/media/mediaoption/MediaOption\$Option;"
+internal const val DOWNLOAD = "$OPTION->DOWNLOAD:$OPTION"
+
+/** The types of the classes outside the extension whose code reads [DOWNLOAD], by the class index. */
+internal fun BytecodePatchContext.typesLoadingDownload(): Set<String> =
+    classesAccessing(OPTION, DOWNLOAD.substringAfter("->").substringBefore(":"), Opcode.SGET_OBJECT).mapTo(HashSet()) { it.type }
+private const val FRAGMENT_ACTIVITY = "Landroidx/fragment/app/FragmentActivity;"
+
+private const val REEL_DOWNLOAD = "$EXTENSION_PACKAGE/download/ReelDownload;"
+internal const val OFFER = "$REEL_DOWNLOAD->offer(I)Z"
+internal const val WITHHOLD = "$REEL_DOWNLOAD->withhold(I)Z"
+
+/**
+ * The filters of a builder that hands Download straight to the menu's adder of one row, which also
+ * let it in for Open in another player alone: the adder then puts the player row in its place. The
+ * first is handed the reel the download check was asked about too, so a reel the player row can't go
+ * on is never let in, and its menu stays Instagram's, dividers and all.
+ */
+internal const val OFFER_ROW = "$REEL_DOWNLOAD->offerRow(ILjava/lang/Object;)Z"
+internal const val WITHHOLD_ROW = "$REEL_DOWNLOAD->withholdRow(I)Z"
+internal const val SAVE = "$REEL_DOWNLOAD->save(Ljava/lang/Object;Ljava/lang/Object;Landroid/app/Activity;)Z"
+internal const val OURS = "$REEL_DOWNLOAD->ours(Ljava/lang/Object;)Z"
+internal const val ROWS = "$REEL_DOWNLOAD->rows(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Z"
+internal const val ADD_TO = "$REEL_DOWNLOAD->addTo(Ljava/util/List;Ljava/lang/Object;)V"
+/** Gives a row of ours its icon by name: Details gets Instagram's info glyph, the rest Download's arrow. */
+internal const val ROW_ICON = "$REEL_DOWNLOAD->rowIcon(Ljava/lang/String;I)I"
+
+/**
+ * The query the reel menu's handler of a tapped option names when Edit's tools are asked for. No
+ * other method loads it, so it finds the handler, in the class that runs the menu.
+ */
+internal const val EDITING_TOOLS_QUERY = "ClipsEditingToolsQuery"
+private const val CONTEXT = "Landroid/content/Context;"
+private const val USER_SESSION = "Lcom/instagram/common/session/UserSession;"
+
+/**
+ * The path Instagram's download flow asks whether a reel's owner lets other people download it.
+ * The flow is a method of the class holding the download check, and asks that check first.
+ */
+internal const val ELIGIBILITY_PATH = "clips/item/check_third_party_downloads_eligibility/"
+
+/** The name the reduced reel menu's sheet is logged under, loaded right before it lists its options. */
+internal const val REDUCED_SHEET = "ReducedOptionsOverflowBottomSheet"
+
+/** The one method loading [value], itself or through Redex's pool, leaving the pool's getters out. */
+private fun BytecodePatchContext.onlyLoaderOf(value: String, patch: String, what: String): Method {
+    val loaders = classesLoadingString(value).flatMap { it.methods }.filter { method ->
+        !(method.parameterTypes.map(Any::toString) == listOf("I") && method.returnType == "Ljava/lang/String;") &&
+            loadsString(method, value)
+    }
+    return loaders.singleOrNull() ?: throw PatchException(
+        "$patch: expected one $what loading \"$value\", found " +
+            if (loaders.isEmpty()) "none" else loaders.joinToString { "${it.definingClass}->${it.name}" },
+    )
+}
+
+/** The calls in [method] to methods of [owner]. */
+private fun calls(method: Method, owner: String): List<MethodReference> =
+    method.implementation?.instructions?.mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }
+        ?.filter { it.definingClass == owner } ?: emptyList()
+
+private fun MethodReference.isOf(method: Method) =
+    name == method.name && returnType == method.returnType &&
+        parameterTypes.map(Any::toString) == method.parameterTypes.map(Any::toString)
+
+/** The reel menu's handler of a tapped option: the one method naming [EDITING_TOOLS_QUERY]. */
+internal fun BytecodePatchContext.reelMenuHandler(patch: String): Method =
+    onlyLoaderOf(EDITING_TOOLS_QUERY, patch, "handler of the reel menu")
+
+/**
+ * The reel menu's adder of one row, in the class of [reelMenuHandler]: its one instance method
+ * taking a Context, the option, the sheet and the row's state, and an icon and a label that replace
+ * the option's own when they aren't null.
+ */
+internal fun BytecodePatchContext.reelRowAdder(patch: String): Method {
+    val helper = classDefBy(reelMenuHandler(patch).definingClass)
+    val adders = helper.methods.filter { method ->
+        val takes = method.parameterTypes.map(Any::toString)
+        !AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "V" && takes.size == 6 &&
+            takes[0] == CONTEXT && takes[1] == OPTION && takes[2].startsWith("L") && takes[3].startsWith("L") &&
+            takes[4] == "Ljava/lang/Integer;" && takes[5] == "Ljava/lang/String;"
+    }
+    return adders.singleOrNull() ?: throw PatchException(
+        "$patch: expected one method of ${helper.type}, the reel menu's helper, to be the adder of one row, found " +
+            if (adders.isEmpty()) "none" else adders.joinToString { it.name },
+    )
+}
+
+/**
+ * Instagram's check of whether a reel's owner lets other people download it: the method of the
+ * download flow's own class, the flow being the one method asking [ELIGIBILITY_PATH], that the flow
+ * calls with a post and the session and that answers a boolean.
+ */
+internal fun BytecodePatchContext.downloadCheck(patch: String): Method {
+    val flow = onlyLoaderOf(ELIGIBILITY_PATH, patch, "download flow")
+    val asked = calls(flow, flow.definingClass)
+    val checks = classDefBy(flow.definingClass).methods.filter { method ->
+        val takes = method.parameterTypes.map(Any::toString)
+        method.returnType == "Z" && takes.size == 2 && USER_SESSION in takes && takes.all { it.startsWith("L") } &&
+            asked.any { it.isOf(method) }
+    }
+    return checks.singleOrNull() ?: throw PatchException(
+        "$patch: expected ${flow.definingClass}->${flow.name}, the download flow, to ask one check of its class taking " +
+            "a post and the session, found " + if (checks.isEmpty()) "none" else checks.joinToString { it.name },
+    )
+}
+
+/**
+ * The options of the reduced reel menu, a short list that never had a Download row: the one method
+ * of its own class answering an ArrayList that the method naming [REDUCED_SHEET] calls. Through 456
+ * it took the post; 457 made it static, taking a part of the post's tree and the sheet's state.
+ */
+internal fun BytecodePatchContext.reducedMenuList(patch: String): Method {
+    val sheet = onlyLoaderOf(REDUCED_SHEET, patch, "reduced reel menu")
+    val asked = calls(sheet, sheet.definingClass)
+    val lists = classDefBy(sheet.definingClass).methods.filter { method ->
+        method.returnType == "Ljava/util/ArrayList;" && asked.any { it.isOf(method) }
+    }
+    return lists.singleOrNull() ?: throw PatchException(
+        "$patch: expected ${sheet.definingClass}->${sheet.name}, the reduced reel menu, to list its options through one " +
+            "method of its class, found " + if (lists.isEmpty()) "none" else lists.joinToString { it.name },
+    )
+}
+
+/**
+ * Download in every reel's more menu, saving through HushGram's own pipeline.
+ *
+ * Instagram 449 already has a Download row in that menu. It shows the row only when the reel's
+ * owner lets other people download it, and the redesigned menus also hold it back while a server
+ * flag says so. A tap asks Instagram's server, then saves a copy with a watermark. This patch
+ * shows the row on every reel and has a tap save the reel from the addresses its Media already
+ * holds, at the Download quality, the way Hushfacebook's reel download does.
+ *
+ * Some accounts get a reduced menu instead: a short list of options (Playback, Interested, Report
+ * and a few more) that never includes Download. Its list gets Download added before it's shown,
+ * and its rows go through the same handler.
+ *
+ * The Reels viewer also shows photo posts that come with music, which have no video at all. A tap
+ * on Download there saves the picture at its largest size, through the picture bridges Download
+ * any story uses, which this patch writes too (#71). When the post's music has a track to fetch,
+ * the menu's adder of one row puts Download as video and Download as photo in Download's place,
+ * two options made the way Download is, and the handler hands a tap on either to the extension.
+ *
+ * A builder that hands Download straight to that adder also lets it in when only Open in another
+ * player is on and the reel has a video file for it, and the adder then puts the player row alone in
+ * its place, so a reel Instagram keeps Download off still gets the player row. Any other reel isn't
+ * let in, so its menu, divider included, stays Instagram's. Builders that put Download anywhere else
+ * never let it in for the player.
+ *
+ * A separate switch puts a Download icon in the column beside a reel, under Save, whose tap saves
+ * what the menu's Download saves (#178). The column is a component, so the icon joins its list of
+ * buttons as it's composed ([addReelDownloadButtonWhereItFits]). A build whose column differs keeps
+ * the menu's Download without the icon, with a warning.
+ *
+ * Download full song's switch also puts a Download icon beside Save on a song's own page, the page
+ * a reel's song opens (#741), which saves the whole song ([addSongPageDownloadWhereItFits]). A build
+ * whose page differs keeps the rest, with a warning.
+ *
+ * Everything is found before anything changes, so a build that differs stops the patch naming
+ * what it couldn't find, and nothing is half done.
+ */
+@Suppress("unused")
+val downloadReelPatch = bytecodePatch(
+    name = "Download any reel",
+    description = "Adds Download to the menu of every reel and saves it without Instagram's watermark. You choose " +
+        "the quality, and best is the default. A separate Download cover switch also saves the reel's cover " +
+        "picture, the largest one the post carries, and Download audio saves just its sound. Download full song grabs the whole track when a reel uses a " +
+        "song from Instagram's music, and from a Download icon on that song's own page. Download as video on " +
+        "a carousel with music saves every page, in order. A separate switch under Downloads puts a download icon under Save beside each reel, " +
+        "and others add a Lens icon for copying a reel's text, a speed icon, a Full screen icon and a speaker icon, or put " +
+        "Playback speed in a reel's menu. On by default. Turn it off in HushGram settings > Reels.",
+    default = true,
+) {
+    category("Downloads")
+    dependsOn(settingsPatch)
+    compatibleWith(*AppCompatibilities.instagram())
+    dependsOn(instagramExtensionPatch, playerQueriesPatch, playerSurfacesPatch)
+
+    execute {
+        requireStatusMethod("reelDownload")
+        offerDownloadOnEveryReel()
+        addReelDownloadButtonWhereItFits()
+        addSongPageDownloadWhereItFits()
+        addMuteButtonToClearMode()
+        enableStatus("reelDownload")
+    }
+}
+
+/**
+ * Where a builder of the reel menu decides on the Download row: after the move-result at [at] - 1,
+ * which leaves Instagram's answer in [register], [hook] filters it, handed [media] too when it isn't
+ * null, the register still holding the reel the download check was asked about.
+ */
+internal class Gate(val at: Int, val register: Int, val hook: String, val media: Int? = null)
+
+internal fun BytecodePatchContext.offerDownloadOnEveryReel() {
+    val loaders = mutableListOf<Method>()
+    val loading = typesLoadingDownload()
+    classDefForEach { classDef ->
+        if (classDef.type !in loading) return@classDefForEach
+        classDef.methods.forEach { method ->
+            if (method.code().any { it.opcode == Opcode.SGET_OBJECT && it.referenceText() == DOWNLOAD }) loaders += method
+        }
+    }
+    val handler = reelMenuHandler(PATCH)
+    val eligible = downloadCheck(PATCH)
+    if (AccessFlags.STATIC.isSet(handler.accessFlags) || handler.parameterTypes.map(Any::toString) != listOf(OPTION) ||
+        handler.returnType != "V"
+    ) {
+        throw PatchException("$PATCH: ${handler.definingClass}->${handler.name}, the menu's handler, doesn't take one option")
+    }
+    val helper = handler.definingClass
+    val adder = reelRowAdder(PATCH)
+    val builders = loaders.filter { it.calls(eligible) && it.buildsReelMenu(helper, eligible) }
+    if (builders.isEmpty()) throw PatchException("$PATCH: no builder of the reel menu adds Download after the download check")
+    val gates = builders.associateWith { it.downloadGates(eligible, handsToRows(it, adder)) }
+    val reduced = reducedMenuList(PATCH)
+    val reducedReturns = reduced.optionListReturns()
+    val media = mediaRead(helper)
+    val activity = instanceField(helper, FRAGMENT_ACTIVITY)
+    val icon = optionIcon(PATCH)
+    val writeBridges = mediaBridges(PATCH)
+    val writeImageBridges = imageBridges(PATCH)
+    val writeCoverBridges = coverBridges(PATCH)
+    val writeMusicBridges = musicBridges(PATCH)
+    // Only a carousel's Download reads its pages, so a build where they can't be told keeps
+    // Download on reels, which then saves a carousel's first page as before.
+    val writeCarouselBridge = try {
+        carouselBridge(PATCH)
+    } catch (unknown: PatchException) {
+        patchLog.warning("${unknown.message}. $PATCH goes in saving only a carousel's first page.")
+        null
+    }
+    val writeRowBridges = rowBridges(icon, adder)
+    val menu = mutable(handler)
+    menu.requireLocals(PATCH, 3)
+    val rows = mutable(adder)
+    rows.requireLocals(PATCH, 5)
+
+    gates.forEach { (builder, found) ->
+        val method = mutable(builder)
+        found.sortedByDescending { it.at }.forEach { gate ->
+            val register = "v${gate.register}"
+            val call = when {
+                gate.media != null -> "invoke-static { $register, v${gate.media} }"
+                gate.register > 15 -> "invoke-static/range { $register .. $register }"
+                else -> "invoke-static { $register }"
+            }
+            method.addInstructions(
+                gate.at,
+                """
+                    $call, ${gate.hook}
+                    move-result $register
+                """,
+            )
+        }
+    }
+
+    // Each return of the reduced list hands the list through the extension first. The return is
+    // replaced rather than preceded, because a jump to the return lands on what replaces it and
+    // would skip anything put in front of it.
+    val list = mutable(reduced)
+    reducedReturns.sortedDescending().forEach { index ->
+        val register = (list.getInstruction(index) as OneRegisterInstruction).registerA
+        val scratch = if (register == 0) 1 else 0
+        list.replaceInstruction(index, "sget-object v$scratch, $DOWNLOAD")
+        list.addInstructions(
+            index + 1,
+            """
+                invoke-static { v$register, v$scratch }, $ADD_TO
+                return-object v$register
+            """,
+        )
+    }
+
+    // Download, and the two rows a photo with music gets in its place, go to save() first.
+    menu.addInstructionsWithLabels(
+        0,
+        """
+            move-object/from16 v0, p1
+            sget-object v1, $DOWNLOAD
+            if-eq v0, v1, :save
+            invoke-static { v0 }, $OURS
+            move-result v1
+            if-eqz v1, :handle
+            :save
+            move-object/from16 v0, p0
+            $media
+            iget-object v2, v0, $activity
+            move-object/from16 v0, p1
+            invoke-static { v0, v1, v2 }, $SAVE
+            move-result v0
+            if-eqz v0, :handle
+            return-void
+        """,
+        ExternalLabel("handle", menu.getInstruction(0)),
+    )
+    // Download's row asks rows() first, which may add the two in its place.
+    rows.addInstructionsWithLabels(
+        0,
+        """
+            move-object/from16 v0, p2
+            sget-object v1, $DOWNLOAD
+            if-ne v0, v1, :add
+            move-object/from16 v0, p0
+            $media
+            move-object/from16 v2, p1
+            move-object/from16 v3, p3
+            move-object/from16 v4, p4
+            invoke-static/range { v0 .. v4 }, $ROWS
+            move-result v0
+            if-eqz v0, :add
+            return-void
+        """,
+        ExternalLabel("add", rows.getInstruction(0)),
+    )
+    writeBridges()
+    writeImageBridges()
+    writeCoverBridges?.invoke()
+    writeMusicBridges()
+    writeCarouselBridge?.invoke()
+    writeRowBridges()
+}
+
+/**
+ * Finds the extension's two bridges to the reel menu, and answers the step that writes them:
+ * `reelOption`, which makes an option named by its argument with Download's ordinal and [icon]
+ * (handed with the name to [ROW_ICON], so Details draws the info glyph),
+ * and `addReelRow`, which hands an option and a label to [adder], the menu's adder of one row,
+ * with no icon of its own, and answers true.
+ */
+private fun BytecodePatchContext.rowBridges(icon: String, adder: Method): () -> Unit {
+    val bridges = mutableClassDefBy(INSTAGRAM_MEDIA)
+    val optionStub = bridges.methods.singleOrNull {
+        it.name == "reelOption" && AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "Ljava/lang/Object;" &&
+            it.parameterTypes.map(Any::toString) == listOf("Ljava/lang/String;")
+    } ?: throw PatchException("$PATCH: $INSTAGRAM_MEDIA has no static reelOption(String)")
+    val rowStub = bridges.methods.singleOrNull {
+        it.name == "addReelRow" && AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "Z" &&
+            it.parameterTypes.map(Any::toString) == List(5) { "Ljava/lang/Object;" } + "Ljava/lang/String;"
+    } ?: throw PatchException("$PATCH: $INSTAGRAM_MEDIA has no static addReelRow(Object, Object, Object, Object, Object, String)")
+    val types = adder.parameterTypes.map(Any::toString)
+    val call = "${adder.definingClass}->${adder.name}(${types.joinToString("")})V"
+    return {
+        bridges.methods.remove(optionStub)
+        bridges.methods.add(replaced(optionStub, 5).apply {
+            addInstructions(0, newOption(icon, "move-object v1, p0", iconByName = ROW_ICON))
+        })
+        bridges.methods.remove(rowStub)
+        bridges.methods.add(replaced(rowStub, 13).apply {
+            addInstructions(
+                0,
+                """
+                    move-object v0, p0
+                    check-cast v0, ${adder.definingClass}
+                    move-object v1, p1
+                    check-cast v1, ${types[0]}
+                    move-object v2, p2
+                    check-cast v2, ${types[1]}
+                    move-object v3, p3
+                    check-cast v3, ${types[2]}
+                    move-object v4, p4
+                    check-cast v4, ${types[3]}
+                    const/4 v5, 0x0
+                    move-object v6, p5
+                    invoke-virtual/range { v0 .. v6 }, $call
+                    const/4 v0, 0x1
+                    return v0
+                """,
+            )
+        })
+    }
+}
+
+/** [stub] with an empty body of [registers] registers, its parameters among them. */
+private fun replaced(stub: Method, registers: Int): MutableMethod = ImmutableMethod(
+    stub.definingClass, stub.name, stub.parameters, stub.returnType, stub.accessFlags, stub.annotations,
+    stub.hiddenApiRestrictions, ImmutableMethodImplementation(registers, emptyList(), null, null),
+).toMutable()
+
+/** The one instance field of [type] in [owner], the reel menu's class, as a field reference. */
+private fun BytecodePatchContext.instanceField(owner: String, type: String): String {
+    val fields = classDefBy(owner).fields.filter { !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == type }
+    val field = fields.singleOrNull()
+        ?: throw PatchException("$PATCH: expected one $type field in $owner, the reel menu's class, found ${fields.size}")
+    return "$owner->${field.name}:$type"
+}
+
+/**
+ * The smali putting the reel the menu is about in v1, with the menu's helper in v0: its [MEDIA]
+ * field, or, from 457, which keeps the reel in the helper's clips item, the helper's one static
+ * getter of it (`LX/0Ckv;->A00` on 386314341), the read Instagram's own rows make.
+ */
+private fun BytecodePatchContext.mediaRead(owner: String): String {
+    val helper = classDefBy(owner)
+    val fields = helper.fields.filter { !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == MEDIA }
+    if (fields.size == 1) return "iget-object v1, v0, $owner->${fields.single().name}:$MEDIA"
+    val getters = helper.methods.filter {
+        AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == MEDIA && it.parameterTypes.map(Any::toString) == listOf(owner)
+    }
+    val getter = getters.singleOrNull() ?: throw PatchException(
+        "$PATCH: expected one $MEDIA field in $owner, the reel menu's class, or one static getter of it there, " +
+            "found ${fields.size} fields and ${getters.size} getters",
+    )
+    return "invoke-static { v0 }, $owner->${getter.name}($owner)$MEDIA\nmove-result-object v1"
+}
+
+private fun BytecodePatchContext.mutable(method: Method): MutableMethod =
+    mutableClassDefBy(method.definingClass).methods.single {
+        it.name == method.name && it.returnType == method.returnType &&
+            it.parameterTypes.map(Any::toString) == method.parameterTypes.map(Any::toString)
+    }
+
+/**
+ * Every branch of [this] builder that keeps the Download row out, each with the filter that lets it
+ * in: after the download check, the one that skips the row when the check says no, and after that,
+ * each that skips it when a flag says yes. The builder must load the row once, call the check once
+ * before it, and have only those two kinds of branch between them jumping past the row. A builder
+ * that hands the row straight to the menu's adder of one row ([rows]) gets the filters that also let
+ * it in for Open in another player alone, when the check's Media argument is in a register the first
+ * filter can be handed, apart from the check's answer. Otherwise it gets the plain ones.
+ */
+internal fun Method.downloadGates(eligible: Method, rows: Boolean = false): List<Gate> {
+    val code = code()
+    val where = "$definingClass->$name"
+    val row = code.indices.filter { code[it].opcode == Opcode.SGET_OBJECT && code[it].referenceText() == DOWNLOAD }.singleOrNull()
+        ?: throw PatchException("$PATCH: $where doesn't load Download once")
+    val check = code.indices.filter { code[it].calls(eligible) }.singleOrNull()
+        ?: throw PatchException("$PATCH: $where doesn't call the download check once")
+    if (check > row) throw PatchException("$PATCH: $where calls the download check after adding Download")
+    val media = if (!rows) null else mediaArgument(code, check, eligible)?.takeIf { register ->
+        val answer = (code.getOrNull(check + 1) as? OneRegisterInstruction)?.registerA
+        register <= 15 && answer != null && answer <= 15 && answer != register
+    }
+    val toRows = media != null
+
+    val address = IntArray(code.size + 1)
+    code.forEachIndexed { index, instruction -> address[index + 1] = address[index] + instruction.codeUnits }
+    val skips = (check + 1 until row).filter { index ->
+        val jump = code[index]
+        (jump.opcode in BRANCHES || jump.opcode in GOTOS) &&
+            address.indexOf(address[index] + (jump as OffsetInstruction).codeOffset) > row
+    }
+    if (skips.none { code[it].opcode == Opcode.IF_EQZ }) {
+        throw PatchException("$PATCH: in $where no branch after the download check skips Download")
+    }
+    return skips.map { index ->
+        val branch = code[index]
+        if (branch.opcode in GOTOS) throw PatchException("$PATCH: in $where a jump at $index goes around Download")
+        val register = (branch as OneRegisterInstruction).registerA
+        val set = (index - 1 downTo check + 1).firstOrNull { code[it].writes(register) }
+            ?: throw PatchException("$PATCH: in $where the branch at $index tests a register set before the download check")
+        val call = code.getOrNull(set - 1)
+        val answers = (call as? ReferenceInstruction)?.reference as? MethodReference
+        if (code[set].opcode != Opcode.MOVE_RESULT || answers?.returnType != "Z") {
+            throw PatchException("$PATCH: in $where the branch at $index doesn't test the answer of a call")
+        }
+        val fromCheck = call.calls(eligible)
+        when {
+            fromCheck && branch.opcode == Opcode.IF_EQZ ->
+                if (toRows) Gate(set + 1, register, OFFER_ROW, media) else Gate(set + 1, register, OFFER)
+            !fromCheck && branch.opcode == Opcode.IF_NEZ -> Gate(set + 1, register, if (toRows) WITHHOLD_ROW else WITHHOLD)
+            else -> throw PatchException("$PATCH: in $where the branch at $index keeps Download out in a way this patch doesn't know")
+        }
+    }
+}
+
+/**
+ * Whether [builder] hands Download straight to [adder], the menu's adder of one row: the first call
+ * after it loads Download takes Download, and is the adder or a method of the adder's class that
+ * calls it. Any other builder puts Download in a list, or in a menu of its own that never reaches the
+ * adder, so it never gets the player row and must not be let in for it.
+ */
+private fun BytecodePatchContext.handsToRows(builder: Method, adder: Method): Boolean {
+    val code = builder.code()
+    val row = code.indexOfFirst { it.opcode == Opcode.SGET_OBJECT && it.referenceText() == DOWNLOAD }
+    if (row < 0) return false
+    val download = (code[row] as OneRegisterInstruction).registerA
+    val call = code.drop(row + 1).firstOrNull { (it as? ReferenceInstruction)?.reference is MethodReference } ?: return false
+    if (!call.passes(download)) return false
+    if (call.calls(adder)) return true
+    val called = (call as ReferenceInstruction).reference as MethodReference
+    if (called.definingClass != adder.definingClass) return false
+    return classDefBy(adder.definingClass).methods.any { method ->
+        method.name == called.name && method.returnType == called.returnType &&
+            method.parameterTypes.map(Any::toString) == called.parameterTypes.map(Any::toString) && method.calls(adder)
+    }
+}
+
+/**
+ * The register holding the Media the call at [at] hands [eligible], the download check, or null. The
+ * check takes the Media once, or, as on 451, takes no Media and is handed one wrapper that a static
+ * (Media) call answering that parameter's type makes just before. The wrapper's Media is used only
+ * when nothing writes its register from that call to the check's answer and no jump lands in
+ * between, so it still holds the post the check got.
+ */
+private fun Method.mediaArgument(code: List<Instruction>, at: Int, eligible: Method): Int? {
+    val types = eligible.parameterTypes.map(Any::toString)
+    val receiver = if (AccessFlags.STATIC.isSet(eligible.accessFlags)) 0 else 1
+    fun argument(index: Int): Int? = when (val call = code[at]) {
+        is RegisterRangeInstruction -> (call.startRegister + index).takeIf { index < call.registerCount }
+        is FiveRegisterInstruction ->
+            listOf(call.registerC, call.registerD, call.registerE, call.registerF, call.registerG).take(call.registerCount).getOrNull(index)
+        else -> null
+    }
+    fun slot(index: Int) = receiver + types.take(index).sumOf { if (it == "J" || it == "D") 2 else 1 }
+    if (types.count { it == MEDIA } == 1) return argument(slot(types.indexOf(MEDIA)))
+    if (MEDIA in types) return null
+
+    val targets = jumpTargets()
+    val made = types.indices.mapNotNull { index ->
+        val register = argument(slot(index)) ?: return@mapNotNull null
+        val write = (at - 1 downTo 0).firstOrNull { code[it].writes(register) } ?: return@mapNotNull null
+        val wrap = code.getOrNull(write - 1) ?: return@mapNotNull null
+        val made = (wrap as? ReferenceInstruction)?.reference as? MethodReference
+        if (code[write].opcode != Opcode.MOVE_RESULT_OBJECT || wrap.opcode !in STATIC_CALLS || made == null ||
+            made.returnType != types[index] || made.parameterTypes.map(Any::toString) != listOf(MEDIA)
+        ) {
+            return@mapNotNull null
+        }
+        val media = when (wrap) {
+            is FiveRegisterInstruction -> wrap.registerC.takeIf { wrap.registerCount == 1 }
+            is RegisterRangeInstruction -> wrap.startRegister.takeIf { wrap.registerCount == 1 }
+            else -> null
+        } ?: return@mapNotNull null
+        val span = write..minOf(at + 1, code.lastIndex)
+        media.takeIf { span.none { code[it].writes(media) } && span.none { it in targets } }
+    }
+    return made.singleOrNull()
+}
+
+/** Whether [this], a call, hands [register] to the method it calls. */
+private fun Instruction.passes(register: Int): Boolean = when (this) {
+    is RegisterRangeInstruction -> register in startRegister until startRegister + registerCount
+    is FiveRegisterInstruction -> register in listOf(registerC, registerD, registerE, registerF, registerG).take(registerCount)
+    else -> false
+}
+
+/**
+ * The returns of [this], the reduced reel menu's list of options. It must answer a list, and each
+ * return's register must fit a plain call, next to one more register the hook loads Download into.
+ */
+internal fun Method.optionListReturns(): List<Int> {
+    val where = "$definingClass->$name"
+    if (returnType != "Ljava/util/ArrayList;" && returnType != "Ljava/util/List;") {
+        throw PatchException("$PATCH: $where, the reduced menu's options, doesn't answer a list")
+    }
+    val code = code()
+    val returns = code.indices.filter { code[it].opcode == Opcode.RETURN_OBJECT }
+    if (returns.isEmpty()) throw PatchException("$PATCH: $where, the reduced menu's options, never returns")
+    if ((implementation?.registerCount ?: 0) < 2) throw PatchException("$PATCH: $where has no register to spare")
+    returns.forEach { index ->
+        if ((code[index] as OneRegisterInstruction).registerA > 15) {
+            throw PatchException("$PATCH: $where returns its options from a register above v15")
+        }
+    }
+    return returns
+}
+
+internal fun Method.code(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
+
+private fun Instruction.referenceText(): String? = (this as? ReferenceInstruction)?.reference?.toString()
+
+/** The conditional branches, and the plain jumps. Opcode.name is the smali name, so they're listed. */
+private val BRANCHES = setOf(
+    Opcode.IF_EQ, Opcode.IF_NE, Opcode.IF_LT, Opcode.IF_GE, Opcode.IF_GT, Opcode.IF_LE,
+    Opcode.IF_EQZ, Opcode.IF_NEZ, Opcode.IF_LTZ, Opcode.IF_GEZ, Opcode.IF_GTZ, Opcode.IF_LEZ,
+)
+private val GOTOS = setOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32)
+private val STATIC_CALLS = setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE)
+
+private fun Instruction.calls(method: Method): Boolean {
+    val reference = (this as? ReferenceInstruction)?.reference as? MethodReference ?: return false
+    return reference.definingClass == method.definingClass && reference.name == method.name &&
+        reference.returnType == method.returnType &&
+        reference.parameterTypes.map(Any::toString) == method.parameterTypes.map(Any::toString)
+}
+
+private fun Method.calls(method: Method): Boolean = code().any { it.calls(method) }
+
+/** Whether [this] reads or calls anything of [type]. */
+private fun Instruction.touches(type: String): Boolean = when (val reference = (this as? ReferenceInstruction)?.reference) {
+    is FieldReference -> reference.definingClass == type
+    is MethodReference -> reference.definingClass == type
+    else -> false
+}
+
+/**
+ * Whether [this], a method calling [check], builds a menu of the reel menu's [helper]: it's one of
+ * the helper's own, or it reads or calls the helper on a path that runs the check. Redex merges
+ * lambdas into one method that switches on which lambda it is, and on 456's x86 build
+ * (`LX/0I3W;->invoke` on 386214575) the feed menu's builder shares one with a lambda of the reel
+ * menu, which touches the helper only in an arm the check is never on.
+ */
+internal fun Method.buildsReelMenu(helper: String, check: Method): Boolean {
+    if (definingClass == helper) return true
+    val code = code()
+    val uses = code.indices.filter { code[it].touches(helper) }
+    val at = code.indexOfFirst { it.calls(check) }
+    if (uses.isEmpty() || at < 0) return false
+    val flow = try {
+        ControlFlow.of(this)
+    } catch (unreadable: IllegalArgumentException) {
+        throw PatchException("$PATCH: unreadable control flow in $definingClass->$name: ${unreadable.message}")
+    }
+    val before = Array(code.size) { mutableListOf<Int>() }
+    code.indices.forEach { from -> (flow.normal[from] + flow.exceptional[from]).forEach { before[it] += from } }
+    val after = reach(at) { flow.normal[it] + flow.exceptional[it] }
+    val leading = reach(at) { before[it] }
+    return uses.any { it in after || it in leading }
+}
+
+/** Every index [next] leads to from [start], [start] included. */
+private fun reach(start: Int, next: (Int) -> List<Int>): Set<Int> {
+    val seen = HashSet<Int>()
+    val pending = ArrayDeque(listOf(start))
+    while (pending.isNotEmpty()) {
+        val at = pending.removeFirst()
+        if (seen.add(at)) next(at).forEach { pending += it }
+    }
+    return seen
+}
+
+private fun Instruction.writes(register: Int): Boolean {
+    if (!opcode.setsRegister()) return false
+    val first = (this as? OneRegisterInstruction)?.registerA ?: return false
+    return first == register || (opcode.setsWideRegister() && first + 1 == register)
+}

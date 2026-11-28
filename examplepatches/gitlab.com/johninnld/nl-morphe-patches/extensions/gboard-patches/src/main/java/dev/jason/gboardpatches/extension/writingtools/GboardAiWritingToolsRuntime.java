@@ -134,7 +134,9 @@ public final class GboardAiWritingToolsRuntime {
 
         if (FLAG_WRITING_HELPER_SUPPORTED_LANGUAGE_TAGS.equals(flagName)
                 || FLAG_LLM_PC_SUPPORTED_LANGUAGE_TAGS.equals(flagName)) {
-            return settings.allKeyboardsEnabled && originalResult instanceof String
+            boolean localBackend = GboardAiWritingToolsSettings.BACKEND_SHARED_LOCAL
+                    .equals(settings.backendType);
+            return (localBackend || settings.allKeyboardsEnabled) && originalResult instanceof String
                     ? ALL_LANGUAGES_ALLOWLIST_VALUE
                     : originalResult;
         }

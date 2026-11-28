@@ -1,5 +1,6 @@
 package io.github.sabopura.morphe.patches.twitch.login
 
+import io.github.sabopura.morphe.patches.twitch.support.TWITCH_MOVED_NOTE
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -32,7 +33,7 @@ internal fun unitCompletionField(method: Method, resolve: (String) -> ClassDef):
 @Suppress("unused")
 val fixLoginPatch = bytecodePatch(
     name = "Fix login",
-    description = "Optional workaround for the unsupported app/OS login error after re-signing. Skips Twitch's Play Integrity submission; leave off when login works.",
+    description = TWITCH_MOVED_NOTE + "Optional workaround for the unsupported app/OS login error after re-signing. Skips Twitch's Play Integrity submission; leave off when login works.",
     default = false,
 ) {
     compatibleWith(TWITCH_SUPPORTED)
